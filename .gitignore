@@ -1,0 +1,16 @@
+# Lean / Lake build artifacts
+.lake/
+build/
+
+# Source papers are downloaded locally for reference but NOT committed.
+prose/papers/*.pdf
+*.pdf
+
+# LaTeX / misc build artifacts
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.aux
+*.synctex
+*.tar.gz

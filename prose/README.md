@@ -1,0 +1,125 @@
+# DRSB prose — the published argument chain
+
+This folder transcribes the **chain of core mathematical arguments** behind the
+GaTech **Distributionally-Robust Schrödinger Bridge (DRSB)** evaluation cards, from
+the *published* theorems each link rests on. It mirrors the `prose/` convention of
+the sibling `aiq-dkps-formalization` repo: one faithful, math-carrying transcription
+per source, kept next to the Lean development so a formalizer can check statements
+without chasing PDFs.
+
+> **Why transcriptions and not the DRSB paper itself?** The DRSB manuscript
+> (referenced in code as `project: drsbm_paper`, "Eq. 47", "Algorithm 5: Relaxed
+> Schrödinger Bridge") and its companion **"TwoPager"** (PAC-Bayes Theorem 4) are
+> **unpublished GaTech team documents** — not on arXiv or any index as of 2026-07.
+> So the chain here is reconstructed from the *published* results it composes, plus
+> the DRSB Lean scaffolds (`V1.lean`, `V4.lean`, `WellKnown.lean`) and the eval cards
+> in `ta1/GaTech-DRSBM/magnet_eval/cards/`. Every place a statement comes from a team
+> document rather than a downloaded PDF is flagged in-file.
+
+## What DRSB claims
+
+DRSB trains a Schrödinger-bridge / stochastic-optimal-control (SOC) generative model
+and certifies a **distributionally-robust worst-case cost bound** on its value
+function
+$$
+V(x) \;=\; \mathbb E\!\left[\int_0^1 \tfrac12\|u_t\|^2\,dt \;+\; \rho\,g(X_1)\;\middle|\; X_0 = x\right].
+$$
+The two evaluation cards assert, for perturbations of the source distribution:
+$$
+\mathbb E_{\mu}[V(x)] \;\le\; \mathbb E_{\text{worst-case}}[V(x)],
+$$
+where the ambiguity set around the nominal $p_0$ is a **Wasserstein-2 ball**
+(`wdrsb_cost_bound.yaml`) or a **Sinkhorn-divergence ball** (`sdrsb_cost_bound.yaml`).
+The DRSB "Eq. 47" writes the SDRSB bound as
+$\;\text{Bound} = \mathbb E_{\text{wc}}[V] - \rho\,\log\mathbb E_\nu[e^{g(X_1)}]\;$ — an
+entropic **log-partition** term.
+
+## The chain, link by link
+
+Read top-to-bottom: each row is one step of the DRSB reduction, the prose file that
+transcribes it, the published theorem(s) it rests on, and the `V4.lean` (namespace
+`DRSB`) declaration it grounds.
+
+| # | Link in the DRSB argument | Prose file | Published anchor(s) | `V4.lean` decl |
+|---|---|---|---|---|
+| 1 | **SB ⇄ SOC ⇄ entropic-OT**, define $V$, optimal control $u^\*=\nabla\log\varphi$ (Hopf–Cole / Fleming) | [schrodinger-bridge-soc-ot.md](schrodinger-bridge-soc-ot.md) | Chen–Georgiou–Pavon (2005.10963) Prob. 4.3 / Thm 5.2; Léonard (1308.0215) Thm 5.2 (Γ→OT) | `schrodingerBridgeValue`, `socObjective`/`socValue`, `V0`, `optimal_control_eq_neg_grad_value` |
+| 2 | **Matching estimator** that produces the bridge, $u$, and terminal net $g$ | [sb-matching-generative.md](sb-matching-generative.md) | DSBM (2303.16852) Thm 8 + Alg. 1; GSBM (2310.02233) obj. (3), soft-terminal SOC (16a–b), Alg. 5; Adjoint Matching (2409.08861) Thm 1, loss (37)–(39) | `Dynamics`, `Control`, `Psi` (abstract); code's `AdjointMatcher`, `BridgeMatcher` |
+| 3W | **Wasserstein-DRO strong duality**: $\sup_{W_2^2\le\varepsilon}\mathbb E_\mu[\Psi]=\inf_{\lambda\ge0}\{\lambda\varepsilon+\mathbb E_{\hat\mu}[\sup_x(\Psi(x)-\lambda\|x-\hat x\|^2)]\}$ | [wasserstein-dro-duality.md](wasserstein-dro-duality.md) | Blanchet–Murthy (1604.01446) Thm 1 + Rmk 1 eq. (9); Gao–Kleywegt (1604.02199) Thm 1, Cor 1(ii)/Cor 2; Esfahani–Kuhn (1505.05116) Thm 4.2/4.4 | `wassersteinBall`, `W2sq`, `wdro_lagrangian_bound` (✅ proved, `≤`), `wdro_dual` (`sorry`, `≥`), `L_wdro`, `wdrsbDualObjective` |
+| 3S | **Sinkhorn-DRO strong duality**: `sup_x` becomes the **log-partition** $\lambda\kappa\log\int e^{(\Psi-\lambda\|\cdot\|^2)/(\lambda\kappa)}$; worst case is a **continuous Gibbs tilt** (= DRSB "Eq. 47") | [sinkhorn-dro-duality.md](sinkhorn-dro-duality.md) | Wang–Gao–Xie (2109.11926) Def. 1, **Thm 1** (Strong Duality I–IV), Rmk 4 | `sinkhornBall`, `Wkappa`, `sinkhornObjective`, `sdro_dual` (`sorry`, outer `≥`), `M_logPartition`, `gibbsUnnormalized`, `exists_worstCase_gibbsKernel`, `drsbValue_SDRO` |
+| ★ | **Root shared by 3S and 5** — Donsker–Varadhan / Gibbs variational formula; entropy-constrained worst case is the tilt $\propto e^{f/\lambda}$ | [kl-dro-gibbs-donsker-varadhan.md](kl-dro-gibbs-donsker-varadhan.md) | Donsker–Varadhan; Dupuis–Ellis; Hu–Hong (KL-DRO); Ben-Tal et al. (φ-div DRO) | `WellKnown.integral_le_klDiv_add_log_integral_exp`, `isGreatest_donskerVaradhan`, `log_integral_exp_eq_sSup` (all ✅ proved) |
+| 5 | **TwoPager Theorem 4** — PAC-Bayes bound for the clipped $g$: Hoeffding-MGF → DV change-of-measure → Chernoff | [pac-bayes-generalization.md](pac-bayes-generalization.md) | Alquier (2110.11216) Lem. 1.1 (Hoeffding), Lem. 2.2 (DV), Thm 2.1 (Catoni) | `WellKnown.hoeffding_mgf_bound`, `donsker_varadhan`, `markov_inequality_exp`; scaffold `pacBayes_exp_moment_le_one`, `exp_tail_of_moment_le_one`, `clip`/`gClip`/`BCE` |
+
+Steps **1 → 2** build the object $V$ (and $g$); steps **3W / 3S** are the actual
+card claim (worst-case cost bound); the **★** root is the single fact under both the
+Sinkhorn dual and the PAC-Bayes bound; step **5** is the companion generalization
+guarantee for the learned terminal cost.
+
+## What the Lean scaffold already proves vs. assumes
+
+The scaffolds are *old attempts, not canon* (per the coordinator) — but they pin down
+exactly which links are the hard ones:
+
+- **Proved (no `sorry`, no extra axioms):** the Donsker–Varadhan family in
+  `WellKnown.lean` (`integral_le_klDiv_add_log_integral_exp`,
+  `isGreatest_donskerVaradhan`, `log_integral_exp_eq_sSup`), the Hoeffding MGF bound,
+  and the WDRO **weak-duality** direction `wdro_lagrangian_bound` (the `≤` half that
+  the card's inequality actually rests on).
+- **Left as `sorry` (the genuinely hard seam):** the **strong-duality `≥` direction**
+  of both `wdro_dual` and `sdro_dual`. Both require constructing the worst-case
+  measure via an optimal-transport measurable-selection / argmax argument
+  (Gao–Kleywegt / Blanchet–Murthy for W; the Gibbs tilt for S) — machinery not in
+  Mathlib. The prose files ([wasserstein…](wasserstein-dro-duality.md) §worst-case,
+  [sinkhorn…](sinkhorn-dro-duality.md) Rmk 4) transcribe exactly the published
+  results a formalization of that direction would follow.
+
+## Symbol-convention warning (Sinkhorn)
+
+Wang–Gao–Xie use **$\varepsilon$ = entropic regularizer** and **$\rho$ = ball
+radius** — the *reverse* of naming intuition, and both collide with DRSB's own
+$\rho$ (terminal-cost weight) and $\varepsilon$ (perturbation budget). The Lean
+scaffold uses `kappa` for the regularizer and `eps` for the radius. See the mapping
+table in [sinkhorn-dro-duality.md](sinkhorn-dro-duality.md) before porting any
+symbol.
+
+## Sources (PDFs in `papers/`, git-ignored — never committed)
+
+Downloaded with `curl https://arxiv.org/pdf/<id>`; `.gitignore` excludes
+`prose/papers/*.pdf` and `*.pdf`. To refresh, re-download by arXiv id:
+
+**Schrödinger bridge / SOC / OT**
+- Chen, Georgiou, Pavon — *Stochastic control liaisons: Sinkhorn meets Monge on a Schrödinger bridge* — SIAM Review 2021 — [arXiv:2005.10963](https://arxiv.org/abs/2005.10963)
+- Léonard — *A survey of the Schrödinger problem and its connections with optimal transport* — 2013 — [arXiv:1308.0215](https://arxiv.org/abs/1308.0215)
+
+**Schrödinger-bridge matching (the estimator)**
+- Shi, De Bortoli, Campbell, Doucet — *Diffusion Schrödinger Bridge Matching* (DSBM) — NeurIPS 2023 — [arXiv:2303.16852](https://arxiv.org/abs/2303.16852)
+- Liu, Lipman, Nickel, Karrer, Theodorou, Chen — *Generalized Schrödinger Bridge Matching* (GSBM) — ICLR 2024 — [arXiv:2310.02233](https://arxiv.org/abs/2310.02233)
+- Domingo-Enrich, Drozdzal, Karrer, Chen — *Adjoint Matching: Fine-tuning … with Memoryless SOC* — ICLR 2025 — [arXiv:2409.08861](https://arxiv.org/abs/2409.08861)
+
+**Distributionally-robust optimization (the worst-case bound)**
+- Blanchet, Murthy — *Quantifying Distributional Model Risk via Optimal Transport* — Math. of OR 2019 — [arXiv:1604.01446](https://arxiv.org/abs/1604.01446)
+- Gao, Kleywegt — *Distributionally Robust Stochastic Optimization with Wasserstein Distance* — Math. of OR 2023 — [arXiv:1604.02199](https://arxiv.org/abs/1604.02199)
+- Mohajerin Esfahani, Kuhn — *Data-driven DRO Using the Wasserstein Metric* — Math. Prog. 2018 — [arXiv:1505.05116](https://arxiv.org/abs/1505.05116)
+- Wang, Gao, Xie — *Sinkhorn Distributionally Robust Optimization* — Operations Research 2023 — [arXiv:2109.11926](https://arxiv.org/abs/2109.11926)
+
+**PAC-Bayes generalization**
+- Alquier — *User-friendly introduction to PAC-Bayes bounds* — FnT ML 2024 — [arXiv:2110.11216](https://arxiv.org/abs/2110.11216)
+
+**Classical (books / non-arXiv, cited not transcribed):** Donsker–Varadhan (CPAM
+1975–83); Dupuis–Ellis, *A Weak Convergence Approach to Large Deviations* (1997);
+Ben-Tal et al., *Robust Solutions … Uncertain Probabilities* (Mgmt. Sci. 2013);
+Hu–Hong, *KL-Divergence Constrained DRO* (2013); Boucheron–Lugosi–Massart,
+*Concentration Inequalities* (2013).
+
+## Provenance & caveats
+
+- The DRSB manuscript and TwoPager are **unpublished**; their internal "Eq. 47",
+  "Algorithm 5", and Theorem-4 equation numbers (116)–(126) are taken from the code
+  comments / coordinator summary, not from a downloaded PDF, and are labeled as such
+  in-file. Confirm against the manuscript (contact: **Jinhwan Sul**, GaTech) before
+  citing those numbers as canonical.
+- The card claim text and the "Gaussian worst-case shift" closed form come from
+  `ta1/GaTech-DRSBM` code, not from any of the transcribed papers; the papers supply
+  the *structure* (transport map / Gibbs tilt) that makes that closed form exact.
+- The `V4.lean`/`V1.lean` declaration names are the *current scaffold's*; the
+  coordinator has noted these are reference-only old attempts. This prose is intended
+  to guide a fresh, canonical formalization, not to bless the scaffold.

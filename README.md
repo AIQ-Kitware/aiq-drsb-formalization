@@ -6,6 +6,12 @@ the sibling [`aiq-dkps-formalization`](../aiq-dkps-formalization): one top-level
 library per source paper, a paper-agnostic `ForMathlib` staging library, a
 `formalization.yaml`, and prose transcriptions of every source under [`prose/`](prose/).
 
+> 🧭 **New here — especially AI agents — start with [`AGENTS.md`](AGENTS.md).** It
+> codifies *why* this exists (formalizing MAGNET evaluation cards), the crucial
+> provenance caveats (the DRSB manuscript is unpublished), the published-theorem chain,
+> the working conventions, and the known traps. This README is just the build + library
+> map.
+
 > **Status: first-pass scaffold — statements only.** Every theorem is stated as
 > close to its published form as we could manage and left as `sorry`. No proofs are
 > attempted yet; the goal is to lock the *statements* to the papers. The whole

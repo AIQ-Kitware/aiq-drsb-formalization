@@ -104,6 +104,7 @@ Gibbs/entropy-penalised maximization whose value is the log-partition and whose
 maximizer is the exponential tilt. This is the Donsker–Varadhan / Gibbs variational
 principle (`ForMathlib.MeasureTheory.log_integral_exp_eq_sSup`). -/
 
+omit [NormedAddCommGroup X] in
 /-- **Lemma EC.2(II) / Donsker–Varadhan engine.** For fixed `xhat`, with tilted
 reward-per-temperature `A(ζ) = (f(ζ) − λ·c(xhat,ζ))/(λ·κ)`, the log-partition equals
 the Gibbs variational supremum over posteriors `μ ≪ ν`:
@@ -120,8 +121,10 @@ theorem logPartition_eq_gibbs_sSup
           Integrable (fun ζ => (f ζ - lam * c xhat ζ) / (lam * κ)) μ ∧
           Integrable (llr μ (ν : Measure X)) μ ∧
           r = (∫ ζ, (f ζ - lam * c xhat ζ) / (lam * κ) ∂μ)
-                - (InformationTheory.klDiv μ (ν : Measure X)).toReal } := by
-  sorry
+                - (InformationTheory.klDiv μ (ν : Measure X)).toReal } :=
+  -- Exactly the proved Donsker–Varadhan variational identity, applied to the
+  -- tilted-reward-per-temperature integrand `A(ζ) = (f ζ − λ·c(x̂,ζ))/(λ·κ)`.
+  ForMathlib.MeasureTheory.log_integral_exp_eq_sSup hint htilt
 
 /-! ## Remark 4: the Gibbs / exponential-tilt worst-case distribution -/
 
@@ -159,6 +162,7 @@ theorem exists_worstCase_gibbs
       (∀ xhat, IsProbabilityMeasure (P xhat)) ∧ GibbsWorstCase ν c f κ lam P := by
   sorry
 
+omit [NormedAddCommGroup X] in
 /-- **Remark 4 density is the Gibbs tilt** (prose Remark 4 density formula; the
 `Measure.tilted` form).  The worst-case conditional `γ*_x` equals the normalized
 exponential tilt `ν.tilted A` with `A(z) = (f(z) − λ·c(xhat,z))/(λ·κ)`, whose density
@@ -166,11 +170,15 @@ w.r.t. `ν` is `α_x · exp(A(z))`, `α_x = (∫ exp(A) dν)⁻¹`.  This is the
 full-support Gibbs conditional (contrast the Wasserstein worst-case's `n+1` atoms). -/
 theorem worstCase_conditional_tilted
     (ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ) (xhat : X)
-    (hint : Integrable (fun z => Real.exp ((f z - lam * c xhat z) / (lam * κ))) (ν : Measure X)) :
+    (_hint : Integrable (fun z => Real.exp ((f z - lam * c xhat z) / (lam * κ))) (ν : Measure X)) :
     (ν : Measure X).tilted (fun z => (f z - lam * c xhat z) / (lam * κ))
       = (ν : Measure X).withDensity (fun z => ENNReal.ofReal
           ((∫ u, Real.exp ((f u - lam * c xhat u) / (lam * κ)) ∂(ν : Measure X))⁻¹
             * Real.exp ((f z - lam * c xhat z) / (lam * κ)))) := by
-  sorry
+  -- `Measure.tilted ν A = ν.withDensity (z ↦ ofReal (exp (A z) / ∫ exp A dν))`;
+  -- the claim only rewrites `a / b` as `b⁻¹ * a` inside the density.
+  unfold MeasureTheory.Measure.tilted
+  congr 1 with z
+  rw [div_eq_inv_mul]
 
 end WangGaoXie2023

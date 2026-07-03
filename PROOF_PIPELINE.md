@@ -47,7 +47,7 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (12)
+## 2. Ranked remaining `sorry`s (11)
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
@@ -56,8 +56,9 @@ capstones, but the cards do not depend on it.
 > proved, each `le_antisymm(weak, attainment)` with the research-grade `≥` isolated to one
 > explicit **OT-attainment hypothesis** (not a `sorry`). `WangGaoXie2023.primal_feasible_iff`
 > is resolved (see below). The **finite-Sinkhorn-scaling existence** (`SinkhornScaling`, T3)
-> is now **PROVED** (axiom-clean; see below). The **12** remaining `sorry`s are the genuine
-> T4 frontier: the 6 SDE/PDE controls in `ChenGeorgiouPavon2021` and the 6
+> is now **PROVED** (axiom-clean; see below). `dataDriven_strongDuality_cor2i` is also now
+> PROVED (house pattern; see §T4 note). The **11** remaining `sorry`s are the genuine
+> T4 frontier: the 6 SDE/PDE controls in `ChenGeorgiouPavon2021` and the 5
 > worst-case-*structure* corollaries in `GaoKleywegt2023`/`MohajerinEsfahaniKuhn2018`.
 
 ### On the card critical path (do these first)
@@ -115,10 +116,23 @@ Fable ticket or a focused session.
 
 **Worst-case *structure*** (the `≥`/attainment equalities are already discharged modulo an
 explicit attainment hypothesis; what remains as `sorry` is the *shape* of the worst-case
-measure): `GaoKleywegt2023.{worstCase_structure_cor1, dataDriven_strongDuality_cor2i,
-dataDriven_worstCase_cor2ii}`, `MohajerinEsfahaniKuhn2018.{worstCaseExpectation_eq_dual,
-worstCase_program, worstCase_exists}` (6).
+measure): `GaoKleywegt2023.{worstCase_structure_cor1, dataDriven_worstCase_cor2ii}`,
+`MohajerinEsfahaniKuhn2018.{worstCaseExpectation_eq_dual, worstCase_program, worstCase_exists}`
+(5).
 *Need OT measurable-selection / worst-case-measure construction — absent from Mathlib.*
+
+> **`dataDriven_strongDuality_cor2i` — PROVED (2026-07, house pattern).** The data-driven
+> strong-duality *equality* `v_P = empiricalDual` (eq. 28) is now discharged, axiom-clean:
+> it is the general `strong_duality_thm1` (`v_P = v_D`, weak-`≤` from the ForMathlib kernel +
+> the isolated attainment edge `hattain`) composed with the **new sorry-free reduction**
+> `GaoKleywegt2023.dualValue_eq_empiricalDual` (`v_D = empiricalDual` for the empirical `ν`,
+> a direct integral-against-empirical-measure computation under `[MeasurableSingletonClass X]`).
+> So this is the same `le_antisymm(weak, attainment)` posture as every other strong-duality
+> equality here — the `≥` isolated to one explicit hypothesis, not a `sorry`. A 2026-07-03
+> survey pass (flow-sinkhorn / lean-stat-learning-theory / Mathlib) confirmed **no external
+> Lean library** supplies a finite Kantorovich/LP strong duality to discharge `hattain`
+> outright; the finite worst-case is the explicit ≤(N+1)-atom construction of `cor2ii` (below,
+> still open) — that, not an import, is what would make it fully sorry-free.
 
 **SDE / PDE / path-measure** (no Mathlib SDE theory):
 `ChenGeorgiouPavon2021.{energy_identity (Girsanov), optimal_control_eq_grad_log,
@@ -235,7 +249,7 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
    no Fable** — F2 axiom-clean via log-domain minimization (Brouwer/Birkhoff absent).
 4. ~~**us:**~~ ✅ `Drsb.{wdrsb,sdrsb}_cost_bound` and both `*_strong_duality` re-exports
    closed; `Drsb` is sorry-free.
-5. **remaining (the 12 `sorry`s):** the T4 SDE/PDE controls + worst-case-*structure*
+5. **remaining (the 11 `sorry`s):** the T4 SDE/PDE controls + worst-case-*structure*
    corollaries. Per the user (2026-07): **no Fable** — break each into natural subproblems
    and prove step-by-step. The SDE/PDE and OT-measurable-selection blocks may still need a
    documented `axiom` or a Mathlib-infrastructure lift; decide with the coordinator.

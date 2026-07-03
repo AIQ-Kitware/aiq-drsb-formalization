@@ -306,7 +306,7 @@ The **`Drsb` capstone** composes the above:
   (4.19) — the quantity the card measures (§3). The continuous `energy_identity` stays a bare
   `sorry` (count unchanged at 12); the single remaining edge is the Δt→0 SDE limit
   (PROOF_PIPELINE §2).
-- **Remaining `sorry`s (12)** are the genuine **T4** frontier:
+- **Remaining `sorry`s (11)** are the genuine **T4** frontier:
   - **SDE/PDE controls (6, `ChenGeorgiouPavon2021`):** `energy_identity` (Girsanov),
     `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB),
     `dynamic_eq_static_SB` (Léonard gluing), `optimal_coupling_factorization`. No Mathlib

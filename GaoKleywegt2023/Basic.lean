@@ -255,20 +255,81 @@ noncomputable def empiricalDual {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ)
     v = lam * δ
         - (1 / (N : ℝ)) * ∑ i : Fin N, sInf (Set.range (fun ξ => lam * c ξ (xhat i) - Ψ ξ)) }
 
+/-- **Empirical dual = specialized general dual (sorry-free reduction).** When the
+nominal `ν` is the empirical measure `(1/N) Σᵢ δ_{ξ̂ᵢ}`, the Gao–Kleywegt dual `dualValue`
+(an expectation of the Moreau–Yosida inner map `Φ` against `ν`) collapses to the finite
+average `empiricalDual`: for every multiplier `λ`,
+`𝔼_ν[Φ(λ,·)] = (1/N) Σᵢ Φ(λ, ξ̂ᵢ)` (and `Φ(λ, ζ) = inf_ξ(λ c(ξ,ζ) − Ψ(ξ))` is exactly
+`empiricalDual`'s per-sample term), so the two `inf_{λ≥0}` objectives coincide.
+
+Axiom-clean; a direct integral-against-empirical-measure computation — each `∫ · d(δ_{ξ̂ᵢ})`
+is `integral_dirac`, valid for *any* real integrand under `[MeasurableSingletonClass X]`, so
+no measurability/integrability side-condition on `Φ` is needed. This is the honest content
+that turns the general Gao–Kleywegt duality into the data-driven form eq. (28). -/
+theorem dualValue_eq_empiricalDual [MeasurableSingletonClass X]
+    {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X)
+    (xhat : Fin N → X) (δ : ℝ) (hN : 0 < N)
+    (hν : (ν : Measure X) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, Measure.dirac (xhat i)) :
+    dualValue c Ψ ν δ = empiricalDual c Ψ xhat δ := by
+  -- 𝔼_ν[g] = (1/N) ∑ᵢ g(ξ̂ᵢ) for any real g (integral against the empirical measure)
+  have hexp : ∀ g : X → ℝ, expect ν g = (1 / (N : ℝ)) * ∑ i : Fin N, g (xhat i) := by
+    intro g
+    unfold expect
+    rw [hν, integral_smul_measure,
+      integral_finsetSum_measure (fun i _ => integrable_dirac enorm_lt_top)]
+    simp_rw [integral_dirac]
+    rw [ENNReal.toReal_inv, ENNReal.toReal_natCast, smul_eq_mul, one_div]
+  -- the two `inf_{λ≥0}` objective sets coincide term-by-term in λ
+  unfold dualValue empiricalDual
+  congr 1
+  ext v
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · rintro ⟨lam, hlam, rfl⟩
+    exact ⟨lam, hlam, by rw [hexp (fun ζ => Phi c Ψ lam ζ)]; simp only [Phi]⟩
+  · rintro ⟨lam, hlam, rfl⟩
+    exact ⟨lam, hlam, by rw [hexp (fun ζ => Phi c Ψ lam ζ)]; simp only [Phi]⟩
+
 /-- **Corollary 2(i) — data-driven strong duality, eq. (28).** *For
 `ν = (1/N) Σᵢ δ_{ξ̂ᵢ}`, `p ∈ [1,∞)`, `θ > 0`: the primal has strong dual*
 `v_P = v_D = inf_{λ≥0}{ λ θᵖ − (1/N) Σᵢ inf_ξ(λ dᵖ(ξ,ξ̂ᵢ) − Ψ(ξ)) }` (prose §2.3,
 Corollary 2(i)). Here `hν` fixes `ν` as the empirical measure on the sample
-`xhat : Fin N → X` and `δ = θᵖ`. -/
-theorem dataDriven_strongDuality_cor2i
+`xhat : Fin N → X` and `δ = θᵖ`.
+
+Proof (house pattern): the empirical case is the general Gao–Kleywegt strong duality
+`strong_duality_thm1` (`primalValue = dualValue`) composed with the sorry-free reduction
+`dualValue_eq_empiricalDual` (`dualValue = empiricalDual` for empirical `ν`). The weak
+`≤` half is genuinely proved (from the ForMathlib Lagrangian kernel via
+`weak_duality_prop1`); the research-grade `≥`/attainment is isolated to the single explicit
+edge `hattain` (the worst-case-measure existence — §6), exactly as in `strong_duality_thm1`.
+For the *finite* empirical nominal `hattain` is discharged by an explicit ≤(N+1)-atom
+construction (Corollary 2(ii), `dataDriven_worstCase_cor2ii`), still open here. -/
+theorem dataDriven_strongDuality_cor2i [MeasurableSingletonClass X]
     {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X)
     (xhat : Fin N → X) (δ : ℝ)
     (hN : 0 < N)
     (hν : (ν : Measure X) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, Measure.dirac (xhat i))
     (hΨ : Integrable Ψ (ν : Measure X))   -- Ψ ∈ L¹(ν)
-    (hδ : 0 < δ) :                        -- δ = θᵖ with θ > 0
-    primalValue c Ψ ν δ = empiricalDual c Ψ xhat δ := by
-  sorry
+    (hδ : 0 < δ)                          -- δ = θᵖ with θ > 0
+    (hκ : kappa c Ψ ν ≠ ⊤)               -- κ < ∞ (finiteness gate, as in strong_duality_thm1)
+    -- weak-duality edges (proved kernel side), identical to `strong_duality_thm1`:
+    (hfeas : (ambiguitySet c ν δ).Nonempty)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,
+        BddAbove (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun ζ => sSup (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ))) (ν : Measure X))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → Integrable Ψ (μ : Measure X))
+    (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ ν ∧ couplingCost c π ≤ δ + η ∧
+          Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
+    -- the `≥`/attainment edge (the §6 OT worst-case-measure seam), as in `strong_duality_thm1`:
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
+    (hattain : ∃ μ : ProbabilityMeasure X,
+        μ ∈ ambiguitySet c ν δ ∧ expect μ Ψ = dualValue c Ψ ν δ) :
+    primalValue c Ψ ν δ = empiricalDual c Ψ xhat δ :=
+  (strong_duality_thm1 c Ψ ν δ hΨ hδ hκ hfeas hbdd hφint hΨμ hOT hbddP hattain).trans
+    (dualValue_eq_empiricalDual c Ψ ν xhat δ hN hν)
 
 /-- **Corollary 2(ii) — data-driven worst-case distribution, eq. (29).** *Whenever
 a worst-case distribution exists, there is one supported on at most `N+1` points,*

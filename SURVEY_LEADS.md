@@ -8,7 +8,25 @@ later** — many of these are moving targets (open PRs, active repos).
 **Last swept: 2026-07-03** (multiple web-survey passes by the coordinator; provenance
 uneven; still not exhausted — next layer is generated-proof corpora + declaration search
 indices, below).
-**Before depending on ANY lead: verify its build status, `sorry` inventory, and license.**
+
+> ## ⚖️ Vendoring & attribution policy (READ before pulling in ANY external proof)
+> Nothing here is vendored yet. When we DO adapt/copy an external proof, provenance is
+> mandatory — verified truth does not waive credit or licensing:
+> 1. **License first.** Confirm the source license permits reuse and is compatible with
+>    ours (Apache-2.0). Mathlib is Apache-2.0; other repos vary (check, don't assume).
+>    Record the license in the vendored file and in this registry row.
+> 2. **Credit the original author** in the file header — name/handle, repo URL, and the
+>    **source commit hash** (a permalink), plus "adapted by …" if we modified it. Mirror
+>    the DKPS `ForMathlib` header convention ("Formalized by … ; golfed by …").
+> 3. **Keep upstream license/notices** (e.g. bundle their `LICENSE`, keep copyright
+>    headers) when copying verbatim; mark derivative works as such.
+> 4. **Provenance metadata**: log source repo + commit + license + retrieval date in the
+>    file and in `formalization.yaml` (and, for `mathlib-slop`, its per-theorem ledger).
+> 5. Prefer **re-deriving from the statement** over copying when the license is unclear —
+>    an independently authored proof of the same theorem sidesteps the licensing question
+>    (and multiple proofs are welcome anyway).
+>
+> **Before depending on ANY lead: verify its build status, `sorry` inventory, AND license.**
 Legend: ⭐ high value · ⚠ low-trust/scaffold · 🔁 moving target (re-check).
 Where only a project name is given (no org), find via GitHub **code search** on the
 distinctive filename; URLs are recorded when the source gave an exact org/repo.
@@ -24,7 +42,7 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 | ⭐ **Mathlib PF PR cluster** 🔁 | #39919 (Collatz–Wielandt / Perron root), #39920 (PF for primitive matrices), #39917 (aux) — https://github.com/leanprover-community/mathlib4/pull/39919 etc. | 3 | Mathlib-native; build PF on these so upstream composes. |
 | Mathlib PF merged infra | https://github.com/leanprover-community/mathlib4/pull/28728 | 3 | Irreducible+Primitive matrices + Quiver links (merged Jul 2025). |
 | Mathlib `cgf`/`mgf` | https://leanprover-community.github.io/mathlib4_docs/Mathlib/Probability/Moments/Basic.html | 2 | log-partition = `ProbabilityTheory.cgf`. Use. |
-| ⭐ **`StatLean` / `Stat-Lean`** | GitHub code search: `KLDivergence.lean`, `PinskerInequality.lean`, `GaussianKLMulti.lean` | 2 | native KL / Pinsker / Gaussian-KL / Fano / mutual-info; "for-Mathlib" quality — could ease the outer DV/Lagrangian layer |
+| ⭐ **`StatLean` / `Stat-Lean`** | GitHub code search: `KLDivergence.lean`, `Entropy.lean`, `PinskerInequality.lean`, `GaussianKLMulti.lean`, `Fano/MutualInformation.lean` | 2 | native KL / entropy / Pinsker / Gaussian-KL / Fano / mutual-info; "for-Mathlib" quality — **first repo to inspect after Mathlib for Chain 2** |
 | ⭐ **Mathlib doubly-stochastic API** | `Analysis/Convex/Birkhoff.lean`, `Analysis/Convex/DoublyStochasticMatrix.lean`, `LinearAlgebra/Matrix/Stochastic.lean` | 3 | native finite-dim stochastic/doubly-stochastic matrix API — **start the Sinkhorn build here**, not from PF (see FOUNDATIONS.md Chain 3) |
 
 ## Chain 2 — Donsker–Varadhan / KL / Gibbs / PAC-Bayes
@@ -40,7 +58,8 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 | `hawkrobe/linglib` | https://github.com/hawkrobe/linglib | mixed | `GibbsVariational.lean`, RSA Gibbs material |
 | `the-omega-institute/automath` | https://github.com/the-omega-institute/automath | mixed | `XiReverseKLDVPoissonVariational.lean` (reverse-KL DV) |
 | `FujiHaruka/information-theory` | https://github.com/FujiHaruka/information-theory | mixed | KL variational lower / Fatou / inventory docs |
-| `szl-holdings/lutar-lean` | https://github.com/szl-holdings/lutar-lean | mixed | `TimeUniformPACBayes.lean` |
+| `szl-holdings/lutar-lean` | https://github.com/szl-holdings/lutar-lean | mixed | `Wave14/LogSumInequality`, `Wave6/SubGaussianKL`, `Wave9/TimeUniformPACBayes`; mirror at `szl-holdings/a11oy` (`lutar-lean__Lutar.lean` — corpus artifact) |
+| Quantum relative-entropy repos (lemma-mining only) | `zblore/csd-lean4` (`QuantumInfo/StrongSubadditivity`), `leanprover-community/physlib`, `Timeroot/Lean-QuantumInfo`, `Hayata-Yamasaki-Group/lean-quantum`, `LionSR/TNLean` (`KleinInequality`, `VonNeumann`) | mixed | matrix entropy / trace-log / relative-entropy convexity / data-processing lemmas — mine, not direct deps |
 | `bangyen/leansharp` | https://github.com/bangyen/leansharp | mixed | `PacBayesBasis.lean` |
 | `mlinegar/ThinkingTrees` ⚠ | https://github.com/mlinegar/ThinkingTrees | — | Lean 3, variational-bound-adjacent; likely stale |
 
@@ -51,6 +70,9 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 | AMBER (Construction-Verification) | https://arxiv.org/abs/2602.01291 | applied-math bench: convex analysis, optimization, numerical algebra, high-dim prob — closest terrain for Fenchel scaffolding |
 | CAM-Bench | https://arxiv.org/abs/2605.17255 · repo `optpku/CAM-Bench` https://github.com/optpku/CAM-Bench | 1000 applied-math Lean targets (optimization, numerical LA) |
 | `iamkarthikbk/edith` ⚠ | https://github.com/iamkarthikbk/edith | `GeometricProgramming.lean`; low-trust, convex/duality-adjacent |
+| `hxrts/stat-mech` | https://github.com/hxrts/stat-mech | `StatMech/Hamiltonian/Legendre.lean` — finite-dim Legendre-transform skeleton (best adjacent Fenchel hit) |
+| CAM-Bench `problem-100.lean` | repo `optpku/CAM-Bench` https://github.com/optpku/CAM-Bench · https://arxiv.org/abs/2605.17255 | recurs around convex-conjugate / Legendre queries; applied convex-analysis fragments |
+| `atlas-lean`, `ReasBook` ⚠ | GitHub code search | flagged in the search map for Chain-1 roots; low-trust, verify |
 | Mathlib `label:LLM-generated Analysis Convex Gauge` | (PR search, see recipes below) | Convex/Gauge API terrain — not Fenchel, but adjacent |
 
 ## Chain 1-heavy — Kantorovich / Wasserstein / general OT (scaffolds only; defer)
@@ -88,7 +110,7 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 | Tool | Link | Use |
 |---|---|---|
 | LeanExplore | https://arxiv.org/abs/2506.11085 | indexes declarations across many Lean packages; downloadable DB/API |
-| LeanSearch v2 | https://arxiv.org/abs/2605.13137 | global-premise retrieval + benchmark |
+| LeanSearch v2 | https://arxiv.org/abs/2605.13137 · repo `frenzymath/LeanSearch-v2` (`benchmark/MathlibQR.json`) | global-premise retrieval + benchmark; query for premise groups (stochastic matrices, convexity, KL, Sion, Birkhoff) |
 | Moogle / LeanSearch / `loogle` | (web) | quick premise/lemma lookup by type/name |
 
 Use these for the *supporting* lemmas (convexity, stochastic matrices, KL, finite sums,
@@ -137,6 +159,33 @@ Feynman Kac · Girsanov · Ito
   #38104 (MeasureTheory), #38144 (NumberTheory); query "Extracted from #37968".
 - **Zulip `AI-authored-projects`** channel — closed/generated-PR discovery surface
   (also the `AI-assisted MDS and spectral PRs` topic).
+
+## Exhaustion status & the next frontier (as of 2026-07-03)
+
+**Manual discovery (web / GitHub / Zulip / registry) is ~saturated** — diminishing returns
+after several passes. **The remaining frontier is bulk corpus mining**: scripted exact +
+fuzzy search over the generated-proof datasets and declaration indices (above). Only if a
+corpus pass over the query terms below also comes up empty is the search *genuinely*
+exhausted.
+
+| Surface | Exhausted? | Verdict |
+|---|---|---|
+| GitHub exact theorem search | yes | diminishing returns |
+| Mathlib PR/issue (label/closed) | mostly | maybe one more label pass, low yield |
+| Zulip archive | **no** | READ the exact DV & PF threads, don't just locate them |
+| Reservoir / package registry | mostly | low yield |
+| **Generated-proof corpora** | **no** | the remaining frontier — bulk-query it |
+| Chain 3 sources | no | Mathlib doubly-stochastic base + `flow-sinkhorn` still to inspect |
+| Chain 2 sources | no | `StatLean`, DV Zulip, `gibbs-variational` still to audit |
+| Chain 1-heavy OT | mostly (manually) | likely absent bar finite/scaffold fragments |
+| Chain 4 | enough for now | defer |
+
+**Next concrete move:** download/index `Lean-GitHub`, `Lean-Workbook` searched proofs,
+`OProofs` (if accessible), `LeanNavigator`, `LeanSearch-v2` data, `LeanExplore` DB,
+`CAM-Bench`, `AMBER` (also `Pythagoras-Prover`/ALF, arXiv 2606.12594); then exact+fuzzy
+grep the query-terms block above (Sinkhorn, matrix scaling, doubly stochastic, Birkhoff,
+Perron, Collatz, KL, Pinsker, Donsker, Varadhan, Fenchel, Legendre, convex conjugate,
+Sion, Kantorovich, Wasserstein, coupling, cTransform, Ito, Girsanov, FeynmanKac).
 
 ## Re-check cadence
 The 🔁 items (flow-sinkhorn, the PF PR cluster, brownian-motion, formal-mathfin) are

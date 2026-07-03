@@ -183,6 +183,11 @@ Mirror DKPS's `Challenge/MathlibCandidate/<Name>/`:
 3. **Golf** the winner (Opus, `mathlib-quality`), stage in `ForMathlib/<dest>.lean`,
    rewire the paper library to consume it (as `exists_worstCase_gibbs` /
    `sinkhorn_potentials_exist` do), update `formalization.yaml` + `PROOF_PIPELINE.md`.
+4. **Provenance (mandatory if adapted/vendored).** Record original author, source repo +
+   **commit permalink**, license (must be Apache-2.0-compatible), and retrieval date in
+   the file header + `formalization.yaml`; keep upstream notices. Verified truth never
+   waives credit — see `SURVEY_LEADS.md`'s vendoring policy. Prefer re-deriving from the
+   statement when the license is unclear.
 
 ### Priority order for the survey
 1. ⭐ **`gpeyre/flow-sinkhorn`** — spans Chain 3 (Sinkhorn) + Chain 1-heavy (entropic-OT); best payoff if its `sorry` inventory is thin.

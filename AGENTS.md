@@ -10,7 +10,10 @@ upstreaming queue), [`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *c
 under DRSB — DKPS-style — with grep-verified Mathlib gaps and search terms for mining
 existing AI/human Lean proofs), [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (dated, link-rich
 registry of external Lean repos / Mathlib PRs / generated-proof corpora to mine and
-re-check).
+re-check — includes the **vendoring & attribution policy**), and
+[`PAPER.md`](PAPER.md) (the draft narrative for the AI-formalization method paper: the
+*survey-and-stage* method, the related-work survey, and **SLOP** = *Sound Library of Open
+Proofs*, the proposed permissive/searchable home for verified AI proofs).
 
 ---
 

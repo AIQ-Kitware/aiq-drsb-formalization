@@ -250,6 +250,27 @@ The **`Drsb` capstone** composes the above:
       third statement issue found this pass; ess-sup convention unencoded).
     The cards need only the `≤` direction, so the strong-duality `≥` seams remain `sorry`
     and are *not* on the card path.
+  - **General duality + the "strong = weak + attainment" pattern** (axiom-clean):
+    `GaoKleywegt2023.weak_duality_prop1` (general Wasserstein `v_P ≤ v_D`, via the kernel +
+    coupling ε-approx + the unconditional `Real.sSup_neg` for `Φ`↔sup-form) and
+    `GaoKleywegt2023.strong_duality_thm1` = `le_antisymm(weak, attainment)` — the `≥` is a
+    single explicit **attainment edge**, isolating the whole strong-duality gap to that one
+    OT measurable-selection fact. `Drsb.wdrsb_strong_duality` delegates to it (`sqCost`
+    symmetric ⇒ `Lc = −Φ`), completing the **WDRSB capstone** (cost bound + strong duality).
+  - **Both weak-duality kernels are staged in `ForMathlib.OT`** (paper-agnostic,
+    upstreamable): `expect_le_dualIntegrand_add_lam_couplingCost` (Wasserstein) and
+    `expect_kernel_le_lam_sinkhornBudget_add_logPartition` (entropic/Sinkhorn) — the two
+    "from-scratch" Mathlib gaps the cards descend from.
+  - **Atop-a-sorry reductions** (concentrate debt, not axiom-clean):
+    `ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC` (sInf-translation atop
+    `energy_identity`) and `optimal_control_eq_neg_grad_value` (atop
+    `optimal_control_eq_grad_log` + a `grad`-negation edge).
+- **Remaining `sorry`s (17)** are all either the heavy capstone strong dualities
+  (`sdrsb_strong_duality`, `BlanchetMurthy.wdro_strong_duality`, `WangGaoXie.strong_duality`
+  — provable via weak+attainment but with unwieldy per-μ disintegration/orientation
+  bundles) or genuine **T4** (SDE/Girsanov `energy_identity`, PDE controls, Léonard gluing,
+  OT measurable-selection worst-case structure, Mohajerin reformulation, finite Sinkhorn
+  scaling). All need mathematics not in Mathlib or a large infrastructure lift.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Headline: the **card cost bounds need only WEAK duality** (`≤`), so the tractable
   critical path is `weak_duality_prop1` (T3, Fable) → `Drsb.*_cost_bound` (T2). The

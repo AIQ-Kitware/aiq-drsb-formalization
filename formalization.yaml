@@ -100,7 +100,7 @@ sources:
     library: "Drsb"   # capstone, composed from the libraries above
 
 status:
-  phase: "BOTH evaluation-card claims (WDRSB + SDRSB cost bounds) PROVED, axiom-clean"
+  phase: "BOTH card cost bounds + general Wasserstein weak/strong duality + WDRSB capstone PROVED (axiom-clean); 17 sorry (heavy strong-duality bundles + genuine T4)"
   policy: >
     First pass established theorem STATEMENTS as close to the published results as
     possible (verified against prose/). The proof pass discharges the tractable/

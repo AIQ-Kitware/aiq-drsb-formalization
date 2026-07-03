@@ -191,13 +191,18 @@ The **`Drsb` capstone** composes the above:
   NOT the product of the two coupling marginals. The old `ForMathlib.OT.Wkappa`/
   `sinkhornBall` used `μ⊗μ̂` (marginals) and so mismatched the dual. Now:
   `Wkappa κ ν μ̂ μ`, `sinkhornBall μ̂ ν κ ε` carry `ν`; consumers (`WangGaoXie2023.strong_duality`,
-  `primal_feasible_iff`, `Drsb.sdrsb_*`) thread it. See `prose/sinkhorn-dro-duality.md`
+  `primal_feasible_radius_nonneg`, `Drsb.sdrsb_*`) thread it. See `prose/sinkhorn-dro-duality.md`
   (audit-correction admonition).
-- **`WangGaoXie2023.primal_feasible_iff` still `sorry` and still to be re-audited.** With
-  the OLD (marginal-product) reference it was outright false (`Wkappa κ μ̂ μ̂ > 0` for a
-  non-degenerate nominal). With the corrected external-`ν` reference, feasibility is the
-  paper's Theorem 1(I), but its Lean proof needs the KL-nonnegativity + Lemma-2
-  reformulation; confirm the statement against the corrected `sinkhornBall` before proving.
+- **`WangGaoXie2023.primal_feasible_iff` → `primal_feasible_radius_nonneg` (RESOLVED
+  2026-07).** The naive `Nonempty ↔ 0 ≤ ε` is **false** for the raw `Wkappa` ball: even
+  with the corrected external-`ν` reference, `Wkappa κ ν μ̂ μ̂ > 0` for a non-degenerate
+  nominal (the entropic term forbids the diagonal coupling), so the ball's true
+  nonemptiness threshold is the free energy `−κ·𝔼_μ̂[log ∫ e^{−c/κ} dν] ≥ 0`, generically
+  `> 0`. Restated & **proved** as the honest **necessity** half — `0 ≤ κ ⇒ (Nonempty →
+  0 ≤ ε)`, immediate from `Wkappa ≥ 0`. The paper's full `↔ ρ ≥ 0` (Theorem 1(I)) holds
+  only after the reference-kernel/`ρ̄` reformulation to the KL-ball; its sufficiency
+  direction is the worst-case-measure **attainment** edge (T4, deferred). The decl
+  docstring records the full derivation.
 
 ---
 
@@ -248,8 +253,8 @@ The **`Drsb` capstone** composes the above:
       over `p₀`) with `budget ≤ ε`, under `hκ>0` + the Sinkhorn attainment+disintegration
       edge `hSink`; dual restricted to `0<lam` (the `lam=0` `logPartition` is junk — a
       third statement issue found this pass; ess-sup convention unencoded).
-    The cards need only the `≤` direction, so the strong-duality `≥` seams remain `sorry`
-    and are *not* on the card path.
+    The cards need only the `≤` direction; the strong-duality `≥` seams are now discharged
+    too (below), each modulo one explicit attainment hypothesis rather than a `sorry`.
   - **General duality + the "strong = weak + attainment" pattern** (axiom-clean):
     `GaoKleywegt2023.weak_duality_prop1` (general Wasserstein `v_P ≤ v_D`, via the kernel +
     coupling ε-approx + the unconditional `Real.sSup_neg` for `Φ`↔sup-form) and
@@ -265,18 +270,32 @@ The **`Drsb` capstone** composes the above:
     `ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC` (sInf-translation atop
     `energy_identity`) and `optimal_control_eq_neg_grad_value` (atop
     `optimal_control_eq_grad_log` + a `grad`-negation edge).
-- **Remaining `sorry`s (17)** are all either the heavy capstone strong dualities
-  (`sdrsb_strong_duality`, `BlanchetMurthy.wdro_strong_duality`, `WangGaoXie.strong_duality`
-  — provable via weak+attainment but with unwieldy per-μ disintegration/orientation
-  bundles) or genuine **T4** (SDE/Girsanov `energy_identity`, PDE controls, Léonard gluing,
-  OT measurable-selection worst-case structure, Mohajerin reformulation, finite Sinkhorn
-  scaling). All need mathematics not in Mathlib or a large infrastructure lift.
+  - **ALL strong-duality *equalities* proved** (2026-07), each `le_antisymm(weak,
+    attainment)` with the `≥` isolated to one explicit OT-attainment hypothesis:
+    `BlanchetMurthy2019.wdro_strong_duality` (primary Wasserstein), `WangGaoXie2023.strong_duality`
+    (Sinkhorn Theorem 1(II)), and the two **`Drsb` capstones** `wdrsb_strong_duality` /
+    `sdrsb_strong_duality` — **`Drsb` is now sorry-free** (all four card+duality results land).
+  - `WangGaoXie2023.primal_feasible_radius_nonneg` (was the mis-stated `primal_feasible_iff`)
+    — the honest necessity half of Theorem 1(I), `0 ≤ κ ⇒ (Nonempty → 0 ≤ ε)`, axiom-clean
+    (see §6). Sufficiency is the deferred ρ̄-ball attainment edge.
+- **Remaining `sorry`s (13)** are the genuine **T4** frontier plus one **T3**:
+  - **SDE/PDE controls (6, `ChenGeorgiouPavon2021`):** `energy_identity` (Girsanov),
+    `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB),
+    `dynamic_eq_static_SB` (Léonard gluing), `optimal_coupling_factorization`. No Mathlib
+    SDE / path-measure theory.
+  - **Worst-case *structure* (6):** `GaoKleywegt2023.{worstCase_structure_cor1,
+    dataDriven_strongDuality_cor2i, dataDriven_worstCase_cor2ii}` +
+    `MohajerinEsfahaniKuhn2018.{worstCaseExpectation_eq_dual, worstCase_program,
+    worstCase_exists}`. Need OT measurable-selection / worst-case-measure construction.
+  - **Finite Sinkhorn scaling (1, T3):** `ForMathlib.…SinkhornScaling.sinkhorn_potentials_exist`
+    (consumed by `ChenGeorgiouPavon2021.sinkhorn_potentials_exist`). Self-contained;
+    build on Mathlib's Birkhoff / doubly-stochastic infra.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
-  Headline: the **card cost bounds need only WEAK duality** (`≤`), so the tractable
-  critical path is `weak_duality_prop1` (T3, Fable) → `Drsb.*_cost_bound` (T2). The
-  strong-duality `≥` / SDE-PDE block is T4 (not in Mathlib) — defer/axiomatize. The
-  ForMathlib upstreaming queue (DV ✓, Normalization ✓, WeakDuality 🔜, SinkhornScaling 🔜)
-  is the "Mathlib-contributable proofs" pipeline.
+  Per the user (2026-07): **no Fable** — decompose each remaining target into its natural
+  subproblems and prove step-by-step with the thinking budget turned up. The SDE/PDE and
+  OT-measurable-selection blocks may still need a documented `axiom` or a Mathlib-infra lift
+  (decide with the coordinator; needs the DRSB manuscript, §2). ForMathlib upstreaming queue:
+  DV ✓, Normalization ✓, WeakDuality ✓ (both kernels), SinkhornScaling 🔜.
 - When a `reference/` result is validated and promoted, update `reference/README.md`.
 
 ## Resource accounting — the resource cost of the LLM work (CRITICAL: DO THIS EVERY COMMIT)

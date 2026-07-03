@@ -47,7 +47,18 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (23)
+## 2. Ranked remaining `sorry`s (13)
+
+> **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
+> and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
+> paper-level strong-duality *equalities* (`BlanchetMurthy2019.wdro_strong_duality`,
+> `GaoKleywegt2023.strong_duality_thm1`, `WangGaoXie2023.strong_duality`) are likewise
+> proved, each `le_antisymm(weak, attainment)` with the research-grade `≥` isolated to one
+> explicit **OT-attainment hypothesis** (not a `sorry`). `WangGaoXie2023.primal_feasible_iff`
+> is resolved (see below). The **13** remaining `sorry`s are the genuine T4 frontier: the
+> 6 SDE/PDE controls in `ChenGeorgiouPavon2021`, the 6 worst-case-*structure* corollaries
+> in `GaoKleywegt2023`/`MohajerinEsfahaniKuhn2018`, and the 1 finite-Sinkhorn-scaling
+> existence (`SinkhornScaling`, T3).
 
 ### On the card critical path (do these first)
 
@@ -57,7 +68,7 @@ capstones, but the cards do not depend on it.
 | `GaoKleywegt2023.weak_duality_prop1` | ✅ **PROVED** (axiom-clean) | — | The general Wasserstein `v_P ≤ v_D`. `csSup_le → le_csInf → per-(μ,λ)` bound from the kernel + coupling ε-approx; the Moreau–Yosida `Φ`↔sup-form negation is the unconditional `Real.sSup_neg`. Under honest edges (`hfeas`/`hbdd`/`hφint`/`hΨμ`/`hOT`). |
 | `GaoKleywegt2023.strong_duality_thm1` | ✅ **PROVED** (axiom-clean) | — | `v_P = v_D` via `le_antisymm (weak_duality_prop1) (attainment)`. The `≥` is a single explicit **attainment edge** `hattain` — this ISOLATES the whole strong-duality gap to the one OT measurable-selection fact (§6). |
 | `Drsb.sdrsb_cost_bound` | ✅ **PROVED** (axiom-clean) | — | **The SDRSB evaluation-card claim, discharged.** Composes the proved `WangGaoXie2023.sinkhorn_weak_duality_kernel` (per-point DV bound integrated over `p₀`) with `budget ≤ ε`, under `hκ>0` + the Sinkhorn attainment+disintegration edge `hSink`; dual restricted to `0<lam` (the `lam=0` `logPartition` is junk — ess-sup convention unencoded). Ball uses the audit-fixed external `ν`. |
-| `WangGaoXie2023.strong_duality` (≤ half only) | **T3** | outer `inf_{λ}` + ball Lagrangian on top of the proved `logPartition_eq_gibbs_sSup` | the DV engine (`ForMathlib`) is already done; this is the Sinkhorn analogue of the linchpin. |
+| `WangGaoXie2023.strong_duality` | ✅ **PROVED** (axiom-clean) | — | `V = V_D` via `le_antisymm`: the `≤` half composes `sinkhorn_weak_duality_kernel` (per-point DV integrated over `p₀`) + `le_csInf`; the `≥` half is the single **attainment+disintegration edge** `hSinkAll`/`hattain` (§6). The Sinkhorn analogue of the WDRO linchpin. |
 
 **Sinkhorn weak-duality kernel — ✅ DONE** (`WangGaoXie2023.sinkhorn_weak_duality_kernel`,
 axiom-clean; the second card `sdrsb_cost_bound` composes it). The roadmap below is how it
@@ -91,22 +102,22 @@ Fable ticket or a focused session.
 |---|---|---|
 | `ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC` | **T2** | `sInf`-shift `inf{a+g(u)} = a + inf g` using `energy_identity` + `Feasible ⇒ initialMarginal = ρ₀`. Compiles atop the (T4) `energy_identity` sibling — concentrates debt like `wdro_strong_duality_dualFn` did. |
 | `ChenGeorgiouPavon2021.optimal_control_eq_neg_grad_value` | **T2/TX** | blocked by *abstract* `grad`: `grad(−V) ≠ −grad V` without linearity. Add a `grad` additivity/negation hypothesis (or derive from `optimal_control_eq_grad_log` + that hyp), then T1. |
-| `Drsb.wdrsb_strong_duality` | **T1** | re-export of `BlanchetMurthy2019.wdro_strong_duality_dualFn` once proved; **also under-hypothesized** — needs BM's (A1)/(A2)/`δ>0` added to the Drsb statement. |
-| `Drsb.sdrsb_strong_duality` | **T1** | re-export of `WangGaoXie2023.strong_duality` once proved; add its hyps. |
+| `Drsb.wdrsb_strong_duality` | ✅ **PROVED** | — | Delegates to `GaoKleywegt2023.strong_duality_thm1` (`sqCost` symmetric ⇒ `Lc = −Φ`); the WDRSB capstone. |
+| `Drsb.sdrsb_strong_duality` | ✅ **PROVED** | — | Re-export of `WangGaoXie2023.strong_duality`; `Drsb` is now sorry-free. |
 
-### Statement bug (fix first)
+### Statement bug — ✅ RESOLVED
 
-| Decl | Tier | What it needs |
+| Decl | Tier | Resolution |
 |---|---|---|
-| `WangGaoXie2023.primal_feasible_iff` | **TX** | `Nonempty ↔ 0 ≤ ε` is false for the coupling-based `Wkappa` (`Wkappa κ μ̂ μ̂ > 0` for non-degenerate `μ̂`). Re-derive the feasibility statement from prose. (AGENTS.md §6.) |
+| `WangGaoXie2023.primal_feasible_iff` → **`primal_feasible_radius_nonneg`** | ~~TX~~ ✅ | The naive `Nonempty ↔ 0 ≤ ε` is **false** for the raw `Wkappa` ball (`Wkappa κ ν μ̂ μ̂ > 0` for non-degenerate `μ̂`; the true nonemptiness threshold is the free energy `−κ·𝔼[log ∫e^{−c/κ}dν] ≥ 0`, generically `> 0`). Restated & **proved** as the honest **necessity** half — `0 ≤ κ ⇒ (Nonempty → 0 ≤ ε)` — from `Wkappa ≥ 0`. The paper's full `↔ ρ ≥ 0` holds only for the ρ̄-reformulated KL-ball; its sufficiency direction is the worst-case-measure **attainment** edge (T4, deferred). Docstring records the derivation. |
 
 ### T4 — research-grade / not-in-Mathlib (defer or axiomatize)
 
-Strong-duality **`≥` / attainment & worst-case structure**:
-`BlanchetMurthy2019.wdro_strong_duality`, `GaoKleywegt2023.{strong_duality_thm1,
-worstCase_structure_cor1, dataDriven_strongDuality_cor2i, dataDriven_worstCase_cor2ii}`,
-`MohajerinEsfahaniKuhn2018.{worstCaseExpectation_eq_dual, worstCase_program,
-worstCase_exists}`, `WangGaoXie2023.strong_duality` (`≥` half).
+**Worst-case *structure*** (the `≥`/attainment equalities are already discharged modulo an
+explicit attainment hypothesis; what remains as `sorry` is the *shape* of the worst-case
+measure): `GaoKleywegt2023.{worstCase_structure_cor1, dataDriven_strongDuality_cor2i,
+dataDriven_worstCase_cor2ii}`, `MohajerinEsfahaniKuhn2018.{worstCaseExpectation_eq_dual,
+worstCase_program, worstCase_exists}` (6).
 *Need OT measurable-selection / worst-case-measure construction — absent from Mathlib.*
 
 **SDE / PDE / path-measure** (no Mathlib SDE theory):
@@ -161,9 +172,15 @@ recognized general lemma → ForMathlib proof → upstream PR.
 
 ## 4. Fable 5 hand-off protocol
 
-Reach for a **Fable 5 agent** (`Agent` tool with `model: fable`, or a `Workflow` with a
-Fable stage) on **T3** targets — self-contained, hard, from-scratch. Not on T4 (missing
-theory: it will thrash) and not on T0–T2 (we do those cheaper).
+> **Policy update (2026-07, user directive): do NOT hand off to Fable.** The remaining
+> work is to be done in-context by decomposing each target into its natural subproblems and
+> proving step-by-step (with the thinking budget turned up). This section is retained only
+> as a description of what a *self-contained T3 target* looks like — the same decomposition
+> discipline applies whether or not a separate agent does it.
+
+Historically we would reach for a **Fable 5 agent** (`Agent` tool with `model: fable`, or a
+`Workflow` with a Fable stage) on **T3** targets — self-contained, hard, from-scratch. Not
+on T4 (missing theory: it will thrash) and not on T0–T2 (we do those cheaper).
 
 A good Fable task spec is a **single theorem** with:
 1. the exact Lean statement already in the file (Fable fills the body only);
@@ -174,32 +191,42 @@ A good Fable task spec is a **single theorem** with:
 5. isolation: run in a `git` worktree (`isolation: "worktree"`) if it will edit files
    that another agent also touches.
 
-**First two Fable tickets (ready to cut):**
-- **F1 — `ForMathlib.OptimalTransport.WeakDuality`** (unblocks the cards). Port +
-  generalize `reference/V4.lean::wdro_lagrangian_bound`, then assemble
-  `GaoKleywegt2023.weak_duality_prop1` (add the integrability/`BddAbove` hyps first —
-  that statement edit is a T2 we do *before* handing off).
-- **F2 — `ForMathlib.…SinkhornScaling`** (`sinkhorn_potentials_exist`). Independent;
-  can run in parallel with F1 in its own worktree.
+**Ticket status:**
+- **F1 — `ForMathlib.OptimalTransport.WeakDuality`** (unblocked the cards): ✅ **DONE by us**
+  — `expect_le_dualIntegrand_add_lam_couplingCost` ported/generalized and
+  `GaoKleywegt2023.weak_duality_prop1` assembled, both axiom-clean.
+- **F2 — `ForMathlib.…SinkhornScaling`** (`sinkhorn_potentials_exist`): the one remaining T3
+  `sorry`. To be done in-context per the no-Fable policy — decompose via a fixed point of
+  the Sinkhorn iteration on `Mathlib.Analysis.Convex.Birkhoff` / `DoublyStochasticMatrix`.
 
 ---
 
 ## 5. Recommended execution order
 
-1. **us, now:** land the T0/T1/T2 wins that don't need new theory —
-   `schrodingerBridge_KL_eq_SOC` (atop `energy_identity`), the `optimal_control_eq_neg_grad_value`
-   hypothesis fix, and stage the two ForMathlib statements (F1/F2 skeletons).
-2. **us, statement work:** add the weak-duality side-hypotheses to `weak_duality_prop1`;
-   fix `primal_feasible_iff` from prose.
-3. **Fable, parallel worktrees:** F1 (weak-duality → cards) and F2 (Sinkhorn scaling).
-4. **us:** once F1 lands, close `Drsb.wdrsb_cost_bound` / `sdrsb_cost_bound` (T2) and the
-   `*_strong_duality` re-exports (T1, after adding hyps).
-5. **defer:** the T4 SDE/PDE and strong-duality-`≥` block — a separate upstream program
-   or documented `axiom`s; decide with the coordinator (needs the DRSB manuscript, §2).
+**✅ Steps 1–4 below are DONE** (weak duality → both cost bounds → all strong-duality
+equalities → `primal_feasible` resolved). Remaining live work is step 5.
+
+1. ~~**us, now:**~~ ✅ landed the T0/T1/T2 wins — `schrodingerBridge_KL_eq_SOC`,
+   `optimal_control_eq_neg_grad_value` (hyp fix), the two ForMathlib skeletons.
+2. ~~**us, statement work:**~~ ✅ `weak_duality_prop1` side-hypotheses added and proved;
+   `primal_feasible_iff` re-derived from prose → `primal_feasible_radius_nonneg` (necessity,
+   proved; sufficiency deferred to the ρ̄-ball attainment edge).
+3. ~~**Fable:**~~ F1 (weak-duality → cards) **done by us, no Fable needed**; F2 (Sinkhorn
+   scaling) remains the one T3 `sorry` (`SinkhornScaling.sinkhorn_potentials_exist`).
+4. ~~**us:**~~ ✅ `Drsb.{wdrsb,sdrsb}_cost_bound` and both `*_strong_duality` re-exports
+   closed; `Drsb` is sorry-free.
+5. **remaining (the 13 `sorry`s):** the T4 SDE/PDE controls + worst-case-*structure*
+   corollaries + the T3 Sinkhorn scaling. Per the user (2026-07): **no Fable** — break each
+   into natural subproblems and prove step-by-step. The SDE/PDE and OT-measurable-selection
+   blocks may still need a documented `axiom` or a Mathlib-infrastructure lift; decide with
+   the coordinator (needs the DRSB manuscript, §2).
 
 ---
 
 ### Change log
+- **2026-07 refresh:** count 23 → **13**; recorded all strong-duality equalities +
+  both cost bounds as PROVED (`Drsb` sorry-free); resolved the `primal_feasible_iff` TX bug
+  → `primal_feasible_radius_nonneg` (necessity, proved); recorded the no-Fable directive.
 - Added [`FOUNDATIONS.md`](FOUNDATIONS.md): the classical-theorem chains, grep-verified
   Mathlib gaps, and survey search terms.
 - Staged `ForMathlib/OptimalTransport/WeakDuality.lean` (Chain 1 weak node) and

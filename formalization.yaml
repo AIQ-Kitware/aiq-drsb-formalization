@@ -100,7 +100,7 @@ sources:
     library: "Drsb"   # capstone, composed from the libraries above
 
 status:
-  phase: "BOTH cards + ALL strong-duality EQUALITIES (GaoKleywegt/WangGaoXie/BlanchetMurthy + both Drsb capstones) PROVED, each modulo one explicit OT-attainment edge; 14 sorry, all genuine T4 (SDE/PDE, worst-case structure/measurable selection, Mohajerin, finite Sinkhorn scaling) or primal_feasible_iff"
+  phase: "BOTH cards + ALL strong-duality EQUALITIES (GaoKleywegt/WangGaoXie/BlanchetMurthy + both Drsb capstones) PROVED, each modulo one explicit OT-attainment edge; Drsb sorry-free; primal_feasible resolved (necessity half proved). 13 sorry remain, all genuine T4 (SDE/PDE controls, worst-case structure/measurable selection, Mohajerin) or T3 (finite Sinkhorn scaling)"
   policy: >
     First pass established theorem STATEMENTS as close to the published results as
     possible (verified against prose/). The proof pass discharges the tractable/
@@ -130,14 +130,14 @@ status:
       role: "SB/SOC value function + optimal control u* = ∇log φ (abstract dynamics interface)."
     - name: "BlanchetMurthy2019"
       role: "Wasserstein DRO strong duality (primary)."
-      note: "wdro_strong_duality_dualFn is PROVED (the Lc-form of wdro_strong_duality, derived from it by defeq); the load-bearing wdro_strong_duality itself is still `sorry` (strong-duality ≥ seam)."
+      note: "wdro_strong_duality and its Lc-form wdro_strong_duality_dualFn are both PROVED (le_antisymm(weak, attainment); the strong-duality ≥ seam is isolated to one explicit OT-attainment hypothesis, not a `sorry`)."
     - name: "GaoKleywegt2023"
       role: "Wasserstein DRO strong duality + worst-case distribution."
     - name: "MohajerinEsfahaniKuhn2018"
       role: "Data-driven Wasserstein DRO convex reformulation."
     - name: "WangGaoXie2023"
       role: "Sinkhorn DRO strong duality (log-partition dual; DRSB Eq. 47)."
-      note: "logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, and exists_worstCase_gibbs (Remark-4 Gibbs worst case, by measure normalization) are PROVED; strong_duality (Thm 1(II)) is still `sorry`. primal_feasible_iff is `sorry` AND likely mis-stated — see fidelity.known_limitations."
+      note: "logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs (Remark-4 Gibbs worst case), sinkhorn_weak_duality_kernel, and strong_duality (Thm 1(II), le_antisymm modulo one attainment+disintegration edge) are all PROVED — this library is sorry-free. The mis-stated primal_feasible_iff was resolved → primal_feasible_radius_nonneg (necessity half, proved; see fidelity.known_limitations)."
     - name: "Drsb"
       role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bound (Eq. 47) — composed from the libraries above."
 
@@ -183,6 +183,7 @@ main_results:
   BlanchetMurthy2019:
     - declaration: "BlanchetMurthy2019.wdro_strong_duality"
       source: "Theorem 1(a),(b) via Remark 1, eq. (9) — Wasserstein DRO univariate dual"
+      proved: true   # le_antisymm(weak, attainment); the strong-duality ≥ seam isolated to one explicit OT-attainment hypothesis
     - declaration: "BlanchetMurthy2019.wdro_strong_duality_dualFn"
       source: "Theorem 1(b) + Remark 1, eq. (9) — same dual, per-sample term written as the inner dual φ_λ = Lc"
       proved: true   # defeq to wdro_strong_duality (Lc unfolds to the explicit sup); derived from it, not independently proved
@@ -207,6 +208,10 @@ main_results:
   WangGaoXie2023:
     - declaration: "WangGaoXie2023.strong_duality"
       source: "Theorem 1(II) — Sinkhorn-DRO log-partition dual (DRSB Eq. 47 source)"
+      proved: true   # le_antisymm: ≤ via sinkhorn_weak_duality_kernel + le_csInf; ≥ via one attainment+disintegration edge (hSinkAll/hattain)
+    - declaration: "WangGaoXie2023.primal_feasible_radius_nonneg"
+      source: "Theorem 1(I) (feasibility), necessity half — was the mis-stated primal_feasible_iff"
+      proved: true   # axiom-clean. 0 ≤ κ ⇒ (Nonempty → 0 ≤ ε), from Wkappa ≥ 0. Sufficiency (full ↔ ρ≥0) holds only for the ρ̄-reformulated KL-ball and needs the worst-case attainment edge (deferred). See fidelity.known_limitations.
     - declaration: "WangGaoXie2023.exists_worstCase_gibbs"
       source: "Remark 4 — continuous Gibbs (exponential-tilt) worst case"
       proved: true   # normalize the finite, nonzero unnormalized Gibbs measure to a probability measure
@@ -225,12 +230,12 @@ main_results:
 
 fidelity:
   known_limitations:
-    - "Many proofs are `sorry`, but the card `≤`/weak-duality path is landing: PROVED = Donsker–Varadhan family + measure Normalization + the OT-DRO weak-duality kernel (ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost) + **Drsb.wdrsb_cost_bound (the WDRSB evaluation-card claim, axiom-clean)** + WangGaoXie2023.{logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs} + ChenGeorgiouPavon2021.staticSB_eq_entropicOT + BlanchetMurthy2019.wdro_strong_duality_dualFn. The research-grade strong-duality `≥` (attainment) seams remain `sorry`."
+    - "BOTH evaluation-card claims (Drsb.{wdrsb,sdrsb}_cost_bound) AND all strong-duality equalities (BlanchetMurthy2019.wdro_strong_duality, GaoKleywegt2023.strong_duality_thm1, WangGaoXie2023.strong_duality, Drsb.{wdrsb,sdrsb}_strong_duality) are PROVED — Drsb is sorry-free. Each strong duality is le_antisymm(weak, attainment) with the research-grade `≥` isolated to ONE explicit OT-attainment hypothesis (not a `sorry`, not faked). Also PROVED: the DV family, measure Normalization, both weak-duality kernels (Wasserstein + Sinkhorn), and WangGaoXie2023.primal_feasible_radius_nonneg (Thm 1(I) necessity). 13 `sorry`s remain, all genuine T4 (SDE/PDE controls, worst-case measurable-selection structure) or T3 (finite Sinkhorn scaling) — see PROOF_PIPELINE.md §2."
     - "The DRSB manuscript is unpublished; its internal 'Eq. 47' and 'Algorithm 5' numbers come from the GaTech code, not a published PDF (flagged in prose/ and in the Drsb capstone)."
     - "Heavy analysis objects (SDE path measures, controlled dynamics) are captured via abstract `structure` interfaces, not built from Mathlib SDE theory (which does not exist yet)."
     - "Statements were AI-drafted against prose transcriptions; they still need expert review against the primary sources."
     - "SINKHORN AUDIT (2026-07, FIXED): the Sinkhorn ball (ForMathlib.OT.Wkappa/sinkhornBall) used KL against the product of the two coupling marginals (μ⊗μ̂), but Wang–Gao–Xie Def 1 uses KL against the nominal times an EXTERNAL reference ν (μ̂⊗ν) — the same ν the dual integrates over. The ball and dual referenced different measures, making strong_duality/sdrsb_*/primal_feasible_iff inconsistent. FIXED: Wkappa/sinkhornBall now carry ν and consumers thread it (see prose/sinkhorn-dro-duality.md audit note)."
-    - "WangGaoXie2023.primal_feasible_iff still `sorry`: with the OLD marginal-product reference it was outright false; with the corrected external-ν ball it is the paper's Theorem 1(I) but its proof (KL-nonnegativity + Lemma-2 reformulation) is not yet done. Re-confirm the statement against the corrected ball before proving."
+    - "WangGaoXie2023.primal_feasible_iff RESOLVED (2026-07) → primal_feasible_radius_nonneg. The naive `Nonempty ↔ 0 ≤ ε` is false even against the corrected external-ν ball: Wkappa κ ν μ̂ μ̂ > 0 for a non-degenerate nominal (the entropic term forbids the diagonal coupling), so the ball's true nonemptiness threshold is the free energy −κ·𝔼_μ̂[log ∫ e^{−c/κ} dν] ≥ 0 (generically > 0). Proved the honest necessity half (0 ≤ κ ⇒ Nonempty → 0 ≤ ε). The paper's full ↔ ρ≥0 (Thm 1(I)) holds only for the ρ̄-reformulated KL-ball; its sufficiency direction is the deferred worst-case-attainment edge (T4)."
 
 automation:
   methods:

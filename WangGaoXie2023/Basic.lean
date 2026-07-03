@@ -69,13 +69,46 @@ noncomputable def sinkhornDualObjective
 
 -- `strong_duality` (Theorem 1(II)) is proved below, after the weak-duality kernel it uses.
 
-/-- **Theorem 1(I) (Feasibility).** `(Primal)` is feasible iff the radius `ρ ≥ 0`
-(our `ε ≥ 0`): the nominal `P̂` itself lies in the Sinkhorn ball. (Prose Theorem 1(I).)
-Now stated against the external-reference ball `sinkhornBall μhat ν κ ε`. -/
-theorem primal_feasible_iff
-    (μhat ν : ProbabilityMeasure X) (κ ε : ℝ) :
-    (sinkhornBall μhat ν κ ε).Nonempty ↔ 0 ≤ ε := by
-  sorry
+/-- **Theorem 1(I) (Feasibility), necessity direction.** For a nonnegative regularizer
+`κ`, feasibility of `(Primal)` *requires* a nonnegative radius: if the Sinkhorn ball is
+nonempty then `0 ≤ ε`. Axiom-clean.
+
+Proof: `0 ≤ W_{κ,ν}(μ̂, μ)` for every `μ` — the Sinkhorn objective
+`𝔼_γ[‖x−y‖²] + κ·KL(γ‖μ̂⊗ν)` is a sum of two nonnegatives (squared cost; `κ ≥ 0` times
+`KL ≥ 0`), so its infimum over couplings is `≥ 0` — and any ball member satisfies
+`W_{κ,ν}(μ̂, μ) ≤ ε`.
+
+⚠ **Why this is the necessity half only, not the paper's full `↔ ρ ≥ 0`** (audit
+resolution of the former `primal_feasible_iff` `sorry`, AGENTS.md §6 / the audit note in
+`prose/sinkhorn-dro-duality.md`). Against the **raw** entropic-OT ball
+`sinkhornBall μhat ν κ ε = {μ : W_{κ,ν}(μ̂,μ) ≤ ε}`, sufficiency (`0 ≤ ε ⇒ nonempty`) is
+**false**: unlike a metric ball, `W_{κ,ν}(μ̂, μ̂) > 0` in general (the entropic term
+`κ·KL(·‖μ̂⊗ν)` forbids the diagonal coupling), so the ball's true nonemptiness threshold
+is the free energy `inf_μ W_{κ,ν}(μ̂, μ) = −κ·𝔼_{x∼μ̂}[log ∫ e^{−‖x−·‖²/κ} dν] ≥ 0`, which
+is *strictly* positive unless the cost is `ν`-a.e. zero. The paper's `ρ ≥ 0` characterization
+holds only after the reference-kernel reformulation (prose Eq. `(2)`–`(3)`: shift to
+`ρ̄ = ρ + κ·𝔼_{μ̂}[log ∫ e^{−c/κ} dν]` and the Gibbs kernel `Q_{x,κ}`), where the constraint
+becomes `κ·𝔼_{μ̂}[KL(γ_x ‖ Q_{x,κ})] ≤ ρ̄` and `KL ≥ 0` gives feasibility ⇔ `ρ̄ ≥ 0`. That
+sufficiency direction is the worst-case-measure **attainment** edge (an OT existence result
+absent from Mathlib, §6 T4) and stays deferred; the necessity below is unconditional. -/
+theorem primal_feasible_radius_nonneg
+    (μhat ν : ProbabilityMeasure X) (κ ε : ℝ) (hκ : 0 ≤ κ)
+    (h : (sinkhornBall μhat ν κ ε).Nonempty) : 0 ≤ ε := by
+  obtain ⟨μ, hμ⟩ := h
+  -- `hμ : W_{κ,ν}(μ̂, μ) ≤ ε` (ball membership is the defining inequality)
+  have hW : 0 ≤ Wkappa κ ν μhat μ := by
+    unfold Wkappa
+    apply Real.sInf_nonneg
+    rintro r ⟨γ, _, rfl⟩
+    -- each candidate value is `couplingCost2 γ + κ·klReal(γ ‖ μ̂⊗ν) ≥ 0`
+    have h1 : 0 ≤ couplingCost2 γ := by
+      unfold couplingCost2 couplingCost
+      exact integral_nonneg (fun z => sq_nonneg _)
+    have h2 : 0 ≤ klReal (γ : Measure (X × X)) (prodMeasure μhat ν) :=
+      ENNReal.toReal_nonneg
+    unfold sinkhornObjective
+    exact add_nonneg h1 (mul_nonneg hκ h2)
+  exact le_trans hW hμ
 
 /-! ## The inner Gibbs variational identity (engine of Theorem 1, step 2)
 

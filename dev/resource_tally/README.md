@@ -59,17 +59,31 @@ With the hook installed you normally only ever run `rollup` (at session end).
 | model, input/cache-write/cache-read/output tokens, server-tool calls | **measured** | session transcript `usage` (deduped by message id) |
 | wall-clock span of attributed turns | **measured** | transcript timestamps |
 | inference seconds | **estimated** | `output_tokens ÷ throughput` (assumption `time-v0`, unvalidated) |
+| context-compaction (`/compact`) tokens | **estimated** | boundary marker + summary length (assumption `compact-est-v0`) |
 
 > **Dedup:** A transcript logs each assistant message several times with
 > *identical* usage; summing raw records overcounts (~2.6× on cache reads here).
 > The tool dedups by `message.id` — do not hand-count tokens.
 
-> **Auxiliary LLM ops (compaction, etc.).** The parser counts *any* record carrying
-> a `usage` object, not just `type: assistant`, so **context compaction /
-> summarization is captured if the harness logs its usage** (whatever record type it
-> uses) — and each turn is tagged with its `type` so it can be split out. The only
-> true blind spot is an op whose usage is **never written to the transcript** (e.g.
-> `ai-title` chat-title records carry no usage); measuring those needs billing data.
+> **Context compaction is estimated, not measured — verified empirically.** When
+> `/compact` fires, the harness runs a real summarization call over the *entire*
+> history but writes **no `usage` object** for it — only a `type=system,
+> subtype=compact_boundary` marker and a `type=user, isCompactSummary=true` record
+> holding the summary text. (Confirmed on this repo: one compaction read ~477K tokens
+> of context and emitted an ~4.7K-token summary, all invisible to the `usage` stream.)
+> Because it is genuine LLM work that produces no commit, leaving it out would
+> *undercount*. So `record`/`reconcile` add a separate **`kind: compaction-estimate`**
+> row per boundary: `input ≈` peak pre-boundary context, `output ≈` summary-text
+> length ÷ `chars_per_token`. These rows are flagged `source: estimated`, keyed by
+> boundary timestamp (never double-counted), and kept **out** of the measured totals —
+> `rollup` reports them under `estimated_overhead` and folds them into
+> `grand_total_tokens`. Disable with `--no-estimate-compaction`.
+>
+> The parser also still counts *any* record carrying a real `usage` object (not just
+> `type: assistant`), so if a future harness version *does* log compaction usage, it is
+> measured automatically. The remaining true blind spot is an op whose usage is never
+> written **and** leaves no transcript marker to estimate from (e.g. `ai-title`
+> chat-title records); measuring those needs billing data.
 
 ## Correctness guarantees
 

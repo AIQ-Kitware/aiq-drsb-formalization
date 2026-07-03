@@ -56,6 +56,14 @@ TIME_ASSUMPTIONS_VERSION = "time-v0"
 DEFAULT_TPS = 55.0  # placeholder decode throughput (tok/s) for Opus-class; UNVALIDATED
 SCHEMA = "resource-ledger/v1"
 
+# Context-compaction is a real LLM call the harness performs but does NOT log a usage
+# object for (only a `compact_boundary` marker + an `isCompactSummary` text record). We
+# ESTIMATE its cost from transcript-adjacent signals; these knobs are versioned so the
+# whole ledger stays recomputable. See parse_compaction_events().
+COMPACT_ASSUMPTIONS_VERSION = "compact-est-v0"
+COMPACT_CHARS_PER_TOKEN = 4.0  # rough summary-text chars -> output tokens
+COMPACTION_KIND = "compaction-estimate"
+
 TOKEN_KEYS = ("input_tokens", "cache_creation_input_tokens",
               "cache_read_input_tokens", "output_tokens")
 
@@ -162,6 +170,80 @@ def parse_turns(transcript: str) -> list[dict]:
     turns = [t for t in by_id.values() if t["ts"]]
     turns.sort(key=lambda t: t["ts"])
     return turns
+
+
+def _context_size(usage: dict) -> int:
+    """Total prompt the model had to read on a turn (fresh + cache-write + cache-read)."""
+    return sum(int(usage.get(k, 0) or 0)
+               for k in ("input_tokens", "cache_creation_input_tokens",
+                         "cache_read_input_tokens"))
+
+
+def _summary_text(rec: dict) -> str:
+    msg = rec.get("message") if isinstance(rec.get("message"), dict) else {}
+    c = msg.get("content")
+    if isinstance(c, str):
+        return c
+    if isinstance(c, list):
+        return "".join(p.get("text", "") for p in c
+                       if isinstance(p, dict) and p.get("type") == "text")
+    return ""
+
+
+def parse_compaction_events(transcript: str) -> list[dict]:
+    """Detect context-compaction events and ESTIMATE their (unlogged) token cost.
+
+    The summarization call `/compact` performs is a genuine LLM API call, but the
+    harness writes NO `usage` object for it — only a `type=system, subtype=compact_boundary`
+    marker plus a `type=user, isCompactSummary=true` record holding the summary text. So
+    it is invisible to parse_turns(). We reconstruct it from transcript-adjacent signals:
+
+        input  ~= the full pre-boundary context the summarizer had to read
+                  = peak (input + cache_write + cache_read) over usage-bearing turns
+                    since the previous boundary (context grows until compaction fires).
+        output ~= length of the isCompactSummary text  ÷  COMPACT_CHARS_PER_TOKEN.
+        model  ~= model of the last usage-bearing turn before the boundary.
+
+    Every event is flagged `source='estimated'` so it never contaminates the *measured*
+    totals. Returns list of {boundary_ts, model, est_input_tokens, est_output_tokens,
+    summary_chars}. Empty if the transcript has no compaction (the common case).
+    """
+    recs: list[dict] = []
+    with open(transcript, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                recs.append(json.loads(line))
+            except json.JSONDecodeError:
+                continue
+
+    events: list[dict] = []
+    peak = 0          # peak context observed since the previous boundary
+    last_model = "?"
+    for i, rec in enumerate(recs):
+        msg = rec.get("message") if isinstance(rec.get("message"), dict) else {}
+        usage = (msg.get("usage") or rec.get("usage")) or {}
+        if usage:
+            peak = max(peak, _context_size(usage))
+            last_model = msg.get("model", last_model)
+        if rec.get("type") == "system" and rec.get("subtype") == "compact_boundary":
+            # summary text usually lands in the next few records
+            summary = ""
+            for j in range(i, min(i + 8, len(recs))):
+                if recs[j].get("isCompactSummary"):
+                    summary = _summary_text(recs[j])
+                    break
+            events.append({
+                "boundary_ts": rec.get("timestamp"),
+                "model": last_model,
+                "est_input_tokens": peak,
+                "est_output_tokens": int(len(summary) / COMPACT_CHARS_PER_TOKEN),
+                "summary_chars": len(summary),
+            })
+            peak = 0  # reset so a later compaction reflects only its own cycle
+    return [e for e in events if e["boundary_ts"]]
 
 
 # ------------------------------------------------------------------------ ledger
@@ -279,6 +361,78 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def recorded_boundary_ts(rows: list[dict], session_id: str) -> set[str]:
+    """Boundary timestamps of compaction estimates already in the ledger for a session
+    (dedup key — re-running never double-counts a compaction event)."""
+    return {r.get("boundary_ts") for r in rows
+            if r.get("session_id") == session_id
+            and r.get("kind") == COMPACTION_KIND}
+
+
+def compaction_row(ev: dict, sha: str, commit_ts: str | None,
+                   session_id: str, tps: float) -> dict:
+    est_in, est_out = ev["est_input_tokens"], ev["est_output_tokens"]
+    return {
+        "schema": SCHEMA,
+        "kind": COMPACTION_KIND,        # separates it from measured rows in rollup
+        "source": "estimated",
+        "recorded_at": now_iso(),
+        "repo": os.path.basename(repo_root()),
+        "commit": sha,
+        "commit_ts": commit_ts,
+        "agent": "claude-code",
+        "session_id": session_id,
+        "boundary_ts": ev["boundary_ts"],
+        "turns": 0,                     # not a measured turn
+        "compaction_events": 1,
+        "models": [ev["model"]],
+        "tokens": {"input": est_in, "cache_write": 0, "cache_read": 0,
+                   "output": est_out, "billable_input": est_in},
+        "by_model": {ev["model"]: {"input": est_in, "cache_write": 0,
+                                   "cache_read": 0, "output": est_out}},
+        "server_tools": {"web_search": 0, "web_fetch": 0},
+        "time": {"wall_clock_s": None,
+                 "inference_s_est": round(est_out / tps, 1) if tps else None,
+                 "assumptions_version": TIME_ASSUMPTIONS_VERSION,
+                 "throughput_tok_per_s": tps},
+        "turn_ts_range": [ev["boundary_ts"], ev["boundary_ts"]],
+        "estimate": {
+            "method": "peak-preceding-context (input) + summary-text-length (output)",
+            "assumptions_version": COMPACT_ASSUMPTIONS_VERSION,
+            "chars_per_token": COMPACT_CHARS_PER_TOKEN,
+            "summary_chars": ev.get("summary_chars"),
+            "note": "compaction call is not logged with a usage object; this is an "
+                    "estimate, not a measurement.",
+        },
+        "energy_kwh": None, "carbon_gco2e": None, "factors_version": None,
+    }
+
+
+def record_compactions(transcript: str, session_id: str, sha: str,
+                       commit_ts: str | None, lo_dt, hi_dt,
+                       rows: list[dict], tps: float) -> int:
+    """Append an estimated row for each compaction boundary in (lo_dt, hi_dt] not
+    already recorded. hi_dt=None means unbounded (trailing sweep, for reconcile)."""
+    seen = recorded_boundary_ts(rows, session_id)
+    n = 0
+    for ev in parse_compaction_events(transcript):
+        bts = ev["boundary_ts"]
+        if bts in seen:
+            continue
+        bdt = to_dt(bts)
+        if lo_dt is not None and bdt <= lo_dt:
+            continue
+        if hi_dt is not None and bdt > hi_dt:
+            continue
+        row = compaction_row(ev, sha, commit_ts, session_id, tps)
+        append_row(row)
+        n += 1
+        print(f"  + compaction estimate @ {bts}: ~{ev['est_input_tokens']:,} in "
+              f"+ ~{ev['est_output_tokens']:,} out [{ev['model']}] "
+              f"(ESTIMATED, {COMPACT_ASSUMPTIONS_VERSION}; not logged by harness)")
+    return n
+
+
 # ---------------------------------------------------------------------- commands
 def cmd_record(args) -> None:
     transcript = args.transcript or find_session_transcript(
@@ -287,48 +441,56 @@ def cmd_record(args) -> None:
     sha, commit_ts = commit_meta(args.commit)
     rows = read_ledger()
 
-    if not args.force and any(r.get("session_id") == session_id
-                              and r.get("commit") == sha for r in rows):
-        print(f"already recorded session {session_id[:8]} @ commit {sha[:8]} "
-              f"(use --force to override); nothing to do.")
-        return
-
     # Attribution window = (last watermark for this session, commit timestamp].
     # Bounding the top at commit_ts (not "now") keeps work done AFTER this commit
     # rolling forward to the next commit's record instead of misattributing here.
     wm = session_watermark(rows, session_id)
     wm_dt, cut_dt = to_dt(wm), to_dt(commit_ts)
-    new = [t for t in parse_turns(transcript)
-           if (wm_dt is None or to_dt(t["ts"]) > wm_dt) and to_dt(t["ts"]) <= cut_dt]
-    if not new:
-        print(f"no new turns for session {session_id[:8]} in "
-              f"({wm or 'epoch'}, {commit_ts}].")
-        return
 
-    agg = aggregate(new, args.tps)
-    row = {
-        "schema": SCHEMA,
-        "recorded_at": now_iso(),
-        "repo": os.path.basename(repo_root()),
-        "commit": sha,
-        "commit_ts": commit_ts,
-        "agent": "claude-code",
-        "session_id": session_id,
-        **agg,
-        "energy_kwh": None,       # deferred
-        "carbon_gco2e": None,     # deferred
-        "factors_version": None,  # deferred
-    }
-    append_row(row)
-    tk = agg["tokens"]
-    print(f"recorded {agg['turns']} turns for {sha[:8]} "
-          f"[{','.join(agg['models'])}]: "
-          f"out={tk['output']} in={tk['input']} "
-          f"cache_w={tk['cache_write']} cache_r={tk['cache_read']}; "
-          f"wall={agg['time']['wall_clock_s']}s "
-          f"infer~{agg['time']['inference_s_est']}s ({TIME_ASSUMPTIONS_VERSION}); "
-          f"energy/carbon deferred.")
-    print(trailer_line(row))
+    measured_dup = (not args.force and any(
+        r.get("session_id") == session_id and r.get("commit") == sha
+        and r.get("kind") != COMPACTION_KIND for r in rows))
+    if measured_dup:
+        print(f"already recorded session {session_id[:8]} @ commit {sha[:8]} "
+              f"(use --force to override); measured turns skipped.")
+    else:
+        new = [t for t in parse_turns(transcript)
+               if (wm_dt is None or to_dt(t["ts"]) > wm_dt)
+               and to_dt(t["ts"]) <= cut_dt]
+        if not new:
+            print(f"no new turns for session {session_id[:8]} in "
+                  f"({wm or 'epoch'}, {commit_ts}].")
+        else:
+            agg = aggregate(new, args.tps)
+            row = {
+                "schema": SCHEMA,
+                "recorded_at": now_iso(),
+                "repo": os.path.basename(repo_root()),
+                "commit": sha,
+                "commit_ts": commit_ts,
+                "agent": "claude-code",
+                "session_id": session_id,
+                **agg,
+                "energy_kwh": None,       # deferred
+                "carbon_gco2e": None,     # deferred
+                "factors_version": None,  # deferred
+            }
+            append_row(row)
+            tk = agg["tokens"]
+            print(f"recorded {agg['turns']} turns for {sha[:8]} "
+                  f"[{','.join(agg['models'])}]: "
+                  f"out={tk['output']} in={tk['input']} "
+                  f"cache_w={tk['cache_write']} cache_r={tk['cache_read']}; "
+                  f"wall={agg['time']['wall_clock_s']}s "
+                  f"infer~{agg['time']['inference_s_est']}s ({TIME_ASSUMPTIONS_VERSION}); "
+                  f"energy/carbon deferred.")
+            print(trailer_line(row))
+
+    # Estimated compaction overhead in this commit's window (independent of the
+    # measured path — a compaction with no accompanying measured turns still counts).
+    if not args.no_estimate_compaction:
+        record_compactions(transcript, session_id, sha, commit_ts,
+                           wm_dt, cut_dt, rows, args.tps)
 
 
 def cmd_reconcile(args) -> None:
@@ -339,24 +501,28 @@ def cmd_reconcile(args) -> None:
     proj = os.path.join(projects, munged_project_dir(superproject_root()))
     files = sorted(glob.glob(os.path.join(proj, "*.jsonl")))
     total = 0
+    pending = f"pending@{now_iso()[:10]}"
     for f in files:
         sid = os.path.splitext(os.path.basename(f))[0]
         wm = session_watermark(rows, sid)
+        wm_dt = to_dt(wm)
         new = [t for t in parse_turns(f) if (t["ts"] or "") > wm]
-        if not new:
-            continue
-        agg = aggregate(new, args.tps)
-        row = {
-            "schema": SCHEMA, "recorded_at": now_iso(),
-            "repo": os.path.basename(repo_root()),
-            "commit": f"pending@{now_iso()[:10]}", "commit_ts": None,
-            "agent": "claude-code", "session_id": sid, **agg,
-            "energy_kwh": None, "carbon_gco2e": None, "factors_version": None,
-            "note": "reconcile: un-committed turns swept so they are not undercounted",
-        }
-        append_row(row)
-        total += agg["turns"]
-        print(f"reconciled {agg['turns']} un-recorded turns for session {sid[:8]}.")
+        if new:
+            agg = aggregate(new, args.tps)
+            row = {
+                "schema": SCHEMA, "recorded_at": now_iso(),
+                "repo": os.path.basename(repo_root()),
+                "commit": pending, "commit_ts": None,
+                "agent": "claude-code", "session_id": sid, **agg,
+                "energy_kwh": None, "carbon_gco2e": None, "factors_version": None,
+                "note": "reconcile: un-committed turns swept so they are not undercounted",
+            }
+            append_row(row)
+            total += agg["turns"]
+            print(f"reconciled {agg['turns']} un-recorded turns for session {sid[:8]}.")
+        if not args.no_estimate_compaction:
+            total += record_compactions(f, sid, pending, None, wm_dt, None,
+                                        rows, args.tps)
     if total == 0:
         print("nothing to reconcile; all session turns already accounted.")
 
@@ -378,10 +544,12 @@ def cmd_show(args) -> None:
         return
     for r in rows:
         tk = r["tokens"]
-        print(f"{(r.get('commit') or '')[:10]:12} {r['recorded_at'][:19]} "
+        tag = "~est-compact" if r.get("kind") == COMPACTION_KIND else "  measured  "
+        wall = r["time"]["wall_clock_s"]
+        print(f"{(r.get('commit') or '')[:10]:12} {r['recorded_at'][:19]} {tag} "
               f"{','.join(r.get('models', [])):20} "
               f"out={tk['output']:>7} billable_in={tk['billable_input']:>9} "
-              f"wall={r['time']['wall_clock_s']}s")
+              f"wall={wall if wall is not None else '  -'}s")
 
 
 def cmd_rollup(args) -> None:
@@ -394,8 +562,17 @@ def cmd_rollup(args) -> None:
     infer = 0.0
     web_search = web_fetch = 0
     commits = set()
+    # Estimated (not measured) overhead is tallied separately so it never inflates the
+    # measured totals; a grand total combines both for the true climate-cost picture.
+    est = {"compaction_events": 0, "input": 0, "output": 0, "inference_s_est": 0.0}
     for r in rows:
         tk = r["tokens"]
+        if r.get("kind") == COMPACTION_KIND:
+            est["compaction_events"] += r.get("compaction_events", 1)
+            est["input"] += tk.get("input", 0)
+            est["output"] += tk.get("output", 0)
+            est["inference_s_est"] += r.get("time", {}).get("inference_s_est") or 0
+            continue
         for k in tot:
             tot[k] += tk.get(k, 0)
         turns += r.get("turns", 0)
@@ -421,6 +598,17 @@ def cmd_rollup(args) -> None:
         "time": {"wall_clock_s": round(wall, 1),
                  "inference_s_est": round(infer, 1),
                  "assumptions_version": TIME_ASSUMPTIONS_VERSION},
+        "estimated_overhead": {          # NOT measured — see COMPACT_ASSUMPTIONS_VERSION
+            "compaction_events": est["compaction_events"],
+            "input_tokens_est": est["input"],
+            "output_tokens_est": est["output"],
+            "inference_s_est": round(est["inference_s_est"], 1),
+            "assumptions_version": COMPACT_ASSUMPTIONS_VERSION,
+        },
+        "grand_total_tokens": {          # measured billable_input+output + estimated
+            "input_incl_estimated": tot["billable_input"] + est["input"],
+            "output_incl_estimated": tot["output"] + est["output"],
+        },
         "energy_kwh": None,
         "carbon_gco2e": None,
     }
@@ -500,6 +688,8 @@ def main() -> None:
         sp.add_argument("--projects-dir", default=default_projects_dir())
         sp.add_argument("--tps", type=float, default=DEFAULT_TPS,
                         help=f"decode throughput assumption (default {DEFAULT_TPS})")
+        sp.add_argument("--no-estimate-compaction", action="store_true",
+                        help="do not add estimated rows for context-compaction events")
 
     r = sub.add_parser("record", help="attribute new turns to a commit")
     r.add_argument("--commit", default="HEAD")

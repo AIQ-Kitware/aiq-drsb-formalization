@@ -89,7 +89,18 @@ theorem donskerVaradhan_variational
           Integrable (llr (ρ : Measure Θ) (π : Measure Θ)) (ρ : Measure Θ) ∧
           s = ∫ θ, h θ ∂(ρ : Measure Θ)
                 - (klDiv (ρ : Measure Θ) (π : Measure Θ)).toReal } := by
-  sorry
+  -- Re-export `ForMathlib.MeasureTheory.log_integral_exp_eq_sSup`; the only work is
+  -- bridging the bundled `ProbabilityMeasure`-witnessed set to the `Measure` +
+  -- `IsProbabilityMeasure`-witnessed set of the underlying lemma (equal as sets of ℝ).
+  rw [ForMathlib.MeasureTheory.log_integral_exp_eq_sSup hexp htilted]
+  congr 1
+  ext s
+  simp only [Set.mem_setOf_eq]
+  constructor
+  · rintro ⟨μ, hμ, hμπ, hint, hllr, rfl⟩
+    exact ⟨⟨μ, hμ⟩, hμπ, hint, hllr, rfl⟩
+  · rintro ⟨ρ, hρπ, hint, hllr, rfl⟩
+    exact ⟨(ρ : Measure Θ), inferInstance, hρπ, hint, hllr, rfl⟩
 
 /-- **Lemma 2.2, change-of-measure form** — prose `pac-bayes-generalization.md`,
 "Lemma 2.2" specialized (the boxed inequality the DRSB chain actually uses).
@@ -107,8 +118,10 @@ theorem donskerVaradhan_change_of_measure
     (hexp : Integrable (fun θ => Real.exp (h θ)) (π : Measure Θ)) :
     ∫ θ, h θ ∂(ρ : Measure Θ)
       ≤ (klDiv (ρ : Measure Θ) (π : Measure Θ)).toReal
-        + Real.log (∫ θ, Real.exp (h θ) ∂(π : Measure Θ)) := by
-  sorry
+        + Real.log (∫ θ, Real.exp (h θ) ∂(π : Measure Θ)) :=
+  -- Direct re-export of the proved ForMathlib DV inequality (μ := ρ, ν := π, f := h);
+  -- `IsProbabilityMeasure (ρ/π : Measure Θ)` instances are found automatically.
+  ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp hρπ hh hllr hexp
 
 /-! ## Theorem 2.1 — Catoni's PAC-Bayes bound -/
 

@@ -7,10 +7,10 @@ library per source paper, a paper-agnostic `ForMathlib` staging library, a
 `formalization.yaml`, and prose transcriptions of every source under [`prose/`](prose/).
 
 > 🧭 **New here — especially AI agents — start with [`AGENTS.md`](AGENTS.md).** It
-> codifies *why* this exists (formalizing MAGNET evaluation cards), the crucial
-> provenance caveats (the DRSB manuscript is unpublished), the published-theorem chain,
-> the working conventions, and the known traps. This README is just the build + library
-> map.
+> codifies *why* this exists (formalizing the GaTech MAGNET evaluation-card theorem from
+> **published** DRO results), the provenance rule (the team's unpublished DRSB manuscript
+> is **not a source** — ~0 weight, §2), the published-theorem chain, the working
+> conventions, and the known traps. This README is just the build + library map.
 
 > **Status: first-pass scaffold — statements, proofs just starting.** Each theorem is
 > stated close to its published form; most bodies are still `sorry`, with the
@@ -35,8 +35,8 @@ Wasserstein-2 ball (`wdrsb_cost_bound.yaml`) or a Sinkhorn-divergence ball
 | `BlanchetMurthy2019` | Wasserstein-DRO strong duality (primary) | `wdro_strong_duality`, `Lc` |
 | `GaoKleywegt2023` | Wasserstein-DRO strong duality + worst-case distribution | `weak_duality_prop1`, `strong_duality_thm1`, `worstCase_structure_cor1`, `dataDriven_worstCase_cor2ii` |
 | `MohajerinEsfahaniKuhn2018` | Data-driven Wasserstein-DRO reformulation | `worstCaseExpectation_eq_dual`, `worstCase_program`, `worstCase_exists` |
-| `WangGaoXie2023` | Sinkhorn-DRO log-partition dual (DRSB "Eq. 47") | `strong_duality`, `sinkhornDualObjective`, `logPartition`, `exists_worstCase_gibbs` |
-| `Drsb` | **Capstone** — the DRSB claims composed from the above | `wdrsb_cost_bound`, `sdrsb_cost_bound`, `eq47Bound` |
+| `WangGaoXie2023` | Sinkhorn-DRO log-partition dual (SDRSB card's bound) | `strong_duality`, `sinkhornDualObjective`, `logPartition`, `exists_worstCase_gibbs` |
+| `Drsb` | **Capstone** — the card claims composed from the above | `wdrsb_cost_bound`, `sdrsb_cost_bound`, `sdrsbTerminalBound` |
 
 Each `<Library>/Basic.lean` docstring cites the prose file + printed theorem/equation
 number every declaration corresponds to.

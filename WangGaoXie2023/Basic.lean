@@ -3,8 +3,8 @@
 
 Core theorem library: the **Sinkhorn-DRO strong-duality** chain and its
 **log-partition / log-sum-exp** dual, together with the **Gibbs (exponential-tilt)
-worst-case distribution**. This is the source of the DRSB "Eq. 47" entropic
-log-partition term.
+worst-case distribution**. This is the published backing of the SDRSB card's entropic
+log-partition cost-bound term (`sdrsb_cost_bound.yaml`).
 
 Prose reference: `prose/sinkhorn-dro-duality.md` (transcribed against arXiv:2109.11926
 v5, Operations Research 2023). All printed equation / theorem / remark numbers below

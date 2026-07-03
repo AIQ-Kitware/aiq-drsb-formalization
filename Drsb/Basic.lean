@@ -1,21 +1,24 @@
 /-
-# Drsb — capstone: the DRSB paper's own claims, composed from the source libraries
+# Drsb — capstone: the GaTech MAGNET evaluation-card claims, composed from published theory
 
-The GaTech **Distributionally-Robust Schrödinger Bridge** paper is UNPUBLISHED. This
-capstone states its load-bearing results — the two evaluation-card cost bounds — in
-the shared `ForMathlib.OT` vocabulary, discharging each (in a later proof pass) from
-the published source libraries:
+**Anchor.** This capstone formalizes the theorem the GaTech DRSB **MAGNET evaluation
+cards** rest on — `E_perturbed[V] ≤ E_worst-case[V]` — and discharges it from the
+**published** DRO theorems it composes:
 
 * the value function `V` and optimal control are `ChenGeorgiouPavon2021`;
 * the WDRSB worst-case cost bound is `BlanchetMurthy2019` / `GaoKleywegt2023`
   (Wasserstein-DRO strong duality) specialized to `f := V`, cost `‖·‖²`;
-* the SDRSB bound / "Eq. 47" is `WangGaoXie2023` (Sinkhorn-DRO log-partition dual).
+* the SDRSB (Sinkhorn) bound is `WangGaoXie2023` (Sinkhorn-DRO log-partition dual).
 
 The two `expect μ V ≤ …` theorems are exactly the `wdrsb_cost_bound.yaml` /
-`sdrsb_cost_bound.yaml` card claims `E_perturbed[V] ≤ E_worst-case[V]`.
+`sdrsb_cost_bound.yaml` card claims. The cards' empirical evaluation samples adversarial
+perturbations and checks `measured cost ≤ bound`; these theorems certify that inequality.
 
-STATUS: statements only (`sorry`). The DRSB "Eq. 47" internal number is from the
-GaTech code, NOT a published PDF (see `prose/README.md`).
+> The GaTech team's own unpublished DRSB manuscript (internal labels "Eq. 47",
+> "Algorithm 5", referenced only in code comments) is **not a source** for this
+> formalization and carries **~0 weight**. We anchor solely on the card and on the
+> published theorems above. Where a code label like "Eq. 47" is mentioned, it is only
+> pointing at the *card's* bound formula, whose backing is Wang–Gao–Xie.
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
@@ -158,7 +161,7 @@ theorem wdrsb_cost_bound (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ
     mul_le_mul_of_nonneg_left hcost_le hlam
   linarith
 
-/-! ## SDRSB worst-case cost bound and "Eq. 47"  (card `sdrsb_cost_bound.yaml`) -/
+/-! ## SDRSB worst-case cost bound  (card `sdrsb_cost_bound.yaml`) -/
 
 /-- **SDRSB cost bound** (the `sdrsb_cost_bound.yaml` claim): any source inside the
 Sinkhorn ball (external reference `ν`) has expected cost bounded by the Sinkhorn-DRO dual
@@ -251,16 +254,16 @@ theorem sdrsb_strong_duality (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (�
     rw [← hμeq]
     exact le_csSup hbddP ⟨μ, hμ, rfl⟩
 
-/-- **DRSB "Eq. 47"** — the SDRSB bound as coded in the GaTech repo
-(`compute_bound.py` Term3 / `wdrsb_bridge.py`): the worst-case cost minus a
-log-partition term over the terminal reference `ν`,
+/-- **SDRSB terminal-cost bound** — the closed form the `sdrsb_cost_bound.yaml` card's
+measurement compares against: the worst-case cost minus a log-partition term over the
+terminal reference `ν`,
 `Bound = E_wc[V] − ρ · log 𝔼_ν[e^{g(X₁)}]`.
 
-⚠ Reconstructed from the code + coordinator (the DRSB manuscript is unpublished);
-"Eq. 47" is the manuscript's internal number, not a published reference. This is
-the `WangGaoXie2023.logPartition` term with `f := ρ·g`, `c := 0` at the terminal
-layer. -/
-noncomputable def eq47Bound (ν : ProbabilityMeasure X) (g : X → ℝ) (ρ Ewc : ℝ) : ℝ :=
+This is the `WangGaoXie2023.logPartition` term (published Wang–Gao–Xie Sinkhorn-DRO dual)
+with `f := ρ·g`, `c := 0` at the terminal layer — the mathematical backing of the bound.
+(The GaTech code labels this term "Eq. 47" internally; that label has no published or
+normative status and is not a source here — see the module header.) -/
+noncomputable def sdrsbTerminalBound (ν : ProbabilityMeasure X) (g : X → ℝ) (ρ Ewc : ℝ) : ℝ :=
   Ewc - ρ * Real.log (∫ x, Real.exp (g x) ∂(ν : Measure X))
 
 end Drsb

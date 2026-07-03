@@ -52,23 +52,28 @@ VERIFIED / FALSIFIED / INCONCLUSIVE.
 
 ---
 
-## 2. Provenance & the single most important caveat
+## 2. Provenance — what this effort anchors on (and what it must ignore)
 
-> ⚠️ **The DRSB manuscript is UNPUBLISHED.** The code calls it `drsbm_paper`; it cites
-> its own **"Eq. 47"** (the log-partition worst-case bound) and **"Algorithm 5: Relaxed
-> Schrödinger Bridge."** **Neither is on arXiv or any index** (searched thoroughly,
-> 2026-07). So every "Eq. 47 / Algorithm 5" reference comes from the **GaTech code**
-> (comments), *not* a PDF. **Do not cite those numbers as if published.** To pin them,
-> get the manuscript from **Jinhwan Sul (GaTech)**.
+**The anchor is the GaTech MAGNET evaluation card + the published theorems it composes.**
+Nothing else has normative weight here. Concretely: we formalize the theorem the two
+cards' empirical measurement rests on (`E_μ[V] ≤ E_worst-case[V]`, §3), and discharge it
+from the real, downloaded, transcribed published sources (§4). The `Drsb` capstone states
+the card claims in those terms.
+
+> ⚠️ **The GaTech team's own DRSB manuscript is NOT a source and carries ~0 weight.**
+> Its internal labels (`drsbm_paper`, **"Eq. 47"**, **"Algorithm 5: Relaxed Schrödinger
+> Bridge"**) appear only in **GaTech code comments** — never on arXiv or any index — and
+> the manuscript itself was **wrong**. **Do not chase it, cite it as if published, or let
+> it steer a statement.** Do NOT add "get the manuscript from the team" as an action item.
+> Where a code label like "Eq. 47" is unavoidable, treat it purely as a *pointer at the
+> card's bound formula*, whose backing is Wang–Gao–Xie (§4) — not as a theorem to match.
 >
-> ⚠️ A **"TwoPager Theorem 4" / PAC-Bayes** objective was previously carried in this
-> repo but has been **excised** (see git log): it originated in the `reference/`
-> scratch (`V1/V4`), is **not referenced by either card or the GaTech code**, and the
-> theorem was flawed. Do not re-introduce it.
-
-Because of this, we formalize the **published theorems the DRSB claims compose**, then
-the `Drsb` capstone states the DRSB-specific results in those terms. The published
-sources *are* real, downloaded, and transcribed (see §4).
+> ⚠️ Likewise a **"TwoPager Theorem 4" / PAC-Bayes** objective was previously carried here
+> and has been **excised** (see git log): it lives only in the `reference/` scratch
+> (`V1/V4`), is **not referenced by either card or the GaTech code**, and the theorem was
+> flawed. `reference/` as a whole is near-0-weight scratch (see `reference/README.md`) —
+> mine it only for a proof *pattern* that helps prove something the card actually needs.
+> Do not re-introduce its content into the canonical chain.
 
 ---
 
@@ -85,9 +90,11 @@ $$\mathbb E_\mu[V] \le \mathbb E_{\text{worst-case}}[V].$$
 - **`wdrsb_cost_bound.yaml`** — ambiguity set = **Wasserstein-2 ball** (only perturbations
   with `in_ball == True`).
 - **`sdrsb_cost_bound.yaml`** — ambiguity set = **Sinkhorn-divergence ball**; the bound
-  carries the **log-partition term** $-\rho\log\mathbb E_\nu[e^{g}]$ = DRSB "Eq. 47".
+  carries the **log-partition term** $-\rho\log\mathbb E_\nu[e^{g}]$ (backed by Wang–Gao–Xie,
+  §4; the GaTech code labels it "Eq. 47", of no normative status — §2).
 
-The estimator (`AdjointMatcher`, "Algorithm 5") is *reward-fine-tuning-as-SOC*; the
+The estimator (`AdjointMatcher`, a *reward-fine-tuning-as-SOC* scheme the GaTech code
+labels "Algorithm 5"); the
 empirical relaxations (sup-over-ball → max over ~3 perturbations, exact worst-case →
 Gaussian closed form, exact $\mathbb E_\mu[V]$ → Euler–Maruyama SDE, exact $W_2$ →
 empirical OT) are the "edges" the broader effort wants to draw. See
@@ -107,7 +114,7 @@ per theorem-bearing paper:
 | Wasserstein-DRO strong duality (primary) | `BlanchetMurthy2019` | Blanchet–Murthy, Math OR 2019 | 1604.01446 |
 | Wasserstein-DRO duality + worst-case dist. | `GaoKleywegt2023` | Gao–Kleywegt, Math OR 2023 | 1604.02199 |
 | Data-driven Wasserstein-DRO reformulation | `MohajerinEsfahaniKuhn2018` | Esfahani–Kuhn, Math Prog 2018 | 1505.05116 |
-| **Sinkhorn-DRO log-partition dual (= Eq. 47)** | `WangGaoXie2023` | Wang–Gao–Xie, Oper. Res. 2023 | 2109.11926 |
+| **Sinkhorn-DRO log-partition dual** (SDRSB card's bound) | `WangGaoXie2023` | Wang–Gao–Xie, Oper. Res. 2023 | 2109.11926 |
 | Donsker–Varadhan / Gibbs (root under the Sinkhorn dual) | `ForMathlib` | classical (Dupuis–Ellis etc.) | — |
 
 Provenance-only (documented in prose, **no Lean library** this pass): Léonard 1308.0215
@@ -116,11 +123,11 @@ Provenance-only (documented in prose, **no Lean library** this pass): Léonard 1
 
 The **`Drsb` capstone** composes the above:
 
-| Card / DRSB result | Capstone declaration | Discharged by |
+| Card claim | Capstone declaration | Discharged by |
 |---|---|---|
 | `wdrsb_cost_bound.yaml` | `Drsb.wdrsb_cost_bound`, `Drsb.wdrsb_strong_duality` | `BlanchetMurthy2019` / `GaoKleywegt2023` |
 | `sdrsb_cost_bound.yaml` | `Drsb.sdrsb_cost_bound`, `Drsb.sdrsb_strong_duality` | `WangGaoXie2023` |
-| DRSB "Eq. 47" | `Drsb.eq47Bound` | code-derived formula (unpublished) |
+| `sdrsb_cost_bound.yaml` bound formula | `Drsb.sdrsbTerminalBound` | `WangGaoXie2023` log-partition (`f := ρ·g`) |
 
 ---
 
@@ -294,7 +301,7 @@ The **`Drsb` capstone** composes the above:
   Per the user (2026-07): **no Fable** — decompose each remaining target into its natural
   subproblems and prove step-by-step with the thinking budget turned up. The SDE/PDE and
   OT-measurable-selection blocks may still need a documented `axiom` or a Mathlib-infra lift
-  (decide with the coordinator; needs the DRSB manuscript, §2). ForMathlib upstreaming queue:
+  (decide with the coordinator). ForMathlib upstreaming queue:
   DV ✓, Normalization ✓, WeakDuality ✓ (both kernels), SinkhornScaling 🔜.
 - When a `reference/` result is validated and promoted, update `reference/README.md`.
 

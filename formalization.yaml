@@ -10,10 +10,11 @@ project:
   license: "Apache-2.0"
   repository: "https://github.com/AIQ-Kitware/aiq-drsb-formalization"
   description: >
-    Lean 4 scaffold for the theorems underlying the GaTech DRSB (Distributionally-
-    Robust Schrödinger Bridge) TA1 evaluation cards. The DRSB manuscript is
-    unpublished; this project formalizes the *published* theorems the DRSB claims
-    compose (Schrödinger-bridge / stochastic-optimal-control value function,
+    Lean 4 scaffold for the theorem underlying the GaTech DRSB (Distributionally-
+    Robust Schrödinger Bridge) TA1 evaluation cards. Anchored on the cards' empirical
+    claim and the *published* theorems that claim composes (the GaTech team's own
+    unpublished DRSB manuscript is NOT a source — ~0 weight, see fidelity.known_limitations)
+    (Schrödinger-bridge / stochastic-optimal-control value function,
     Wasserstein- and Sinkhorn-DRO strong duality, and the Donsker–Varadhan / Gibbs
     root under the Sinkhorn dual), then a capstone that states the two DRSB worst-case
     cost bounds in those terms.
@@ -89,15 +90,14 @@ sources:
     title: "Sinkhorn Distributionally Robust Optimization"
     venue: "Operations Research, 2023"
     arxiv: "2109.11926"
-    role: "Sinkhorn (entropic) DRO strong duality; the log-partition dual behind DRSB Eq. 47."
+    role: "Sinkhorn (entropic) DRO strong duality; the published log-partition dual backing the SDRSB card's bound."
     prose: "prose/sinkhorn-dro-duality.md"
     library: "WangGaoXie2023"
-  - id: "DRSB manuscript (unpublished)"
-    title: "Distributionally-Robust Schrödinger Bridge (drsbm_paper)"
-    authors: ["GaTech team (contact: Jinhwan Sul)"]
-    role: "The team's own worst-case cost bound (Eq. 47); NOT public."
-    prose: "prose/README.md"
-    library: "Drsb"   # capstone, composed from the libraries above
+  - id: "GaTech DRSB MAGNET evaluation cards"
+    title: "wdrsb_cost_bound.yaml, sdrsb_cost_bound.yaml"
+    role: "The deliverable being certified: the cards' empirical worst-case cost-bound claim E_μ[V] ≤ E_worst-case[V]. The Drsb capstone discharges it from the published sources above."
+    location: "../../ta1/GaTech-DRSBM/magnet_eval/cards/"
+    library: "Drsb"   # capstone, composed from the published libraries above
 
 status:
   phase: "BOTH cards + ALL strong-duality EQUALITIES (GaoKleywegt/WangGaoXie/BlanchetMurthy + both Drsb capstones) PROVED, each modulo one explicit OT-attainment edge; Drsb sorry-free; primal_feasible resolved (necessity half proved). 13 sorry remain, all genuine T4 (SDE/PDE controls, worst-case structure/measurable selection, Mohajerin) or T3 (finite Sinkhorn scaling)"
@@ -136,10 +136,10 @@ status:
     - name: "MohajerinEsfahaniKuhn2018"
       role: "Data-driven Wasserstein DRO convex reformulation."
     - name: "WangGaoXie2023"
-      role: "Sinkhorn DRO strong duality (log-partition dual; DRSB Eq. 47)."
+      role: "Sinkhorn DRO strong duality (log-partition dual; backs the SDRSB card's bound)."
       note: "logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs (Remark-4 Gibbs worst case), sinkhorn_weak_duality_kernel, and strong_duality (Thm 1(II), le_antisymm modulo one attainment+disintegration edge) are all PROVED — this library is sorry-free. The mis-stated primal_feasible_iff was resolved → primal_feasible_radius_nonneg (necessity half, proved; see fidelity.known_limitations)."
     - name: "Drsb"
-      role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bound (Eq. 47) — composed from the libraries above."
+      role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bounds (the card claims) — composed from the published libraries above."
 
 main_results:
   note: >
@@ -207,7 +207,7 @@ main_results:
       source: "Corollary 4.6 — discrete worst-case law on atoms ξ̂ᵢ − qᵢₖ/αᵢₖ"
   WangGaoXie2023:
     - declaration: "WangGaoXie2023.strong_duality"
-      source: "Theorem 1(II) — Sinkhorn-DRO log-partition dual (DRSB Eq. 47 source)"
+      source: "Theorem 1(II) — Sinkhorn-DRO log-partition dual (backs the SDRSB card's bound)"
       proved: true   # le_antisymm: ≤ via sinkhorn_weak_duality_kernel + le_csInf; ≥ via one attainment+disintegration edge (hSinkAll/hattain)
     - declaration: "WangGaoXie2023.primal_feasible_radius_nonneg"
       source: "Theorem 1(I) (feasibility), necessity half — was the mis-stated primal_feasible_iff"
@@ -225,13 +225,13 @@ main_results:
     - declaration: "WangGaoXie2023.sinkhorn_weak_duality_kernel"
       informal: "Sinkhorn per-conditional-family weak-duality kernel: ∫_{p₀} 𝔼_{P_x}[f] ≤ λ·(disintegrated budget) + 𝔼_{p₀}[logPartition]."
       proved: true   # axiom-clean. Per-point Donsker–Varadhan bound (ForMathlib engine) integrated over p₀; the entropic analogue of ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost. Candidate for ForMathlib generalization.
-    - declaration: "Drsb.eq47Bound"
-      informal: "DRSB 'Eq. 47' bound = E_wc[V] − ρ·log 𝔼_ν[e^g] (from GaTech code; unpublished)."
+    - declaration: "Drsb.sdrsbTerminalBound"
+      informal: "The SDRSB card's bound formula E_wc[V] − ρ·log 𝔼_ν[e^g] = WangGaoXie2023.logPartition with f:=ρ·g at the terminal layer (published backing). GaTech code labels this term 'Eq. 47' — no normative status."
 
 fidelity:
   known_limitations:
     - "BOTH evaluation-card claims (Drsb.{wdrsb,sdrsb}_cost_bound) AND all strong-duality equalities (BlanchetMurthy2019.wdro_strong_duality, GaoKleywegt2023.strong_duality_thm1, WangGaoXie2023.strong_duality, Drsb.{wdrsb,sdrsb}_strong_duality) are PROVED — Drsb is sorry-free. Each strong duality is le_antisymm(weak, attainment) with the research-grade `≥` isolated to ONE explicit OT-attainment hypothesis (not a `sorry`, not faked). Also PROVED: the DV family, measure Normalization, both weak-duality kernels (Wasserstein + Sinkhorn), and WangGaoXie2023.primal_feasible_radius_nonneg (Thm 1(I) necessity). 13 `sorry`s remain, all genuine T4 (SDE/PDE controls, worst-case measurable-selection structure) or T3 (finite Sinkhorn scaling) — see PROOF_PIPELINE.md §2."
-    - "The DRSB manuscript is unpublished; its internal 'Eq. 47' and 'Algorithm 5' numbers come from the GaTech code, not a published PDF (flagged in prose/ and in the Drsb capstone)."
+    - "PROVENANCE RULE: the GaTech team's own DRSB manuscript is NOT a source for this formalization and carries ~0 weight (it was wrong). Its internal labels ('Eq. 47', 'Algorithm 5', drsbm_paper) appear only in GaTech code comments — never published. We anchor solely on the MAGNET cards and the published theorems (Blanchet–Murthy, Gao–Kleywegt, Wang–Gao–Xie, Chen–Georgiou–Pavon). Do not chase or cite the manuscript. The reference/ directory (old TwoPager/PAC-Bayes + drsb scratch) is likewise near-0-weight — mine only for a proof pattern that helps a card-needed theorem."
     - "Heavy analysis objects (SDE path measures, controlled dynamics) are captured via abstract `structure` interfaces, not built from Mathlib SDE theory (which does not exist yet)."
     - "Statements were AI-drafted against prose transcriptions; they still need expert review against the primary sources."
     - "SINKHORN AUDIT (2026-07, FIXED): the Sinkhorn ball (ForMathlib.OT.Wkappa/sinkhornBall) used KL against the product of the two coupling marginals (μ⊗μ̂), but Wang–Gao–Xie Def 1 uses KL against the nominal times an EXTERNAL reference ν (μ̂⊗ν) — the same ν the dual integrates over. The ball and dual referenced different measures, making strong_duality/sdrsb_*/primal_feasible_iff inconsistent. FIXED: Wkappa/sinkhornBall now carry ν and consumers thread it (see prose/sinkhorn-dro-duality.md audit note)."

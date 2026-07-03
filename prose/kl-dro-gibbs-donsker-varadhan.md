@@ -20,8 +20,8 @@ here needs a downloaded PDF; the primary references are:
   Gibbs (exponential-tilting) measure; the `log E[exp]` dual.
 
 > **Role in the DRSB chain.** DV is the *single mathematical fact* that the
-> Sinkhorn-DRO entropic dual / "Eq. 47" log-partition term
-> ([sinkhorn-dro-duality.md](sinkhorn-dro-duality.md)) is built on. It also names the
+> Sinkhorn-DRO entropic dual — the SDRSB card's log-partition bound term
+> ([sinkhorn-dro-duality.md](sinkhorn-dro-duality.md)) — is built on. It also names the
 > *shape of the worst-case distribution*: whenever an
 > ambiguity set is controlled by relative entropy (a KL ball, or the entropic inner
 > layer of a Sinkhorn ball), the worst-case measure is a **Gibbs tilt**
@@ -108,7 +108,7 @@ $$
 This is the **KL-DRO** worst-case (Hu–Hong 2013; the φ-divergence generalization
 is Ben-Tal et al. 2013 with $\varphi=t\log t$). The dual objective is a
 **log-partition / soft-max** functional of $f$ — the same shape that reappears, one
-transport layer out, as the Sinkhorn-DRO dual and the DRSB "Eq. 47" term.
+transport layer out, as the Sinkhorn-DRO dual / the SDRSB card's bound term.
 
 **Formalized shape in this repo.** The tilted-measure worst case and the
 log-partition object are named in [`V4.lean`](../V4.lean):
@@ -117,20 +117,20 @@ log-partition object are named in [`V4.lean`](../V4.lean):
 |---|---|---|
 | Gibbs tilt $\mu^\star\propto e^{f/\lambda}\nu$ | `DRSB.GibbsKernel`, `DRSB.gibbsUnnormalized` | the worst-case conditional |
 | existence of the Gibbs worst case | `DRSB.exists_worstCase_gibbsKernel` | — |
-| $\lambda\log\int e^{f/\lambda}\,d\nu$ | `DRSB.M_logPartition` | the soft-max / "Eq. 47" term |
+| $\lambda\log\int e^{f/\lambda}\,d\nu$ | `DRSB.M_logPartition` | the soft-max / card bound term |
 
 ---
 
 ## 3. Why this sits under the Sinkhorn-DRO result
 
-**Sinkhorn-DRO / Eq. 47.** A Sinkhorn ball is an entropic-OT ball: its inner
+**Sinkhorn-DRO / the SDRSB card bound.** A Sinkhorn ball is an entropic-OT ball: its inner
 layer conditions the transported mass through a reference kernel and penalizes it
 by relative entropy. Dualizing that inner layer is exactly (2.3), which is why the
 Sinkhorn-DRO dual (Wang–Gao–Xie) carries a
 $\lambda\kappa\,\mathbb E_{\hat P}\big[\log \mathbb E_{\zeta}\,e^{f(\zeta)/(\lambda\kappa)}\big]$
 term and a **continuous, full-support** Gibbs worst case — in contrast to the
 *discrete* worst case of plain Wasserstein DRO
-([wasserstein-dro-duality.md](wasserstein-dro-duality.md)). The DRSB "Eq. 47"
+([wasserstein-dro-duality.md](wasserstein-dro-duality.md)). The SDRSB card's
 bound $\;\mathrm{Bound}=\mathbb E_{\text{wc}}[V]-\rho\log\mathbb E_\nu[e^{g(X_1)}]\;$
 is this log-partition term with $f=g$, $\nu$ the terminal reference $\nu$, and
 $\lambda$ absorbed into $\rho$. See [sinkhorn-dro-duality.md](sinkhorn-dro-duality.md).
@@ -144,7 +144,7 @@ $\lambda$ absorbed into $\rho$. See [sinkhorn-dro-duality.md](sinkhorn-dro-duali
 | DV inequality $\int f\,d\mu \le \mathrm{KL}+\log\int e^f$ | change of measure in the entropic dual | `integral_le_klDiv_add_log_integral_exp` |
 | DV identity $\log\int e^f = \sup_\mu(\int f - \mathrm{KL})$ | entropic dual | `log_integral_exp_eq_sSup`, `isGreatest_donskerVaradhan` |
 | Gibbs tilt $\propto e^{f/\lambda}$ | KL- and Sinkhorn-ball worst case | `GibbsKernel`, `exists_worstCase_gibbsKernel` |
-| $\lambda\log\int e^{f/\lambda}$ | SDRO dual / DRSB Eq. 47 | `M_logPartition`, `sdro_dual` |
+| $\lambda\log\int e^{f/\lambda}$ | SDRO dual / SDRSB card bound | `M_logPartition`, `sdro_dual` |
 
 **Caveat.** The classical references (Donsker–Varadhan; Dupuis–Ellis; Ben-Tal et
 al.; Hu–Hong) are cited from the standard literature, not transcribed from a

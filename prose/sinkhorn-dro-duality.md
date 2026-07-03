@@ -3,9 +3,9 @@
 > Prose reference for the Lean 4 formalization in `V4.lean` (namespace `DRSB`).
 > This file transcribes the **Sinkhorn-DRO strong-duality theorem** and its
 > **log-partition / soft-max dual** together with the **Gibbs (exponential-tilting)
-> worst-case distribution**. These are the source facts behind the Sinkhorn
-> variant (SDRSB) of the GaTech "Distributionally-Robust Schrödinger Bridge"
-> paper — specifically its entropic **"Eq. 47"** worst-case cost bound.
+> worst-case distribution**. These are the **published** facts backing the SDRSB card's
+> entropic worst-case cost bound (`sdrsb_cost_bound.yaml`). (The GaTech team's unpublished
+> manuscript, which labels that bound "Eq. 47", is not a source here — see `README.md`.)
 
 ## Sources
 
@@ -24,8 +24,8 @@ Symbols are the paper's own unless a paraphrase is explicitly flagged.
 
 ## Role in the DRSB chain
 
-This paper is the **source for the SDRSB "Eq. 47" / log-partition term**. The DRSB
-worst-case cost bound in its Sinkhorn variant replaces the Wasserstein ambiguity
+This paper is the **published backing of the SDRSB card's log-partition bound term**. The
+SDRSB worst-case cost bound replaces the Wasserstein ambiguity
 ball with a **Sinkhorn (entropic-OT) ball**; the entropic regularization turns the
 Wasserstein dual's pointwise `sup_x` into an **entropic soft-max / log-sum-exp
 (log-partition)** term, and turns the discrete Wasserstein worst-case (a finitely
@@ -34,7 +34,7 @@ conditional**. Concretely, this paper's dual objective (its Eq. `(1)`/`(Dual)`)
 
 $$V_D=\inf_{\lambda\ge 0}\Big\{\lambda\rho+\lambda\epsilon\,\mathbb E_{x\sim\hat P}\big[\log \mathbb E_{z\sim\nu}\,e^{(f(z)-\lambda c(x,z))/(\lambda\epsilon)}\big]\Big\}$$
 
-is exactly the shape of the DRSB **Eq. 47** worst-case bound
+is exactly the shape of the SDRSB card's worst-case bound
 $\ \text{Bound}=\mathbb E_{\text{worst-case}}[V(x)]-\rho\log\mathbb E_\nu[e^{g(X_1)}]$
 (the entropic **log-partition** term), and this paper's worst-case density (Remark 4)
 
@@ -59,7 +59,7 @@ $P\ll\mu$, $Q\ll\nu$. Symbol dictionary (paper $\to$ role):
 | Paper symbol | Meaning | Lean / DRSB analogue |
 |---|---|---|
 | $\epsilon\ge 0$ | **entropic regularization** level of the Sinkhorn distance | `kappa` (κ) in `V4.lean`; κ in DRSB |
-| $\rho$ | **Sinkhorn ball radius** (ambiguity radius) | `eps` (ε) in `V4.lean`; the DRSB `ρ` coefficient of Eq. 47 |
+| $\rho$ | **Sinkhorn ball radius** (ambiguity radius) | `eps` (ε) in `V4.lean`; the SDRSB card's `ρ` coefficient |
 | $\lambda\ge 0$ | Lagrange multiplier for the ball constraint | `lam` |
 | $\hat P$ | nominal (data / empirical) distribution | `muhat` |
 | $\nu$ | reference measure the worst-case is a.c. w.r.t. (Lebesgue/Gaussian/counting) | `base : Measure X` |
@@ -242,8 +242,8 @@ $\alpha_x^{-1}$. It is the maximizer identified by Lemma EC.2(II) / Donsker–Va
 
 ## DRSB / Lean scaffold correspondence
 
-Mapping to the `V4.lean` (`namespace DRSB`) declarations, to DRSB **Eq. 47**, and to
-the `sdrsb_cost_bound.yaml` card. Recall the symbol dictionary: paper $\epsilon\to$
+Mapping to the `V4.lean` (`namespace DRSB`) declarations and to the
+`sdrsb_cost_bound.yaml` card bound. Recall the symbol dictionary: paper $\epsilon\to$
 `kappa`, paper $\rho\to$ `eps`, paper $\lambda\to$ `lam`, paper $f\to$ `Psi0`,
 paper $\nu\to$ `base`, paper $\hat P\to$ `muhat`, paper $c(x,z)\to\lVert x-z\rVert^2$.
 
@@ -284,11 +284,12 @@ paper $\nu\to$ `base`, paper $\hat P\to$ `muhat`, paper $c(x,z)\to\lVert x-z\rVe
   measure-theoretic form of **Assumption 1(II) + Condition 1** (finite, positive
   normalizer), i.e. the conditions under which $\alpha_x$ is well-defined.
 
-- **DRSB "Eq. 47"** $\ \text{Bound}=\mathbb E_{\text{worst-case}}[V(x)]-\rho\log\mathbb E_\nu[e^{g(X_1)}]$:
+- **SDRSB card bound** (the GaTech code labels this term "Eq. 47", ~0-weight)
+  $\ \text{Bound}=\mathbb E_{\text{worst-case}}[V(x)]-\rho\log\mathbb E_\nu[e^{g(X_1)}]$:
   the $-\rho\log\mathbb E_\nu[e^{g}]$ term is the **log-partition** term of dual `(1)`
   instantiated with loss $f=V$/terminal cost $g$, reference $\nu$, and the DRSB
   coefficient $\rho$ standing for the paper's $\lambda\epsilon$ (or a fixed multiplier).
-  *(Paraphrase / flagged: the DRSB paper's Eq. 47 is not in this PDF; the identification
+  *(Paraphrase / flagged: the identification with the card's bound term
   is by shape. The sign is a convention artifact — this paper's `(Primal)` is a `sup`
   (worst-case reward), so the log-partition enters with `+` inside an `inf_λ`; a DRSB
   worst-case **cost** bound writes the same entropic term with the opposite sign. The
@@ -316,8 +317,7 @@ paper $\nu\to$ `base`, paper $\hat P\to$ `muhat`, paper $c(x,z)\to\lVert x-z\rVe
   are the same object.
 
 - **`sdrsb_cost_bound.yaml` card claim** — the card asserts the SDRSB worst-case cost
-  bound of DRSB "Eq. 47" shape (entropic log-partition term + Gibbs/Gaussian worst-case
-  source). Its mathematical backing is **Theorem 1 (Strong Duality)** — dual `(1)`/`(Dual)`
+  bound with the entropic log-partition term + Gibbs/Gaussian worst-case source. Its mathematical backing is **Theorem 1 (Strong Duality)** — dual `(1)`/`(Dual)`
   supplying the $\rho\log\mathbb E_\nu[e^{g}]$ log-partition term — together with **Remark 4**
   (worst-case Gibbs tilt) and **Remark 3** (full-support continuity / $\epsilon\to0$
   recovery of the Wasserstein `sup`), all under **Assumption 1** + **Condition 1**.

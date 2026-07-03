@@ -219,7 +219,7 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
    corollaries + the T3 Sinkhorn scaling. Per the user (2026-07): **no Fable** — break each
    into natural subproblems and prove step-by-step. The SDE/PDE and OT-measurable-selection
    blocks may still need a documented `axiom` or a Mathlib-infrastructure lift; decide with
-   the coordinator (needs the DRSB manuscript, §2).
+   the coordinator.
 
 ---
 

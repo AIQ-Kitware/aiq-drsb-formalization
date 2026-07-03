@@ -60,7 +60,7 @@ Sion's minimax theorem ✅ (Mathlib.Topology.Sion) ──┘                    
 
 ## Chain 2 — Entropic / Gibbs ⇒ Sinkhorn-DRO duality  (mostly built)
 
-Powers `WangGaoXie2023.strong_duality` (the DRSB "Eq. 47" term).
+Powers `WangGaoXie2023.strong_duality` (the SDRSB card's log-partition bound term).
 
 ```
 Gibbs' inequality (KL ≥ 0) ✅ ─► Donsker–Varadhan variational formula 🟢 (ForMathlib, PROVED)
@@ -152,8 +152,8 @@ Itô calculus / SDE ❌ ─► Girsanov ❌ ─► relative-entropy decompositio
 > mature enough to be a low-risk dependency. Every link still needs a Mathlib *area* that
 > core lacks; pending it, record these as documented `axiom`s with provenance, or keep as
 > `sorry` and treat as out-of-scope for the cards (they underlie `V`'s construction, not
-> the robustness bound). Decide with the coordinator — needs the DRSB manuscript
-> (AGENTS.md §2). Keep both repos on the radar as future upstream dependencies.
+> the robustness bound). Decide with the coordinator. Keep both repos on the radar as
+> future upstream dependencies.
 
 ---
 

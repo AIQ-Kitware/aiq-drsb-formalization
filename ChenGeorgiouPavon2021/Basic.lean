@@ -286,9 +286,16 @@ theorem optimal_control_eq_neg_grad_value
     (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
     -- sign identification of the cost-to-go with the log-potential (CGP "Sign note"):
-    (hVlogφ : ∀ x, d.V x = - Real.log (φ 0 x)) :
+    (hVlogφ : ∀ x, d.V x = - Real.log (φ 0 x))
+    -- `∇` is additive/linear, so `∇(−V) = −∇V` (the property that makes the sign flip work):
+    (hgrad_neg : grad (fun y => -(d.V y)) = fun x => -(grad d.V x)) :
     ∀ x, u_star 0 x = - grad d.V x := by
-  sorry
+  intro x
+  -- u*(0,x) = ∇log φ(0,x) (Hopf–Cole, `optimal_control_eq_grad_log`), and log φ(0,·) = −V
+  rw [optimal_control_eq_grad_log d grad lap φ φhat dens0 dens1 ρ₀ ρ₁ hsys u_star hopt 0 x]
+  have hφV : (fun y => Real.log (φ 0 y)) = (fun y => -(d.V y)) := by
+    funext y; linarith [hVlogφ y]
+  rw [hφV, hgrad_neg]
 
 --------------------------------------------------------------------------------
 -- §5  HJB / value-gradient control for OMT (CGP Prop 3.2)

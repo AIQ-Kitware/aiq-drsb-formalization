@@ -119,10 +119,19 @@ def find_session_transcript(projects_dir: str, session: str | None) -> str:
 
 
 def parse_turns(transcript: str) -> list[dict]:
-    """Extract assistant turns bearing a usage object, deduped by message id.
+    """Extract every billed turn bearing a usage object, deduped by message id.
 
-    Returns list of {id, ts, model, usage{...}, web_search, web_fetch}. Streaming
-    can emit a message id more than once; the last occurrence wins.
+    We intentionally do NOT filter on `type == "assistant"`: any record that carries
+    a `usage` object is a real billed API call and must be counted. Today usage only
+    appears in `assistant` records, but this also future-proofs against *auxiliary
+    LLM operations* — context **compaction/summarization**, title generation, etc. —
+    whenever the harness logs their usage under a different record type. Each turn is
+    tagged with its record `type` so those ops can be classified/split out later.
+
+    Returns list of {id, ts, type, model, usage{...}, web_search, web_fetch}.
+    Streaming can emit a message id more than once; the last occurrence wins.
+    (Caveat: an op whose usage is *never written to the transcript* — e.g. `ai-title`
+    records carry no usage — is still invisible here; that needs billing data.)
     """
     by_id: dict[str, dict] = {}
     with open(transcript, encoding="utf-8") as fh:
@@ -134,17 +143,17 @@ def parse_turns(transcript: str) -> list[dict]:
                 rec = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if rec.get("type") != "assistant":
-                continue
-            msg = rec.get("message") or {}
-            usage = msg.get("usage") or {}
+            msg = rec.get("message") if isinstance(rec.get("message"), dict) else {}
+            usage = (msg.get("usage") or rec.get("usage")) or {}
             if not usage:
                 continue
-            mid = msg.get("id") or rec.get("uuid") or rec.get("timestamp")
+            mid = (msg.get("id") or rec.get("requestId")
+                   or rec.get("uuid") or rec.get("timestamp"))
             st = usage.get("server_tool_use") or {}
             by_id[mid] = {
                 "id": mid,
                 "ts": rec.get("timestamp"),
+                "type": rec.get("type", "?"),
                 "model": msg.get("model", "?"),
                 "usage": {k: int(usage.get(k, 0) or 0) for k in TOKEN_KEYS},
                 "web_search": int(st.get("web_search_requests", 0) or 0),

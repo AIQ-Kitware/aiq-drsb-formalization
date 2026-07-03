@@ -64,6 +64,13 @@ With the hook installed you normally only ever run `rollup` (at session end).
 > *identical* usage; summing raw records overcounts (~2.6× on cache reads here).
 > The tool dedups by `message.id` — do not hand-count tokens.
 
+> **Auxiliary LLM ops (compaction, etc.).** The parser counts *any* record carrying
+> a `usage` object, not just `type: assistant`, so **context compaction /
+> summarization is captured if the harness logs its usage** (whatever record type it
+> uses) — and each turn is tagged with its `type` so it can be split out. The only
+> true blind spot is an op whose usage is **never written to the transcript** (e.g.
+> `ai-title` chat-title records carry no usage); measuring those needs billing data.
+
 ## Correctness guarantees
 
 - **No double-count under concurrency.** Usage is attributed **per session** (each

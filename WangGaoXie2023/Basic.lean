@@ -67,29 +67,7 @@ noncomputable def sinkhornDualObjective
 
 /-! ## Theorem 1 (Strong Duality) -/
 
-/-- **Theorem 1 (Strong Duality), part (II)** — the load-bearing Sinkhorn-DRO
-strong-duality identity `V = V_D` (prose "Strong duality theorem", Theorem 1(II);
-dual is Eq. `(1)`).  The worst-case value over the Sinkhorn ball equals the infimum
-over the dual multiplier `λ ≥ 0` of the log-partition dual objective:
-  `sup_{P ∈ 𝓑_{ρ,ε}(P̂)} 𝔼_P[f] = inf_{λ≥0} { λρ + λε 𝔼_{x∼P̂}[log 𝔼_{z∼ν} e^{(f−λc)/(λε)}] }`.
-Recall (symbol swap) our `κ` = paper regularizer `ε`, our `ε` = paper radius `ρ`,
-so `sinkhornBall μhat κ ε = 𝓑_{ρ,ε}(P̂)`.
-
-The hypotheses below transcribe **Assumption 1** (I)–(IV) and the `ρ ≥ 0` gate of
-Theorem 1(II). Assumption 1(IV) (existence of a regular conditional distribution, e.g.
-on a Polish space) is left as a prose-level side condition (not encoded). -/
-theorem strong_duality
-    (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ)
-    (hρ : 0 ≤ ε)                         -- Theorem 1(II): "whenever ρ ≥ 0" (our ε = paper ρ)
-    (hκ : 0 < κ)                         -- ε > 0 (paper): positive entropic regularizer (paper allows ε ≥ 0 with λ↓0 limit conventions; we take ε > 0)
-    (hf : Measurable f)                  -- Assumption 1(III): f measurable
-    (hc : Measurable (fun p : X × X => c p.1 p.2))  -- Assumption 1(I): c is P̂⊗ν-measurable
-    (hcnn : ∀ x z, 0 ≤ c x z)            -- Assumption 1(I): ν{z : 0 ≤ c(x,z) < ∞} = 1 (nonnegative, finite a.e.)
-    (hK : ∀ xhat, Integrable (fun z => Real.exp (-(c xhat z) / κ)) (ν : Measure X)) :
-        -- Assumption 1(II): 𝔼_{z∼ν}[e^{−c(x,z)/ε}] < ∞ (makes the cost-Gibbs kernel Q_{x,ε} well-defined)
-    droValue (sinkhornBall μhat ν κ ε) f
-      = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam } := by
-  sorry
+-- `strong_duality` (Theorem 1(II)) is proved below, after the weak-duality kernel it uses.
 
 /-- **Theorem 1(I) (Feasibility).** `(Primal)` is feasible iff the radius `ρ ≥ 0`
 (our `ε ≥ 0`): the nominal `P̂` itself lies in the Sinkhorn ball. (Prose Theorem 1(I).)
@@ -283,5 +261,58 @@ theorem sinkhorn_weak_duality_kernel
               + κ * (∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X)) := by
           rw [integral_add hI_c (hI_kl.const_mul κ), integral_const_mul]
         rw [e1, e2]; ring
+
+/-- **Theorem 1 (Strong Duality), part (II)** — `V = V_D`: the Sinkhorn-DRO worst-case
+value over the ball equals the log-partition dual. `le_antisymm` of `droValue ≤ dual`
+(each source's Sinkhorn cost bound, inlined from `sinkhorn_weak_duality_kernel` + `le_csInf`,
+via `csSup_le`) and `dual ≤ droValue` (the attaining worst-case measure, `le_csSup`).
+
+The paper's Assumption 1 is replaced by the operational **edges** that make it provable:
+`hSinkAll` (the `∀ μ` attainment+disintegration bundle — the OT measurable-selection +
+`condKernel` disintegration + KL chain rule, §6), `hbddP`, `hattain`; the dual runs over
+`0 < lam` (the `lam=0` `logPartition` is junk, cf. `Drsb.sdrsb_cost_bound`). -/
+theorem strong_duality
+    (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
+    (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε →
+      (Wkappa κ ν μhat μ ≤ ε →
+        ∃ P : X → Measure X,
+          (∀ x, IsProbabilityMeasure (P x)) ∧ (∀ x, P x ≪ (ν : Measure X)) ∧
+          expect μ f = (∫ x, (∫ y, f y ∂(P x)) ∂(μhat : Measure X)) ∧
+          (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
+              ∂(μhat : Measure X)) ≤ ε ∧
+          (∀ x, Integrable f (P x)) ∧ (∀ x, Integrable (fun y => c x y) (P x)) ∧
+          (∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x)) ∧
+          (∀ lam, 0 < lam → ∀ x, Integrable
+              (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X)) ∧
+          Integrable (fun x => ∫ y, f y ∂(P x)) (μhat : Measure X) ∧
+          Integrable (fun x => ∫ y, c x y ∂(P x)) (μhat : Measure X) ∧
+          Integrable (fun x => klReal (P x) (ν : Measure X)) (μhat : Measure X) ∧
+          (∀ lam, 0 < lam → Integrable
+              (fun x => logPartition ν c f κ lam x) (μhat : Measure X))))
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ sinkhornBall μhat ν κ ε ∧ r = expect μ f })
+    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε ∧
+        expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = sinkhornDualObjective μhat ν c f κ ε lam }) :
+    droValue (sinkhornBall μhat ν κ ε) f
+      = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = sinkhornDualObjective μhat ν c f κ ε lam } := by
+  refine le_antisymm ?_ ?_
+  · refine csSup_le ?_ ?_
+    · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ f, μ, hμ, rfl⟩
+    · rintro a ⟨μ, hμ, rfl⟩
+      obtain ⟨P, hP, hac, hVdis, hbudget, hf_P, hc_P, h_llr, h_exp, hI_f, hI_c, hI_kl, hI_lp⟩ :=
+        hSinkAll μ hμ hμ
+      refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
+      rintro d ⟨lam, hlam, rfl⟩
+      have key := sinkhorn_weak_duality_kernel μhat ν c f κ lam hκ hlam P hP hac
+        hf_P hc_P h_llr (h_exp lam hlam) hI_f hI_c hI_kl (hI_lp lam hlam)
+      have hb := mul_le_mul_of_nonneg_left hbudget (le_of_lt hlam)
+      rw [hVdis]
+      simp only [sinkhornDualObjective, expect]
+      linarith [key, hb]
+  · obtain ⟨μ, hμ, hμeq⟩ := hattain
+    rw [← hμeq]
+    exact le_csSup hbddP ⟨μ, hμ, rfl⟩
 
 end WangGaoXie2023

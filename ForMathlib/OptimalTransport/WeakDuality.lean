@@ -35,6 +35,23 @@ namespace ForMathlib.OT
 variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X]
 
 omit [NormedAddCommGroup X] in
+/-- **Optimal transport cost is bounded by any coupling's cost.** For a nonnegative cost
+`c` and any coupling `π ∈ Π(μ, ν)`, `otCost c μ ν ≤ couplingCost c π`. Immediate from
+`csInf_le` (the value set is bounded below by `0`, since `couplingCost = ∫ c dπ ≥ 0`).
+
+The always-usable "upper bound by an explicit transport plan" direction of Kantorovich —
+the reusable tool for showing a *constructed* measure lies in a Wasserstein ball
+(`otCost ≤ (explicit coupling cost) ≤ radius`), needed by every worst-case-measure
+construction (Gao–Kleywegt Cor 2(ii), Esfahani–Kuhn Thm 4.4 / Cor 4.6). -/
+theorem otCost_le_couplingCost (c : X → X → ℝ) (hc : ∀ x y, 0 ≤ c x y)
+    (μ ν : ProbabilityMeasure X) (π : ProbabilityMeasure (X × X))
+    (hπ : π ∈ couplings μ ν) :
+    otCost c μ ν ≤ couplingCost c π := by
+  refine csInf_le ⟨0, ?_⟩ ⟨π, hπ, rfl⟩
+  rintro r ⟨π', _, rfl⟩
+  exact integral_nonneg (fun z => hc z.1 z.2)
+
+omit [NormedAddCommGroup X] in
 /-- **Per-coupling Lagrangian bound** (the always-true `≤` half of OT-DRO duality).
 For any coupling `π ∈ Π(μ, ν)` of a source `μ` with the nominal `ν`, any cost `c`, and
 any multiplier `λ` (the `λ ≥ 0` gate matters only for the downstream assembly, not this

@@ -48,6 +48,7 @@ arbitrary norm `‖·‖` (Definition 3.1). Hence the transport cost is the **un
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.WeakDuality
 
 set_option autoImplicit false
 
@@ -61,6 +62,69 @@ namespace MohajerinEsfahaniKuhn2018
 -- measurable structure. `NormedSpace ℝ X` provides the scalar action used by the
 -- convexity hypotheses and by the transport atoms `ξ̂ᵢ − qᵢₖ/αᵢₖ`.
 variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X] [NormedSpace ℝ X]
+
+/-! ### Reusable finite-measure helpers for the worst-case-law construction
+
+The extremal / worst-case distributions of Esfahani–Kuhn Thm 4.4 (and Gao–Kleywegt
+Cor 2(ii)) are finite weighted sums of Dirac masses `(1/N) Σᵢ Σₖ αᵢₖ δ_{ξᵢₖ}`. The three
+lemmas below package the facts needed to work with them — total mass, integral (expectation)
+formula, and pushforward (marginal) — under `[MeasurableSingletonClass X]` (Borel σ-algebra
+of a metric space; the data-driven setting `Ξ ⊆ ℝᵐ`). Paper-agnostic; promotable to
+`ForMathlib` if a second consumer (Gao Cor 2(ii)) lands. -/
+
+/-- **Total mass of the weighted Dirac double-sum is 1** (so it is a probability measure),
+given nonnegative weights that sum to `1` over `k` for each `i`, and `0 < N`. -/
+theorem isProbabilityMeasure_wsum {Z : Type*} [MeasurableSpace Z] [MeasurableSingletonClass Z]
+    {N K : ℕ} (hN : 0 < N) (a : Fin N → Fin K → ℝ) (z : Fin N → Fin K → Z)
+    (ha : ∀ i k, 0 ≤ a i k) (hsum : ∀ i, ∑ k, a i k = 1) :
+    IsProbabilityMeasure ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (z i k)) := by
+  constructor
+  simp only [Measure.smul_apply, Measure.coe_finsetSum, Finset.sum_apply,
+    Measure.dirac_apply', MeasurableSet.univ, Set.indicator_univ, Pi.one_apply,
+    smul_eq_mul, mul_one]
+  have hi : ∀ i : Fin N, ∑ k : Fin K, ENNReal.ofReal (a i k) = 1 := fun i => by
+    rw [← ENNReal.ofReal_sum_of_nonneg (fun k _ => ha i k), hsum i, ENNReal.ofReal_one]
+  rw [Finset.sum_congr rfl (fun i _ => hi i)]
+  simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one]
+  rw [ENNReal.inv_mul_cancel (by exact_mod_cast hN.ne') (ENNReal.natCast_ne_top N)]
+
+/-- **Expectation against the weighted Dirac double-sum**:
+`∫ g d((1/N) Σᵢ Σₖ αᵢₖ δ_{zᵢₖ}) = (1/N) Σᵢ Σₖ αᵢₖ · g(zᵢₖ)` (nonnegative weights). -/
+theorem integral_wsum {Z : Type*} [MeasurableSpace Z] [MeasurableSingletonClass Z]
+    {N K : ℕ} (a : Fin N → Fin K → ℝ) (z : Fin N → Fin K → Z)
+    (ha : ∀ i k, 0 ≤ a i k) (g : Z → ℝ) :
+    ∫ x, g x ∂((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (z i k))
+      = (N : ℝ)⁻¹ * ∑ i, ∑ k, a i k * g (z i k) := by
+  rw [integral_smul_measure, integral_finsetSum_measure (fun i _ =>
+      integrable_finsetSum_measure.2 (fun k _ =>
+        (integrable_dirac enorm_lt_top).smul_measure ENNReal.ofReal_ne_top)),
+    ENNReal.toReal_inv, ENNReal.toReal_natCast, smul_eq_mul]
+  congr 1
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [integral_finsetSum_measure (fun k _ =>
+      (integrable_dirac enorm_lt_top).smul_measure ENNReal.ofReal_ne_top)]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [integral_smul_measure, integral_dirac, ENNReal.toReal_ofReal (ha i k), smul_eq_mul]
+
+/-- **Pushforward (marginal) of the weighted Dirac double-sum** under a measurable map. -/
+theorem map_wsum {Z Y : Type*} [MeasurableSpace Z] [MeasurableSpace Y]
+    {N K : ℕ} (a : Fin N → Fin K → ℝ) (z : Fin N → Fin K → Z) (h : Z → Y) (hh : Measurable h) :
+    ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (z i k)).map h
+      = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (h (z i k)) := by
+  rw [Measure.map_smul]
+  congr 1
+  rw [← Measure.mapₗ_apply_of_measurable hh, map_sum]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [map_sum]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [map_smul]
+  congr 1
+  rw [Measure.mapₗ_apply_of_measurable hh]
+  exact Measure.map_dirac' hh (z i k)
 
 /-- **Empirical nominal `P̂_N = (1/N) ∑_{i} δ_{ξ̂ᵢ}`** over the data
 `ξhat : Fin N → X` (`prose/wasserstein-dro-duality.md` §3.1). A plain `Measure X`;
@@ -149,8 +213,18 @@ and vectors `qᵢₖ`:
   `sup_{Q ∈ B_ε(P̂_N)} 𝔼_Q[ℓ]
      = sup_{(α, q) feasible} (1/N) ∑_{i} ∑_{k} αᵢₖ · ℓₖ(ξ̂ᵢ − qᵢₖ/αᵢₖ)`.
 
-Body is `sorry` (statement-only scaffold). -/
-theorem worstCase_program
+**Proof (house pattern, `[MeasurableSingletonClass X]`).** The `≥`
+(`sup(program) ≤ droValue`) direction is proved **constructively, sorry-free**: every
+feasible `(α, q)` yields the explicit discrete law `Q = (1/N) Σᵢₖ αᵢₖ δ_{ξ̂ᵢ − qᵢₖ/αᵢₖ}`,
+which lies in the ε-Wasserstein ball (witnessed by the explicit transport plan
+`(1/N) Σᵢₖ αᵢₖ δ_{(ξ̂ᵢ, ξ̂ᵢ − qᵢₖ/αᵢₖ)}`, whose cost `(1/N) Σᵢₖ ‖qᵢₖ‖ ≤ ε` — via
+`ForMathlib.OT.otCost_le_couplingCost`) and satisfies `𝔼_Q[ℓ] ≥ extremalObjective`
+(since `ℓ = maxₖ ℓₖ ≥ ℓₖ`). No measurable selection is needed — the atoms are the finitely
+many data-point perturbations. The `≤` (`droValue ≤ sup(program)`, Theorem 4.4's real OT
+content — every ball measure is dominated by an extremal config) is isolated to the single
+explicit edge `hdom`, exactly as the strong-duality equalities isolate their attainment
+edge (a 2026-07-03 survey confirmed no external Lean library supplies it). -/
+theorem worstCase_program [MeasurableSingletonClass X]
     (N : ℕ) (ξhat : Fin N → X) (hN : 0 < N)
     (μhat : ProbabilityMeasure X) (hμ : (μhat : Measure X) = empiricalMeasure ξhat)
     (ε : ℝ) (hε : 0 ≤ ε)
@@ -160,11 +234,88 @@ theorem worstCase_program
     (Ξ : Set X) (hΞconv : Convex ℝ Ξ) (hΞclosed : IsClosed Ξ)
     (hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
     (hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
-    (hdata : ∀ i, ξhat i ∈ Ξ) :
+    (hdata : ∀ i, ξhat i ∈ Ξ)
+    -- the DRO worst-case value is finite (bounded ambiguity ball), an honest edge:
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ wass1Ball μhat ε ∧ r = expect μ ℓ })
+    -- the `≤`/reduction edge (Thm 4.4's OT content: every ball measure ≤ some extremal
+    -- config), isolated as one explicit hypothesis (not a `sorry`, not faked):
+    (hdom : droValue (wass1Ball μhat ε) ℓ
+        ≤ sSup { v : ℝ | ∃ (α : Fin N → Fin K → ℝ) (q : Fin N → Fin K → X),
+            extremalFeasible ξhat Ξ ε α q ∧ v = extremalObjective ξhat ℓk α q }) :
     droValue (wass1Ball μhat ε) ℓ
       = sSup { v : ℝ | ∃ (α : Fin N → Fin K → ℝ) (q : Fin N → Fin K → X),
           extremalFeasible ξhat Ξ ε α q ∧ v = extremalObjective ξhat ℓk α q } := by
-  sorry
+  have hNR : (0 : ℝ) < N := by exact_mod_cast hN
+  have hKpos : 0 < K := Finset.card_fin K ▸ hKne.card_pos
+  refine le_antisymm hdom (csSup_le ?_ ?_)
+  · -- program set nonempty: the uniform-weight, zero-transport config is feasible
+    refine ⟨extremalObjective ξhat ℓk (fun _ _ => (K : ℝ)⁻¹) (fun _ _ => 0),
+      (fun _ _ => (K : ℝ)⁻¹), (fun _ _ => 0), ⟨?_, ?_, ?_, ?_⟩, rfl⟩
+    · exact fun i k => by positivity
+    · intro i; simp [Finset.card_fin]; field_simp
+    · simp [hε]
+    · intro i k; simpa using hdata i
+  · -- every feasible objective is ≤ droValue, via the constructed worst-case law Q
+    rintro v ⟨α, q, ⟨hα0, hαsum, hqbudget, hatomΞ⟩, rfl⟩
+    -- the atoms and the discrete worst-case law Q
+    set atom : Fin N → Fin K → X := fun i k => ξhat i - (α i k)⁻¹ • q i k with hatom
+    have hprobQ : IsProbabilityMeasure (worstCaseLaw α atom) :=
+      isProbabilityMeasure_wsum hN α atom hα0 hαsum
+    set Q : ProbabilityMeasure X := ⟨worstCaseLaw α atom, hprobQ⟩ with hQ
+    have hQcoe : (Q : Measure X) = worstCaseLaw α atom := rfl
+    -- the explicit transport plan π from μ̂ to Q
+    have hprobπ : IsProbabilityMeasure ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (α i k) • Measure.dirac (ξhat i, atom i k)) :=
+      isProbabilityMeasure_wsum hN α (fun i k => (ξhat i, atom i k)) hα0 hαsum
+    set π : ProbabilityMeasure (X × X) :=
+      ⟨_, hprobπ⟩ with hπ
+    have hπcoe : (π : Measure (X × X)) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (α i k) • Measure.dirac (ξhat i, atom i k) := rfl
+    -- π is a coupling of μ̂ and Q
+    have hcoupl : π ∈ couplings μhat Q := by
+      constructor
+      · rw [hπcoe, map_wsum α (fun i k => (ξhat i, atom i k)) Prod.fst measurable_fst, hμ,
+          empiricalMeasure]
+        congr 1
+        refine Finset.sum_congr rfl (fun i _ => ?_)
+        simp only
+        rw [← Finset.sum_smul,
+          ← ENNReal.ofReal_sum_of_nonneg (fun k _ => hα0 i k), hαsum i, ENNReal.ofReal_one,
+          one_smul]
+      · rw [hπcoe, map_wsum α (fun i k => (ξhat i, atom i k)) Prod.snd measurable_snd, hQcoe,
+          worstCaseLaw]
+    -- Q lies in the ε-Wasserstein ball: otCost ≤ (plan cost) = budget ≤ ε
+    have hcostπ : couplingCost (fun x y => ‖x - y‖) π ≤ ε := by
+      rw [couplingCost, hπcoe,
+        integral_wsum α (fun i k => (ξhat i, atom i k)) hα0 (fun z => ‖z.1 - z.2‖)]
+      -- termwise αᵢₖ‖ξ̂ᵢ − atomᵢₖ‖ = αᵢₖ(αᵢₖ)⁻¹‖qᵢₖ‖ ≤ ‖qᵢₖ‖
+      refine le_trans ?_ hqbudget
+      rw [one_div]
+      refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+      refine Finset.sum_le_sum (fun i _ => Finset.sum_le_sum (fun k _ => ?_))
+      have hdiff : ξhat i - atom i k = (α i k)⁻¹ • q i k := by
+        rw [hatom]; simp
+      rw [hdiff, norm_smul, Real.norm_eq_abs, abs_inv, abs_of_nonneg (hα0 i k)]
+      rw [← mul_assoc]
+      exact mul_le_of_le_one_left (norm_nonneg _) (by
+        rcases eq_or_lt_of_le (hα0 i k) with h | h
+        · simp [← h]
+        · rw [mul_inv_cancel₀ (ne_of_gt h)])
+    have hball : Q ∈ wass1Ball μhat ε :=
+      le_trans (otCost_le_couplingCost _ (fun x y => norm_nonneg _) μhat Q π hcoupl) hcostπ
+    -- 𝔼_Q[ℓ] ≥ extremalObjective, since ℓ = maxₖ ℓₖ ≥ ℓₖ
+    have hexp : extremalObjective ξhat ℓk α q ≤ expect Q ℓ := by
+      rw [expect, hQcoe, worstCaseLaw,
+        integral_wsum α atom hα0 ℓ, extremalObjective, one_div]
+      simp only [hatom]
+      refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+      refine Finset.sum_le_sum (fun i _ => Finset.sum_le_sum (fun k _ => ?_))
+      refine mul_le_mul_of_nonneg_left ?_ (hα0 i k)
+      rw [hℓ (ξhat i - (α i k)⁻¹ • q i k)]
+      exact Finset.le_sup' (fun k' => ℓk k' (ξhat i - (α i k)⁻¹ • q i k)) (Finset.mem_univ k)
+    -- assemble: extremalObjective ≤ 𝔼_Q[ℓ] ≤ droValue
+    exact hexp.trans (le_csSup hbddP ⟨Q, hball, rfl⟩)
 
 /-- **Corollary 4.6 — existence of a worst-case distribution**
 (`prose/wasserstein-dro-duality.md` §3.3, Corollary 4.6).

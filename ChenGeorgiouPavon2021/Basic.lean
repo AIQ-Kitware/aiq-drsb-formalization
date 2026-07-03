@@ -326,7 +326,11 @@ theorem staticSB_eq_entropicOT (πB : ProbabilityMeasure (X × X))
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (hgibbs : (πB : Measure (X × X)) = endpointLaw d) :
     staticSBValue d ρ₀ ρ₁ = entropicOTValue πB ρ₀ ρ₁ := by
-  sorry
+  -- Both values are `sInf` over the SAME coupling set of `klReal π (·)`; with the
+  -- Gibbs-kernel identification `πB = R₀₁` the two reference measures coincide, so the
+  -- objective — hence the whole infimum — is identical. (Content-free once the endpoint
+  -- law IS the entropic-OT reference; the mathematics is (7.13)'s setup, not this rewrite.)
+  simp only [staticSBValue, entropicOTValue, hgibbs]
 
 /-- **Product-form (Schrödinger factorization) of the optimal coupling (CGP (4.11);
 static form (7.17)).**  The optimal coupling density factors as

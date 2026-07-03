@@ -9,8 +9,11 @@ audit statements against the papers, per the first-pass "statements only" policy
 One file per proposed Mathlib destination area:
 * `ForMathlib.MeasureTheory.DonskerVaradhan` — the DV inequality / Gibbs variational
   identity (root fact under the Sinkhorn-DRO dual).
+* `ForMathlib.MeasureTheory.Normalization` — normalize a finite nonzero measure to a
+  probability measure (the `(μ univ)⁻¹ • μ` construction).
 * `ForMathlib.OptimalTransport.Basic` — the shared OT / DRO vocabulary (couplings,
   transport cost, Wasserstein-2 and Sinkhorn ambiguity balls, KL, DRO worst-case).
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
+import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.OptimalTransport.Basic

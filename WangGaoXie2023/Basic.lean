@@ -27,6 +27,7 @@ matching `sinkhornBall μhat κ ε`.
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.MeasureTheory.DonskerVaradhan
+import ForMathlib.MeasureTheory.Normalization
 set_option autoImplicit false
 open MeasureTheory
 open scoped ENNReal
@@ -166,10 +167,9 @@ theorem exists_worstCase_gibbs
   -- `hpos`/`hfin`, and the result is a probability measure proportional to `γ̃_x`.
   refine ⟨fun xhat => (gibbsUnnormalized ν c f κ lam xhat Set.univ)⁻¹
             • gibbsUnnormalized ν c f κ lam xhat, ?_, ?_⟩
-  · -- `((∫γ̃)⁻¹ • γ̃) univ = (∫γ̃)⁻¹ · (∫γ̃) = 1`
+  · -- probability measure: the staged ForMathlib normalization lemma, `hpos`/`hfin`
     intro xhat
-    refine ⟨?_⟩
-    rw [Measure.smul_apply, smul_eq_mul, ENNReal.inv_mul_cancel (hpos xhat) (hfin xhat)]
+    exact ForMathlib.MeasureTheory.isProbabilityMeasure_inv_univ_smul _ (hpos xhat) (hfin xhat)
   · -- proportionality is definitional: the scalar is the normalizer `α_x`
     intro xhat
     exact ⟨(gibbsUnnormalized ν c f κ lam xhat Set.univ)⁻¹, rfl⟩

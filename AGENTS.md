@@ -4,7 +4,9 @@ Read this first. It captures *why* this repo exists, *what* has been established
 the *traps* — the context that is expensive to re-derive and easy to lose. Companion
 docs: [`README.md`](README.md) (build + library map), [`prose/README.md`](prose/README.md)
 (the published-theorem chain), [`formalization.yaml`](formalization.yaml) (per-declaration
-source map).
+source map), [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (the proof-pass work plan: every
+remaining `sorry` ranked by difficulty, the us-vs-Fable split, and the ForMathlib
+upstreaming queue).
 
 ---
 
@@ -210,20 +212,24 @@ The **`Drsb` capstone** composes the above:
   every declaration to its source.
 - **Proofs landed (proof pass, foundational-first):**
   - `ForMathlib.MeasureTheory.DonskerVaradhan` — the full DV family (axiom-clean).
+  - `ForMathlib.MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` —
+    normalize a finite nonzero measure to a probability measure (new; the first
+    pipeline extraction — a genuine Mathlib gap, consumed by `exists_worstCase_gibbs`).
   - `WangGaoXie2023.logPartition_eq_gibbs_sSup` (DV applied to the tilted reward),
     `worstCase_conditional_tilted` (density rewrite), and
-    `exists_worstCase_gibbs` (Remark 4: normalize the finite, nonzero unnormalized
-    Gibbs measure by its total mass `α_x` → a probability measure ∝ the tilt).
+    `exists_worstCase_gibbs` (Remark 4: normalize the unnormalized Gibbs measure → a
+    probability measure ∝ the tilt; now via the ForMathlib lemma).
+  - `ChenGeorgiouPavon2021.staticSB_eq_entropicOT` (T0: the `hgibbs` rewrite — when the
+    endpoint law IS the entropic-OT reference, the two `sInf`s coincide).
   - `BlanchetMurthy2019.wdro_strong_duality_dualFn` — the `Lc`-form of
-    `wdro_strong_duality`, derived from it by defeq (`Lc` unfolds to the explicit sup).
-    This is *not* an independent strong-duality proof; the debt stays in one place.
-- **Next (suggested order):** (1) expert review of statements vs. the PDFs, DRO-dual
-  hypotheses first (and fix `primal_feasible_iff`, §6); (2) more proofs: the weak-duality
-  `≤` direction (Gao–Kleywegt `weak_duality_prop1`) is the next real target — the
-  per-coupling bound is proved in `reference/V4.lean` (`wdro_lagrangian_bound`) but the
-  canonical statement needs integrability/`BddAbove` side-hypotheses added before the
-  sInf/sSup + coupling-ε assembly goes through. The strong-duality `≥` direction (§6)
-  is the research-grade seam — scope it explicitly.
+    `wdro_strong_duality`, derived from it by defeq. Not an independent strong-duality
+    proof; the debt stays in one place.
+- **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
+  Headline: the **card cost bounds need only WEAK duality** (`≤`), so the tractable
+  critical path is `weak_duality_prop1` (T3, Fable) → `Drsb.*_cost_bound` (T2). The
+  strong-duality `≥` / SDE-PDE block is T4 (not in Mathlib) — defer/axiomatize. The
+  ForMathlib upstreaming queue (DV ✓, Normalization ✓, WeakDuality 🔜, SinkhornScaling 🔜)
+  is the "Mathlib-contributable proofs" pipeline.
 - When a `reference/` result is validated and promoted, update `reference/README.md`.
 
 ## Resource accounting — the resource cost of the LLM work (CRITICAL: DO THIS EVERY COMMIT)

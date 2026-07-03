@@ -120,8 +120,8 @@ status:
     expectation: "builds green; every leaf theorem emits exactly one `declaration uses 'sorry'` warning."
   libraries:
     - name: "ForMathlib"
-      role: "Paper-agnostic staging: Donsker–Varadhan variational formula; shared OT/DRO vocabulary (couplings, transport cost, Wasserstein-2 & Sinkhorn balls, KL, DRO worst-case value)."
-      note: "DV theorems are PROVED (axiom-clean, ported from reference/WellKnown.lean); the OT/DRO vocabulary is definitions-only."
+      role: "Paper-agnostic staging (Mathlib-upstreaming queue): Donsker–Varadhan variational formula; measure normalization; shared OT/DRO vocabulary (couplings, transport cost, Wasserstein-2 & Sinkhorn balls, KL, DRO worst-case value)."
+      note: "PROVED: the DV family (axiom-clean, ported from reference/WellKnown.lean) and Normalization.isProbabilityMeasure_inv_univ_smul (finite nonzero measure → probability; a genuine Mathlib gap, consumed by WangGaoXie2023.exists_worstCase_gibbs). The OT/DRO vocabulary is definitions-only. See PROOF_PIPELINE.md §3 for the upstreaming queue (WeakDuality, SinkhornScaling next)."
     - name: "ChenGeorgiouPavon2021"
       role: "SB/SOC value function + optimal control u* = ∇log φ (abstract dynamics interface)."
     - name: "BlanchetMurthy2019"
@@ -145,9 +145,13 @@ main_results:
   ForMathlib:
     - declaration: "ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp"
       informal: "Donsker–Varadhan inequality: ∫ f dμ ≤ KL(μ‖ν) + log ∫ exp f dν."
-      note: "Complete proof exists in reference/WellKnown.lean; port after review."
+      proved: true   # axiom-clean port from reference/WellKnown.lean
     - declaration: "ForMathlib.MeasureTheory.log_integral_exp_eq_sSup"
       informal: "Donsker–Varadhan variational (Gibbs) identity."
+      proved: true
+    - declaration: "ForMathlib.MeasureTheory.isProbabilityMeasure_inv_univ_smul"
+      informal: "Normalize a finite nonzero measure to a probability measure: IsProbabilityMeasure ((μ univ)⁻¹ • μ)."
+      proved: true   # first ForMathlib pipeline extraction; Mathlib gap (only tilted_const' indirectly)
     - declaration: "ForMathlib.OT.{expect,klReal,otCost,W2sq,wassersteinBall,Wkappa,sinkhornBall,droValue}"
       informal: "Shared OT/DRO vocabulary (object definitions, no theorems)."
   ChenGeorgiouPavon2021:
@@ -161,6 +165,7 @@ main_results:
       source: "DRSB reconciliation u*(0,x) = −∇V(x) under V = −log φ"
     - declaration: "ChenGeorgiouPavon2021.staticSB_eq_entropicOT"
       source: "§7, eq. (7.13): static SB = entropic OT"
+      proved: true   # T0 — when the endpoint law IS the entropic-OT reference (hgibbs), the two sInfs coincide
   BlanchetMurthy2019:
     - declaration: "BlanchetMurthy2019.wdro_strong_duality"
       source: "Theorem 1(a),(b) via Remark 1, eq. (9) — Wasserstein DRO univariate dual"

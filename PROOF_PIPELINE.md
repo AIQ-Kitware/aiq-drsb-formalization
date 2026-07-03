@@ -58,6 +58,25 @@ capstones, but the cards do not depend on it.
 | `Drsb.sdrsb_cost_bound` | **T3** | a **Sinkhorn per-coupling weak-duality kernel** (entropic Lagrangian atop the proved DV/Gibbs engine `logPartition_eq_gibbs_sSup`), then the same composition as `wdrsb_cost_bound` | the *other* card claim; next target. |
 | `WangGaoXie2023.strong_duality` (≤ half only) | **T3** | outer `inf_{λ}` + ball Lagrangian on top of the proved `logPartition_eq_gibbs_sSup` | the DV engine (`ForMathlib`) is already done; this is the Sinkhorn analogue of the linchpin. |
 
+**Sinkhorn weak-duality kernel — roadmap** (de-risked by the 2026-07 audit; the next real
+target for the *second* card). The audit fixed the ball to use the external reference `ν`
+(`sinkhornBall μ̂ ν κ ε`; ball & dual now share `ν`). The kernel to prove — the entropic
+analogue of `expect_le_dualIntegrand_add_lam_couplingCost` — is: for `γ ∈ couplings p₀ μ`
+and `λ ≥ 0`,
+`expect μ V ≤ λ·sinkhornObjective(γ) + expect p₀ (logPartition ν sqCost V κ λ ·)`.
+Proof plan, all pieces confirmed to exist:
+1. Disintegrate `γ = p₀ ⊗ₘ γ_x` (Mathlib `Measure.condKernel`, standard-Borel `X`).
+2. Per nominal `x`, the proved Gibbs/DV bound
+   (`ForMathlib…integral_le_klDiv_add_log_integral_exp` / `logPartition_eq_gibbs_sSup`)
+   gives `𝔼_{γ_x}[V] ≤ λ·𝔼_{γ_x}[c] + λκ·KL(γ_x‖ν) + logPartition(x)`.
+3. Average over `p₀` via the KL chain rule (`Mathlib…klDiv_compProd_eq_add`); the
+   *integral form* `KL(p₀⊗ₘγ_x ‖ p₀⊗ₘ ν) = ∫ KL(γ_x‖ν) dp₀` is a Mathlib TODO — supply it
+   as a ForMathlib lemma (a genuine contribution).
+4. Then compose exactly as `wdrsb_cost_bound` (`le_csInf` + `sinkhornObjective ≤ ε`).
+NB the global single-DV shortcut only yields a *weaker* bound (Jensen: `log 𝔼 ≥ 𝔼 log`),
+so the disintegration is unavoidable. A substantial but well-specified proof — a strong
+Fable ticket or a focused session.
+
 ### Contributable-to-Mathlib, standalone (ForMathlib queue — see §3)
 
 | Decl | Tier | What it needs |

@@ -207,16 +207,18 @@ main_results:
       proved: true   # axiom-clean (propext/Classical.choice/Quot.sound). The ≤/weak-duality direction — all the card needs. Composes ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost with sqCost symmetry; regularity + OT-attainment (hOT) as explicit hypotheses (the T4 seam, not faked).
     - declaration: "Drsb.sdrsb_cost_bound"
       informal: "𝔼_μ[V] ≤ Sinkhorn dual worst-case — the sdrsb_cost_bound.yaml card claim."
+      note: "sorry. AUDIT (2026-07) fixed the Sinkhorn ball to use the EXTERNAL reference ν (was product-of-marginals; ball & dual now share ν). Proof is the entropic analogue of wdrsb_cost_bound but needs a Sinkhorn weak-duality kernel via disintegration + KL chain rule (Mathlib klDiv_compProd_eq_add) — roadmap in PROOF_PIPELINE.md."
     - declaration: "Drsb.eq47Bound"
       informal: "DRSB 'Eq. 47' bound = E_wc[V] − ρ·log 𝔼_ν[e^g] (from GaTech code; unpublished)."
 
 fidelity:
   known_limitations:
-    - "Most proofs are `sorry`; the foundational/self-contained leaves are proved (Donsker–Varadhan family in ForMathlib; WangGaoXie2023.{logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs}; BlanchetMurthy2019.wdro_strong_duality_dualFn). The research-grade strong-duality `≥` (attainment) seams remain `sorry`."
+    - "Many proofs are `sorry`, but the card `≤`/weak-duality path is landing: PROVED = Donsker–Varadhan family + measure Normalization + the OT-DRO weak-duality kernel (ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost) + **Drsb.wdrsb_cost_bound (the WDRSB evaluation-card claim, axiom-clean)** + WangGaoXie2023.{logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs} + ChenGeorgiouPavon2021.staticSB_eq_entropicOT + BlanchetMurthy2019.wdro_strong_duality_dualFn. The research-grade strong-duality `≥` (attainment) seams remain `sorry`."
     - "The DRSB manuscript is unpublished; its internal 'Eq. 47' and 'Algorithm 5' numbers come from the GaTech code, not a published PDF (flagged in prose/ and in the Drsb capstone)."
     - "Heavy analysis objects (SDE path measures, controlled dynamics) are captured via abstract `structure` interfaces, not built from Mathlib SDE theory (which does not exist yet)."
     - "Statements were AI-drafted against prose transcriptions; they still need expert review against the primary sources."
-    - "SUSPECTED STATEMENT BUG: WangGaoXie2023.primal_feasible_iff ((sinkhornBall μhat κ ε).Nonempty ↔ 0 ≤ ε) is likely false for the ForMathlib.OT definitions — for a non-degenerate nominal, Wkappa κ μhat μhat > 0 (product coupling has positive squared cost; the diagonal coupling has infinite KL vs the product), so at ε = 0 the RHS holds but the ball is empty. The paper's Sinkhorn discrepancy has W(P,P)=0 under a conditional/different definition than the coupling-based Wkappa encoded here. Left `sorry`; needs a prose re-derivation of the feasibility statement, not a proof."
+    - "SINKHORN AUDIT (2026-07, FIXED): the Sinkhorn ball (ForMathlib.OT.Wkappa/sinkhornBall) used KL against the product of the two coupling marginals (μ⊗μ̂), but Wang–Gao–Xie Def 1 uses KL against the nominal times an EXTERNAL reference ν (μ̂⊗ν) — the same ν the dual integrates over. The ball and dual referenced different measures, making strong_duality/sdrsb_*/primal_feasible_iff inconsistent. FIXED: Wkappa/sinkhornBall now carry ν and consumers thread it (see prose/sinkhorn-dro-duality.md audit note)."
+    - "WangGaoXie2023.primal_feasible_iff still `sorry`: with the OLD marginal-product reference it was outright false; with the corrected external-ν ball it is the paper's Theorem 1(I) but its proof (KL-nonnegativity + Lemma-2 reformulation) is not yet done. Re-confirm the statement against the corrected ball before proving."
 
 automation:
   methods:

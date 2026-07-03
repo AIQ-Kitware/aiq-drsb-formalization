@@ -87,15 +87,16 @@ theorem strong_duality
     (hcnn : ∀ x z, 0 ≤ c x z)            -- Assumption 1(I): ν{z : 0 ≤ c(x,z) < ∞} = 1 (nonnegative, finite a.e.)
     (hK : ∀ xhat, Integrable (fun z => Real.exp (-(c xhat z) / κ)) (ν : Measure X)) :
         -- Assumption 1(II): 𝔼_{z∼ν}[e^{−c(x,z)/ε}] < ∞ (makes the cost-Gibbs kernel Q_{x,ε} well-defined)
-    droValue (sinkhornBall μhat κ ε) f
+    droValue (sinkhornBall μhat ν κ ε) f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam } := by
   sorry
 
 /-- **Theorem 1(I) (Feasibility).** `(Primal)` is feasible iff the radius `ρ ≥ 0`
-(our `ε ≥ 0`): the nominal `P̂` itself lies in the Sinkhorn ball. (Prose Theorem 1(I).) -/
+(our `ε ≥ 0`): the nominal `P̂` itself lies in the Sinkhorn ball. (Prose Theorem 1(I).)
+Now stated against the external-reference ball `sinkhornBall μhat ν κ ε`. -/
 theorem primal_feasible_iff
-    (μhat : ProbabilityMeasure X) (κ ε : ℝ) :
-    (sinkhornBall μhat κ ε).Nonempty ↔ 0 ≤ ε := by
+    (μhat ν : ProbabilityMeasure X) (κ ε : ℝ) :
+    (sinkhornBall μhat ν κ ε).Nonempty ↔ 0 ≤ ε := by
   sorry
 
 /-! ## The inner Gibbs variational identity (engine of Theorem 1, step 2)

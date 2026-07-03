@@ -185,14 +185,19 @@ The **`Drsb` capstone** composes the above:
 - **KL is extended-valued in Mathlib** (`InformationTheory.klDiv : ℝ≥0∞`); we use
   `(klDiv μ ν).toReal`. `(⊤).toReal = 0`, so guard `∀ρ` statements with `ρ ≪ π` where the
   real and extended conventions agree.
-- **`WangGaoXie2023.primal_feasible_iff` is suspected mis-stated** (still `sorry`; do
-  not try to prove it as-is). `(sinkhornBall μhat κ ε).Nonempty ↔ 0 ≤ ε` is likely
-  *false* for the coupling-based `ForMathlib.OT.Wkappa`: for a non-degenerate nominal,
-  `Wkappa κ μhat μhat > 0` (the product coupling has positive `𝔼‖x−y‖²`; the diagonal
-  coupling — zero cost — is singular w.r.t. the product, so its KL term is `+∞`). Hence
-  at `ε = 0` the RHS holds but the ball is empty. The paper's Sinkhorn discrepancy has
-  `W(P,P)=0` under its conditional/regularised definition, which `Wkappa` does not
-  encode. Fix the statement (prose re-derivation) before attempting a proof.
+- **Sinkhorn ball uses an EXTERNAL reference `ν`** (fixed 2026-07 by the Sinkhorn audit).
+  Wang–Gao–Xie Def 1's entropic penalty is `KL(γ ‖ P̂ ⊗ ν)` with `ν` an *external*
+  reference (Lebesgue/Gaussian) — the same `ν` the dual's log-partition integrates over —
+  NOT the product of the two coupling marginals. The old `ForMathlib.OT.Wkappa`/
+  `sinkhornBall` used `μ⊗μ̂` (marginals) and so mismatched the dual. Now:
+  `Wkappa κ ν μ̂ μ`, `sinkhornBall μ̂ ν κ ε` carry `ν`; consumers (`WangGaoXie2023.strong_duality`,
+  `primal_feasible_iff`, `Drsb.sdrsb_*`) thread it. See `prose/sinkhorn-dro-duality.md`
+  (audit-correction admonition).
+- **`WangGaoXie2023.primal_feasible_iff` still `sorry` and still to be re-audited.** With
+  the OLD (marginal-product) reference it was outright false (`Wkappa κ μ̂ μ̂ > 0` for a
+  non-degenerate nominal). With the corrected external-`ν` reference, feasibility is the
+  paper's Theorem 1(I), but its Lean proof needs the KL-nonnegativity + Lemma-2
+  reformulation; confirm the statement against the corrected `sinkhornBall` before proving.
 
 ---
 

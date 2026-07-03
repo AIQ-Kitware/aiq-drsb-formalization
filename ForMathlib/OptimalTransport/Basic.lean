@@ -65,23 +65,34 @@ def wassersteinBall (μhat : ProbabilityMeasure X) (ε : ℝ) : Set (Probability
 noncomputable def prodMeasure (μ ν : ProbabilityMeasure X) : Measure (X × X) :=
   (μ : Measure X).prod (ν : Measure X)
 
-/-- Sinkhorn (entropic-OT) objective for a fixed coupling `π`, at regularization
-`κ`: `𝔼_π[‖x − y‖²] + κ · KL(π ‖ μ ⊗ ν)`. -/
-noncomputable def sinkhornObjective (κ : ℝ) (μ ν : ProbabilityMeasure X)
-    (π : ProbabilityMeasure (X × X)) : ℝ :=
-  couplingCost2 π + κ * klReal (π : Measure (X × X)) (prodMeasure μ ν)
+/-- **Sinkhorn (entropic-OT) objective** for a coupling `γ` of the nominal `μhat` (first
+marginal) with a candidate, at regularizer `κ`, against an **external reference `νref`**:
+`𝔼_γ[‖x − y‖²] + κ · KL(γ ‖ μ̂ ⊗ νref)`.
 
-/-- Entropic-OT / Sinkhorn discrepancy
-`W_κ(μ, ν) = inf_{π ∈ Π(μ,ν)} 𝔼_π[‖x−y‖²] + κ·KL(π ‖ μ⊗ν)`. (Paper convention: `κ`
-is the entropic regularizer.) -/
-noncomputable def Wkappa (κ : ℝ) (μ ν : ProbabilityMeasure X) : ℝ :=
-  sInf { r : ℝ | ∃ π : ProbabilityMeasure (X × X),
-    π ∈ couplings μ ν ∧ r = sinkhornObjective κ μ ν π }
+⚠ The entropic reference is `μ̂ ⊗ νref` — the **nominal times an EXTERNAL reference `νref`**
+(the measure the worst-case is a.c. wrt: Lebesgue/Gaussian/counting), exactly as
+Wang–Gao–Xie **Definition 1** (`prose/sinkhorn-dro-duality.md`). It is NOT the product of
+the two coupling marginals; the external `νref` is what appears in the dual's
+log-partition `𝔼_{z∼νref}[e^{(f−λc)/(λκ)}]`, so ball and dual must share it. (An earlier
+version used `μ ⊗ μ̂` — the product of marginals — which mismatched the dual; see the audit
+note in `prose/sinkhorn-dro-duality.md` / AGENTS.md §6.) -/
+noncomputable def sinkhornObjective (κ : ℝ) (μhat νref : ProbabilityMeasure X)
+    (γ : ProbabilityMeasure (X × X)) : ℝ :=
+  couplingCost2 γ + κ * klReal (γ : Measure (X × X)) (prodMeasure μhat νref)
 
-/-- Sinkhorn ambiguity ball `𝓜^S_ε(μ̂) = { μ : W_κ(μ, μ̂) ≤ ε }`. (Paper convention:
-`ε` is the ball radius.) -/
-def sinkhornBall (μhat : ProbabilityMeasure X) (κ ε : ℝ) : Set (ProbabilityMeasure X) :=
-  { μ | Wkappa κ μ μhat ≤ ε }
+/-- **Sinkhorn discrepancy** `W_{κ,ν}(μ̂, μ) = inf_{γ ∈ Π(μ̂, μ)} 𝔼_γ[‖x−y‖²] + κ·KL(γ ‖ μ̂⊗ν)`
+from the nominal `μhat` to a candidate `μ`, with external reference `νref` (Wang–Gao–Xie
+Def 1; `κ` = entropic regularizer). The coupling has `μhat` as first marginal (the
+disintegration/conditioning variable) and `μ` as second. -/
+noncomputable def Wkappa (κ : ℝ) (νref μhat μ : ProbabilityMeasure X) : ℝ :=
+  sInf { r : ℝ | ∃ γ : ProbabilityMeasure (X × X),
+    γ ∈ couplings μhat μ ∧ r = sinkhornObjective κ μhat νref γ }
+
+/-- **Sinkhorn ambiguity ball** `𝓑^ν_{ε,κ}(μ̂) = { μ : W_{κ,ν}(μ̂, μ) ≤ ε }` around the
+nominal `μhat`, with external reference `νref` (`κ` = regularizer, `ε` = radius). -/
+def sinkhornBall (μhat νref : ProbabilityMeasure X) (κ ε : ℝ) :
+    Set (ProbabilityMeasure X) :=
+  { μ | Wkappa κ νref μhat μ ≤ ε }
 
 /-- The DRO worst-case value of an objective `f` over an ambiguity set `𝓐`:
 `sup_{μ ∈ 𝓐} 𝔼_μ[f]`. -/

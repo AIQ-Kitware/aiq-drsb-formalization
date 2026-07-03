@@ -122,15 +122,24 @@ cost `c := ‖·‖²`. (Paper/Lean symbol convention: `κ` = entropic regulariz
 ball radius; `ν` is the entropic-OT reference measure.) Discharged by
 `WangGaoXie2023.strong_duality`. -/
 theorem sdrsb_strong_duality (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) :
-    droValue (sinkhornBall p₀ κ ε) V
+    droValue (sinkhornBall p₀ ν κ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
   sorry
 
 /-- **SDRSB cost bound** (the `sdrsb_cost_bound.yaml` claim): any source inside the
-Sinkhorn ball has expected cost bounded by the Sinkhorn-DRO dual worst-case value. -/
+Sinkhorn ball (external reference `ν`) has expected cost bounded by the Sinkhorn-DRO dual
+worst-case value.
+
+The Sinkhorn ball and the dual now share the same external reference `ν` (audit fix — see
+`prose/sinkhorn-dro-duality.md`). The proof is the entropic analogue of `wdrsb_cost_bound`:
+disintegrate the witnessing coupling `γ = p₀ ⊗ₘ γ_x`, apply the proved Gibbs/DV bound
+(`WangGaoXie2023.logPartition_eq_gibbs_sSup` / `ForMathlib…integral_le_klDiv_add_log_integral_exp`)
+per nominal point `x` to get `logPartition`, and average over `p₀` using the KL chain rule
+(`Mathlib…klDiv_compProd_eq_add`). Staged as `sorry` pending that Sinkhorn weak-duality
+kernel — a disintegration proof (roadmap in `PROOF_PIPELINE.md`). -/
 theorem sdrsb_cost_bound (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ)
-    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ κ ε) :
+    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ ν κ ε) :
     expect μ V
       ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by

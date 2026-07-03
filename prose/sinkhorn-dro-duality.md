@@ -248,9 +248,20 @@ the `sdrsb_cost_bound.yaml` card. Recall the symbol dictionary: paper $\epsilon\
 paper $\nu\to$ `base`, paper $\hat P\to$ `muhat`, paper $c(x,z)\to\lVert x-z\rVert^2$.
 
 - **`sinkhornObjective` / `Wkappa` / `sinkhornBall`** $\leftrightarrow$ **Definition 1** and
-  the Sinkhorn ball $\mathcal B_{\rho,\epsilon}(\hat P)$. `Wkappa κ μ μ̂ = inf_π E_π[c]+κ·KL(π‖μ⊗μ̂)`
-  is the entropic OT of Definition 1 with $c=\lVert\cdot\rVert^2$; `sinkhornBall muhat kappa eps`
-  is $\{μ:W_\kappa(μ,\hat μ)\le\text{eps}\}=\mathcal B_{\rho,\epsilon}(\hat P)$.
+  the Sinkhorn ball $\mathcal B_{\rho,\epsilon}(\hat P)$.
+  > ⚠️ **AUDIT CORRECTION (2026-07).** An earlier version of this bullet and the Lean
+  > scaffold defined `Wkappa κ μ μ̂ = inf_π E_π[c] + κ·KL(π ‖ μ⊗μ̂)` — the entropic
+  > reference being **the product of the two coupling marginals** `μ⊗μ̂`. **That is the
+  > wrong Sinkhorn distance for this paper.** Definition 1 uses `H(γ | μ⊗ν)` with `μ = P̂`
+  > (nominal) and **`ν` an EXTERNAL reference** (Lebesgue/Gaussian/counting — the measure
+  > the worst-case is a.c. wrt), so the entropic reference is `P̂ ⊗ ν`, and that same
+  > external `ν` is what the dual's log-partition integrates over
+  > (`𝔼_{z∼ν}[e^{(f−λc)/(λε)}]`). With the product-of-marginals reference, the ball and
+  > the dual reference *different* measures, so `strong_duality`, `sdrsb_*`, and
+  > `primal_feasible_iff` were internally inconsistent. **Fixed:** `Wkappa`/`sinkhornBall`
+  > now carry the external reference — `Wkappa κ ν μ̂ μ = inf_{γ∈Π(μ̂,μ)} E_γ[c] + κ·KL(γ ‖ μ̂⊗ν)`,
+  > `sinkhornBall μ̂ ν κ ε = {μ : Wkappa κ ν μ̂ μ ≤ ε}`. So `sinkhornBall p₀ ν κ ε` is
+  > $\mathcal B_{\rho,\epsilon}(\hat P)$ with the paper's external $\nu$.
 
 - **`M_logPartition base Ψ₀ λ κ x̂`** $\;=\;\lambda\kappa\,\log\int_x\exp\!\big(\tfrac{\Psi_0(x)-\lambda\lVert x-\hat x\rVert^2}{\lambda\kappa}\big)\,\mathrm d\text{base}$
   $\ \leftrightarrow\ $ the inner term $v_x(\lambda)=\lambda\epsilon\log\mathbb E_{z\sim\nu}[e^{(f(z)-\lambda c(x,z))/(\lambda\epsilon)}]$

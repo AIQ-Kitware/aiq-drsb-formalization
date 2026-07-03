@@ -82,7 +82,7 @@ With the hook installed you normally only ever run `rollup` (at session end).
 ## AGENTS.md snippet (paste into the target repo)
 
 ```markdown
-## Resource accounting — the resource cost of the LLM work (CRICITAL: DO THIS EVERY COMMIT)
+## Resource accounting — the resource cost of the LLM work (CRITICAL: DO THIS EVERY COMMIT)
 
 Every commit here is produced by an LLM agent; we keep a measured record of the
 compute each commit cost. It is near-zero effort:

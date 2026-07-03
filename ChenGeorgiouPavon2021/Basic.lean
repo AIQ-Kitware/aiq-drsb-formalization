@@ -165,11 +165,56 @@ Problem 4.3, via the energy identity (4.19)).**  Since the endpoint entropy
 minimizing the control energy, up to that additive constant. -/
 theorem schrodingerBridge_KL_eq_SOC (ρ₀ ρ₁ : ProbabilityMeasure X)
     -- every feasible control is a finite-energy diffusion (CGP (4.4)–(4.5)):
-    (hfe : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
+    (hfe : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀)
+    -- the feasible set is nonempty (a control steering ρ₀ → ρ₁ exists):
+    (hne : ∃ u : Control X, Feasible d u ρ₀ ρ₁) :
     schrodingerBridgeValueKL d ρ₀ ρ₁
       = klReal (ρ₀ : Measure X) (initialMarginal d.R)
         + schrodingerBridgeValueSOC d ρ₀ ρ₁ := by
-  sorry
+  -- the control energy is nonnegative (integrand ½‖u‖² ≥ 0)
+  have henergy_nonneg : ∀ (u : Control X) (P : ProbabilityMeasure (Path X)), 0 ≤ energy u P := by
+    intro u P
+    refine integral_nonneg (fun ω => ?_)
+    refine integral_nonneg (fun t => ?_)
+    positivity
+  -- energy identity + feasibility: D(P‖W) = D(ρ₀‖ρ₀^W) + energy, for each feasible u
+  have hid : ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
+      klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
+        = klReal (ρ₀ : Measure X) (initialMarginal d.R) + energy u (d.pathLaw u ρ₀) := by
+    intro u hu
+    rw [energy_identity d u ρ₀ (hfe u hu), hu.1]
+  -- so the KL-value set is the SOC-value set translated by the constant endpoint entropy
+  have hset : { J : ℝ | ∃ u : Control X, Feasible d u ρ₀ ρ₁ ∧
+        J = klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) }
+      = (fun x => klReal (ρ₀ : Measure X) (initialMarginal d.R) + x) ''
+          { J : ℝ | ∃ u : Control X, Feasible d u ρ₀ ρ₁ ∧ J = energy u (d.pathLaw u ρ₀) } := by
+    ext J
+    simp only [Set.mem_setOf_eq, Set.mem_image]
+    constructor
+    · rintro ⟨u, hu, rfl⟩
+      exact ⟨energy u (d.pathLaw u ρ₀), ⟨u, hu, rfl⟩, (hid u hu).symm⟩
+    · rintro ⟨x, ⟨u, hu, rfl⟩, rfl⟩
+      exact ⟨u, hu, (hid u hu).symm⟩
+  -- sInf of a constant-translated set of reals
+  have hshift : ∀ (a : ℝ) (T : Set ℝ), T.Nonempty → BddBelow T →
+      sInf ((fun x => a + x) '' T) = a + sInf T := by
+    intro a T hTne hTbdd
+    have hImbdd : BddBelow ((fun x => a + x) '' T) := by
+      obtain ⟨b, hb⟩ := hTbdd
+      exact ⟨a + b, by rintro _ ⟨t, ht, rfl⟩; simp only; linarith [hb ht]⟩
+    refine le_antisymm ?_ ?_
+    · have hsub : sInf ((fun x => a + x) '' T) - a ≤ sInf T :=
+        le_csInf hTne (fun t ht => by
+          have := csInf_le hImbdd ⟨t, ht, rfl⟩; simp only at this; linarith)
+      linarith
+    · exact le_csInf (hTne.image _) (by rintro _ ⟨t, ht, rfl⟩; simp only; linarith [csInf_le hTbdd ht])
+  obtain ⟨u₀, hu₀⟩ := hne
+  have hSOCne : { J : ℝ | ∃ u : Control X, Feasible d u ρ₀ ρ₁ ∧ J = energy u (d.pathLaw u ρ₀) }.Nonempty :=
+    ⟨energy u₀ (d.pathLaw u₀ ρ₀), u₀, hu₀, rfl⟩
+  have hSOCbdd : BddBelow { J : ℝ | ∃ u : Control X, Feasible d u ρ₀ ρ₁ ∧ J = energy u (d.pathLaw u ρ₀) } :=
+    ⟨0, by rintro _ ⟨u, _, rfl⟩; exact henergy_nonneg u (d.pathLaw u ρ₀)⟩
+  unfold schrodingerBridgeValueKL schrodingerBridgeValueSOC
+  rw [hset, hshift _ _ hSOCne hSOCbdd]
 
 --------------------------------------------------------------------------------
 -- §4  Schrödinger system (4.22) and the Hopf–Cole / Fleming optimal control

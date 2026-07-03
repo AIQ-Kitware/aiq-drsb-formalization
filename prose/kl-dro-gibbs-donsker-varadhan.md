@@ -1,6 +1,6 @@
 # Donsker–Varadhan, the Gibbs worst-case measure, and KL/φ-divergence DRO
 
-**Sources (this is connective tissue — the shared root of two other files).** The
+**Sources (this is connective tissue — the shared root beneath the Sinkhorn-DRO dual).** The
 Donsker–Varadhan (DV) variational formula and the Gibbs / exponential-tilting
 worst-case measure are classical and appear in books rather than a single arXiv
 paper; the KL- and φ-divergence DRO specializations are journal papers. Nothing
@@ -18,14 +18,11 @@ here needs a downloaded PDF; the primary references are:
 - Z. Hu, L. J. Hong. *Kullback–Leibler Divergence Constrained Distributionally
   Robust Optimization.* Optimization-Online, 2013. — the KL-ball worst-case is a
   Gibbs (exponential-tilting) measure; the `log E[exp]` dual.
-- (See also `boucheron-lugosi-massart` *Concentration Inequalities*, 2013, §4, for
-  DV, the entropy method, and Hoeffding — used by the PAC-Bayes file.)
 
-> **Role in the DRSB chain.** DV is the *single mathematical fact* that both (a) the
+> **Role in the DRSB chain.** DV is the *single mathematical fact* that the
 > Sinkhorn-DRO entropic dual / "Eq. 47" log-partition term
-> ([sinkhorn-dro-duality.md](sinkhorn-dro-duality.md)) and (b) the TwoPager PAC-Bayes
-> generalization bound ([pac-bayes-generalization.md](pac-bayes-generalization.md))
-> are built on. It also names the *shape of the worst-case distribution*: whenever an
+> ([sinkhorn-dro-duality.md](sinkhorn-dro-duality.md)) is built on. It also names the
+> *shape of the worst-case distribution*: whenever an
 > ambiguity set is controlled by relative entropy (a KL ball, or the entropic inner
 > layer of a Sinkhorn ball), the worst-case measure is a **Gibbs tilt**
 > $dP^\star \propto e^{f/\lambda}\, dP_0$. This is exactly the DRSB
@@ -124,9 +121,9 @@ log-partition object are named in [`V4.lean`](../V4.lean):
 
 ---
 
-## 3. Why this sits under *two* DRSB results
+## 3. Why this sits under the Sinkhorn-DRO result
 
-**(a) Sinkhorn-DRO / Eq. 47.** A Sinkhorn ball is an entropic-OT ball: its inner
+**Sinkhorn-DRO / Eq. 47.** A Sinkhorn ball is an entropic-OT ball: its inner
 layer conditions the transported mass through a reference kernel and penalizes it
 by relative entropy. Dualizing that inner layer is exactly (2.3), which is why the
 Sinkhorn-DRO dual (Wang–Gao–Xie) carries a
@@ -138,20 +135,13 @@ bound $\;\mathrm{Bound}=\mathbb E_{\text{wc}}[V]-\rho\log\mathbb E_\nu[e^{g(X_1)
 is this log-partition term with $f=g$, $\nu$ the terminal reference $\nu$, and
 $\lambda$ absorbed into $\rho$. See [sinkhorn-dro-duality.md](sinkhorn-dro-duality.md).
 
-**(b) TwoPager PAC-Bayes (Theorem 4).** The PAC-Bayes generalization bound for the
-clipped terminal-cost net $g_\vartheta$ transfers a bound proved for the reference
-path measure $Q$ to *any* controlled path measure $P$ at the price of
-$\mathrm{KL}(P\Vert Q)$ — that transfer step *is* (DV-ineq), applied to the
-Hoeffding exponential moment. See [pac-bayes-generalization.md](pac-bayes-generalization.md)
-and `WellKnown.hoeffding_mgf_bound` + `WellKnown.integral_le_klDiv_add_log_integral_exp`.
-
 ---
 
 ## 4. Correspondence summary
 
 | Chain object | Where it is the *worst case* | Lean |
 |---|---|---|
-| DV inequality $\int f\,d\mu \le \mathrm{KL}+\log\int e^f$ | change of measure in both (a),(b) | `integral_le_klDiv_add_log_integral_exp` |
+| DV inequality $\int f\,d\mu \le \mathrm{KL}+\log\int e^f$ | change of measure in the entropic dual | `integral_le_klDiv_add_log_integral_exp` |
 | DV identity $\log\int e^f = \sup_\mu(\int f - \mathrm{KL})$ | entropic dual | `log_integral_exp_eq_sSup`, `isGreatest_donskerVaradhan` |
 | Gibbs tilt $\propto e^{f/\lambda}$ | KL- and Sinkhorn-ball worst case | `GibbsKernel`, `exists_worstCase_gibbsKernel` |
 | $\lambda\log\int e^{f/\lambda}$ | SDRO dual / DRSB Eq. 47 | `M_logPartition`, `sdro_dual` |

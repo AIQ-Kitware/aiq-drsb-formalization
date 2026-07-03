@@ -12,10 +12,10 @@ library per source paper, a paper-agnostic `ForMathlib` staging library, a
 > the working conventions, and the known traps. This README is just the build + library
 > map.
 
-> **Status: first-pass scaffold — statements only.** Every theorem is stated as
-> close to its published form as we could manage and left as `sorry`. No proofs are
-> attempted yet; the goal is to lock the *statements* to the papers. The whole
-> project `lake build`s green (each leaf emits exactly one `declaration uses 'sorry'`).
+> **Status: first-pass scaffold — statements, proofs just starting.** Each theorem is
+> stated close to its published form; most bodies are still `sorry`, with the
+> Donsker–Varadhan family in `ForMathlib` now proved (axiom-clean). The project
+> `lake build`s green.
 
 ## What DRSB claims
 
@@ -36,8 +36,7 @@ Wasserstein-2 ball (`wdrsb_cost_bound.yaml`) or a Sinkhorn-divergence ball
 | `GaoKleywegt2023` | Wasserstein-DRO strong duality + worst-case distribution | `weak_duality_prop1`, `strong_duality_thm1`, `worstCase_structure_cor1`, `dataDriven_worstCase_cor2ii` |
 | `MohajerinEsfahaniKuhn2018` | Data-driven Wasserstein-DRO reformulation | `worstCaseExpectation_eq_dual`, `worstCase_program`, `worstCase_exists` |
 | `WangGaoXie2023` | Sinkhorn-DRO log-partition dual (DRSB "Eq. 47") | `strong_duality`, `sinkhornDualObjective`, `logPartition`, `exists_worstCase_gibbs` |
-| `Alquier2024` | PAC-Bayes (Catoni) + Donsker–Varadhan | `hoeffding_mgf_bound`, `donskerVaradhan_change_of_measure`, `catoni_pacBayes_bound` |
-| `Drsb` | **Capstone** — the DRSB claims composed from the above | `wdrsb_cost_bound`, `sdrsb_cost_bound`, `eq47Bound`, `twopager_theorem4` |
+| `Drsb` | **Capstone** — the DRSB claims composed from the above | `wdrsb_cost_bound`, `sdrsb_cost_bound`, `eq47Bound` |
 
 Each `<Library>/Basic.lean` docstring cites the prose file + printed theorem/equation
 number every declaration corresponds to.
@@ -73,6 +72,5 @@ lake build              # builds green; every leaf emits one `sorry` warning
 ## Next steps
 
 1. Expert review of the statements against the primary sources (`prose/` + PDFs).
-2. Port the already-proved Donsker–Varadhan / Hoeffding lemmas from
-   `reference/WellKnown.lean` into `ForMathlib` (drop the `sorry`s).
-3. Begin proofs, foundational libraries first (DV → Sinkhorn dual → capstone).
+2. Begin proofs, foundational libraries first (DV → Sinkhorn dual → capstone). The
+   Donsker–Varadhan family is already ported into `ForMathlib` (proved, axiom-clean).

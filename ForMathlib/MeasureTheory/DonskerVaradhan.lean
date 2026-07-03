@@ -9,8 +9,8 @@ with `exp ∘ f` integrable under `ν`:
 * variational form: `log ∫ exp f dν = sup_μ (∫ f dμ − KL(μ‖ν))`, attained at the
   `f`-tilted (Gibbs) measure `ν.tilted f`.
 
-These are the root facts under the Sinkhorn-DRO entropic dual and the PAC-Bayes
-change of measure (see `../prose/kl-dro-gibbs-donsker-varadhan.md`). Mathlib has the
+These are the root fact under the Sinkhorn-DRO entropic dual (see
+`../prose/kl-dro-gibbs-donsker-varadhan.md`). Mathlib has the
 tilting infrastructure (`Measure.tilted`, `integral_llr_tilted_right`, …) but not
 the Donsker–Varadhan statement itself.
 

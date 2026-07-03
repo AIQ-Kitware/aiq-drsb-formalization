@@ -11,12 +11,12 @@ project:
   repository: "https://github.com/AIQ-Kitware/aiq-drsb-formalization"
   description: >
     Lean 4 scaffold for the theorems underlying the GaTech DRSB (Distributionally-
-    Robust Schrödinger Bridge) TA1 evaluation cards. The DRSB manuscript and its
-    "TwoPager" companion are unpublished; this project formalizes the *published*
-    theorems the DRSB claims compose (Schrödinger-bridge / stochastic-optimal-control
-    value function, Wasserstein- and Sinkhorn-DRO strong duality, Donsker–Varadhan,
-    and PAC-Bayes), then a capstone that states the DRSB worst-case cost bound and the
-    TwoPager PAC-Bayes bound in those terms.
+    Robust Schrödinger Bridge) TA1 evaluation cards. The DRSB manuscript is
+    unpublished; this project formalizes the *published* theorems the DRSB claims
+    compose (Schrödinger-bridge / stochastic-optimal-control value function,
+    Wasserstein- and Sinkhorn-DRO strong duality, and the Donsker–Varadhan / Gibbs
+    root under the Sinkhorn dual), then a capstone that states the two DRSB worst-case
+    cost bounds in those terms.
     Prose transcriptions of every source are in `prose/` (source PDFs in
     `prose/papers/`, git-ignored).
 
@@ -92,17 +92,10 @@ sources:
     role: "Sinkhorn (entropic) DRO strong duality; the log-partition dual behind DRSB Eq. 47."
     prose: "prose/sinkhorn-dro-duality.md"
     library: "WangGaoXie2023"
-  - id: "Alquier 2024"
-    title: "User-friendly introduction to PAC-Bayes bounds"
-    venue: "Foundations and Trends in ML, 2024"
-    arxiv: "2110.11216"
-    role: "PAC-Bayes (Catoni bound) + Donsker–Varadhan — the TwoPager Theorem 4 foundation."
-    prose: "prose/pac-bayes-generalization.md"
-    library: "Alquier2024"
   - id: "DRSB manuscript (unpublished)"
-    title: "Distributionally-Robust Schrödinger Bridge (drsbm_paper) + TwoPager"
+    title: "Distributionally-Robust Schrödinger Bridge (drsbm_paper)"
     authors: ["GaTech team (contact: Jinhwan Sul)"]
-    role: "The team's own worst-case cost bound (Eq. 47) and PAC-Bayes Theorem 4; NOT public."
+    role: "The team's own worst-case cost bound (Eq. 47); NOT public."
     prose: "prose/README.md"
     library: "Drsb"   # capstone, composed from the libraries above
 
@@ -133,10 +126,8 @@ status:
       role: "Data-driven Wasserstein DRO convex reformulation."
     - name: "WangGaoXie2023"
       role: "Sinkhorn DRO strong duality (log-partition dual; DRSB Eq. 47)."
-    - name: "Alquier2024"
-      role: "PAC-Bayes (Catoni) + Donsker–Varadhan; TwoPager Theorem 4 foundation."
     - name: "Drsb"
-      role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bound (Eq. 47), TwoPager Theorem 4 — composed from the libraries above."
+      role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bound (Eq. 47) — composed from the libraries above."
 
 main_results:
   note: >
@@ -184,13 +175,6 @@ main_results:
       source: "Theorem 1(II) — Sinkhorn-DRO log-partition dual (DRSB Eq. 47 source)"
     - declaration: "WangGaoXie2023.exists_worstCase_gibbs"
       source: "Remark 4 — continuous Gibbs (exponential-tilt) worst case"
-  Alquier2024:
-    - declaration: "Alquier2024.hoeffding_mgf_bound"
-      source: "Lemma 1.1 (Hoeffding MGF)"
-    - declaration: "Alquier2024.donskerVaradhan_change_of_measure"
-      source: "Lemma 2.2 (Donsker–Varadhan change of measure)"
-    - declaration: "Alquier2024.catoni_pacBayes_bound"
-      source: "Theorem 2.1 (Catoni PAC-Bayes bound)"
   Drsb:
     - declaration: "Drsb.wdrsb_cost_bound"
       informal: "𝔼_μ[V] ≤ WDRO dual worst-case — the wdrsb_cost_bound.yaml card claim."
@@ -198,13 +182,11 @@ main_results:
       informal: "𝔼_μ[V] ≤ Sinkhorn dual worst-case — the sdrsb_cost_bound.yaml card claim."
     - declaration: "Drsb.eq47Bound"
       informal: "DRSB 'Eq. 47' bound = E_wc[V] − ρ·log 𝔼_ν[e^g] (from GaTech code; unpublished)."
-    - declaration: "Drsb.twopager_theorem4"
-      informal: "TwoPager Theorem 4 — PAC-Bayes bound for the clipped terminal-cost net g (unpublished)."
 
 fidelity:
   known_limitations:
     - "All proofs are `sorry`; statements are unverified against Lean's kernel beyond type-checking."
-    - "The DRSB manuscript + TwoPager are unpublished; their internal 'Eq. 47', 'Algorithm 5', and Theorem-4 equation numbers come from code/coordinator, not a PDF (flagged in prose/ and in the Drsb capstone)."
+    - "The DRSB manuscript is unpublished; its internal 'Eq. 47' and 'Algorithm 5' numbers come from the GaTech code, not a published PDF (flagged in prose/ and in the Drsb capstone)."
     - "Heavy analysis objects (SDE path measures, controlled dynamics) are captured via abstract `structure` interfaces, not built from Mathlib SDE theory (which does not exist yet)."
     - "Statements were AI-drafted against prose transcriptions; they need expert review against the primary sources before proofs begin."
 
@@ -215,7 +197,7 @@ automation:
       models:
         - "Claude Opus 4.8 (1M context) — scaffolding, prose transcription, statement drafting"
       framework: "Coordinated LLM sessions with local `lake` type-checking against a pinned Mathlib."
-      review_status: "Statements type-check against Mathlib; the Donsker–Varadhan family in ForMathlib is proved (axiom-clean, ported from reference/WellKnown.lean) and the two Alquier2024 DV re-exports are discharged from it; remaining leaves are `sorry`. Not yet reviewed by a Lean/subject-matter expert."
+      review_status: "Statements type-check against Mathlib; the Donsker–Varadhan family in ForMathlib is proved (axiom-clean, ported from reference/WellKnown.lean); remaining leaves are `sorry`. Not yet reviewed by a Lean/subject-matter expert."
   resource_accounting:
     rationale: >
       Every commit here is produced by an LLM agent; this block makes the climate

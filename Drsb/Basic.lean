@@ -1,29 +1,27 @@
 /-
 # Drsb — capstone: the DRSB paper's own claims, composed from the source libraries
 
-The GaTech **Distributionally-Robust Schrödinger Bridge** paper and its "TwoPager"
-companion are UNPUBLISHED. This capstone states their load-bearing results in the
-shared `ForMathlib.OT` vocabulary, discharging each (in a later proof pass) from the
-published source libraries:
+The GaTech **Distributionally-Robust Schrödinger Bridge** paper is UNPUBLISHED. This
+capstone states its load-bearing results — the two evaluation-card cost bounds — in
+the shared `ForMathlib.OT` vocabulary, discharging each (in a later proof pass) from
+the published source libraries:
 
 * the value function `V` and optimal control are `ChenGeorgiouPavon2021`;
 * the WDRSB worst-case cost bound is `BlanchetMurthy2019` / `GaoKleywegt2023`
   (Wasserstein-DRO strong duality) specialized to `f := V`, cost `‖·‖²`;
-* the SDRSB bound / "Eq. 47" is `WangGaoXie2023` (Sinkhorn-DRO log-partition dual);
-* the TwoPager PAC-Bayes bound is `Alquier2024` (Catoni).
+* the SDRSB bound / "Eq. 47" is `WangGaoXie2023` (Sinkhorn-DRO log-partition dual).
 
 The two `expect μ V ≤ …` theorems are exactly the `wdrsb_cost_bound.yaml` /
 `sdrsb_cost_bound.yaml` card claims `E_perturbed[V] ≤ E_worst-case[V]`.
 
-STATUS: statements only (`sorry`). The DRSB "Eq. 47" / TwoPager equation numbers are
-from the GaTech code + coordinator, NOT a published PDF (see `prose/README.md`).
+STATUS: statements only (`sorry`). The DRSB "Eq. 47" internal number is from the
+GaTech code, NOT a published PDF (see `prose/README.md`).
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
 import BlanchetMurthy2019.Basic
 import GaoKleywegt2023.Basic
 import WangGaoXie2023.Basic
-import Alquier2024.Basic
 import ChenGeorgiouPavon2021.Basic
 
 set_option autoImplicit false
@@ -102,32 +100,5 @@ the `WangGaoXie2023.logPartition` term with `f := ρ·g`, `c := 0` at the termin
 layer. -/
 noncomputable def eq47Bound (ν : ProbabilityMeasure X) (g : X → ℝ) (ρ Ewc : ℝ) : ℝ :=
   Ewc - ρ * Real.log (∫ x, Real.exp (g x) ∂(ν : Measure X))
-
-/-! ## TwoPager Theorem 4 — PAC-Bayes for the clipped terminal-cost network
-
-⚠ Unpublished DRSB companion ("TwoPager"); Eqs. (116)/(126). Discharged by
-`Alquier2024.catoni_pacBayes_bound` (Catoni), specialized to a single controlled
-path law `P` (posterior), reference path law `Q` (prior), and loss `g ∘ term`
-clipped to `[−C, C]` (range `2C`, giving the Hoeffding term `ε·C²/(2n)`). -/
-theorem twopager_theorem4 {Θ : Type*} [MeasurableSpace Θ]
-    (P Q : ProbabilityMeasure Θ)          -- controlled (posterior) and reference (prior) path laws
-    (term : Θ → X) (hterm : Measurable term)   -- terminal-state map X₁ = term(trajectory)
-    (g : X → ℝ) (C : ℝ) (hg : ∀ x, |g x| ≤ C) -- terminal-cost net, clipped to [−C, C]
-    (n : ℕ) (hn : 0 < n)                  -- number of terminal samples
-    (ε : ℝ) (hε : 0 < ε)                  -- PAC-Bayes inverse-temperature (TwoPager's ε)
-    (ς : ℝ) (hς0 : 0 < ς) (hς1 : ς < 1)   -- confidence level
-    (hPQ : (P : Measure Θ) ≪ (Q : Measure Θ)) :
-    -- With probability ≥ 1 − ς over an i.i.d. terminal sample S ∼ Pⁿ, the population
-    -- terminal-cost mean is bounded by the empirical mean + the PAC-Bayes/KL term +
-    -- the Hoeffding term (TwoPager Eq. (126)):
-    (Measure.pi (fun _ : Fin n => (P : Measure Θ)))
-        { S : Fin n → Θ |
-          ∫ ω, g (term ω) ∂(P : Measure Θ)
-            ≤ (1 / (n : ℝ)) * ∑ i, g (term (S i))
-              + ((InformationTheory.klDiv (P : Measure Θ) (Q : Measure Θ)).toReal
-                  + Real.log (1 / ς)) / ε
-              + ε * C ^ 2 / (2 * (n : ℝ)) }
-      ≥ ENNReal.ofReal (1 - ς) := by
-  sorry
 
 end Drsb

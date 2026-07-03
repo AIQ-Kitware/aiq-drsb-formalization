@@ -9,12 +9,11 @@ without chasing PDFs.
 
 > **Why transcriptions and not the DRSB paper itself?** The DRSB manuscript
 > (referenced in code as `project: drsbm_paper`, "Eq. 47", "Algorithm 5: Relaxed
-> Schrödinger Bridge") and its companion **"TwoPager"** (PAC-Bayes Theorem 4) are
-> **unpublished GaTech team documents** — not on arXiv or any index as of 2026-07.
-> So the chain here is reconstructed from the *published* results it composes, plus
-> the DRSB Lean scaffolds (`V1.lean`, `V4.lean`, `WellKnown.lean`) and the eval cards
-> in `ta1/GaTech-DRSBM/magnet_eval/cards/`. Every place a statement comes from a team
-> document rather than a downloaded PDF is flagged in-file.
+> Schrödinger Bridge") is an **unpublished GaTech team document** — not on arXiv or
+> any index as of 2026-07. So the chain here is reconstructed from the *published*
+> results it composes plus the eval cards in `ta1/GaTech-DRSBM/magnet_eval/cards/`.
+> Every place a statement comes from a team document rather than a downloaded PDF is
+> flagged in-file.
 
 ## What DRSB claims
 
@@ -46,13 +45,11 @@ transcribes it, the published theorem(s) it rests on, and the `V4.lean` (namespa
 | 2 | **Matching estimator** that produces the bridge, $u$, and terminal net $g$ | [sb-matching-generative.md](sb-matching-generative.md) | DSBM (2303.16852) Thm 8 + Alg. 1; GSBM (2310.02233) obj. (3), soft-terminal SOC (16a–b), Alg. 5; Adjoint Matching (2409.08861) Thm 1, loss (37)–(39) | `Dynamics`, `Control`, `Psi` (abstract); code's `AdjointMatcher`, `BridgeMatcher` |
 | 3W | **Wasserstein-DRO strong duality**: $\sup_{W_2^2\le\varepsilon}\mathbb E_\mu[\Psi]=\inf_{\lambda\ge0}\{\lambda\varepsilon+\mathbb E_{\hat\mu}[\sup_x(\Psi(x)-\lambda\|x-\hat x\|^2)]\}$ | [wasserstein-dro-duality.md](wasserstein-dro-duality.md) | Blanchet–Murthy (1604.01446) Thm 1 + Rmk 1 eq. (9); Gao–Kleywegt (1604.02199) Thm 1, Cor 1(ii)/Cor 2; Esfahani–Kuhn (1505.05116) Thm 4.2/4.4 | `wassersteinBall`, `W2sq`, `wdro_lagrangian_bound` (✅ proved, `≤`), `wdro_dual` (`sorry`, `≥`), `L_wdro`, `wdrsbDualObjective` |
 | 3S | **Sinkhorn-DRO strong duality**: `sup_x` becomes the **log-partition** $\lambda\kappa\log\int e^{(\Psi-\lambda\|\cdot\|^2)/(\lambda\kappa)}$; worst case is a **continuous Gibbs tilt** (= DRSB "Eq. 47") | [sinkhorn-dro-duality.md](sinkhorn-dro-duality.md) | Wang–Gao–Xie (2109.11926) Def. 1, **Thm 1** (Strong Duality I–IV), Rmk 4 | `sinkhornBall`, `Wkappa`, `sinkhornObjective`, `sdro_dual` (`sorry`, outer `≥`), `M_logPartition`, `gibbsUnnormalized`, `exists_worstCase_gibbsKernel`, `drsbValue_SDRO` |
-| ★ | **Root shared by 3S and 5** — Donsker–Varadhan / Gibbs variational formula; entropy-constrained worst case is the tilt $\propto e^{f/\lambda}$ | [kl-dro-gibbs-donsker-varadhan.md](kl-dro-gibbs-donsker-varadhan.md) | Donsker–Varadhan; Dupuis–Ellis; Hu–Hong (KL-DRO); Ben-Tal et al. (φ-div DRO) | `WellKnown.integral_le_klDiv_add_log_integral_exp`, `isGreatest_donskerVaradhan`, `log_integral_exp_eq_sSup` (all ✅ proved) |
-| 5 | **TwoPager Theorem 4** — PAC-Bayes bound for the clipped $g$: Hoeffding-MGF → DV change-of-measure → Chernoff | [pac-bayes-generalization.md](pac-bayes-generalization.md) | Alquier (2110.11216) Lem. 1.1 (Hoeffding), Lem. 2.2 (DV), Thm 2.1 (Catoni) | `WellKnown.hoeffding_mgf_bound`, `donsker_varadhan`, `markov_inequality_exp`; scaffold `pacBayes_exp_moment_le_one`, `exp_tail_of_moment_le_one`, `clip`/`gClip`/`BCE` |
+| ★ | **Root under the Sinkhorn dual (3S)** — Donsker–Varadhan / Gibbs variational formula; entropy-constrained worst case is the tilt $\propto e^{f/\lambda}$ | [kl-dro-gibbs-donsker-varadhan.md](kl-dro-gibbs-donsker-varadhan.md) | Donsker–Varadhan; Dupuis–Ellis; Hu–Hong (KL-DRO); Ben-Tal et al. (φ-div DRO) | `WellKnown.integral_le_klDiv_add_log_integral_exp`, `isGreatest_donskerVaradhan`, `log_integral_exp_eq_sSup` (all ✅ proved) |
 
 Steps **1 → 2** build the object $V$ (and $g$); steps **3W / 3S** are the actual
-card claim (worst-case cost bound); the **★** root is the single fact under both the
-Sinkhorn dual and the PAC-Bayes bound; step **5** is the companion generalization
-guarantee for the learned terminal cost.
+card claim (worst-case cost bound); the **★** root is the single fact under the
+Sinkhorn dual.
 
 ## What the Lean scaffold already proves vs. assumes
 
@@ -61,9 +58,9 @@ exactly which links are the hard ones:
 
 - **Proved (no `sorry`, no extra axioms):** the Donsker–Varadhan family in
   `WellKnown.lean` (`integral_le_klDiv_add_log_integral_exp`,
-  `isGreatest_donskerVaradhan`, `log_integral_exp_eq_sSup`), the Hoeffding MGF bound,
-  and the WDRO **weak-duality** direction `wdro_lagrangian_bound` (the `≤` half that
-  the card's inequality actually rests on).
+  `isGreatest_donskerVaradhan`, `log_integral_exp_eq_sSup`) and the WDRO
+  **weak-duality** direction `wdro_lagrangian_bound` (the `≤` half that the card's
+  inequality actually rests on).
 - **Left as `sorry` (the genuinely hard seam):** the **strong-duality `≥` direction**
   of both `wdro_dual` and `sdro_dual`. Both require constructing the worst-case
   measure via an optimal-transport measurable-selection / argmax argument
@@ -101,22 +98,17 @@ Downloaded with `curl https://arxiv.org/pdf/<id>`; `.gitignore` excludes
 - Mohajerin Esfahani, Kuhn — *Data-driven DRO Using the Wasserstein Metric* — Math. Prog. 2018 — [arXiv:1505.05116](https://arxiv.org/abs/1505.05116)
 - Wang, Gao, Xie — *Sinkhorn Distributionally Robust Optimization* — Operations Research 2023 — [arXiv:2109.11926](https://arxiv.org/abs/2109.11926)
 
-**PAC-Bayes generalization**
-- Alquier — *User-friendly introduction to PAC-Bayes bounds* — FnT ML 2024 — [arXiv:2110.11216](https://arxiv.org/abs/2110.11216)
-
 **Classical (books / non-arXiv, cited not transcribed):** Donsker–Varadhan (CPAM
 1975–83); Dupuis–Ellis, *A Weak Convergence Approach to Large Deviations* (1997);
 Ben-Tal et al., *Robust Solutions … Uncertain Probabilities* (Mgmt. Sci. 2013);
-Hu–Hong, *KL-Divergence Constrained DRO* (2013); Boucheron–Lugosi–Massart,
-*Concentration Inequalities* (2013).
+Hu–Hong, *KL-Divergence Constrained DRO* (2013).
 
 ## Provenance & caveats
 
-- The DRSB manuscript and TwoPager are **unpublished**; their internal "Eq. 47",
-  "Algorithm 5", and Theorem-4 equation numbers (116)–(126) are taken from the code
-  comments / coordinator summary, not from a downloaded PDF, and are labeled as such
-  in-file. Confirm against the manuscript (contact: **Jinhwan Sul**, GaTech) before
-  citing those numbers as canonical.
+- The DRSB manuscript is **unpublished**; its internal "Eq. 47" and "Algorithm 5"
+  numbers are taken from the GaTech code, not from a downloaded PDF, and are labeled
+  as such in-file. Confirm against the manuscript (contact: **Jinhwan Sul**, GaTech)
+  before citing those numbers as canonical.
 - The card claim text and the "Gaussian worst-case shift" closed form come from
   `ta1/GaTech-DRSBM` code, not from any of the transcribed papers; the papers supply
   the *structure* (transport map / Gibbs tilt) that makes that closed form exact.

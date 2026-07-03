@@ -1,7 +1,7 @@
 name = "aiq_drsb_formalization"
 version = "0.1.0"
 keywords = ["math", "formalization", "DRSB", "distributionally-robust", "schrodinger-bridge", "optimal-transport"]
-defaultTargets = ["ForMathlib", "ChenGeorgiouPavon2021", "BlanchetMurthy2019", "GaoKleywegt2023", "MohajerinEsfahaniKuhn2018", "WangGaoXie2023", "Alquier2024", "Drsb"]
+defaultTargets = ["ForMathlib", "ChenGeorgiouPavon2021", "BlanchetMurthy2019", "GaoKleywegt2023", "MohajerinEsfahaniKuhn2018", "WangGaoXie2023", "Drsb"]
 
 # Standalone Lean workspace for the DRSB (Distributionally-Robust Schrodinger
 # Bridge) formalization. Mirrors the aiq-dkps-formalization layout: one top-level
@@ -46,10 +46,6 @@ name = "MohajerinEsfahaniKuhn2018"
 # dual behind the DRSB "Eq. 47" term.
 [[lean_lib]]
 name = "WangGaoXie2023"
-
-# Alquier 2024 -- PAC-Bayes bounds (the TwoPager Theorem 4 companion).
-[[lean_lib]]
-name = "Alquier2024"
 
 # --- Capstone: the DRSB paper's own results, composed from the libraries above ---
 [[lean_lib]]

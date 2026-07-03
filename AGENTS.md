@@ -47,12 +47,15 @@ VERIFIED / FALSIFIED / INCONCLUSIVE.
 
 > ⚠️ **The DRSB manuscript is UNPUBLISHED.** The code calls it `drsbm_paper`; it cites
 > its own **"Eq. 47"** (the log-partition worst-case bound) and **"Algorithm 5: Relaxed
-> Schrödinger Bridge."** There is also an unpublished companion **"TwoPager"** with a
-> **PAC-Bayes Theorem 4** (Eqs. 116–126). **None of these are on arXiv or any index**
-> (searched thoroughly, 2026-07). So every "Eq. 47 / Algorithm 5 / Theorem 4 / Eq.
-> (116)–(126)" reference comes from the **code + the coordinator**, *not* a PDF.
-> **Do not cite those numbers as if published.** To pin them, get the manuscript from
-> **Jinhwan Sul (GaTech)**.
+> Schrödinger Bridge."** **Neither is on arXiv or any index** (searched thoroughly,
+> 2026-07). So every "Eq. 47 / Algorithm 5" reference comes from the **GaTech code**
+> (comments), *not* a PDF. **Do not cite those numbers as if published.** To pin them,
+> get the manuscript from **Jinhwan Sul (GaTech)**.
+>
+> ⚠️ A **"TwoPager Theorem 4" / PAC-Bayes** objective was previously carried in this
+> repo but has been **excised** (see git log): it originated in the `reference/`
+> scratch (`V1/V4`), is **not referenced by either card or the GaTech code**, and the
+> theorem was flawed. Do not re-introduce it.
 
 Because of this, we formalize the **published theorems the DRSB claims compose**, then
 the `Drsb` capstone states the DRSB-specific results in those terms. The published
@@ -96,8 +99,7 @@ per theorem-bearing paper:
 | Wasserstein-DRO duality + worst-case dist. | `GaoKleywegt2023` | Gao–Kleywegt, Math OR 2023 | 1604.02199 |
 | Data-driven Wasserstein-DRO reformulation | `MohajerinEsfahaniKuhn2018` | Esfahani–Kuhn, Math Prog 2018 | 1505.05116 |
 | **Sinkhorn-DRO log-partition dual (= Eq. 47)** | `WangGaoXie2023` | Wang–Gao–Xie, Oper. Res. 2023 | 2109.11926 |
-| PAC-Bayes (Catoni) — TwoPager Thm 4 | `Alquier2024` | Alquier, FnT ML 2024 | 2110.11216 |
-| Donsker–Varadhan / Gibbs (shared root) | `ForMathlib` | classical (Dupuis–Ellis etc.) | — |
+| Donsker–Varadhan / Gibbs (root under the Sinkhorn dual) | `ForMathlib` | classical (Dupuis–Ellis etc.) | — |
 
 Provenance-only (documented in prose, **no Lean library** this pass): Léonard 1308.0215
 (SB survey); DSBM 2303.16852, GSBM 2310.02233, Adjoint Matching 2409.08861 (the matching
@@ -110,7 +112,6 @@ The **`Drsb` capstone** composes the above:
 | `wdrsb_cost_bound.yaml` | `Drsb.wdrsb_cost_bound`, `Drsb.wdrsb_strong_duality` | `BlanchetMurthy2019` / `GaoKleywegt2023` |
 | `sdrsb_cost_bound.yaml` | `Drsb.sdrsb_cost_bound`, `Drsb.sdrsb_strong_duality` | `WangGaoXie2023` |
 | DRSB "Eq. 47" | `Drsb.eq47Bound` | code-derived formula (unpublished) |
-| TwoPager Theorem 4 | `Drsb.twopager_theorem4` | `Alquier2024` |
 
 ---
 
@@ -127,9 +128,12 @@ The **`Drsb` capstone** composes the above:
   *object definitions* (couplings, `W2sq`, Sinkhorn ball) are fine to reuse for Lean
   syntax; their *theorem statements* are the traps (e.g. `V4`'s
   `optimal_control_eq_neg_grad_value` was a **vacuous existential** — the whole reason we
-  restarted). **`reference/WellKnown.lean` has *complete, axiom-clean proofs* of
-  Donsker–Varadhan and Hoeffding** — port those into `ForMathlib` to drop `sorry`s for
-  free (the statements there are already the intended ones).
+  restarted). **`reference/WellKnown.lean` has *complete, axiom-clean proofs* of the
+  Donsker–Varadhan family** — these have been ported into
+  `ForMathlib.MeasureTheory.DonskerVaradhan` (the free `sorry` removals). **Do NOT
+  pull the PAC-Bayes / "TwoPager Theorem 4" material (`V1/V4`'s
+  `clip`/`gClip`/`BCE`/`pac_bayes_*`) into the canonical chain** — it is card-irrelevant
+  and was excised (see §2 and git log).
 - **Shared vocabulary lives in `ForMathlib.OT`** (`open ForMathlib.OT`): `expect`,
   `klReal`, `couplings`, `otCost`, `W2sq`, `wassersteinBall`, `Wkappa`, `sinkhornBall`,
   `droValue`. Use these so the paper libs and the capstone compose. A paper library
@@ -193,14 +197,15 @@ The **`Drsb` capstone** composes the above:
 
 ## 9. Current status & next steps
 
-- **Done:** repo scaffolded; `ForMathlib` + 6 paper libraries + `Drsb` capstone all
-  `lake build` green as **statements with `sorry` bodies**; prose transcriptions + PDFs
-  in place; `formalization.yaml` maps every declaration to its source.
+- **Done:** repo scaffolded; `ForMathlib` + 5 paper libraries + `Drsb` capstone all
+  `lake build` green (statements with `sorry` bodies); the Donsker–Varadhan family is
+  ported into `ForMathlib.MeasureTheory.DonskerVaradhan` (proved, axiom-clean); prose
+  transcriptions + PDFs in place; `formalization.yaml` maps every declaration to its
+  source.
 - **Next (suggested order):** (1) expert review of statements vs. the PDFs, DRO-dual
-  hypotheses first; (2) port the proved Donsker–Varadhan / Hoeffding lemmas from
-  `reference/WellKnown.lean` into `ForMathlib` (free `sorry` removals); (3) proofs,
-  foundational-first: DV → Sinkhorn/Wasserstein weak duality → capstone bounds; the
-  strong-duality `≥` direction (§6) is the research-grade seam — scope it explicitly.
+  hypotheses first; (2) proofs, foundational-first: DV → Sinkhorn/Wasserstein weak
+  duality → capstone bounds; the strong-duality `≥` direction (§6) is the
+  research-grade seam — scope it explicitly.
 - When a `reference/` result is validated and promoted, update `reference/README.md`.
 
 ## Resource accounting — the resource cost of the LLM work (CRITICAL: DO THIS EVERY COMMIT)

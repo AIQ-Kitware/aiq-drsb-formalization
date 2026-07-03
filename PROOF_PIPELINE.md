@@ -47,7 +47,7 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (9)
+## 2. Ranked remaining `sorry`s (8)
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
@@ -59,8 +59,11 @@ capstones, but the cards do not depend on it.
 > is now **PROVED** (axiom-clean; see below). `dataDriven_strongDuality_cor2i` is also now
 > PROVED (house pattern; see §T4 note). `MohajerinEsfahaniKuhn2018.worstCase_program`
 > (Thm 4.4) and `worstCase_exists` (Cor 4.6) are also PROVED (constructive worst-case law +
-> one edge each). The **9** remaining `sorry`s are the genuine T4 frontier: the 6 SDE/PDE
-> controls in `ChenGeorgiouPavon2021` and the 3 worst-case-*structure* corollaries in `GaoKleywegt2023`/`MohajerinEsfahaniKuhn2018`.
+> one edge each). `GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) is also now
+> PROVED (same house pattern; see §T4 note). The **8** remaining `sorry`s are the genuine T4
+> frontier: the 6 SDE/PDE controls in `ChenGeorgiouPavon2021` and the 2 worst-case-*structure*
+> corollaries `GaoKleywegt2023.worstCase_structure_cor1` +
+> `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`.
 
 ### On the card critical path (do these first)
 
@@ -117,9 +120,31 @@ Fable ticket or a focused session.
 
 **Worst-case *structure*** (the `≥`/attainment equalities are already discharged modulo an
 explicit attainment hypothesis; what remains as `sorry` is the *shape* of the worst-case
-measure): `GaoKleywegt2023.{worstCase_structure_cor1, dataDriven_worstCase_cor2ii}`,
-`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (3).
+measure): `GaoKleywegt2023.worstCase_structure_cor1`,
+`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (2).
 *Need OT measurable-selection / worst-case-measure construction — absent from Mathlib.*
+
+> **`GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) — PROVED (2026-07,
+> house pattern, axiom-clean).** The data-driven worst case is a `≤ N+1`-atom transport of the
+> empirical nominal. Because this corollary pins the *exact* atom structure (unlike a bare
+> existence), the §5 trap is acute: the structured optimizer `μ*` may **not** be a hypothesis.
+> The honest decomposition takes as inputs only the genuinely-weaker **extremal ingredients** a
+> full OT measurable-selection would extract from `hexists` — the split index `i₀`, weight
+> `p0 ∈ [0,1]`, the per-point argmin atoms `ξstar`/`ξbarstar` (conditions (v)/(vi); argmin
+> *existence* is an extreme-value fact strictly weaker than the conclusion) — plus two
+> ingredient-level scalar edges: a **feasibility budget** `hbudget` (argmin-transport cost `≤ δ`,
+> the analogue of Esfahani–Kuhn's `(1/N)Σ‖q‖ ≤ ε`) and the **attainment `≥` edge** `hattain`
+> (the atom-value formula dominates `droValue`, the analogue of `worstCase_exists`'s `hval`).
+> Everything else is **sorry-free**: `μ*` is built as the explicit `K = 2` weighted-Dirac
+> double-sum, shown a probability measure, shown `∈ ambiguitySet` via the explicit transport
+> plan (cost `≤ δ` through `ForMathlib.OT.otCost_le_couplingCost`), its `Ψ`-expectation computed
+> in closed form, and the `≤` half of attainment is `le_csSup` — so `hattain` supplies only the
+> `≥`. The measure is finally rewritten into the printed eq. (29) split form. Exactly the
+> `le_antisymm(constructive, one attainment edge)` posture of `worstCase_exists`/`strong_duality_thm1`.
+> Reuses local copies of `isProbabilityMeasure_wsum`/`integral_wsum`/`map_wsum` (verbatim from
+> the sibling) — both consumers now exist, so promoting these three to `ForMathlib.OT` is the
+> natural small dedup follow-up. `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2,
+> the duality *equality*) remains the cleaner next worst-case target.
 
 > **`MohajerinEsfahaniKuhn2018.worstCase_program` (Thm 4.4, eq. 13) — PROVED (2026-07,
 > house pattern, axiom-clean).** The `≥` direction (`sup(program) ≤ droValue`) is proved
@@ -274,6 +299,13 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
 ---
 
 ### Change log
+- **2026-07 (data-driven worst-case structure landed):** count **9 → 8**. Proved
+  `GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) axiom-clean via the house
+  pattern — explicit `K = 2` weighted-Dirac `μ*` construction (probability measure, `∈ ambiguitySet`
+  via an explicit transport plan + `otCost_le_couplingCost`, closed-form `Ψ`-expectation, eq. (29)
+  split-form identity), attainment isolated to §5-safe ingredient edges (split weight + per-point
+  argmins + feasibility budget + one `≥` attainment edge), NOT the structured optimizer. Added
+  local copies of `isProbabilityMeasure_wsum`/`integral_wsum`/`map_wsum` (→ ForMathlib dedup TODO).
 - **2026-07 (Sinkhorn scaling landed):** count **13 → 12**. Proved
   `ForMathlib.matrix_scaling_exists` + `ForMathlib.sinkhorn_potentials_exist` (axiom-clean)
   by log-domain convex minimization — Mathlib has neither Brouwer nor Birkhoff contraction,

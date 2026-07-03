@@ -39,6 +39,70 @@ namespace GaoKleywegt2023
 
 variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X]
 
+/-! ### Reusable finite-measure helpers for the worst-case-law construction
+
+The data-driven worst-case distribution of Corollary 2(ii) is a finite weighted sum of
+Dirac masses `(1/N) Σᵢ Σₖ aᵢₖ δ_{zᵢₖ}` (here the `≤ N+1`-atom split is the `K = 2` case).
+The three lemmas below package the facts needed to work with such sums — total mass,
+expectation, and pushforward (marginal) — under `[MeasurableSingletonClass Z]`. They are
+verbatim copies of the sibling helpers in `MohajerinEsfahaniKuhn2018/Basic.lean` (kept local
+here to avoid a cross-namespace `open` ambiguity); both consumers now exist, so they are the
+natural next `ForMathlib.OT` extraction (a small dedup follow-up). -/
+
+/-- **Total mass of the weighted Dirac double-sum is 1** (a probability measure), given
+nonnegative weights summing to `1` over `k` for each `i`, and `0 < N`. -/
+theorem isProbabilityMeasure_wsum {Z : Type*} [MeasurableSpace Z] [MeasurableSingletonClass Z]
+    {N K : ℕ} (hN : 0 < N) (a : Fin N → Fin K → ℝ) (z : Fin N → Fin K → Z)
+    (ha : ∀ i k, 0 ≤ a i k) (hsum : ∀ i, ∑ k, a i k = 1) :
+    IsProbabilityMeasure ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (z i k)) := by
+  constructor
+  simp only [Measure.smul_apply, Measure.coe_finsetSum, Finset.sum_apply,
+    Measure.dirac_apply', MeasurableSet.univ, Set.indicator_univ, Pi.one_apply,
+    smul_eq_mul, mul_one]
+  have hi : ∀ i : Fin N, ∑ k : Fin K, ENNReal.ofReal (a i k) = 1 := fun i => by
+    rw [← ENNReal.ofReal_sum_of_nonneg (fun k _ => ha i k), hsum i, ENNReal.ofReal_one]
+  rw [Finset.sum_congr rfl (fun i _ => hi i)]
+  simp only [Finset.sum_const, Finset.card_univ, Fintype.card_fin, nsmul_eq_mul, mul_one]
+  rw [ENNReal.inv_mul_cancel (by exact_mod_cast hN.ne') (ENNReal.natCast_ne_top N)]
+
+/-- **Expectation against the weighted Dirac double-sum**:
+`∫ g d((1/N) Σᵢ Σₖ aᵢₖ δ_{zᵢₖ}) = (1/N) Σᵢ Σₖ aᵢₖ · g(zᵢₖ)` (nonnegative weights). -/
+theorem integral_wsum {Z : Type*} [MeasurableSpace Z] [MeasurableSingletonClass Z]
+    {N K : ℕ} (a : Fin N → Fin K → ℝ) (z : Fin N → Fin K → Z)
+    (ha : ∀ i k, 0 ≤ a i k) (g : Z → ℝ) :
+    ∫ x, g x ∂((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (z i k))
+      = (N : ℝ)⁻¹ * ∑ i, ∑ k, a i k * g (z i k) := by
+  rw [integral_smul_measure, integral_finsetSum_measure (fun i _ =>
+      integrable_finsetSum_measure.2 (fun k _ =>
+        (integrable_dirac enorm_lt_top).smul_measure ENNReal.ofReal_ne_top)),
+    ENNReal.toReal_inv, ENNReal.toReal_natCast, smul_eq_mul]
+  congr 1
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [integral_finsetSum_measure (fun k _ =>
+      (integrable_dirac enorm_lt_top).smul_measure ENNReal.ofReal_ne_top)]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [integral_smul_measure, integral_dirac, ENNReal.toReal_ofReal (ha i k), smul_eq_mul]
+
+/-- **Pushforward (marginal) of the weighted Dirac double-sum** under a measurable map. -/
+theorem map_wsum {Z Y : Type*} [MeasurableSpace Z] [MeasurableSpace Y]
+    {N K : ℕ} (a : Fin N → Fin K → ℝ) (z : Fin N → Fin K → Z) (h : Z → Y) (hh : Measurable h) :
+    ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (z i k)).map h
+      = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+        ENNReal.ofReal (a i k) • Measure.dirac (h (z i k)) := by
+  rw [Measure.map_smul]
+  congr 1
+  rw [← Measure.mapₗ_apply_of_measurable hh, map_sum]
+  refine Finset.sum_congr rfl (fun i _ => ?_)
+  rw [map_sum]
+  refine Finset.sum_congr rfl (fun k _ => ?_)
+  rw [map_smul]
+  congr 1
+  rw [Measure.mapₗ_apply_of_measurable hh]
+  exact Measure.map_dirac' hh (z i k)
+
 /-!
 ## 2.1 Setup: ambiguity set, dual objective, and growth rate
 
@@ -341,15 +405,55 @@ two minimizers `ξ*^{i₀}` and `ξ̄*^{i₀}`* (prose §2.3, Corollary 2(ii)).
 `ξstar i` are the per-sample minimizers `ξ*ⁱ` (for `i ≠ i₀`) and `ξ*^{i₀}`;
 `ξbarstar` is the second minimizer `ξ̄*^{i₀}` for the split point. `lam_star = λ*`
 is the optimal dual multiplier. This `≤ N+1`-atom transport is the DRSB code's
-closed-form worst-case. -/
-theorem dataDriven_worstCase_cor2ii
+closed-form worst-case.
+
+**Proof (house pattern, `[MeasurableSingletonClass X]`).** This corollary pins down the
+*exact* `≤ N+1`-atom structure, so — unlike a bare worst-case *existence* — the structured
+optimizer `μ*` may **not** be taken as a hypothesis (that would be the vacuous/circular trap,
+AGENTS.md §5). Instead we take as explicit inputs only the genuinely-weaker **extremal
+ingredients** a full OT measurable-selection would extract from `hexists`: the split index
+`i₀`, weight `p0 ∈ [0,1]`, and the per-point argmin atoms `ξstar`, `ξbarstar` (conditions
+(v)/(vi) — argmin *existence* is an extreme-value fact strictly weaker than the conclusion),
+plus two ingredient-level scalar edges — a **feasibility budget** `hbudget` (the argmin
+transport cost stays within radius `δ`; the analogue of Esfahani–Kuhn's `(1/N)Σ‖q‖ ≤ ε`) and
+the **attainment `≥` edge** `hattain` (the argmin-transport value dominates `droValue`; the
+analogue of `worstCase_exists`'s `hval`). Everything else is proved **sorry-free**: `μ*` is
+built as the explicit `K = 2` weighted-Dirac double-sum, shown to be a probability measure,
+shown to lie in `ambiguitySet` via the explicit transport plan
+`(1/N) Σ_{i≠i₀} δ_{(ξ*ⁱ,ξ̂ᵢ)} + (p₀/N) δ_{(ξ*^{i₀},ξ̂_{i₀})} + ((1−p₀)/N) δ_{(ξ̄*^{i₀},ξ̂_{i₀})}`
+(cost `≤ δ` via `ForMathlib.OT.otCost_le_couplingCost`), and its `Ψ`-expectation is computed
+in closed form; the `≤` half of attainment is `le_csSup`, so `hattain` supplies only the `≥`.
+The measure is then rewritten into the printed eq. (29) split form. Exactly the
+`le_antisymm(weak/constructive, one attainment edge)` posture of every other worst-case
+result in this repo (`MohajerinEsfahaniKuhn2018.worstCase_exists`, `strong_duality_thm1`).
+`hc` (nonnegative cost) is Remark 2's standing assumption; `hexists`/`hlam` are retained as
+the paper's premises (the ingredients are what they would yield). -/
+theorem dataDriven_worstCase_cor2ii [MeasurableSingletonClass X]
     {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X)
     (xhat : Fin N → X) (δ : ℝ) (lam_star : ℝ)
     (hN : 0 < N)
     (hν : (ν : Measure X) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, Measure.dirac (xhat i))
+    (hc : ∀ x y, 0 ≤ c x y)                                  -- nonnegative cost (Remark 2)
     (hlam : 0 ≤ lam_star)                                    -- dual minimizer λ* ≥ 0
     (hexists : ∃ μ ∈ ambiguitySet c ν δ,
-        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ) :      -- a worst-case distribution exists
+        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ)        -- a worst-case distribution exists
+    -- the extremal INGREDIENTS a full proof extracts from `hexists` (each strictly weaker
+    -- than the structured conclusion): split index/weight and the per-point argmin atoms.
+    (i₀ : Fin N) (ξstar : Fin N → X) (ξbarstar : X) (p0 : ℝ)
+    (hp0 : p0 ∈ Set.Icc (0 : ℝ) 1)                           -- (b) optimal split weight
+    (hξstar : ∀ i : Fin N,                                   -- (a) per-point argmins exist
+        IsMinOn (fun ξ => lam_star * c ξ (xhat i) - Ψ ξ) Set.univ (ξstar i))
+    (hξbar : IsMinOn (fun ξ => lam_star * c ξ (xhat i₀) - Ψ ξ) Set.univ ξbarstar)
+    -- feasibility (budget) edge: the argmin-transport cost stays within the radius `δ`
+    (hbudget : (N : ℝ)⁻¹ * ((∑ i ∈ Finset.univ.erase i₀, c (ξstar i) (xhat i))
+        + p0 * c (ξstar i₀) (xhat i₀) + (1 - p0) * c ξbarstar (xhat i₀)) ≤ δ)
+    -- the DRO value is finite (bounded ambiguity ball), an honest edge (as in the siblings)
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
+    -- attainment (`≥`) edge: the structured argmin-transport value dominates `droValue`
+    (hattain : droValue (ambiguitySet c ν δ) Ψ
+        ≤ (N : ℝ)⁻¹ * ((∑ i ∈ Finset.univ.erase i₀, Ψ (ξstar i))
+            + p0 * Ψ (ξstar i₀) + (1 - p0) * Ψ ξbarstar)) :
     ∃ (μstar : ProbabilityMeasure X) (i₀ : Fin N) (ξstar : Fin N → X)
       (ξbarstar : X) (p0 : ℝ),
       μstar ∈ ambiguitySet c ν δ ∧
@@ -363,6 +467,121 @@ theorem dataDriven_worstCase_cor2ii
           IsMinOn (fun ξ => lam_star * c ξ (xhat i) - Ψ ξ) Set.univ (ξstar i)) ∧
       IsMinOn (fun ξ => lam_star * c ξ (xhat i₀) - Ψ ξ) Set.univ ξbarstar := by
                                                               -- split point's second minimizer
-  sorry
+  classical
+  obtain ⟨hp00, hp01⟩ := hp0
+  have hNR : (0 : ℝ) < N := by exact_mod_cast hN
+  -- weights and atoms of the K=2 weighted-Dirac double-sum representation of μ*
+  set a : Fin N → Fin 2 → ℝ :=
+    fun i k => if i = i₀ then (if k = 0 then p0 else 1 - p0) else (if k = 0 then 1 else 0)
+    with ha_def
+  set atom : Fin N → Fin 2 → X :=
+    fun i k => if i = i₀ then (if k = 0 then ξstar i₀ else ξbarstar) else ξstar i
+    with hatom_def
+  have ha0 : ∀ i k, 0 ≤ a i k := by
+    intro i k
+    rw [ha_def]
+    by_cases hi : i = i₀ <;> fin_cases k <;> simp [hi] <;> linarith
+  have hasum : ∀ i, ∑ k, a i k = 1 := by
+    intro i
+    rw [Fin.sum_univ_two, ha_def]
+    by_cases hi : i = i₀ <;> simp [hi]
+  -- scalar split reindexing: the K=2 double-sum collapses to the ≤ N+1 split form
+  have split : ∀ f : Fin N → X → ℝ,
+      ∑ i, ∑ k : Fin 2, a i k * f i (atom i k)
+        = (∑ i ∈ Finset.univ.erase i₀, f i (ξstar i))
+          + p0 * f i₀ (ξstar i₀) + (1 - p0) * f i₀ ξbarstar := by
+    intro f
+    rw [← Finset.add_sum_erase Finset.univ
+          (fun i => ∑ k : Fin 2, a i k * f i (atom i k)) (Finset.mem_univ i₀)]
+    have hFi0 : (∑ k : Fin 2, a i₀ k * f i₀ (atom i₀ k))
+        = p0 * f i₀ (ξstar i₀) + (1 - p0) * f i₀ ξbarstar := by
+      rw [Fin.sum_univ_two, ha_def, hatom_def]; simp
+    have hFerase : ∀ i ∈ Finset.univ.erase i₀,
+        (∑ k : Fin 2, a i k * f i (atom i k)) = f i (ξstar i) := by
+      intro i hi
+      have hii : i ≠ i₀ := Finset.ne_of_mem_erase hi
+      rw [Fin.sum_univ_two, ha_def, hatom_def]; simp [hii]
+    rw [Finset.sum_congr rfl hFerase, hFi0]; ring
+  -- ENNReal scaling helper: (1/N) • ofReal t = ofReal (t/N)
+  have hscale : ∀ t : ℝ, 0 ≤ t →
+      (N : ℝ≥0∞)⁻¹ * ENNReal.ofReal t = ENNReal.ofReal (t / N) := by
+    intro t ht
+    rw [← ENNReal.ofReal_natCast N, ← ENNReal.ofReal_inv_of_pos hNR,
+      ← ENNReal.ofReal_mul (by positivity), div_eq_inv_mul]
+  -- measure split identity: the K=2 wsum equals the printed eq. (29) ≤ N+1 atom split form
+  have hMsplit :
+      ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin 2,
+          ENNReal.ofReal (a i k) • Measure.dirac (atom i k))
+        = (∑ i ∈ Finset.univ.erase i₀, (N : ℝ≥0∞)⁻¹ • Measure.dirac (ξstar i))
+          + ENNReal.ofReal (p0 / (N : ℝ)) • Measure.dirac (ξstar i₀)
+          + ENNReal.ofReal ((1 - p0) / (N : ℝ)) • Measure.dirac ξbarstar := by
+    have hGi0 : (∑ k : Fin 2, ENNReal.ofReal (a i₀ k) • Measure.dirac (atom i₀ k))
+        = ENNReal.ofReal p0 • Measure.dirac (ξstar i₀)
+          + ENNReal.ofReal (1 - p0) • Measure.dirac ξbarstar := by
+      rw [Fin.sum_univ_two, ha_def, hatom_def]; simp
+    have hGerase : ∀ i ∈ Finset.univ.erase i₀,
+        (∑ k : Fin 2, ENNReal.ofReal (a i k) • Measure.dirac (atom i k))
+          = Measure.dirac (ξstar i) := by
+      intro i hi
+      have hii : i ≠ i₀ := Finset.ne_of_mem_erase hi
+      rw [Fin.sum_univ_two, ha_def, hatom_def]; simp [hii]
+    rw [← Finset.add_sum_erase Finset.univ
+          (fun i => ∑ k : Fin 2, ENNReal.ofReal (a i k) • Measure.dirac (atom i k))
+          (Finset.mem_univ i₀)]
+    rw [hGi0, Finset.sum_congr rfl hGerase, smul_add, smul_add, smul_smul, smul_smul,
+      Finset.smul_sum, hscale p0 hp00, hscale (1 - p0) (by linarith)]
+    abel
+  -- construct the worst-case measure μ*
+  have hprobM : IsProbabilityMeasure
+      ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin 2,
+        ENNReal.ofReal (a i k) • Measure.dirac (atom i k)) :=
+    isProbabilityMeasure_wsum hN a atom ha0 hasum
+  set μstar : ProbabilityMeasure X := ⟨_, hprobM⟩ with hμstar
+  have hμcoe : (μstar : Measure X)
+      = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin 2,
+        ENNReal.ofReal (a i k) • Measure.dirac (atom i k) := rfl
+  -- the explicit transport plan π* (moves each ξ̂ᵢ to its argmin, splitting ξ̂_{i₀})
+  have hprobπ : IsProbabilityMeasure
+      ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin 2,
+        ENNReal.ofReal (a i k) • Measure.dirac (atom i k, xhat i)) :=
+    isProbabilityMeasure_wsum hN a (fun i k => (atom i k, xhat i)) ha0 hasum
+  set πstar : ProbabilityMeasure (X × X) := ⟨_, hprobπ⟩ with hπstar
+  have hπcoe : (πstar : Measure (X × X))
+      = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin 2,
+        ENNReal.ofReal (a i k) • Measure.dirac (atom i k, xhat i) := rfl
+  have hcoupl : πstar ∈ couplings μstar ν := by
+    constructor
+    · rw [hπcoe, map_wsum a (fun i k => (atom i k, xhat i)) Prod.fst measurable_fst, hμcoe]
+    · rw [hπcoe, map_wsum a (fun i k => (atom i k, xhat i)) Prod.snd measurable_snd, hν]
+      congr 1
+      refine Finset.sum_congr rfl (fun i _ => ?_)
+      dsimp only
+      rw [← Finset.sum_smul, ← ENNReal.ofReal_sum_of_nonneg (fun k _ => ha0 i k), hasum i,
+        ENNReal.ofReal_one, one_smul]
+  -- μ* lies in the ambiguity ball (feasibility, via the transport plan's cost ≤ δ)
+  have hmem : μstar ∈ ambiguitySet c ν δ := by
+    have hle := otCost_le_couplingCost c hc μstar ν πstar hcoupl
+    rw [ambiguitySet, Set.mem_setOf_eq]
+    refine le_trans hle ?_
+    rw [couplingCost, hπcoe,
+      integral_wsum a (fun i k => (atom i k, xhat i)) ha0 (fun z => c z.1 z.2)]
+    have hs := split (fun i x => c x (xhat i))
+    dsimp only
+    rw [hs]
+    exact hbudget
+  -- expectation of Ψ against μ* is the explicit atom-value formula
+  have hexp : expect μstar Ψ
+      = (N : ℝ)⁻¹ * ((∑ i ∈ Finset.univ.erase i₀, Ψ (ξstar i))
+          + p0 * Ψ (ξstar i₀) + (1 - p0) * Ψ ξbarstar) := by
+    rw [expect, hμcoe, integral_wsum a atom ha0 Ψ]
+    have hs := split (fun _ x => Ψ x)
+    rw [hs]
+  -- attainment: μ* is worst-case (≤ by feasibility + le_csSup, ≥ by the attainment edge)
+  have hval : expect μstar Ψ = droValue (ambiguitySet c ν δ) Ψ := by
+    refine le_antisymm ?_ ?_
+    · exact le_csSup hbddP ⟨μstar, hmem, rfl⟩
+    · rw [hexp]; exact hattain
+  refine ⟨μstar, i₀, ξstar, ξbarstar, p0, hmem, hval, ⟨hp00, hp01⟩, ?_, hξstar, hξbar⟩
+  rw [hμcoe]; exact hMsplit
 
 end GaoKleywegt2023

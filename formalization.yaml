@@ -100,7 +100,7 @@ sources:
     library: "Drsb"   # capstone, composed from the libraries above
 
 status:
-  phase: "BOTH card cost bounds + general Wasserstein weak/strong duality + WDRSB capstone PROVED (axiom-clean); 17 sorry (heavy strong-duality bundles + genuine T4)"
+  phase: "BOTH cards + ALL strong-duality EQUALITIES (GaoKleywegt/WangGaoXie/BlanchetMurthy + both Drsb capstones) PROVED, each modulo one explicit OT-attainment edge; 14 sorry, all genuine T4 (SDE/PDE, worst-case structure/measurable selection, Mohajerin, finite Sinkhorn scaling) or primal_feasible_iff"
   policy: >
     First pass established theorem STATEMENTS as close to the published results as
     possible (verified against prose/). The proof pass discharges the tractable/

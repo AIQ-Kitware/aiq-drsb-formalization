@@ -271,24 +271,24 @@ automation:
         note: "placeholder Opus-class decode rate; UNVALIDATED — replace with a measured value, then recompute the ledger from transcripts"
     # BEGIN lifetime_totals (auto-generated; do not edit by hand)
     lifetime_totals:
-      generated_at: 2026-07-03T06:48:03.079411+00:00
-      ledger_rows: 23
-      commits_accounted: 22
-      turns: 350
+      generated_at: 2026-07-03T07:48:40.400609+00:00
+      ledger_rows: 33
+      commits_accounted: 32
+      turns: 413
       tokens:
-        input: 88009
-        cache_write: 1170201
-        cache_read: 94322717
-        output: 726271
-        billable_input: 95580927
+        input: 95434
+        cache_write: 1953549
+        cache_read: 137714404
+        output: 892096
+        billable_input: 139763387
       output_tokens_by_model:
-        claude-opus-4-8: 726271
+        claude-opus-4-8: 892096
       server_tool_calls:
         web_search: 0
         web_fetch: 0
       time:
-        wall_clock_s: 20692.6
-        inference_s_est: 13204.8
+        wall_clock_s: 23707.5
+        inference_s_est: 16219.8
         assumptions_version: time-v0
       estimated_overhead:
         compaction_events: 1
@@ -297,8 +297,8 @@ automation:
         inference_s_est: 85.8
         assumptions_version: compact-est-v0
       grand_total_tokens:
-        input_incl_estimated: 96057558
-        output_incl_estimated: 730989
+        input_incl_estimated: 140240018
+        output_incl_estimated: 896814
       energy_kwh: null
       carbon_gco2e: null
     # END lifetime_totals

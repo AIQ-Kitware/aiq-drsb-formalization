@@ -1,89 +1,98 @@
 # resource_tally — measured LLM resource accounting (per commit)
 
-A small, **self-contained, copy-pasteable** module that records the compute each
+A small, **self-contained, self-installing** module that records the compute each
 commit cost an LLM agent, so a repo's lifetime *resource utilization* can be estimated.
 Token counts and model are **measured** verbatim from the agent's own session
-transcript; energy and carbon can be estimated later from the recorded
-tokens/time and the commit timestamp — the timestamp can be used to estimate
-how clean the grid's energy was at that moment).
+transcript; energy and carbon are derived later from the recorded tokens/time and the
+commit timestamp (which fixes the grid's carbon intensity at that moment).
 
 ```
 dev/resource_tally/
 ├── resource_tally.py     # the tool (stdlib only; no pip installs)
-├── hooks/post-commit     # auto-records after each commit
+├── install.sh            # `curl | sh` bootstrap: vendor + wire up a repo
+├── VERSION               # single source of version truth
+├── hooks/post-commit     # auto-records after each commit (self-locating)
 ├── data/
 │   ├── resource-ledger.jsonl   # append-only ledger — the source of truth
 │   └── lifetime-totals.yaml    # rollup output (generated)
 └── README.md             # you are here
 ```
 
-## Install (per repo, ~1 minute)
+## Design principle: the ledger stores MEASUREMENTS only
 
-1. **Copy this folder** to `dev/resource_tally/` in the target repo.
-2. **Enable the auto-recording hook** (repo-local; not committed):
-   ```bash
-   git config core.hooksPath dev/resource_tally/hooks
-   ```
-   Now every `git commit` records usage automatically — zero effort thereafter.
-   *(Caveat: `core.hooksPath` sets the hooks dir for the whole repo. If you already
-   use other git hooks, point this at a dir that also contains them, or call
-   `dev/resource_tally/resource_tally.py record` from your existing `post-commit`.)*
-3. **Tell agents about it** — paste the snippet below into the repo's `AGENTS.md`
-   (or `CLAUDE.md` / `README`), so any agent (Claude, Codex, …) maintains it.
-4. *(Optional)* If the repo keeps a manifest with these two marker lines, `rollup`
-   will also refresh the totals there in place (otherwise it just writes
-   `data/lifetime-totals.yaml`):
-   ```yaml
-       # BEGIN lifetime_totals (auto-generated; do not edit by hand)
-       # END lifetime_totals
-   ```
-   (Currently wired to `formalization.yaml`; change the filename in
-   `_write_yaml_totals` for other manifests.)
+Every modeling choice is deferred to a regenerable post-hoc pass, and **nothing that
+requires an assumption is baked into the ledger**:
+
+- **Measured & stored:** model, input/cache-write/cache-read/output tokens, server-tool
+  calls, wall-clock span, turn timestamps. For context-compaction (which the harness
+  does not bill), the two measured signals a later pass needs: peak preceding context
+  and summary length in chars.
+- **NOT stored (modeled post-hoc):** inference-seconds (needs a throughput assumption),
+  compaction token cost (needs a chars→tokens assumption), energy, carbon. Where a value
+  isn't observed we record `null`, never an imputed default.
+
+Because only the raw observations are kept, any modeling decision can change later
+without re-recording. The rollup is itself such a post-hoc pass, so it too reports only
+measurements (plus the compaction signals) and names what is left for the modeling pass.
+
+## The vendored copy is the source of truth
+
+Everything needed to (re)install lives in this folder and is committed into the host
+repo, so `install` works with **zero network**. Hosting (`Erotemic/llm_resource_tally`)
+is only a convenience for the first fetch and for `update`. If it ever goes away, every
+repo that already has the folder keeps working and can seed new repos.
+
+## Install
+
+**Fresh install on a repo (needs network) — the one-liner:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Erotemic/llm_resource_tally/v1.0.0/install.sh | sh
+```
+This vendors the pinned version into `dev/resource_tally/` (code only — never `data/`)
+and then wires the repo up offline. Pin a version by changing the tag; use `.../main/…`
+for latest. Override targets with `RT_REPO=…`, `RT_REF=…`, `RT_DIR=tools/rt`.
+
+**Re-wire a repo that already has the folder (no network):**
+```bash
+python3 dev/resource_tally/resource_tally.py install
+```
+`install` is idempotent: it sets up the git post-commit hook and writes a
+version-stamped managed block into `AGENTS.md`, regenerating an older block in place on
+upgrade. Hooks are wired safely — it shares via `core.hooksPath` only when that won't
+shadow an existing hook, otherwise it appends a sentinel-guarded block to your active
+`post-commit` (husky/lefthook/`.git/hooks` are never clobbered). Options:
+`--hook-mode {auto,hookspath,append,none}`, `--agents-file FILE`, `--dir DIR`.
+
+**Update / uninstall:**
+```bash
+python3 dev/resource_tally/resource_tally.py update      # re-vendor latest, then re-install
+python3 dev/resource_tally/resource_tally.py uninstall   # remove wiring; keeps data/ + files
+```
+
+**Propagate to another repo you have locally (offline):**
+```bash
+cp -r dev/resource_tally /other/repo/dev/ \
+  && (cd /other/repo && python3 dev/resource_tally/resource_tally.py install)
+```
 
 ## Usage
 
 ```bash
-python3 dev/resource_tally/resource_tally.py record       # attribute new turns -> HEAD
-python3 dev/resource_tally/resource_tally.py rollup        # refresh lifetime totals
-python3 dev/resource_tally/resource_tally.py show          # print the ledger
-python3 dev/resource_tally/resource_tally.py reconcile     # sweep un-committed turns
+python3 dev/resource_tally/resource_tally.py record                  # attribute new turns -> HEAD
+python3 dev/resource_tally/resource_tally.py record --label planning # tag what the work was
+python3 dev/resource_tally/resource_tally.py rollup                  # refresh lifetime totals
+python3 dev/resource_tally/resource_tally.py show                    # print the ledger
+python3 dev/resource_tally/resource_tally.py reconcile --label review  # sweep un-committed turns
 ```
 With the hook installed you normally only ever run `rollup` (at session end).
 **Codex / non-Claude agents:** point the tool at your own log with
 `record --transcript <path/to/session.jsonl>`.
 
-## What's measured vs estimated vs deferred
-
-| field | status | source |
-|---|---|---|
-| model, input/cache-write/cache-read/output tokens, server-tool calls | **measured** | session transcript `usage` (deduped by message id) |
-| wall-clock span of attributed turns | **measured** | transcript timestamps |
-| inference seconds | **estimated** | `output_tokens ÷ throughput` (assumption `time-v0`, unvalidated) |
-| context-compaction (`/compact`) tokens | **estimated** | boundary marker + summary length (assumption `compact-est-v0`) |
-
-> **Dedup:** A transcript logs each assistant message several times with
-> *identical* usage; summing raw records overcounts (~2.6× on cache reads here).
-> The tool dedups by `message.id` — do not hand-count tokens.
-
-> **Context compaction is estimated, not measured — verified empirically.** When
-> `/compact` fires, the harness runs a real summarization call over the *entire*
-> history but writes **no `usage` object** for it — only a `type=system,
-> subtype=compact_boundary` marker and a `type=user, isCompactSummary=true` record
-> holding the summary text. (Confirmed on this repo: one compaction read ~477K tokens
-> of context and emitted an ~4.7K-token summary, all invisible to the `usage` stream.)
-> Because it is genuine LLM work that produces no commit, leaving it out would
-> *undercount*. So `record`/`reconcile` add a separate **`kind: compaction-estimate`**
-> row per boundary: `input ≈` peak pre-boundary context, `output ≈` summary-text
-> length ÷ `chars_per_token`. These rows are flagged `source: estimated`, keyed by
-> boundary timestamp (never double-counted), and kept **out** of the measured totals —
-> `rollup` reports them under `estimated_overhead` and folds them into
-> `grand_total_tokens`. Disable with `--no-estimate-compaction`.
->
-> The parser also still counts *any* record carrying a real `usage` object (not just
-> `type: assistant`), so if a future harness version *does* log compaction usage, it is
-> measured automatically. The remaining true blind spot is an op whose usage is never
-> written **and** leaves no transcript marker to estimate from (e.g. `ai-title`
-> chat-title records); measuring those needs billing data.
+**Tagging (`--label`).** Every measured/reconciled row carries an `activity` field, so
+work that never lands as code — planning, design, review, debugging — is still counted
+*and* attributable. `rollup` breaks output tokens down `by_activity`. A pure
+planning/conversation session is captured by `reconcile --label planning` even with no
+commit (see "No undercount" below).
 
 ## Correctness guarantees
 
@@ -95,26 +104,40 @@ With the hook installed you normally only ever run `rollup` (at session end).
   `(last-watermark, commit_ts]`; the next commit continues from that watermark, so no
   turn is dropped or counted twice. `reconcile` sweeps any un-committed trailing
   turns into a `pending@…` row so work that never produced a commit is still counted.
+- **Dedup by message id.** A transcript logs each assistant message several times with
+  *identical* usage; summing raw records overcounts (~2.6× on cache reads). The tool
+  dedups by `message.id` — do not hand-count tokens.
 - **The ledger tip trails the commit tip by one row, by design** — recording commit
-  *N* modifies the ledger, which needs commit *N+1*. This is a fixed point, not a
-  bug; land the trailing row with your next commit (or bypass the hook once for a
-  pure bookkeeping commit, as noted in git history).
+  *N* modifies the ledger, which needs commit *N+1*. This is a fixed point, not a bug.
 
-## AGENTS.md snippet (paste into the target repo)
+## Context compaction (measured signals, cost imputed later)
 
-```markdown
-## Resource accounting — the resource cost of the LLM work (CRITICAL: DO THIS EVERY COMMIT)
+When `/compact` fires, the harness runs a real summarization call over the *entire*
+history but writes **no `usage` object** for it — only a `type=system,
+subtype=compact_boundary` marker and a `type=user, isCompactSummary=true` record holding
+the summary text. So it is invisible to the usage stream. Rather than fabricate a token
+count, `record`/`reconcile` add a `kind: compaction-estimate`, `source: reconstructed`
+row per boundary carrying only the **measured** signals — `peak_context_tokens` (peak
+pre-boundary context the summarizer read) and `summary_chars` (summary length) — keyed
+by boundary timestamp so it is never double-counted. `rollup` reports these raw under
+`compaction_signals`; the chars→tokens and energy conversions happen in the post-hoc
+modeling pass. Disable with `--no-estimate-compaction`.
 
-Every commit here is produced by an LLM agent; we keep a measured record of the
-compute each commit cost. It is near-zero effort:
+The parser also counts *any* record carrying a real `usage` object (not just
+`type: assistant`), so if a future harness version *does* log compaction usage, it is
+measured automatically. The remaining true blind spot is an op whose usage is never
+written **and** leaves no transcript marker to reconstruct from; measuring those needs
+billing data.
 
-- Install once: `git config core.hooksPath dev/resource_tally/hooks` — then every
-  commit auto-records. (Or run `python3 dev/resource_tally/resource_tally.py record`
-  right after committing.)
-- At the end of a work session: `python3 dev/resource_tally/resource_tally.py rollup`.
-- Codex/other agents: `record --transcript <path/to/session.jsonl>`.
+## Optional manifest integration
 
-Tokens/model are MEASURED from your session transcript (deduped by message id — do
-not hand-count). The ledger (`dev/resource_tally/data/resource-ledger.jsonl`) 
-is append-only, per-session, concurrency-safe. See `dev/resource_tally/README.md`.
+If the repo keeps a manifest with these two marker lines, `rollup` refreshes the totals
+there in place (otherwise it just writes `data/lifetime-totals.yaml`):
+```yaml
+    # BEGIN lifetime_totals (auto-generated; do not edit by hand)
+    # END lifetime_totals
 ```
+(Currently wired to `formalization.yaml`; change the filename in `_write_yaml_totals`.)
+
+The `AGENTS.md` block is managed automatically by `install` — you do not paste it by
+hand. Re-running `install` after an `update` regenerates that block in place.

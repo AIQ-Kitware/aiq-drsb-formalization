@@ -6,7 +6,9 @@ docs: [`README.md`](README.md) (build + library map), [`prose/README.md`](prose/
 (the published-theorem chain), [`formalization.yaml`](formalization.yaml) (per-declaration
 source map), [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (the proof-pass work plan: every
 remaining `sorry` ranked by difficulty, the us-vs-Fable split, and the ForMathlib
-upstreaming queue).
+upstreaming queue), [`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *chains*
+under DRSB — DKPS-style — with grep-verified Mathlib gaps and search terms for mining
+existing AI/human Lean proofs).
 
 ---
 

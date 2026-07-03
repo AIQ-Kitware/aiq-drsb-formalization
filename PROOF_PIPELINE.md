@@ -105,12 +105,18 @@ recording them as `axiom`s with provenance. **Do not spend Fable cycles here yet
 gaps, proved here first, then proposed upstream. The paper libraries import them; only
 these are candidates for a Mathlib PR. Proven template: the Donsker–Varadhan port.
 
+The **classical-theorem chains** under DRSB — the DKPS-style dependency DAGs (Chain 1
+convex/Kantorovich duality, Chain 2 entropic/Gibbs, Chain 3 Perron–Frobenius/Sinkhorn,
+Chain 4 SDE), each link's grep-verified Mathlib gap status, and **search terms for
+surveying existing AI/human Lean proofs** — are in **[`FOUNDATIONS.md`](FOUNDATIONS.md)**.
+
 | ForMathlib item | Status | Mathlib gap? | Tier | Owner |
 |---|---|---|---|---|
 | `MeasureTheory.DonskerVaradhan` (DV inequality + Gibbs variational identity) | ✅ proved | yes — only `Measure.tilted` exists | (done) | — |
 | `MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` | ✅ proved | yes — only `tilted_const'` indirectly | T0 | — |
-| `OptimalTransport.WeakDuality` — the OT-DRO **Lagrangian / weak-duality bound**, generalized from `reference/V4.lean::wdro_lagrangian_bound` | 🔜 queued | **yes — no Kantorovich/Wasserstein duality in Mathlib at all** | T3 | Fable |
-| `Combinatorics/LinearAlgebra.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`sinkhorn_potentials_exist`) | 🔜 queued | yes — has Birkhoff + doubly-stochastic, not scaling | T3 | Fable |
+| `OptimalTransport.WeakDuality` — the OT-DRO **Lagrangian / weak-duality bound** (port `reference/V4.lean::wdro_lagrangian_bound`) | 🟡 **staged** (statement; `sorry`) | **yes — no Kantorovich/Wasserstein duality in Mathlib at all** | T3 | Fable |
+| `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`sinkhorn_potentials_exist`, now with mass-conservation hyp) | 🟡 **staged** (statement; `sorry`) | yes — has Birkhoff + doubly-stochastic, not scaling | T3 | Fable |
+| Chain 1 roots (Sion minimax, Fenchel conjugate/duality, Kantorovich) · Chain 3 (Perron–Frobenius) | 🔜 queued (see FOUNDATIONS.md) | ❌ absent | L–XL | survey → Fable |
 
 **Extraction rule.** When a `sorry` is a *general* fact (no DRSB/paper-specific
 objects), give it a clean Mathlib-idiom statement, prove it in `ForMathlib/`, and have
@@ -172,6 +178,12 @@ A good Fable task spec is a **single theorem** with:
 ---
 
 ### Change log
+- Added [`FOUNDATIONS.md`](FOUNDATIONS.md): the classical-theorem chains, grep-verified
+  Mathlib gaps, and survey search terms.
+- Staged `ForMathlib/OptimalTransport/WeakDuality.lean` (Chain 1 weak node) and
+  `ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean` (Chain 3 top);
+  `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` now delegates to the latter (with a
+  necessary `∑pᵢ = ∑qⱼ` hypothesis added — the statement was under-specified).
 - Proved & staged `ForMathlib.MeasureTheory.Normalization` (first new pipeline artifact);
   `WangGaoXie2023.exists_worstCase_gibbs` now consumes it.
 - Proved `ChenGeorgiouPavon2021.staticSB_eq_entropicOT` (T0, `hgibbs` rewrite).

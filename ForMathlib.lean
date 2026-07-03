@@ -13,7 +13,13 @@ One file per proposed Mathlib destination area:
   probability measure (the `(μ univ)⁻¹ • μ` construction).
 * `ForMathlib.OptimalTransport.Basic` — the shared OT / DRO vocabulary (couplings,
   transport cost, Wasserstein-2 and Sinkhorn ambiguity balls, KL, DRO worst-case).
+* `ForMathlib.OptimalTransport.WeakDuality` — the per-coupling Lagrangian bound (the
+  always-true `≤` half of OT-DRO duality). STAGING (`sorry`); see `FOUNDATIONS.md`.
+* `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
+  existence (discrete Schrödinger potentials). STAGING (`sorry`); see `FOUNDATIONS.md`.
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.WeakDuality
+import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling

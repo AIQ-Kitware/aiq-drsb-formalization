@@ -1,11 +1,11 @@
 # resource_tally — measured LLM resource accounting (per commit)
 
 A small, **self-contained, copy-pasteable** module that records the compute each
-commit cost an LLM agent, so a repo's lifetime *climate footprint* is legible.
+commit cost an LLM agent, so a repo's lifetime *resource utilization* can be estimated.
 Token counts and model are **measured** verbatim from the agent's own session
-transcript; energy and carbon are **deferred** (computed later from the recorded
-tokens/time and the commit timestamp — the timestamp fixes the grid's carbon
-intensity, "how dirty was it," at that moment).
+transcript; energy and carbon can be estimated later from the recorded
+tokens/time and the commit timestamp — the timestamp can be used to estimate
+how clean the grid's energy was at that moment).
 
 ```
 dev/resource_tally/
@@ -59,9 +59,8 @@ With the hook installed you normally only ever run `rollup` (at session end).
 | model, input/cache-write/cache-read/output tokens, server-tool calls | **measured** | session transcript `usage` (deduped by message id) |
 | wall-clock span of attributed turns | **measured** | transcript timestamps |
 | inference seconds | **estimated** | `output_tokens ÷ throughput` (assumption `time-v0`, unvalidated) |
-| energy (kWh), carbon (gCO₂e) | **deferred** | computed later from tokens/time + `commit_ts` grid intensity |
 
-> **Dedup matters.** A transcript logs each assistant message several times with
+> **Dedup:** A transcript logs each assistant message several times with
 > *identical* usage; summing raw records overcounts (~2.6× on cache reads here).
 > The tool dedups by `message.id` — do not hand-count tokens.
 
@@ -83,7 +82,7 @@ With the hook installed you normally only ever run `rollup` (at session end).
 ## AGENTS.md snippet (paste into the target repo)
 
 ```markdown
-## Resource accounting — the climate cost of the LLM work (DO THIS)
+## Resource accounting — the resource cost of the LLM work (CRICITAL: DO THIS EVERY COMMIT)
 
 Every commit here is produced by an LLM agent; we keep a measured record of the
 compute each commit cost. It is near-zero effort:
@@ -95,7 +94,6 @@ compute each commit cost. It is near-zero effort:
 - Codex/other agents: `record --transcript <path/to/session.jsonl>`.
 
 Tokens/model are MEASURED from your session transcript (deduped by message id — do
-not hand-count). Energy/carbon are DEFERRED. The ledger
-(`dev/resource_tally/data/resource-ledger.jsonl`) is append-only, per-session,
-concurrency-safe. See `dev/resource_tally/README.md`.
+not hand-count). The ledger (`dev/resource_tally/data/resource-ledger.jsonl`) 
+is append-only, per-session, concurrency-safe. See `dev/resource_tally/README.md`.
 ```

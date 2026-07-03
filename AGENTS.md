@@ -285,7 +285,18 @@ The **`Drsb` capstone** composes the above:
   - `WangGaoXie2023.primal_feasible_radius_nonneg` (was the mis-stated `primal_feasible_iff`)
     — the honest necessity half of Theorem 1(I), `0 ≤ κ ⇒ (Nonempty → 0 ≤ ε)`, axiom-clean
     (see §6). Sufficiency is the deferred ρ̄-ball attainment edge.
-- **Remaining `sorry`s (13)** are the genuine **T4** frontier plus one **T3**:
+- **Finite Sinkhorn scaling — ✅ PROVED, axiom-clean (2026-07):**
+  `ForMathlib.matrix_scaling_exists` + `ForMathlib.sinkhorn_potentials_exist`
+  (`ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean`). Mathlib has **neither** Brouwer
+  nor the Birkhoff/Hilbert-metric contraction (grep-verified), so the proof is a **log-domain
+  convex minimization** of `ψ(b)=∑ᵢ pᵢ log(∑ⱼ Gᵢⱼ bⱼ) − ∑ⱼ qⱼ log bⱼ` over the open simplex:
+  boundary blow-up `−qⱼ log bⱼ→+∞` confines the sublevel set to an explicit compact set
+  (extreme value theorem — no coercivity lemma), and the marginal equations fall out of the
+  1-D directional derivatives along `eⱼ−eₖ` (`IsLocalMin.hasDerivAt_eq_zero`), with **mass
+  conservation `∑p=∑q` exactly killing the Lagrange multiplier**. `ChenGeorgiouPavon2021.
+  sinkhorn_potentials_exist` now delegates to a sorry-free proof. `matrix_scaling_exists`
+  is a clean general lemma staged for Mathlib upstreaming (Sinkhorn scaling is a genuine gap).
+- **Remaining `sorry`s (12)** are the genuine **T4** frontier:
   - **SDE/PDE controls (6, `ChenGeorgiouPavon2021`):** `energy_identity` (Girsanov),
     `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB),
     `dynamic_eq_static_SB` (Léonard gluing), `optimal_coupling_factorization`. No Mathlib
@@ -294,15 +305,12 @@ The **`Drsb` capstone** composes the above:
     dataDriven_strongDuality_cor2i, dataDriven_worstCase_cor2ii}` +
     `MohajerinEsfahaniKuhn2018.{worstCaseExpectation_eq_dual, worstCase_program,
     worstCase_exists}`. Need OT measurable-selection / worst-case-measure construction.
-  - **Finite Sinkhorn scaling (1, T3):** `ForMathlib.…SinkhornScaling.sinkhorn_potentials_exist`
-    (consumed by `ChenGeorgiouPavon2021.sinkhorn_potentials_exist`). Self-contained;
-    build on Mathlib's Birkhoff / doubly-stochastic infra.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Per the user (2026-07): **no Fable** — decompose each remaining target into its natural
   subproblems and prove step-by-step with the thinking budget turned up. The SDE/PDE and
   OT-measurable-selection blocks may still need a documented `axiom` or a Mathlib-infra lift
   (decide with the coordinator). ForMathlib upstreaming queue:
-  DV ✓, Normalization ✓, WeakDuality ✓ (both kernels), SinkhornScaling 🔜.
+  DV ✓, Normalization ✓, WeakDuality ✓ (both kernels), SinkhornScaling ✓ (`matrix_scaling_exists`).
 - When a `reference/` result is validated and promoted, update `reference/README.md`.
 
 ## Resource accounting — the resource cost of the LLM work (CRITICAL: DO THIS EVERY COMMIT)

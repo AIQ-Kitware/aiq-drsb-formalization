@@ -47,7 +47,7 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (13)
+## 2. Ranked remaining `sorry`s (12)
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
@@ -55,10 +55,10 @@ capstones, but the cards do not depend on it.
 > `GaoKleywegt2023.strong_duality_thm1`, `WangGaoXie2023.strong_duality`) are likewise
 > proved, each `le_antisymm(weak, attainment)` with the research-grade `≥` isolated to one
 > explicit **OT-attainment hypothesis** (not a `sorry`). `WangGaoXie2023.primal_feasible_iff`
-> is resolved (see below). The **13** remaining `sorry`s are the genuine T4 frontier: the
-> 6 SDE/PDE controls in `ChenGeorgiouPavon2021`, the 6 worst-case-*structure* corollaries
-> in `GaoKleywegt2023`/`MohajerinEsfahaniKuhn2018`, and the 1 finite-Sinkhorn-scaling
-> existence (`SinkhornScaling`, T3).
+> is resolved (see below). The **finite-Sinkhorn-scaling existence** (`SinkhornScaling`, T3)
+> is now **PROVED** (axiom-clean; see below). The **12** remaining `sorry`s are the genuine
+> T4 frontier: the 6 SDE/PDE controls in `ChenGeorgiouPavon2021` and the 6
+> worst-case-*structure* corollaries in `GaoKleywegt2023`/`MohajerinEsfahaniKuhn2018`.
 
 ### On the card critical path (do these first)
 
@@ -94,7 +94,7 @@ Fable ticket or a focused session.
 
 | Decl | Tier | What it needs |
 |---|---|---|
-| `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` | **T3** | finite Sinkhorn / matrix scaling existence. Mathlib has Birkhoff + doubly-stochastic infra but NOT this. Move statement → `ForMathlib`. |
+| `ForMathlib.sinkhorn_potentials_exist` / `matrix_scaling_exists` | ✅ **PROVED** (axiom-clean) | Done. Mathlib has **neither** Brouwer nor Birkhoff/Hilbert-metric contraction (grep-verified), so proved via **log-domain convex minimization** of `ψ(b)=∑ pᵢlog(∑ Gᵢⱼbⱼ)−∑ qⱼlog bⱼ` over the open simplex: boundary blow-up `−qⱼlog bⱼ→+∞` gives compactness (EVT, no coercivity lemma), the marginal equations come from 1-D directional derivatives along `eⱼ−eₖ` (`IsLocalMin.hasDerivAt_eq_zero`), and **mass conservation `∑p=∑q` kills the Lagrange multiplier**. `matrix_scaling_exists` staged for Mathlib upstreaming. `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` delegates. |
 
 ### Cheap once a dependency or a hypothesis lands (us)
 
@@ -148,7 +148,7 @@ surveying existing AI/human Lean proofs** — are in **[`FOUNDATIONS.md`](FOUNDA
 | `MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` | ✅ proved | yes — only `tilted_const'` indirectly | T0 | — |
 | `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO **per-coupling Lagrangian bound** (Wasserstein `≤` kernel) | ✅ **proved** (ported from `reference/V4.lean`, generalized to arbitrary cost `c`) | yes — no Kantorovich/Wasserstein duality in Mathlib at all | (done) | — |
 | `OptimalTransport.WeakDuality.expect_kernel_le_lam_sinkhornBudget_add_logPartition` — the **entropic (Sinkhorn) weak-duality kernel** (per-point DV integrated over `p₀`) | ✅ **proved** (axiom-clean; the entropic analogue, paper-agnostic) | yes — no entropic-DRO duality in Mathlib | (done) | — |
-| `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`sinkhorn_potentials_exist`, now with mass-conservation hyp) | 🟡 **staged** (statement; `sorry`) | yes — has Birkhoff + doubly-stochastic, not scaling | T3 | Fable |
+| `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`matrix_scaling_exists` + `sinkhorn_potentials_exist`, with mass-conservation hyp) | ✅ **proved** (axiom-clean; log-domain min, no Brouwer/Birkhoff needed) | yes — Sinkhorn scaling absent from Mathlib | T3 | (done) |
 | Chain 1 roots (Sion minimax, Fenchel conjugate/duality, Kantorovich) · Chain 3 (Perron–Frobenius) | 🔜 queued (see FOUNDATIONS.md) | ❌ absent | L–XL | survey → Fable |
 
 **Extraction rule.** When a `sorry` is a *general* fact (no DRSB/paper-specific
@@ -195,9 +195,13 @@ A good Fable task spec is a **single theorem** with:
 - **F1 — `ForMathlib.OptimalTransport.WeakDuality`** (unblocked the cards): ✅ **DONE by us**
   — `expect_le_dualIntegrand_add_lam_couplingCost` ported/generalized and
   `GaoKleywegt2023.weak_duality_prop1` assembled, both axiom-clean.
-- **F2 — `ForMathlib.…SinkhornScaling`** (`sinkhorn_potentials_exist`): the one remaining T3
-  `sorry`. To be done in-context per the no-Fable policy — decompose via a fixed point of
-  the Sinkhorn iteration on `Mathlib.Analysis.Convex.Birkhoff` / `DoublyStochasticMatrix`.
+- **F2 — `ForMathlib.…SinkhornScaling`** (`matrix_scaling_exists` + `sinkhorn_potentials_exist`):
+  ✅ **DONE by us, no Fable** (axiom-clean). The intended fixed-point/Birkhoff route was
+  infeasible (Mathlib has **neither** Brouwer nor the Birkhoff/Hilbert-metric contraction),
+  so proved instead by **log-domain convex minimization** over the open simplex — existence
+  by boundary blow-up + EVT (no coercivity lemma), scaling equations by 1-D directional
+  derivatives, Lagrange multiplier killed by mass conservation. `matrix_scaling_exists` is a
+  clean general lemma staged for Mathlib upstreaming.
 
 ---
 
@@ -211,19 +215,23 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
 2. ~~**us, statement work:**~~ ✅ `weak_duality_prop1` side-hypotheses added and proved;
    `primal_feasible_iff` re-derived from prose → `primal_feasible_radius_nonneg` (necessity,
    proved; sufficiency deferred to the ρ̄-ball attainment edge).
-3. ~~**Fable:**~~ F1 (weak-duality → cards) **done by us, no Fable needed**; F2 (Sinkhorn
-   scaling) remains the one T3 `sorry` (`SinkhornScaling.sinkhorn_potentials_exist`).
+3. ~~**Fable:**~~ ✅ F1 (weak-duality → cards) and F2 (`SinkhornScaling`) **both done by us,
+   no Fable** — F2 axiom-clean via log-domain minimization (Brouwer/Birkhoff absent).
 4. ~~**us:**~~ ✅ `Drsb.{wdrsb,sdrsb}_cost_bound` and both `*_strong_duality` re-exports
    closed; `Drsb` is sorry-free.
-5. **remaining (the 13 `sorry`s):** the T4 SDE/PDE controls + worst-case-*structure*
-   corollaries + the T3 Sinkhorn scaling. Per the user (2026-07): **no Fable** — break each
-   into natural subproblems and prove step-by-step. The SDE/PDE and OT-measurable-selection
-   blocks may still need a documented `axiom` or a Mathlib-infrastructure lift; decide with
-   the coordinator.
+5. **remaining (the 12 `sorry`s):** the T4 SDE/PDE controls + worst-case-*structure*
+   corollaries. Per the user (2026-07): **no Fable** — break each into natural subproblems
+   and prove step-by-step. The SDE/PDE and OT-measurable-selection blocks may still need a
+   documented `axiom` or a Mathlib-infrastructure lift; decide with the coordinator.
 
 ---
 
 ### Change log
+- **2026-07 (Sinkhorn scaling landed):** count **13 → 12**. Proved
+  `ForMathlib.matrix_scaling_exists` + `ForMathlib.sinkhorn_potentials_exist` (axiom-clean)
+  by log-domain convex minimization — Mathlib has neither Brouwer nor Birkhoff contraction,
+  so the intended fixed-point route was replaced. `matrix_scaling_exists` staged for
+  upstreaming; `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` now delegates sorry-free.
 - **2026-07 refresh:** count 23 → **13**; recorded all strong-duality equalities +
   both cost bounds as PROVED (`Drsb` sorry-free); resolved the `primal_feasible_iff` TX bug
   → `primal_feasible_radius_nonneg` (necessity, proved); recorded the no-Fable directive.

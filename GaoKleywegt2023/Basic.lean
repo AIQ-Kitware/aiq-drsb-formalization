@@ -167,9 +167,29 @@ theorem strong_duality_thm1
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ)
     (hΨ : Integrable Ψ (ν : Measure X))   -- Ψ ∈ L¹(ν)
     (hδ : 0 < δ)                          -- δ = θᵖ with θ > 0
-    (hκ : kappa c Ψ ν ≠ ⊤) :              -- κ < ∞  (finite transport growth)
+    (_hκ : kappa c Ψ ν ≠ ⊤)              -- κ < ∞  (finite transport growth; paper's finiteness gate)
+    -- weak-duality edges (as in `weak_duality_prop1`):
+    (hfeas : (ambiguitySet c ν δ).Nonempty)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,
+        BddAbove (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun ζ => sSup (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ))) (ν : Measure X))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → Integrable Ψ (μ : Measure X))
+    (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ ν ∧ couplingCost c π ≤ δ + η ∧
+          Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
+    -- the `≥` direction: the worst-case distribution attains the dual value (the OT
+    -- measurable-selection / attainment result — NOT in Mathlib; the §6 research seam,
+    -- here isolated as a single explicit hypothesis), and the primal is bounded:
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
+    (hattain : ∃ μ : ProbabilityMeasure X,
+        μ ∈ ambiguitySet c ν δ ∧ expect μ Ψ = dualValue c Ψ ν δ) :
     primalValue c Ψ ν δ = dualValue c Ψ ν δ := by
-  sorry
+  refine le_antisymm (weak_duality_prop1 c Ψ ν δ hΨ hδ hfeas hbdd hφint hΨμ hOT) ?_
+  obtain ⟨μ, hμ, hμeq⟩ := hattain
+  calc dualValue c Ψ ν δ = expect μ Ψ := hμeq.symm
+    _ ≤ primalValue c Ψ ν δ := le_csSup hbddP ⟨μ, hμ, rfl⟩
 
 /-!
 ## 2.3 Worst-case distribution (prose §2.3)

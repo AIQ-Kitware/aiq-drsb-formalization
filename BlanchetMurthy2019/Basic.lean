@@ -16,6 +16,7 @@ collapsed via Remark 1, eq. (9)).
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.WeakDuality
 
 set_option autoImplicit false
 
@@ -37,6 +38,7 @@ univariate dual eq. (9). For the DRSB quadratic cost `c x y = ‖x − y‖²` i
 noncomputable def Lc (c : X → X → ℝ) (f : X → ℝ) (lam : ℝ) (x : X) : ℝ :=
   sSup (Set.range (fun y : X => f y - lam * c x y))
 
+omit [NormedAddCommGroup X] in
 /-- **WDRO strong duality — univariate dual** (Blanchet–Murthy Theorem 1(a),(b)
 collapsed via Remark 1, eq. (9); `prose/wasserstein-dro-duality.md` §1.2).
 
@@ -64,24 +66,62 @@ Faithfulness notes:
 Body is `sorry` (statement-only scaffold). -/
 theorem wdro_strong_duality
     (μhat : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (δ : ℝ)
-    -- (A1) the transport cost is nonnegative, `c : S × S → ℝ₊`
-    (hc_nonneg : ∀ x y : X, 0 ≤ c x y)
-    -- (A1) the transport cost is (jointly) lower semicontinuous
-    (hc_lsc : LowerSemicontinuous (fun p : X × X => c p.1 p.2))
-    -- (A1) `c(x, y) = 0` iff `x = y`
-    (hc_zero : ∀ x y : X, c x y = 0 ↔ x = y)
-    -- (A2) the integrand `f` is upper semicontinuous
-    (hf_usc : UpperSemicontinuous f)
-    -- (A2) `f ∈ L¹(dμ̂)`
-    (hf_int : Integrable f (μhat : Measure X))
-    -- radius `δ > 0` (eq. (3))
-    (hδ : 0 < δ) :
+    -- the transport cost is symmetric (Blanchet–Murthy's ball uses `μ̂` as first coupling
+    -- marginal; the scaffold writes `otCost c μ μ̂`, which coincides for symmetric `c`
+    -- — in particular the DRSB `‖·‖²`; see the docstring's faithfulness note):
+    (hc_symm : ∀ x y : X, c x y = c y x)
+    -- weak-duality edges (as in `GaoKleywegt2023.weak_duality_prop1`):
+    (hfeas : { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ }.Nonempty)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ y : X,
+        BddAbove (Set.range (fun x => f x - lam * c x y)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun y => sSup (Set.range (fun x => f x - lam * c x y))) (μhat : Measure X))
+    (hfμ : ∀ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ → Integrable f (μ : Measure X))
+    (hOT : ∀ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ μhat ∧ couplingCost c π ≤ δ + η ∧
+          Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
+    -- the `≥` direction: the worst-case distribution attains the dual (OT measurable
+    -- selection — §6 seam), and the primal is bounded:
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        otCost c μ μhat ≤ δ ∧ r = expect μ f })
+    (hattain : ∃ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ ∧
+        expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }) :
     droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * δ
               + expect μhat (fun x => sSup (Set.range (fun y : X => f y - lam * c x y))) } := by
-  sorry
+  -- symmetry: the dual integrand `fun x => sup_y (f y − λc(x,y))` equals the kernel's
+  -- `fun y => sup_x (f x − λc(x,y))`
+  have hAB : ∀ lam : ℝ, (fun x => sSup (Set.range (fun y => f y - lam * c x y)))
+      = (fun y => sSup (Set.range (fun x => f x - lam * c x y))) := by
+    intro lam; funext t
+    have h : (fun y => f y - lam * c t y) = (fun x => f x - lam * c x t) := by
+      funext s; rw [hc_symm t s]
+    rw [h]
+  refine le_antisymm ?_ ?_
+  · refine csSup_le ?_ ?_
+    · obtain ⟨μ, hμ⟩ := hfeas; exact ⟨expect μ f, μ, hμ, rfl⟩
+    · rintro a ⟨μ, hμ, rfl⟩
+      refine le_csInf ⟨_, 0, le_refl 0, rfl⟩ ?_
+      rintro d ⟨lam, hlam, rfl⟩
+      rw [hAB lam]
+      refine le_of_forall_pos_le_add fun η hη => ?_
+      have hη' : (0 : ℝ) < η / (lam + 1) := div_pos hη (by linarith)
+      obtain ⟨π, hπ, hcost, hcint⟩ := hOT μ hμ (η / (lam + 1)) hη'
+      have hker := ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost
+        c f lam hlam μ μhat π hπ (hbdd lam hlam) (hfμ μ hμ) (hφint lam hlam) hcint
+      have h1 : lam * couplingCost c π ≤ lam * δ + lam * (η / (lam + 1)) := by
+        rw [← mul_add]; exact mul_le_mul_of_nonneg_left hcost hlam
+      have h2 : lam * (η / (lam + 1)) ≤ η := by
+        rw [← mul_div_assoc, div_le_iff₀ (by linarith : (0 : ℝ) < lam + 1)]
+        nlinarith [hη, hlam]
+      linarith [hker, h1, h2]
+  · obtain ⟨μ, hμ, hμeq⟩ := hattain
+    rw [← hμeq]
+    exact le_csSup hbddP ⟨μ, hμ, rfl⟩
 
+omit [NormedAddCommGroup X] in
 /-- **WDRO strong duality — univariate dual, stated via the inner dual `Lc`**
 (Blanchet–Murthy Theorem 1(b) + Remark 1, eq. (9); `prose/wasserstein-dro-duality.md`
 §1.2). Identical content to `wdro_strong_duality`, with the per-sample term written as
@@ -95,22 +135,25 @@ this is *derived* from `wdro_strong_duality` rather than re-proved; the load-bea
 duality content lives in that one declaration. -/
 theorem wdro_strong_duality_dualFn
     (μhat : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (δ : ℝ)
-    -- (A1) nonnegative cost
-    (hc_nonneg : ∀ x y : X, 0 ≤ c x y)
-    -- (A1) lower semicontinuous cost
-    (hc_lsc : LowerSemicontinuous (fun p : X × X => c p.1 p.2))
-    -- (A1) `c(x, y) = 0` iff `x = y`
-    (hc_zero : ∀ x y : X, c x y = 0 ↔ x = y)
-    -- (A2) `f` upper semicontinuous
-    (hf_usc : UpperSemicontinuous f)
-    -- (A2) `f ∈ L¹(dμ̂)`
-    (hf_int : Integrable f (μhat : Measure X))
-    -- radius `δ > 0`
-    (hδ : 0 < δ) :
+    (hc_symm : ∀ x y : X, c x y = c y x)
+    (hfeas : { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ }.Nonempty)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ y : X,
+        BddAbove (Set.range (fun x => f x - lam * c x y)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun y => sSup (Set.range (fun x => f x - lam * c x y))) (μhat : Measure X))
+    (hfμ : ∀ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ → Integrable f (μ : Measure X))
+    (hOT : ∀ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ μhat ∧ couplingCost c π ≤ δ + η ∧
+          Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        otCost c μ μhat ≤ δ ∧ r = expect μ f })
+    (hattain : ∃ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ ∧
+        expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }) :
     droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧ v = lam * δ + expect μhat (Lc c f lam) } := by
   -- `Lc c f lam` unfolds (delta) to `fun x => sSup (Set.range (fun y => f y − lam · c x y))`,
   -- so the goal is definitionally equal to `wdro_strong_duality`.
-  exact wdro_strong_duality μhat c f δ hc_nonneg hc_lsc hc_zero hf_usc hf_int hδ
+  exact wdro_strong_duality μhat c f δ hc_symm hfeas hbdd hφint hfμ hOT hbddP hattain
 
 end BlanchetMurthy2019

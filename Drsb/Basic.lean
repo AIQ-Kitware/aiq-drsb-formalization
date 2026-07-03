@@ -19,6 +19,7 @@ GaTech code, NOT a published PDF (see `prose/README.md`).
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.WeakDuality
 import BlanchetMurthy2019.Basic
 import GaoKleywegt2023.Basic
 import WangGaoXie2023.Basic
@@ -58,14 +59,60 @@ theorem wdrsb_strong_duality (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε :
   sorry
 
 /-- **WDRSB cost bound** (the `wdrsb_cost_bound.yaml` claim `E_perturbed[V] ≤ E_wc[V]`):
-for any source `μ` inside the Wasserstein-2 ball of radius `ε` around the nominal
-`p₀`, the expected cost is bounded by the WDRO dual worst-case value. -/
+for any source `μ` inside the Wasserstein-2 ball of radius `ε` around the nominal `p₀`,
+the expected cost is bounded by the WDRO dual worst-case value.
+
+**Proved** — the `≤` (weak-duality) direction, which is all the card needs. It composes
+`ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` (the per-coupling Lagrangian
+kernel) with `sqCost`'s symmetry (so the kernel's dual integrand matches Blanchet–Murthy's
+`Lc`) and `couplingCost ≤ ε`.
+
+The extra hypotheses are the **formalization edges** that make the ideal claim provable
+(cf. AGENTS.md §6): `hV`/`hbdd`/`hLc` are the integrability/boundedness regularity that
+makes the three expectations well defined, and `hOT` is the **optimal-transport
+attainment edge** — that the constraint `W₂²(μ,p₀) ≤ ε` is witnessed by a genuine
+integrable-cost coupling. `hOT` stands in for the OT measurable-selection/attainment
+result that is *not in Mathlib* (the T4 seam), stated as a hypothesis rather than proved;
+everything else is discharged. -/
 theorem wdrsb_cost_bound (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ)
-    (μ : ProbabilityMeasure X) (hμ : μ ∈ wassersteinBall p₀ ε) :
+    (μ : ProbabilityMeasure X) (hμ : μ ∈ wassersteinBall p₀ ε)
+    -- regularity (integrability / sup-boundedness):
+    (hV : Integrable V (μ : Measure X))
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ y : X,
+        BddAbove (Set.range (fun x => V x - lam * sqCost x y)))
+    (hLc : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (BlanchetMurthy2019.Lc sqCost V lam) (p₀ : Measure X))
+    -- OT-attainment edge: the W₂² ≤ ε constraint is witnessed by an integrable-cost coupling
+    (hOT : W2sq μ p₀ ≤ ε →
+        ∃ π ∈ couplings μ p₀, couplingCost sqCost π ≤ ε ∧
+          Integrable (fun z : X × X => sqCost z.1 z.2) (π : Measure (X × X))) :
     expect μ V
       ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * ε + expect p₀ (BlanchetMurthy2019.Lc sqCost V lam) } := by
-  sorry
+  -- discharge the OT edge: get the witnessing coupling
+  obtain ⟨π, hπ, hcost_le, hcost_int⟩ := hOT hμ
+  -- sqCost is symmetric, so Blanchet–Murthy's `Lc` IS the kernel's dual integrand
+  have hsymm : ∀ x y : X, sqCost x y = sqCost y x := by
+    intro x y; simp only [sqCost]; rw [norm_sub_rev]
+  have hLc_eq : ∀ lam : ℝ, BlanchetMurthy2019.Lc sqCost V lam
+      = fun y => sSup (Set.range (fun x => V x - lam * sqCost x y)) := by
+    intro lam; funext a
+    have h : (fun y => V y - lam * sqCost a y) = (fun x => V x - lam * sqCost x a) := by
+      funext t; rw [hsymm a t]
+    show sSup (Set.range (fun y => V y - lam * sqCost a y))
+        = sSup (Set.range (fun x => V x - lam * sqCost x a))
+    rw [h]
+  -- `expect μ V` is a lower bound of the dual set
+  refine le_csInf ⟨_, 0, le_rfl, rfl⟩ ?_
+  rintro v ⟨lam, hlam, rfl⟩
+  have hφ : Integrable (fun y => sSup (Set.range (fun x => V x - lam * sqCost x y)))
+      (p₀ : Measure X) := by rw [← hLc_eq lam]; exact hLc lam hlam
+  have key := ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost
+    sqCost V lam hlam μ p₀ π hπ (hbdd lam hlam) hV hφ hcost_int
+  rw [← hLc_eq lam] at key
+  have hstep : lam * couplingCost sqCost π ≤ lam * ε :=
+    mul_le_mul_of_nonneg_left hcost_le hlam
+  linarith
 
 /-! ## SDRSB worst-case cost bound and "Eq. 47"  (card `sdrsb_cost_bound.yaml`) -/
 

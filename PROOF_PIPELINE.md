@@ -53,9 +53,9 @@ capstones, but the cards do not depend on it.
 
 | Decl | Tier | What it needs | Notes |
 |---|---|---|---|
-| `GaoKleywegt2023.weak_duality_prop1` | **T3** | add integrability/`BddAbove` hyps; then the coupling-ε + `sInf`/`sSup` assembly | **linchpin — kernel now DONE.** The per-coupling bound is proved: `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost`. Only the assembly remains; **Sion** (`Mathlib.Topology.Sion`) is available if the minimax step wants it. |
-| `Drsb.wdrsb_cost_bound` | **T2** | `le_csSup` (BddAbove from weak duality) + specialize `weak_duality_prop1` to `c=‖·‖²`, `f=V` | card claim; unlocked by the linchpin. |
-| `Drsb.sdrsb_cost_bound` | **T2** | same, via the Sinkhorn weak `≤` (uses the proved DV/Gibbs engine) | card claim. |
+| `Drsb.wdrsb_cost_bound` | ✅ **PROVED** (axiom-clean) | — | **The WDRSB evaluation-card claim, discharged.** Composes the weak-duality kernel + `sqCost` symmetry + `couplingCost ≤ ε`, under explicit regularity + the OT-attainment edge `hOT` (the T4 seam stated as a hypothesis, not faked). `#print axioms` = propext/Classical.choice/Quot.sound only. |
+| `GaoKleywegt2023.weak_duality_prop1` | **T3** | add integrability/`BddAbove` hyps; then the coupling-ε + `sInf`/`sSup` assembly | linchpin — kernel DONE (`ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost`) and now demonstrated end-to-end by `wdrsb_cost_bound`. Only the general `droValue` assembly remains; **Sion** (`Mathlib.Topology.Sion`) available for the minimax step. |
+| `Drsb.sdrsb_cost_bound` | **T3** | a **Sinkhorn per-coupling weak-duality kernel** (entropic Lagrangian atop the proved DV/Gibbs engine `logPartition_eq_gibbs_sSup`), then the same composition as `wdrsb_cost_bound` | the *other* card claim; next target. |
 | `WangGaoXie2023.strong_duality` (≤ half only) | **T3** | outer `inf_{λ}` + ball Lagrangian on top of the proved `logPartition_eq_gibbs_sSup` | the DV engine (`ForMathlib`) is already done; this is the Sinkhorn analogue of the linchpin. |
 
 ### Contributable-to-Mathlib, standalone (ForMathlib queue — see §3)

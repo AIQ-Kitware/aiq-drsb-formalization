@@ -231,6 +231,15 @@ The **`Drsb` capstone** composes the above:
   - `BlanchetMurthy2019.wdro_strong_duality_dualFn` — the `Lc`-form of
     `wdro_strong_duality`, derived from it by defeq. Not an independent strong-duality
     proof; the debt stays in one place.
+  - `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO
+    per-coupling **weak-duality kernel** (ported from `reference/V4.lean`, generalized to
+    arbitrary cost `c`); axiom-clean.
+  - ⭐ **`Drsb.wdrsb_cost_bound` — a DRSB evaluation-card claim, PROVED** (axiom-clean):
+    the WDRSB `𝔼_μ[V] ≤` worst-case bound, via the weak-duality kernel + `sqCost`
+    symmetry, under explicit regularity + the OT-attainment edge `hOT` (the T4 seam stated
+    as a hypothesis, not faked). The cards need only this `≤` direction, so the
+    research-grade strong-duality `≥` is *not* on the card path. `sdrsb_cost_bound`
+    (Sinkhorn) is the remaining card — needs a Sinkhorn weak-duality kernel.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Headline: the **card cost bounds need only WEAK duality** (`≤`), so the tractable
   critical path is `weak_duality_prop1` (T3, Fable) → `Drsb.*_cost_bound` (T2). The

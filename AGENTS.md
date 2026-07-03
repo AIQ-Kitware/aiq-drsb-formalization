@@ -176,6 +176,14 @@ The **`Drsb` capstone** composes the above:
 - **KL is extended-valued in Mathlib** (`InformationTheory.klDiv : ℝ≥0∞`); we use
   `(klDiv μ ν).toReal`. `(⊤).toReal = 0`, so guard `∀ρ` statements with `ρ ≪ π` where the
   real and extended conventions agree.
+- **`WangGaoXie2023.primal_feasible_iff` is suspected mis-stated** (still `sorry`; do
+  not try to prove it as-is). `(sinkhornBall μhat κ ε).Nonempty ↔ 0 ≤ ε` is likely
+  *false* for the coupling-based `ForMathlib.OT.Wkappa`: for a non-degenerate nominal,
+  `Wkappa κ μhat μhat > 0` (the product coupling has positive `𝔼‖x−y‖²`; the diagonal
+  coupling — zero cost — is singular w.r.t. the product, so its KL term is `+∞`). Hence
+  at `ε = 0` the RHS holds but the ball is empty. The paper's Sinkhorn discrepancy has
+  `W(P,P)=0` under its conditional/regularised definition, which `Wkappa` does not
+  encode. Fix the statement (prose re-derivation) before attempting a proof.
 
 ---
 
@@ -198,14 +206,24 @@ The **`Drsb` capstone** composes the above:
 ## 9. Current status & next steps
 
 - **Done:** repo scaffolded; `ForMathlib` + 5 paper libraries + `Drsb` capstone all
-  `lake build` green (statements with `sorry` bodies); the Donsker–Varadhan family is
-  ported into `ForMathlib.MeasureTheory.DonskerVaradhan` (proved, axiom-clean); prose
-  transcriptions + PDFs in place; `formalization.yaml` maps every declaration to its
-  source.
+  `lake build` green; prose transcriptions + PDFs in place; `formalization.yaml` maps
+  every declaration to its source.
+- **Proofs landed (proof pass, foundational-first):**
+  - `ForMathlib.MeasureTheory.DonskerVaradhan` — the full DV family (axiom-clean).
+  - `WangGaoXie2023.logPartition_eq_gibbs_sSup` (DV applied to the tilted reward),
+    `worstCase_conditional_tilted` (density rewrite), and
+    `exists_worstCase_gibbs` (Remark 4: normalize the finite, nonzero unnormalized
+    Gibbs measure by its total mass `α_x` → a probability measure ∝ the tilt).
+  - `BlanchetMurthy2019.wdro_strong_duality_dualFn` — the `Lc`-form of
+    `wdro_strong_duality`, derived from it by defeq (`Lc` unfolds to the explicit sup).
+    This is *not* an independent strong-duality proof; the debt stays in one place.
 - **Next (suggested order):** (1) expert review of statements vs. the PDFs, DRO-dual
-  hypotheses first; (2) proofs, foundational-first: DV → Sinkhorn/Wasserstein weak
-  duality → capstone bounds; the strong-duality `≥` direction (§6) is the
-  research-grade seam — scope it explicitly.
+  hypotheses first (and fix `primal_feasible_iff`, §6); (2) more proofs: the weak-duality
+  `≤` direction (Gao–Kleywegt `weak_duality_prop1`) is the next real target — the
+  per-coupling bound is proved in `reference/V4.lean` (`wdro_lagrangian_bound`) but the
+  canonical statement needs integrability/`BddAbove` side-hypotheses added before the
+  sInf/sSup + coupling-ε assembly goes through. The strong-duality `≥` direction (§6)
+  is the research-grade seam — scope it explicitly.
 - When a `reference/` result is validated and promoted, update `reference/README.md`.
 
 ## Resource accounting — the resource cost of the LLM work (CRITICAL: DO THIS EVERY COMMIT)

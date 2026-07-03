@@ -147,6 +147,7 @@ def GibbsWorstCase
     (P : X → Measure X) : Prop :=
   ∀ xhat : X, ∃ α : ℝ≥0∞, P xhat = α • gibbsUnnormalized ν c f κ lam xhat
 
+omit [NormedAddCommGroup X] in
 /-- **Remark 4 (Worst-case Distribution), existence.** Under `ρ > 0`, Condition 1 and
 an optimal `λ* > 0`, the worst-case conditional exists and is the normalized
 exponential tilt of `ν` (prose Remark 4).  The normalizability hypotheses `hpos`/`hfin`
@@ -160,7 +161,18 @@ theorem exists_worstCase_gibbs
     (hfin : ∀ xhat, gibbsUnnormalized ν c f κ lam xhat Set.univ ≠ ⊤) : -- Condition 1: 𝔼_ν[e^{(f−λc)/(λε)}] < ∞
     ∃ P : X → Measure X,
       (∀ xhat, IsProbabilityMeasure (P xhat)) ∧ GibbsWorstCase ν c f κ lam P := by
-  sorry
+  -- Normalize each unnormalized Gibbs measure by its (finite, nonzero) total mass
+  -- `α_x = (𝔼_ν[e^{(f−λc)/(λε)}])⁻¹`; the normalizer is well-defined precisely by
+  -- `hpos`/`hfin`, and the result is a probability measure proportional to `γ̃_x`.
+  refine ⟨fun xhat => (gibbsUnnormalized ν c f κ lam xhat Set.univ)⁻¹
+            • gibbsUnnormalized ν c f κ lam xhat, ?_, ?_⟩
+  · -- `((∫γ̃)⁻¹ • γ̃) univ = (∫γ̃)⁻¹ · (∫γ̃) = 1`
+    intro xhat
+    refine ⟨?_⟩
+    rw [Measure.smul_apply, smul_eq_mul, ENNReal.inv_mul_cancel (hpos xhat) (hfin xhat)]
+  · -- proportionality is definitional: the scalar is the normalizer `α_x`
+    intro xhat
+    exact ⟨(gibbsUnnormalized ν c f κ lam xhat Set.univ)⁻¹, rfl⟩
 
 omit [NormedAddCommGroup X] in
 /-- **Remark 4 density is the Gibbs tilt** (prose Remark 4 density formula; the

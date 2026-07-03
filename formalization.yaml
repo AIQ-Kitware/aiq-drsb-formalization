@@ -100,11 +100,17 @@ sources:
     library: "Drsb"   # capstone, composed from the libraries above
 
 status:
-  phase: "scaffold — statements only"
+  phase: "statements complete; proofs — foundational leaves landing"
   policy: >
-    First pass: theorem STATEMENTS as close to the published results as possible, with
-    every proof body left as `sorry`. No proofs are attempted yet; the goal is to make
-    the statements match the papers (verified against prose/), not a prior attempt. The
+    First pass established theorem STATEMENTS as close to the published results as
+    possible (verified against prose/, not a prior attempt). The proof pass has now
+    begun, foundational-first: the tractable/self-contained leaves are being discharged
+    while the research-grade strong-duality `≥` (attainment) seams stay `sorry` (they
+    need OT measurable-selection / worst-case-measure constructions not in Mathlib —
+    see AGENTS.md §6). Proved so far: the Donsker–Varadhan family (ForMathlib), the
+    Sinkhorn continuous-Gibbs worst-case existence (WangGaoXie2023.exists_worstCase_gibbs,
+    a measure-normalization), and the Lc-form dual equivalence
+    (BlanchetMurthy2019.wdro_strong_duality_dualFn, derived from its sibling). The
     earlier hand-written attempts are quarantined in `reference/` (see reference/README.md)
     and are reference-only — they contain subtle traps and must not be trusted as canon.
   build:
@@ -120,12 +126,14 @@ status:
       role: "SB/SOC value function + optimal control u* = ∇log φ (abstract dynamics interface)."
     - name: "BlanchetMurthy2019"
       role: "Wasserstein DRO strong duality (primary)."
+      note: "wdro_strong_duality_dualFn is PROVED (the Lc-form of wdro_strong_duality, derived from it by defeq); the load-bearing wdro_strong_duality itself is still `sorry` (strong-duality ≥ seam)."
     - name: "GaoKleywegt2023"
       role: "Wasserstein DRO strong duality + worst-case distribution."
     - name: "MohajerinEsfahaniKuhn2018"
       role: "Data-driven Wasserstein DRO convex reformulation."
     - name: "WangGaoXie2023"
       role: "Sinkhorn DRO strong duality (log-partition dual; DRSB Eq. 47)."
+      note: "logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, and exists_worstCase_gibbs (Remark-4 Gibbs worst case, by measure normalization) are PROVED; strong_duality (Thm 1(II)) is still `sorry`. primal_feasible_iff is `sorry` AND likely mis-stated — see fidelity.known_limitations."
     - name: "Drsb"
       role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bound (Eq. 47) — composed from the libraries above."
 
@@ -156,6 +164,9 @@ main_results:
   BlanchetMurthy2019:
     - declaration: "BlanchetMurthy2019.wdro_strong_duality"
       source: "Theorem 1(a),(b) via Remark 1, eq. (9) — Wasserstein DRO univariate dual"
+    - declaration: "BlanchetMurthy2019.wdro_strong_duality_dualFn"
+      source: "Theorem 1(b) + Remark 1, eq. (9) — same dual, per-sample term written as the inner dual φ_λ = Lc"
+      proved: true   # defeq to wdro_strong_duality (Lc unfolds to the explicit sup); derived from it, not independently proved
   GaoKleywegt2023:
     - declaration: "GaoKleywegt2023.strong_duality_thm1"
       source: "Theorem 1 (strong duality, κ<∞)"
@@ -175,6 +186,7 @@ main_results:
       source: "Theorem 1(II) — Sinkhorn-DRO log-partition dual (DRSB Eq. 47 source)"
     - declaration: "WangGaoXie2023.exists_worstCase_gibbs"
       source: "Remark 4 — continuous Gibbs (exponential-tilt) worst case"
+      proved: true   # normalize the finite, nonzero unnormalized Gibbs measure to a probability measure
   Drsb:
     - declaration: "Drsb.wdrsb_cost_bound"
       informal: "𝔼_μ[V] ≤ WDRO dual worst-case — the wdrsb_cost_bound.yaml card claim."
@@ -185,10 +197,11 @@ main_results:
 
 fidelity:
   known_limitations:
-    - "All proofs are `sorry`; statements are unverified against Lean's kernel beyond type-checking."
+    - "Most proofs are `sorry`; the foundational/self-contained leaves are proved (Donsker–Varadhan family in ForMathlib; WangGaoXie2023.{logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs}; BlanchetMurthy2019.wdro_strong_duality_dualFn). The research-grade strong-duality `≥` (attainment) seams remain `sorry`."
     - "The DRSB manuscript is unpublished; its internal 'Eq. 47' and 'Algorithm 5' numbers come from the GaTech code, not a published PDF (flagged in prose/ and in the Drsb capstone)."
     - "Heavy analysis objects (SDE path measures, controlled dynamics) are captured via abstract `structure` interfaces, not built from Mathlib SDE theory (which does not exist yet)."
-    - "Statements were AI-drafted against prose transcriptions; they need expert review against the primary sources before proofs begin."
+    - "Statements were AI-drafted against prose transcriptions; they still need expert review against the primary sources."
+    - "SUSPECTED STATEMENT BUG: WangGaoXie2023.primal_feasible_iff ((sinkhornBall μhat κ ε).Nonempty ↔ 0 ≤ ε) is likely false for the ForMathlib.OT definitions — for a non-degenerate nominal, Wkappa κ μhat μhat > 0 (product coupling has positive squared cost; the diagonal coupling has infinite KL vs the product), so at ε = 0 the RHS holds but the ball is empty. The paper's Sinkhorn discrepancy has W(P,P)=0 under a conditional/different definition than the coupling-based Wkappa encoded here. Left `sorry`; needs a prose re-derivation of the feasibility statement, not a proof."
 
 automation:
   methods:

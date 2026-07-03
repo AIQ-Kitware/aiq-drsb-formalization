@@ -89,7 +89,10 @@ the inner dual function `φ_λ = Lc c f lam`:
 
   `I = inf_{λ ≥ 0} { λδ + 𝔼_{μ̂}[ φ_λ ] }`,   `φ_λ(x) = sup_y (f y − λ c x y)`.
 
-Body is `sorry` (statement-only scaffold). -/
+This is the same theorem as `wdro_strong_duality` with the per-sample supremum written
+as `Lc c f lam` — the two are definitionally equal (`Lc` unfolds to that supremum), so
+this is *derived* from `wdro_strong_duality` rather than re-proved; the load-bearing
+duality content lives in that one declaration. -/
 theorem wdro_strong_duality_dualFn
     (μhat : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (δ : ℝ)
     -- (A1) nonnegative cost
@@ -106,6 +109,8 @@ theorem wdro_strong_duality_dualFn
     (hδ : 0 < δ) :
     droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧ v = lam * δ + expect μhat (Lc c f lam) } := by
-  sorry
+  -- `Lc c f lam` unfolds (delta) to `fun x => sSup (Set.range (fun y => f y − lam · c x y))`,
+  -- so the goal is definitionally equal to `wdro_strong_duality`.
+  exact wdro_strong_duality μhat c f δ hc_nonneg hc_lsc hc_zero hf_usc hf_int hδ
 
 end BlanchetMurthy2019

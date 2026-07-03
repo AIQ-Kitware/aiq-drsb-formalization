@@ -211,17 +211,17 @@ can be tallied. The accounting is designed to be near-zero effort for you.
 
 **The rule (one of two ways):**
 - **Preferred — install the hook once, then forget it:**
-  `git config core.hooksPath dev/hooks`. After that every `git commit`
+  `git config core.hooksPath dev/resource_tally/hooks`. After that every `git commit`
   auto-records usage; you do nothing.
 - **Otherwise, run one command right after you commit:**
-  `python3 dev/resource_tally.py record`
+  `python3 dev/resource_tally/resource_tally.py record`
 
 Then, when you finish a work session, refresh the repo-lifetime totals:
-`python3 dev/resource_tally.py rollup` (updates the `lifetime_totals` block in
+`python3 dev/resource_tally/resource_tally.py rollup` (updates the `lifetime_totals` block in
 `formalization.yaml`).
 
 **What it does / what's honest about it** (see `formalization.yaml`
-`automation.resource_accounting` and the header of `dev/resource_tally.py`):
+`automation.resource_accounting` and the header of `dev/resource_tally/resource_tally.py`):
 - **Measured** (ground truth, read from your session transcript): model, and
   input / cache-write / cache-read / output tokens, **deduped by message id** — the
   transcript logs each message several times with identical usage, so summing raw
@@ -236,18 +236,20 @@ Then, when you finish a work session, refresh the repo-lifetime totals:
 **Why it's correct under concurrency / never under- or over-counts:**
 - Usage is attributed **per session** (each agent = its own transcript file =
   disjoint turns), keyed by `(session_id, commit)`; the ledger
-  (`dev/resource-ledger.jsonl`) is append-only under an `flock`. Two agents in this repo
+  (`dev/resource_tally/data/resource-ledger.jsonl`) is append-only under an `flock`. Two agents in this repo
   at once cannot double-count each other.
 - A `record` sweeps a session's turns in `(last-watermark, commit_ts]`; the next
   commit continues from that watermark, so no turn is dropped or counted twice.
-- `python3 dev/resource_tally.py reconcile` sweeps any un-committed trailing
+- `python3 dev/resource_tally/resource_tally.py reconcile` sweeps any un-committed trailing
   turns into a `pending@…` bucket so work that never produced a commit is still
   counted.
 
 **Codex / other agents:** pass your own log with
-`python3 dev/resource_tally.py record --transcript <path/to/session.jsonl>`.
+`python3 dev/resource_tally/resource_tally.py record --transcript <path/to/session.jsonl>`.
 
-**Porting to another repo:** copy `dev/resource_tally.py`, add the
-`resource_accounting` block to that repo's manifest, and add this section to its
-`AGENTS.md`. Its only Claude-Code-specific assumption is the transcript location
+**Porting to another repo:** copy the whole self-contained `dev/resource_tally/`
+folder and follow its [`README.md`](dev/resource_tally/README.md) (it carries the
+install steps and the AGENTS.md snippet to paste). The ledger and rollup live under
+`dev/resource_tally/data/`, relative to the tool — no host-repo layout is assumed.
+Its only Claude-Code-specific assumption is the transcript location
 (`~/.claude/projects/<munged-cwd>/<session>.jsonl`); everything else is generic.

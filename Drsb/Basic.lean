@@ -52,11 +52,55 @@ abstract `V : X → ℝ`; its provenance lives in `ChenGeorgiouPavon2021`. -/
 function `V` over the `W₂²`-ball equals the Blanchet–Murthy / Gao–Kleywegt univariate
 dual, specialized to `f := V`, cost `c := ‖·‖²`. Discharged by
 `BlanchetMurthy2019.wdro_strong_duality` (equivalently `GaoKleywegt2023.strong_duality_thm1`). -/
-theorem wdrsb_strong_duality (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ) :
+theorem wdrsb_strong_duality (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ)
+    (hV : Integrable V (p₀ : Measure X)) (hε : 0 < ε)
+    (_hκ : GaoKleywegt2023.kappa sqCost V p₀ ≠ ⊤)
+    (hfeas : (GaoKleywegt2023.ambiguitySet sqCost p₀ ε).Nonempty)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,
+        BddAbove (Set.range (fun ξ => V ξ - lam * sqCost ξ ζ)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun ζ => sSup (Set.range (fun ξ => V ξ - lam * sqCost ξ ζ))) (p₀ : Measure X))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε →
+        Integrable V (μ : Measure X))
+    (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ p₀ ∧ couplingCost sqCost π ≤ ε + η ∧
+          Integrable (fun z : X × X => sqCost z.1 z.2) (π : Measure (X × X)))
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε ∧ r = expect μ V })
+    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε ∧
+        expect μ V = GaoKleywegt2023.dualValue sqCost V p₀ ε) :
     droValue (wassersteinBall p₀ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * ε + expect p₀ (BlanchetMurthy2019.Lc sqCost V lam) } := by
-  sorry
+  -- `sqCost` is symmetric, so Blanchet–Murthy's `Lc` = −(Gao–Kleywegt's `Φ`) pointwise
+  have hsymm : ∀ a b : X, sqCost a b = sqCost b a := by
+    intro a b; simp only [sqCost]; rw [norm_sub_rev]
+  have hLcPhi : ∀ (lam : ℝ) (x : X),
+      BlanchetMurthy2019.Lc sqCost V lam x = -(GaoKleywegt2023.Phi sqCost V lam x) := by
+    intro lam x
+    rw [BlanchetMurthy2019.Lc, GaoKleywegt2023.Phi, ← Real.sSup_neg]
+    congr 1
+    rw [← Set.image_neg_eq_neg, ← Set.range_comp]
+    congr 1; funext ξ; simp only [Function.comp_apply]; rw [hsymm x ξ]; ring
+  have hexpLc : ∀ lam : ℝ, expect p₀ (BlanchetMurthy2019.Lc sqCost V lam)
+      = - expect p₀ (fun ζ => GaoKleywegt2023.Phi sqCost V lam ζ) := by
+    intro lam
+    unfold expect
+    rw [← integral_neg]
+    exact integral_congr_ae (Filter.Eventually.of_forall (fun ζ => hLcPhi lam ζ))
+  -- apply the proved general strong duality (specialized to `sqCost, V, p₀, ε`)
+  have hsd := GaoKleywegt2023.strong_duality_thm1 sqCost V p₀ ε hV hε _hκ hfeas hbdd hφint
+    hΨμ hOT hbddP hattain
+  rw [show droValue (wassersteinBall p₀ ε) V = GaoKleywegt2023.primalValue sqCost V p₀ ε from rfl,
+    hsd, GaoKleywegt2023.dualValue]
+  -- the two dual sets coincide (Φ-form = Lc-form)
+  congr 1
+  ext v
+  constructor
+  · rintro ⟨lam, hlam, rfl⟩
+    exact ⟨lam, hlam, by rw [hexpLc lam]; ring⟩
+  · rintro ⟨lam, hlam, rfl⟩
+    exact ⟨lam, hlam, by rw [hexpLc lam]; ring⟩
 
 /-- **WDRSB cost bound** (the `wdrsb_cost_bound.yaml` claim `E_perturbed[V] ≤ E_wc[V]`):
 for any source `μ` inside the Wasserstein-2 ball of radius `ε` around the nominal `p₀`,

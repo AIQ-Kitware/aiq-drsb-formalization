@@ -135,7 +135,8 @@ surveying existing AI/human Lean proofs** — are in **[`FOUNDATIONS.md`](FOUNDA
 |---|---|---|---|---|
 | `MeasureTheory.DonskerVaradhan` (DV inequality + Gibbs variational identity) | ✅ proved | yes — only `Measure.tilted` exists | (done) | — |
 | `MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` | ✅ proved | yes — only `tilted_const'` indirectly | T0 | — |
-| `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO **per-coupling Lagrangian bound** (the `≤` kernel) | ✅ **proved** (ported from `reference/V4.lean`, generalized to arbitrary cost `c`) | yes — no Kantorovich/Wasserstein duality in Mathlib at all | (done) | — |
+| `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO **per-coupling Lagrangian bound** (Wasserstein `≤` kernel) | ✅ **proved** (ported from `reference/V4.lean`, generalized to arbitrary cost `c`) | yes — no Kantorovich/Wasserstein duality in Mathlib at all | (done) | — |
+| `OptimalTransport.WeakDuality.expect_kernel_le_lam_sinkhornBudget_add_logPartition` — the **entropic (Sinkhorn) weak-duality kernel** (per-point DV integrated over `p₀`) | ✅ **proved** (axiom-clean; the entropic analogue, paper-agnostic) | yes — no entropic-DRO duality in Mathlib | (done) | — |
 | `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`sinkhorn_potentials_exist`, now with mass-conservation hyp) | 🟡 **staged** (statement; `sorry`) | yes — has Birkhoff + doubly-stochastic, not scaling | T3 | Fable |
 | Chain 1 roots (Sion minimax, Fenchel conjugate/duality, Kantorovich) · Chain 3 (Perron–Frobenius) | 🔜 queued (see FOUNDATIONS.md) | ❌ absent | L–XL | survey → Fable |
 

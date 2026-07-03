@@ -22,6 +22,7 @@ this kernel (`GaoKleywegt2023.weak_duality_prop1`) — see `PROOF_PIPELINE.md`.
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.MeasureTheory.DonskerVaradhan
 
 set_option autoImplicit false
 
@@ -92,5 +93,99 @@ theorem expect_le_dualIntegrand_add_lam_couplingCost
     _ = (∫ z, g z.2 ∂(π : Measure (X × X)))
           + lam * ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) := by
         rw [integral_add hgpi (hcost.const_mul lam), integral_const_mul]
+
+/-! ## The entropic (Sinkhorn) analogue -/
+
+omit [NormedAddCommGroup X] in
+/-- **Sinkhorn per-conditional-family weak-duality kernel** (the entropic analogue of
+`expect_le_dualIntegrand_add_lam_couplingCost`). For a family of conditionals
+`P : X → Measure X` (each `≪` the reference `ν`), the nominal `p₀`, and `λ, κ > 0`,
+`∫_{x∼p₀} 𝔼_{P_x}[f] ≤ λ·∫_{x∼p₀}(𝔼_{P_x}[c(x,·)] + κ·KL(P_x‖ν)) + 𝔼_{x∼p₀}[v_x(λ)]`,
+where `v_x(λ) = λκ·log ∫_ν e^{(f−λc(x,·))/(λκ)}` is the log-partition (soft-max) term.
+
+Proof: the proved Gibbs/Donsker–Varadhan inequality
+(`ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp`) applied to
+`A_x = (f − λ c(x,·))/(λκ)` per nominal point `x`, then integrated over `p₀`. Mathlib has
+no OT/entropic-DRO duality (grep-verified); this is a from-scratch contribution.
+The load-bearing `≤` half behind `WangGaoXie2023.strong_duality` / `Drsb.sdrsb_cost_bound`
+(once composed with a disintegration of the ball-witnessing coupling `γ = p₀ ⊗ₘ P`). -/
+theorem expect_kernel_le_lam_sinkhornBudget_add_logPartition
+    (p₀ ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
+    (_hκ : 0 < κ) (hlam : 0 < lam)
+    (P : X → Measure X) (hP : ∀ x, IsProbabilityMeasure (P x))
+    (hac : ∀ x, P x ≪ (ν : Measure X))
+    (hf_P : ∀ x, Integrable f (P x))
+    (hc_P : ∀ x, Integrable (fun y => c x y) (P x))
+    (h_llr : ∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x))
+    (h_exp : ∀ x, Integrable
+        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
+    (hI_f : Integrable (fun x => ∫ y, f y ∂(P x)) (p₀ : Measure X))
+    (hI_c : Integrable (fun x => ∫ y, c x y ∂(P x)) (p₀ : Measure X))
+    (hI_kl : Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X))
+    (hI_lp : Integrable (fun x => lam * κ *
+        Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
+        (p₀ : Measure X)) :
+    (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X))
+      ≤ lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+        + ∫ x, (lam * κ *
+            Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
+          ∂(p₀ : Measure X) := by
+  have hlamκ : (0 : ℝ) < lam * κ := mul_pos hlam _hκ
+  have hne : lam * κ ≠ 0 := ne_of_gt hlamκ
+  have hpt : ∀ x, (∫ y, f y ∂(P x))
+      ≤ lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+        + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)) := by
+    intro x
+    haveI := hP x
+    have hsub : Integrable (fun y => f y - lam * c x y) (P x) :=
+      (hf_P x).sub ((hc_P x).const_mul lam)
+    have hA_int : Integrable (fun y => (f y - lam * c x y) / (lam * κ)) (P x) :=
+      hsub.div_const _
+    have hDV := ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp
+      (hac x) hA_int (h_llr x) (h_exp x)
+    have hAeq : (∫ y, (f y - lam * c x y) / (lam * κ) ∂(P x))
+        = (lam * κ)⁻¹ * ((∫ y, f y ∂(P x)) - lam * ∫ y, c x y ∂(P x)) := by
+      simp_rw [div_eq_mul_inv]
+      rw [integral_mul_const, integral_sub (hf_P x) ((hc_P x).const_mul lam),
+        integral_const_mul]
+      ring
+    rw [hAeq] at hDV
+    have hmul := mul_le_mul_of_nonneg_left hDV (le_of_lt hlamκ)
+    rw [← mul_assoc, mul_inv_cancel₀ hne, one_mul, mul_add] at hmul
+    have hkl : (InformationTheory.klDiv (P x) (ν : Measure X)).toReal
+        = klReal (P x) (ν : Measure X) := rfl
+    rw [hkl] at hmul
+    linarith [hmul]
+  have hRHS_int : Integrable
+      (fun x => lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+        + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
+      (p₀ : Measure X) :=
+    ((hI_c.const_mul lam).add (hI_kl.const_mul (lam * κ))).add hI_lp
+  calc (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X))
+      ≤ ∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+          + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
+          ∂(p₀ : Measure X) := integral_mono hI_f hRHS_int hpt
+    _ = lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+          + ∫ x, (lam * κ *
+              Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
+            ∂(p₀ : Measure X) := by
+        have hAB : Integrable (fun x => lam * (∫ y, c x y ∂(P x))
+            + lam * κ * klReal (P x) (ν : Measure X)) (p₀ : Measure X) :=
+          (hI_c.const_mul lam).add (hI_kl.const_mul (lam * κ))
+        have e1 : (∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+              + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
+              ∂(p₀ : Measure X))
+            = lam * (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure X))
+              + lam * κ * (∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X))
+              + ∫ x, (lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
+                  ∂(p₀ : Measure X) := by
+          rw [integral_add hAB hI_lp,
+            integral_add (hI_c.const_mul lam) (hI_kl.const_mul (lam * κ)),
+            integral_const_mul, integral_const_mul]
+        have e2 : (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+            = (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure X))
+              + κ * (∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X)) := by
+          rw [integral_add hI_c (hI_kl.const_mul κ), integral_const_mul]
+        rw [e1, e2]; ring
 
 end ForMathlib.OT

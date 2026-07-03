@@ -27,6 +27,7 @@ trap-laden `reference/V4.lean`.
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.WeakDuality
 
 set_option autoImplicit false
 
@@ -100,9 +101,58 @@ general cost `c` and radius `δ = θᵖ > 0`.) -/
 theorem weak_duality_prop1
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ)
     (hΨ : Integrable Ψ (ν : Measure X))   -- Ψ ∈ L¹(ν)
-    (hδ : 0 < δ) :                        -- δ = θᵖ with θ > 0
+    (hδ : 0 < δ)                          -- δ = θᵖ with θ > 0
+    -- regularity / formalization edges (cf. AGENTS.md §6):
+    (hfeas : (ambiguitySet c ν δ).Nonempty)                 -- the ambiguity set is nonempty
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,                   -- the pointwise conjugate is finite
+        BddAbove (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →                           -- the conjugate is ν-integrable
+        Integrable (fun ζ => sSup (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ))) (ν : Measure X))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ →
+        Integrable Ψ (μ : Measure X))                        -- Ψ ∈ L¹(μ) for feasible μ
+    -- OT ε-attainment edge: `otCost ≤ δ` is witnessed by integrable-cost couplings
+    (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ ν ∧ couplingCost c π ≤ δ + η ∧
+          Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X))) :
     primalValue c Ψ ν δ ≤ dualValue c Ψ ν δ := by
-  sorry
+  -- sup-form = −Φ pointwise (unconditional, via `Real.sSup_neg` and `Real.sInf` = `−sSup∘neg`)
+  have hnegΦ : ∀ (lam : ℝ) (ζ : X),
+      sSup (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)) = - Phi c Ψ lam ζ := by
+    intro lam ζ
+    rw [Phi, ← Real.sSup_neg]
+    congr 1
+    rw [← Set.image_neg_eq_neg, ← Set.range_comp]
+    congr 1; funext ξ; simp only [Function.comp_apply]; ring
+  -- 𝔼_ν[Φ] = −𝔼_ν[sup-form]
+  have hexpΦ : ∀ (lam : ℝ),
+      expect ν (fun ζ => Phi c Ψ lam ζ)
+        = - expect ν (fun ζ => sSup (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ))) := by
+    intro lam
+    unfold expect
+    rw [← integral_neg]
+    refine integral_congr_ae ?_
+    filter_upwards with ζ
+    rw [hnegΦ lam ζ, neg_neg]
+  unfold primalValue droValue
+  obtain ⟨μ₀, hμ₀⟩ := hfeas
+  refine csSup_le ⟨expect μ₀ Ψ, μ₀, hμ₀, rfl⟩ ?_
+  rintro a ⟨μ, hμ, rfl⟩
+  unfold dualValue
+  refine le_csInf ⟨_, 0, le_refl 0, rfl⟩ ?_
+  rintro d ⟨lam, hlam, rfl⟩
+  -- goal: expect μ Ψ ≤ lam * δ − 𝔼_ν[Φ]  =  lam*δ + 𝔼_ν[sup-form]
+  rw [hexpΦ lam, sub_neg_eq_add]
+  refine le_of_forall_pos_le_add fun ε hε => ?_
+  have hη : (0 : ℝ) < ε / (lam + 1) := div_pos hε (by linarith)
+  obtain ⟨π, hπ, hcost, hcint⟩ := hOT μ hμ (ε / (lam + 1)) hη
+  have hker := ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost
+    c Ψ lam hlam μ ν π hπ (hbdd lam hlam) (hΨμ μ hμ) (hφint lam hlam) hcint
+  have h1 : lam * couplingCost c π ≤ lam * δ + lam * (ε / (lam + 1)) := by
+    rw [← mul_add]; exact mul_le_mul_of_nonneg_left hcost hlam
+  have h2 : lam * (ε / (lam + 1)) ≤ ε := by
+    rw [← mul_div_assoc, div_le_iff₀ (by linarith : (0 : ℝ) < lam + 1)]
+    nlinarith [hε, hlam]
+  linarith [hker, h1, h2]
 
 /-- **Theorem 1 (Strong duality with finite optimal value).** *Consider any
 `p ∈ [1,∞)`, any `ν ∈ P(Ξ)`, any `θ > 0`, and any `Ψ ∈ L¹(ν)` such that `κ < ∞`.

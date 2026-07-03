@@ -1,0 +1,56 @@
+name = "aiq_drsb_formalization"
+version = "0.1.0"
+keywords = ["math", "formalization", "DRSB", "distributionally-robust", "schrodinger-bridge", "optimal-transport"]
+defaultTargets = ["ForMathlib", "ChenGeorgiouPavon2021", "BlanchetMurthy2019", "GaoKleywegt2023", "MohajerinEsfahaniKuhn2018", "WangGaoXie2023", "Alquier2024", "Drsb"]
+
+# Standalone Lean workspace for the DRSB (Distributionally-Robust Schrodinger
+# Bridge) formalization. Mirrors the aiq-dkps-formalization layout: one top-level
+# Lean library per source paper plus a paper-agnostic ForMathlib staging library,
+# so each paper's theorem layer can be built or imported independently.
+
+[leanOptions]
+pp.unicode.fun = true
+# Avoid accidental free variables in theorem statements.
+autoImplicit = false
+
+[[require]]
+name = "mathlib"
+scope = "leanprover-community"
+
+# Paper-agnostic results restated in Mathlib idiom (Donsker-Varadhan, Hoeffding
+# MGF, Gibbs tilt, optimal-transport / coupling duality primitives). Upstream
+# candidates. See ForMathlib/README.md.
+[[lean_lib]]
+name = "ForMathlib"
+
+# --- Foundational source papers (the published theorems the DRSB claims compose) ---
+
+# Chen, Georgiou, Pavon 2021 -- Schrodinger bridge <-> stochastic optimal control
+# <-> entropic optimal transport; the value function and optimal control u* = grad log.
+[[lean_lib]]
+name = "ChenGeorgiouPavon2021"
+
+# Blanchet, Murthy 2019 -- optimal-transport / Wasserstein DRO strong duality.
+[[lean_lib]]
+name = "BlanchetMurthy2019"
+
+# Gao, Kleywegt 2023 -- Wasserstein DRO strong duality + worst-case distribution.
+[[lean_lib]]
+name = "GaoKleywegt2023"
+
+# Mohajerin Esfahani, Kuhn 2018 -- data-driven Wasserstein DRO reformulation.
+[[lean_lib]]
+name = "MohajerinEsfahaniKuhn2018"
+
+# Wang, Gao, Xie 2023 -- Sinkhorn (entropic) DRO strong duality; the log-partition
+# dual behind the DRSB "Eq. 47" term.
+[[lean_lib]]
+name = "WangGaoXie2023"
+
+# Alquier 2024 -- PAC-Bayes bounds (the TwoPager Theorem 4 companion).
+[[lean_lib]]
+name = "Alquier2024"
+
+# --- Capstone: the DRSB paper's own results, composed from the libraries above ---
+[[lean_lib]]
+name = "Drsb"

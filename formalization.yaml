@@ -1,0 +1,218 @@
+# formalization.yaml (v0.3): repo-root metadata for an AI-assisted formalization project.
+# Schema reference: https://github.com/mathlib-initiative/formalization.yaml
+
+version: "v0.3"
+
+project:
+  name: "AIQ DRSB formalization: distributionally-robust Schrödinger-bridge worst-case cost bounds"
+  authors:
+    - "Jon Crall"
+  license: "Apache-2.0"
+  repository: "https://github.com/AIQ-Kitware/aiq-drsb-formalization"
+  description: >
+    Lean 4 scaffold for the theorems underlying the GaTech DRSB (Distributionally-
+    Robust Schrödinger Bridge) TA1 evaluation cards. The DRSB manuscript and its
+    "TwoPager" companion are unpublished; this project formalizes the *published*
+    theorems the DRSB claims compose (Schrödinger-bridge / stochastic-optimal-control
+    value function, Wasserstein- and Sinkhorn-DRO strong duality, Donsker–Varadhan,
+    and PAC-Bayes), then a capstone that states the DRSB worst-case cost bound and the
+    TwoPager PAC-Bayes bound in those terms.
+    Prose transcriptions of every source are in `prose/` (source PDFs in
+    `prose/papers/`, git-ignored).
+
+# The DRSB evaluation cards this formalization targets (in the aiq-eval-runner repo).
+targets:
+  cards:
+    - "ta1/GaTech-DRSBM/magnet_eval/cards/wdrsb_cost_bound.yaml"   # E_μ[V] ≤ E_wc[V], μ in a Wasserstein-2 ball
+    - "ta1/GaTech-DRSBM/magnet_eval/cards/sdrsb_cost_bound.yaml"   # same, Sinkhorn-divergence ball
+  claim: "E_perturbed[V(x)] ≤ E_worst-case[V(x)] for V(x) = E[∫₀¹ ½‖u‖² dt + ρ g(X₁) | X₀=x]"
+
+sources:
+  - id: "Chen, Georgiou & Pavon 2021"
+    title: "Stochastic control liaisons: Richard Sinkhorn meets Gaspard Monge on a Schrödinger bridge"
+    authors: ["Chen", "Georgiou", "Pavon"]
+    venue: "SIAM Review 63(2), 2021"
+    arxiv: "2005.10963"
+    role: "SB ⇄ SOC ⇄ entropic-OT; defines the value function V and optimal control u* = ∇log φ."
+    prose: "prose/schrodinger-bridge-soc-ot.md"
+    library: "ChenGeorgiouPavon2021"
+  - id: "Léonard 2014"
+    title: "A survey of the Schrödinger problem and some of its connections with optimal transport"
+    authors: ["Léonard"]
+    arxiv: "1308.0215"
+    role: "Schrödinger problem as entropy minimization; Γ-convergence to optimal transport."
+    prose: "prose/schrodinger-bridge-soc-ot.md"
+    library: null   # provenance-only in this pass (overlaps ChenGeorgiouPavon2021)
+  - id: "Shi, De Bortoli, Campbell & Doucet 2023 (DSBM)"
+    title: "Diffusion Schrödinger Bridge Matching"
+    venue: "NeurIPS 2023"
+    arxiv: "2303.16852"
+    role: "Iterative Markovian Fitting (the matching estimator / BridgeMatcher)."
+    prose: "prose/sb-matching-generative.md"
+    library: null   # generative-estimator provenance; no theorem library in this pass
+  - id: "Liu, Lipman, Nickel, Karrer, Theodorou & Chen 2024 (GSBM)"
+    title: "Generalized Schrödinger Bridge Matching"
+    venue: "ICLR 2024"
+    arxiv: "2310.02233"
+    role: "Soft terminal / state cost SOC — the source of the DRSB terminal cost ρ·g(X₁)."
+    prose: "prose/sb-matching-generative.md"
+    library: null
+  - id: "Domingo-Enrich, Drozdzal, Karrer & Chen 2025 (Adjoint Matching)"
+    title: "Adjoint Matching: Fine-tuning Flow and Diffusion Generative Models with Memoryless SOC"
+    venue: "ICLR 2025"
+    arxiv: "2409.08861"
+    role: "Reward fine-tuning as SOC; the AdjointMatcher loss E‖u^θ + ∇g^φ‖²."
+    prose: "prose/sb-matching-generative.md"
+    library: null
+  - id: "Blanchet & Murthy 2019"
+    title: "Quantifying Distributional Model Risk via Optimal Transport"
+    venue: "Mathematics of Operations Research 44(2), 2019"
+    arxiv: "1604.01446"
+    role: "Optimal-transport / Wasserstein DRO strong duality (the primary duality result)."
+    prose: "prose/wasserstein-dro-duality.md"
+    library: "BlanchetMurthy2019"
+  - id: "Gao & Kleywegt 2023"
+    title: "Distributionally Robust Stochastic Optimization with Wasserstein Distance"
+    venue: "Mathematics of Operations Research 48(2), 2023"
+    arxiv: "1604.02199"
+    role: "Wasserstein DRO strong duality + worst-case distribution structure."
+    prose: "prose/wasserstein-dro-duality.md"
+    library: "GaoKleywegt2023"
+  - id: "Mohajerin Esfahani & Kuhn 2018"
+    title: "Data-driven Distributionally Robust Optimization Using the Wasserstein Metric"
+    venue: "Mathematical Programming 171, 2018"
+    arxiv: "1505.05116"
+    role: "Data-driven (empirical-nominal) Wasserstein DRO convex reformulation."
+    prose: "prose/wasserstein-dro-duality.md"
+    library: "MohajerinEsfahaniKuhn2018"
+  - id: "Wang, Gao & Xie 2023"
+    title: "Sinkhorn Distributionally Robust Optimization"
+    venue: "Operations Research, 2023"
+    arxiv: "2109.11926"
+    role: "Sinkhorn (entropic) DRO strong duality; the log-partition dual behind DRSB Eq. 47."
+    prose: "prose/sinkhorn-dro-duality.md"
+    library: "WangGaoXie2023"
+  - id: "Alquier 2024"
+    title: "User-friendly introduction to PAC-Bayes bounds"
+    venue: "Foundations and Trends in ML, 2024"
+    arxiv: "2110.11216"
+    role: "PAC-Bayes (Catoni bound) + Donsker–Varadhan — the TwoPager Theorem 4 foundation."
+    prose: "prose/pac-bayes-generalization.md"
+    library: "Alquier2024"
+  - id: "DRSB manuscript (unpublished)"
+    title: "Distributionally-Robust Schrödinger Bridge (drsbm_paper) + TwoPager"
+    authors: ["GaTech team (contact: Jinhwan Sul)"]
+    role: "The team's own worst-case cost bound (Eq. 47) and PAC-Bayes Theorem 4; NOT public."
+    prose: "prose/README.md"
+    library: "Drsb"   # capstone, composed from the libraries above
+
+status:
+  phase: "scaffold — statements only"
+  policy: >
+    First pass: theorem STATEMENTS as close to the published results as possible, with
+    every proof body left as `sorry`. No proofs are attempted yet; the goal is to make
+    the statements match the papers (verified against prose/), not a prior attempt. The
+    earlier hand-written attempts are quarantined in `reference/` (see reference/README.md)
+    and are reference-only — they contain subtle traps and must not be trusted as canon.
+  build:
+    toolchain: "leanprover/lean4:v4.31.0-rc2"
+    mathlib_rev: "476fb97b621c68d5d9709822416356273c1785cf"
+    command: "lake exe cache get && lake build"
+    expectation: "builds green; every leaf theorem emits exactly one `declaration uses 'sorry'` warning."
+  libraries:
+    - name: "ForMathlib"
+      role: "Paper-agnostic staging: Donsker–Varadhan variational formula; shared OT/DRO vocabulary (couplings, transport cost, Wasserstein-2 & Sinkhorn balls, KL, DRO worst-case value)."
+      note: "DV statements have complete proofs in reference/WellKnown.lean to port after statement review."
+    - name: "ChenGeorgiouPavon2021"
+      role: "SB/SOC value function + optimal control u* = ∇log φ (abstract dynamics interface)."
+    - name: "BlanchetMurthy2019"
+      role: "Wasserstein DRO strong duality (primary)."
+    - name: "GaoKleywegt2023"
+      role: "Wasserstein DRO strong duality + worst-case distribution."
+    - name: "MohajerinEsfahaniKuhn2018"
+      role: "Data-driven Wasserstein DRO convex reformulation."
+    - name: "WangGaoXie2023"
+      role: "Sinkhorn DRO strong duality (log-partition dual; DRSB Eq. 47)."
+    - name: "Alquier2024"
+      role: "PAC-Bayes (Catoni) + Donsker–Varadhan; TwoPager Theorem 4 foundation."
+    - name: "Drsb"
+      role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bound (Eq. 47), TwoPager Theorem 4 — composed from the libraries above."
+
+main_results:
+  note: >
+    Leaf theorem statements per library, with the prose file + printed source number
+    each encodes. All bodies are `sorry` (first pass). See each `<Library>/Basic.lean`
+    docstring for full hypotheses and any documented weakening/abstraction.
+  ForMathlib:
+    - declaration: "ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp"
+      informal: "Donsker–Varadhan inequality: ∫ f dμ ≤ KL(μ‖ν) + log ∫ exp f dν."
+      note: "Complete proof exists in reference/WellKnown.lean; port after review."
+    - declaration: "ForMathlib.MeasureTheory.log_integral_exp_eq_sSup"
+      informal: "Donsker–Varadhan variational (Gibbs) identity."
+    - declaration: "ForMathlib.OT.{expect,klReal,otCost,W2sq,wassersteinBall,Wkappa,sinkhornBall,droValue}"
+      informal: "Shared OT/DRO vocabulary (object definitions, no theorems)."
+  ChenGeorgiouPavon2021:
+    - declaration: "ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC"
+      source: "Chen–Georgiou–Pavon Problem 4.1 ⇄ Problem 4.3 (eq. 4.19)"
+    - declaration: "ChenGeorgiouPavon2021.optimal_control_eq_grad_log"
+      source: "eq. (4.21): u* = ∇log φ"
+    - declaration: "ChenGeorgiouPavon2021.optimal_control_eq_sigma_grad_log"
+      source: "Theorem 5.2, eq. (5.11a): u* = σ²∇log φ"
+    - declaration: "ChenGeorgiouPavon2021.optimal_control_eq_neg_grad_value"
+      source: "DRSB reconciliation u*(0,x) = −∇V(x) under V = −log φ"
+    - declaration: "ChenGeorgiouPavon2021.staticSB_eq_entropicOT"
+      source: "§7, eq. (7.13): static SB = entropic OT"
+  BlanchetMurthy2019:
+    - declaration: "BlanchetMurthy2019.wdro_strong_duality"
+      source: "Theorem 1(a),(b) via Remark 1, eq. (9) — Wasserstein DRO univariate dual"
+  GaoKleywegt2023:
+    - declaration: "GaoKleywegt2023.strong_duality_thm1"
+      source: "Theorem 1 (strong duality, κ<∞)"
+    - declaration: "GaoKleywegt2023.worstCase_structure_cor1"
+      source: "Corollary 1(ii), eq. (27) — worst-case as 2-map transport"
+    - declaration: "GaoKleywegt2023.dataDriven_worstCase_cor2ii"
+      source: "Corollary 2(ii), eq. (29) — ≤ N+1-atom empirical worst case"
+  MohajerinEsfahaniKuhn2018:
+    - declaration: "MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual"
+      source: "Theorem 4.2 (via proof eq. (12b)) — data-driven Wasserstein dual"
+    - declaration: "MohajerinEsfahaniKuhn2018.worstCase_program"
+      source: "Theorem 4.4, eq. (13) — finite convex worst-case program"
+    - declaration: "MohajerinEsfahaniKuhn2018.worstCase_exists"
+      source: "Corollary 4.6 — discrete worst-case law on atoms ξ̂ᵢ − qᵢₖ/αᵢₖ"
+  WangGaoXie2023:
+    - declaration: "WangGaoXie2023.strong_duality"
+      source: "Theorem 1(II) — Sinkhorn-DRO log-partition dual (DRSB Eq. 47 source)"
+    - declaration: "WangGaoXie2023.exists_worstCase_gibbs"
+      source: "Remark 4 — continuous Gibbs (exponential-tilt) worst case"
+  Alquier2024:
+    - declaration: "Alquier2024.hoeffding_mgf_bound"
+      source: "Lemma 1.1 (Hoeffding MGF)"
+    - declaration: "Alquier2024.donskerVaradhan_change_of_measure"
+      source: "Lemma 2.2 (Donsker–Varadhan change of measure)"
+    - declaration: "Alquier2024.catoni_pacBayes_bound"
+      source: "Theorem 2.1 (Catoni PAC-Bayes bound)"
+  Drsb:
+    - declaration: "Drsb.wdrsb_cost_bound"
+      informal: "𝔼_μ[V] ≤ WDRO dual worst-case — the wdrsb_cost_bound.yaml card claim."
+    - declaration: "Drsb.sdrsb_cost_bound"
+      informal: "𝔼_μ[V] ≤ Sinkhorn dual worst-case — the sdrsb_cost_bound.yaml card claim."
+    - declaration: "Drsb.eq47Bound"
+      informal: "DRSB 'Eq. 47' bound = E_wc[V] − ρ·log 𝔼_ν[e^g] (from GaTech code; unpublished)."
+    - declaration: "Drsb.twopager_theorem4"
+      informal: "TwoPager Theorem 4 — PAC-Bayes bound for the clipped terminal-cost net g (unpublished)."
+
+fidelity:
+  known_limitations:
+    - "All proofs are `sorry`; statements are unverified against Lean's kernel beyond type-checking."
+    - "The DRSB manuscript + TwoPager are unpublished; their internal 'Eq. 47', 'Algorithm 5', and Theorem-4 equation numbers come from code/coordinator, not a PDF (flagged in prose/ and in the Drsb capstone)."
+    - "Heavy analysis objects (SDE path measures, controlled dynamics) are captured via abstract `structure` interfaces, not built from Mathlib SDE theory (which does not exist yet)."
+    - "Statements were AI-drafted against prose transcriptions; they need expert review against the primary sources before proofs begin."
+
+automation:
+  methods:
+    - method: "agent"
+      description: "AI-drafted Lean statements + prose transcriptions, human-coordinated."
+      models:
+        - "Claude Opus 4.8 (1M context) — scaffolding, prose transcription, statement drafting"
+      framework: "Coordinated LLM sessions with local `lake` type-checking against a pinned Mathlib."
+      review_status: "Statements type-check against Mathlib; not yet reviewed by a Lean/subject-matter expert; no proofs attempted."

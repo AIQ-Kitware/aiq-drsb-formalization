@@ -160,17 +160,6 @@ theorem wdrsb_cost_bound (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ
 
 /-! ## SDRSB worst-case cost bound and "Eq. 47"  (card `sdrsb_cost_bound.yaml`) -/
 
-/-- **SDRSB strong duality** — the Sinkhorn-DRO worst-case value of `V` over the
-Sinkhorn ball equals the Wang–Gao–Xie log-partition dual, specialized to `f := V`,
-cost `c := ‖·‖²`. (Paper/Lean symbol convention: `κ` = entropic regularizer, `ε` =
-ball radius; `ν` is the entropic-OT reference measure.) Discharged by
-`WangGaoXie2023.strong_duality`. -/
-theorem sdrsb_strong_duality (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) :
-    droValue (sinkhornBall p₀ ν κ ε) V
-      = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
-          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
-  sorry
-
 /-- **SDRSB cost bound** (the `sdrsb_cost_bound.yaml` claim): any source inside the
 Sinkhorn ball (external reference `ν`) has expected cost bounded by the Sinkhorn-DRO dual
 worst-case value. **PROVED** — the `≤`/weak-duality direction, the entropic analogue of
@@ -220,6 +209,47 @@ theorem sdrsb_cost_bound (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε
   rw [hVdis]
   simp only [WangGaoXie2023.sinkhornDualObjective, expect]
   linarith [key, hb]
+
+/-- **SDRSB strong duality** — the Sinkhorn-DRO worst-case value of `V` over the Sinkhorn
+ball equals the Wang–Gao–Xie log-partition dual (`f := V`, cost `‖·‖²`). Completes the
+SDRSB capstone: `le_antisymm` of `droValue ≤ dual` (each source's `sdrsb_cost_bound`,
+`csSup_le`) and `dual ≤ droValue` (the attaining worst-case measure, `le_csSup`). Same
+honest edges as `sdrsb_cost_bound`, now `∀ μ` (`hSinkAll`), plus the attainment edge
+(`hattain`) and `hbddP`; dual over `0 < lam`. -/
+theorem sdrsb_strong_duality (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ)
+    (hκ : 0 < κ)
+    (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε →
+      (Wkappa κ ν p₀ μ ≤ ε →
+        ∃ P : X → Measure X,
+          (∀ x, IsProbabilityMeasure (P x)) ∧ (∀ x, P x ≪ (ν : Measure X)) ∧
+          expect μ V = (∫ x, (∫ y, V y ∂(P x)) ∂(p₀ : Measure X)) ∧
+          (∫ x, ((∫ y, sqCost x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
+              ∂(p₀ : Measure X)) ≤ ε ∧
+          (∀ x, Integrable V (P x)) ∧ (∀ x, Integrable (fun y => sqCost x y) (P x)) ∧
+          (∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x)) ∧
+          (∀ lam, 0 < lam → ∀ x, Integrable
+              (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X)) ∧
+          Integrable (fun x => ∫ y, V y ∂(P x)) (p₀ : Measure X) ∧
+          Integrable (fun x => ∫ y, sqCost x y ∂(P x)) (p₀ : Measure X) ∧
+          Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X) ∧
+          (∀ lam, 0 < lam → Integrable
+              (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))))
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ sinkhornBall p₀ ν κ ε ∧ r = expect μ V })
+    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε ∧
+        expect μ V = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam }) :
+    droValue (sinkhornBall p₀ ν κ ε) V
+      = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
+  refine le_antisymm ?_ ?_
+  · refine csSup_le ?_ ?_
+    · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ V, μ, hμ, rfl⟩
+    · rintro a ⟨μ, hμ, rfl⟩
+      exact sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ (hSinkAll μ hμ)
+  · obtain ⟨μ, hμ, hμeq⟩ := hattain
+    rw [← hμeq]
+    exact le_csSup hbddP ⟨μ, hμ, rfl⟩
 
 /-- **DRSB "Eq. 47"** — the SDRSB bound as coded in the GaTech repo
 (`compute_bound.py` Term3 / `wdrsb_bridge.py`): the worst-case cost minus a

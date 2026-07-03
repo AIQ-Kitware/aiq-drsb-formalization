@@ -53,7 +53,7 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 | Lead | Link | AI? | Note |
 |---|---|---|---|
 | DV Zulip thread ⭐ | `leanprover-community/archive` → `On Potentially Formalizing Donsker Varadhan.json` (https://github.com/leanprover-community/archive) | — | first stop for Chain-2 context, blockers, who's working nearby |
-| `mrdouglasny/gibbs-variational` | https://github.com/mrdouglasny/gibbs-variational | unclear | DV **inequality** proved; equality is `sorry` & false-as-written (`.toReal`). Ours supersedes. Mine KL lemmas / Boué–Dupuis bound. |
+| `mrdouglasny/gibbs-variational` ✅AUDITED 2026-07-03 | https://github.com/mrdouglasny/gibbs-variational | **Apache-2.0** (reusable) | **AUDITED:** 4 files, **1 `sorry` total** (Mathlib-only). Our DV equality supersedes its `Variational.lean` (`log_integral_exp_eq_sSup_sub_klDiv` etc.), BUT `GaussianEntropy.lean` has genuinely reusable lemmas we lack: **`klDiv_stdGaussian_map_add` (KL of a shifted std Gaussian = ½‖h‖² — the finite Cameron–Martin / Girsanov relative-entropy identity), `klDiv_gaussianReal_shift`, `klDiv_pi`/`klDiv_prod` (KL of products), `klDiv_map_measurableEquiv`** — the discrete/Gaussian core of our Chain-4 `energy_identity` (the Euler–Maruyama + Gaussian relaxation the DRSB card actually measures). Plus `BoueDupuis.neg_log_integral_exp_neg_le`. **Best small vendoring target.** |
 | `Robby955/FormalSLT` | https://github.com/Robby955/FormalSLT | mixed | PAC-Bayes KL / McAllester / change-of-measure; also `statlean-v0.1.jsonl` (structured theorem map — mine it) |
 | `hawkrobe/linglib` | https://github.com/hawkrobe/linglib | mixed | `GibbsVariational.lean`, RSA Gibbs material |
 | `the-omega-institute/automath` | https://github.com/the-omega-institute/automath | mixed | `XiReverseKLDVPoissonVariational.lean` (reverse-KL DV) |
@@ -100,8 +100,8 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 
 | Lead | Link | Note |
 |---|---|---|
-| `RemyDegenne/brownian-motion` 🔁 | https://github.com/RemyDegenne/brownian-motion | Brownian motion complete; Itô/stochastic integral in progress |
-| `raphaelrrcoelho/formal-mathfin` 🔁 | https://github.com/raphaelrrcoelho/formal-mathfin | Itô core; `MathFin/Foundations/FeynmanKacHeatEquation.lean`, `MathFin/Blueprint.lean`; partial Girsanov; disclosed gaps |
+| `RemyDegenne/brownian-motion` 🔁 ✅AUDITED 2026-07-03 | https://github.com/RemyDegenne/brownian-motion | **Apache-2.0**. AUDITED: Brownian construction complete (Gaussian/Kolmogorov/Chentsov); Itô in progress; **NO Girsanov, NO SDE-existence** (grep-confirmed). Foundational only — not directly usable for our Chain-4 controls yet. |
+| ⭐ `raphaelrrcoelho/formal-mathfin` 🔁 ✅AUDITED 2026-07-03 | https://github.com/raphaelrrcoelho/formal-mathfin | **Apache-2.0** (reusable) · **AUDITED (survey note was badly stale — it is NOT immature):** 227 files, ~45k lines, **build-enforced axioms-clean** (`AxiomAudit.lean` `#guard_msgs`; the only real `sorry` is one càdlàg-modification lemma). **Full continuous stochastic-analysis stack**: Itô integral + Itô formula (general `ItoIntegralProcessGeneral`, `ItoFormulaUnrestricted`, L² isometry, local martingales, quadratic variation), **`SDEExistence.lean`** (Picard–Banach existence/uniqueness — but **scalar 1-D**), **`Girsanov.lean`/`GaussianGirsanov.lean`** (but **Black–Scholes-specific**, `bs_discounted_isQMartingale`), `FeynmanKacHeatEquation.lean`, `ChangeOfMeasure`/`MarkovPathMeasure`, and `ConvexDuality`/`SuperhedgingDuality`/`ConvexSeparation`. **Scope caveat:** 1-D / finance-flavoured, and **no relative-entropy/KL** (grep-empty) — so it does NOT drop-in-close our multi-D Schrödinger-bridge controls (`energy_identity` needs KL between path measures). But it is the **real Itô/SDE foundation** to refound `ChenGeorgiouPavon2021`'s abstract `SBData` on, and `ConvexDuality` may feed Chain-1. Likely AI-assisted (45k lines, fast cadence). |
 | Brownian motion in Lean (paper) | https://arxiv.org/abs/2511.20118 | construction of Brownian motion |
 | Verified math-finance library (paper) | https://arxiv.org/abs/2606.01356 | L2 Itô integral, risk-neutral pricing measure |
 
@@ -176,7 +176,8 @@ exhausted.
 | Reservoir / package registry | mostly | low yield |
 | **Generated-proof corpora** | **no** | the remaining frontier — bulk-query it |
 | Chain 3 sources | no | Mathlib doubly-stochastic base + `flow-sinkhorn` still to inspect |
-| Chain 2 sources | no | `StatLean`, DV Zulip, `gibbs-variational` still to audit |
+| Chain 2 sources | mostly | `gibbs-variational` AUDITED (Gaussian-KL lemmas reusable); `flow-sinkhorn` AUDITED (finite KL/Pinsker); DV Zulip + `YuanheZ/lean-stat-learning-theory` (ICML2026 SLT, 91⭐) still to skim |
+| Chain 4 sources | AUDITED | `formal-mathfin` (⭐ Apache-2.0, full Itô/SDE/Girsanov but 1-D/finance, no KL), `brownian-motion` (Apache-2.0, no Girsanov). Real foundation to refound `SBData` on; not drop-in. |
 | Chain 1-heavy OT | mostly (manually) | likely absent bar finite/scaffold fragments |
 | Chain 4 | enough for now | defer |
 

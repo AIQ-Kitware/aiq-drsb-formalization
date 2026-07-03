@@ -173,6 +173,10 @@ main_results:
       source: "Theorem 5.2, eq. (5.11a): u* = σ²∇log φ"
     - declaration: "ChenGeorgiouPavon2021.optimal_control_eq_neg_grad_value"
       source: "DRSB reconciliation u*(0,x) = −∇V(x) under V = −log φ"
+      note: "PROVED from optimal_control_eq_grad_log (still sorry) + hVlogφ + an added grad-negation edge ∇(−V)=−∇V. Depends on the grad_log sorry."
+    - declaration: "ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC"
+      source: "Problem 4.1 ⇄ 4.3 — KL⇄SOC equivalence"
+      note: "PROVED via sInf-translation of the value sets by the constant endpoint entropy. Depends on energy_identity (Girsanov, still sorry) + added hne (feasible set nonempty)."
     - declaration: "ChenGeorgiouPavon2021.staticSB_eq_entropicOT"
       source: "§7, eq. (7.13): static SB = entropic OT"
       proved: true   # T0 — when the endpoint law IS the entropic-OT reference (hgibbs), the two sInfs coincide
@@ -183,8 +187,12 @@ main_results:
       source: "Theorem 1(b) + Remark 1, eq. (9) — same dual, per-sample term written as the inner dual φ_λ = Lc"
       proved: true   # defeq to wdro_strong_duality (Lc unfolds to the explicit sup); derived from it, not independently proved
   GaoKleywegt2023:
+    - declaration: "GaoKleywegt2023.weak_duality_prop1"
+      source: "Proposition 1 (weak duality, v_P ≤ v_D)"
+      proved: true   # axiom-clean. csSup_le/le_csInf + per-coupling kernel + coupling ε-approx; Φ↔sup-form via Real.sSup_neg. Honest edges hfeas/hbdd/hφint/hΨμ/hOT.
     - declaration: "GaoKleywegt2023.strong_duality_thm1"
       source: "Theorem 1 (strong duality, κ<∞)"
+      proved: true   # axiom-clean. le_antisymm(weak_duality_prop1, attainment). The ≥ is a single explicit attainment edge — isolates the whole strong-duality gap to that OT measurable-selection fact.
     - declaration: "GaoKleywegt2023.worstCase_structure_cor1"
       source: "Corollary 1(ii), eq. (27) — worst-case as 2-map transport"
     - declaration: "GaoKleywegt2023.dataDriven_worstCase_cor2ii"

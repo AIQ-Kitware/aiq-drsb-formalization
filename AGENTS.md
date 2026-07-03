@@ -8,7 +8,9 @@ source map), [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (the proof-pass work plan:
 remaining `sorry` ranked by difficulty, the us-vs-Fable split, and the ForMathlib
 upstreaming queue), [`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *chains*
 under DRSB — DKPS-style — with grep-verified Mathlib gaps and search terms for mining
-existing AI/human Lean proofs).
+existing AI/human Lean proofs), [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (dated, link-rich
+registry of external Lean repos / Mathlib PRs / generated-proof corpora to mine and
+re-check).
 
 ---
 

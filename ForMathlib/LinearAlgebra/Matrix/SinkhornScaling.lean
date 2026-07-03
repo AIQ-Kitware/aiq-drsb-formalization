@@ -18,6 +18,12 @@ Sinkhorn iteration (Hilbert projective metric / Birkhoff contraction) or a conve
 program (min `∑ Gᵢⱼ φ̂ᵢ φⱼ` s.t. marginals); the Perron–Frobenius eigenvector is the
 sub-lemma. A hard, self-contained target — a Fable ticket (F2).
 
+RECOMMENDED BUILD PATH (survey-revised, see `FOUNDATIONS.md` Chain 3 / `SURVEY_LEADS.md`):
+start from Mathlib's doubly-stochastic / Birkhoff API (`Analysis/Convex/Birkhoff`,
+`Analysis/Convex/DoublyStochasticMatrix`, `LinearAlgebra/Matrix/Stochastic`) + the active
+PF PR cluster (#39919/#39920/#39917), pulling KL/I-projection lemmas from
+`gpeyre/flow-sinkhorn` and `StatLean`, rather than reproving Perron–Frobenius from scratch.
+
 FIX vs the paper scaffold: existence REQUIRES mass conservation `∑ᵢ pᵢ = ∑ⱼ qⱼ`
 (the coupling `φ̂ᵢ Gᵢⱼ φⱼ` has total mass `∑ pᵢ` and `∑ qⱼ` simultaneously). The
 earlier `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` omitted this hypothesis and

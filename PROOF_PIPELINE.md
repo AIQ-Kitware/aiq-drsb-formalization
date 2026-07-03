@@ -47,13 +47,13 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (24)
+## 2. Ranked remaining `sorry`s (23)
 
 ### On the card critical path (do these first)
 
 | Decl | Tier | What it needs | Notes |
 |---|---|---|---|
-| `GaoKleywegt2023.weak_duality_prop1` | **T3** | add integrability/`BddAbove` hyps; then the Lagrangian + coupling-ε assembly | **linchpin.** Per-coupling core is proved in `reference/V4.lean` (`wdro_lagrangian_bound`). Generalize → ForMathlib (see §3). |
+| `GaoKleywegt2023.weak_duality_prop1` | **T3** | add integrability/`BddAbove` hyps; then the coupling-ε + `sInf`/`sSup` assembly | **linchpin — kernel now DONE.** The per-coupling bound is proved: `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost`. Only the assembly remains; **Sion** (`Mathlib.Topology.Sion`) is available if the minimax step wants it. |
 | `Drsb.wdrsb_cost_bound` | **T2** | `le_csSup` (BddAbove from weak duality) + specialize `weak_duality_prop1` to `c=‖·‖²`, `f=V` | card claim; unlocked by the linchpin. |
 | `Drsb.sdrsb_cost_bound` | **T2** | same, via the Sinkhorn weak `≤` (uses the proved DV/Gibbs engine) | card claim. |
 | `WangGaoXie2023.strong_duality` (≤ half only) | **T3** | outer `inf_{λ}` + ball Lagrangian on top of the proved `logPartition_eq_gibbs_sSup` | the DV engine (`ForMathlib`) is already done; this is the Sinkhorn analogue of the linchpin. |
@@ -114,7 +114,7 @@ surveying existing AI/human Lean proofs** — are in **[`FOUNDATIONS.md`](FOUNDA
 |---|---|---|---|---|
 | `MeasureTheory.DonskerVaradhan` (DV inequality + Gibbs variational identity) | ✅ proved | yes — only `Measure.tilted` exists | (done) | — |
 | `MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` | ✅ proved | yes — only `tilted_const'` indirectly | T0 | — |
-| `OptimalTransport.WeakDuality` — the OT-DRO **Lagrangian / weak-duality bound** (port `reference/V4.lean::wdro_lagrangian_bound`) | 🟡 **staged** (statement; `sorry`) | **yes — no Kantorovich/Wasserstein duality in Mathlib at all** | T3 | Fable |
+| `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO **per-coupling Lagrangian bound** (the `≤` kernel) | ✅ **proved** (ported from `reference/V4.lean`, generalized to arbitrary cost `c`) | yes — no Kantorovich/Wasserstein duality in Mathlib at all | (done) | — |
 | `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`sinkhorn_potentials_exist`, now with mass-conservation hyp) | 🟡 **staged** (statement; `sorry`) | yes — has Birkhoff + doubly-stochastic, not scaling | T3 | Fable |
 | Chain 1 roots (Sion minimax, Fenchel conjugate/duality, Kantorovich) · Chain 3 (Perron–Frobenius) | 🔜 queued (see FOUNDATIONS.md) | ❌ absent | L–XL | survey → Fable |
 

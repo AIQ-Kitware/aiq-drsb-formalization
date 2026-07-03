@@ -154,7 +154,7 @@ main_results:
       proved: true   # first ForMathlib pipeline extraction; Mathlib gap (only tilted_const' indirectly)
     - declaration: "ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost"
       informal: "Per-coupling Lagrangian bound — the always-true ≤ half of OT-DRO duality (Chain 1 weak node)."
-      note: "STAGED (sorry). Complete proof exists in reference/V4.lean (wdro_lagrangian_bound); port to ForMathlib.OT vocab. Unlocks the card cost bounds. See FOUNDATIONS.md Chain 1."
+      proved: true   # ported from reference/V4.lean (wdro_lagrangian_bound), generalized to arbitrary cost c; the reusable kernel behind the card cost bounds. See FOUNDATIONS.md Chain 1.
     - declaration: "ForMathlib.sinkhorn_potentials_exist"
       informal: "Sinkhorn / matrix-scaling existence — positive discrete Schrödinger potentials (Chain 3 top)."
       note: "STAGED (sorry). Self-contained finite-dim; Mathlib has Birkhoff/doubly-stochastic but not scaling. Adds mass-conservation hyp ∑pᵢ=∑qⱼ (necessary). ChenGeorgiouPavon2021.sinkhorn_potentials_exist now delegates here. See FOUNDATIONS.md Chain 3."

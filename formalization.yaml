@@ -109,12 +109,13 @@ status:
     measurable-selection not in Mathlib — see AGENTS.md §6). PROVED so far: the
     Donsker–Varadhan family + measure normalization (ForMathlib); the OT-DRO per-coupling
     weak-duality kernel (ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost,
-    ported from reference/V4.lean); and — the headline — **Drsb.wdrsb_cost_bound, the
-    WDRSB evaluation-card claim, axiom-clean**, under explicit regularity + an
-    OT-attainment hypothesis (the T4 edge, stated not faked). Also
-    WangGaoXie2023.exists_worstCase_gibbs, ChenGeorgiouPavon2021.staticSB_eq_entropicOT,
-    BlanchetMurthy2019.wdro_strong_duality_dualFn. Remaining card: sdrsb_cost_bound
-    (needs a Sinkhorn weak-duality kernel via disintegration — see PROOF_PIPELINE.md).
+    ported from reference/V4.lean) + WangGaoXie2023.sinkhorn_weak_duality_kernel (its
+    entropic analogue, per-point DV integrated over p₀); and — the headline — **BOTH
+    evaluation-card claims, Drsb.wdrsb_cost_bound and Drsb.sdrsb_cost_bound, axiom-clean**,
+    each under explicit regularity + an attainment/disintegration edge hypothesis (the T4
+    seam, stated not faked). Also WangGaoXie2023.exists_worstCase_gibbs,
+    ChenGeorgiouPavon2021.staticSB_eq_entropicOT, BlanchetMurthy2019.wdro_strong_duality_dualFn.
+    Both cards need only the `≤` direction, so the strong-duality `≥` seams remain `sorry`.
     The earlier hand-written attempts are quarantined in `reference/` — reference-only.
   build:
     toolchain: "leanprover/lean4:v4.31.0-rc2"

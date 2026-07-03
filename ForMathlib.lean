@@ -11,6 +11,10 @@ One file per proposed Mathlib destination area:
   identity (root fact under the Sinkhorn-DRO dual).
 * `ForMathlib.MeasureTheory.Normalization` — normalize a finite nonzero measure to a
   probability measure (the `(μ univ)⁻¹ • μ` construction).
+* `ForMathlib.MeasureTheory.GaussianEntropy` — Cameron–Martin relative entropy of a
+  finite-dimensional Gaussian shift (`KL(N(·+h) ‖ N) = ½‖h‖²`), vendored from
+  `mrdouglasny/gibbs-variational` (Apache-2.0; see the file header + README), plus the
+  Euler–Maruyama discrete energy identity built on it.
 * `ForMathlib.OptimalTransport.Basic` — the shared OT / DRO vocabulary (couplings,
   transport cost, Wasserstein-2 and Sinkhorn ambiguity balls, KL, DRO worst-case).
 * `ForMathlib.OptimalTransport.WeakDuality` — the per-coupling Lagrangian bound (the
@@ -20,6 +24,7 @@ One file per proposed Mathlib destination area:
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.Normalization
+import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling

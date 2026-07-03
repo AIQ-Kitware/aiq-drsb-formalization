@@ -30,6 +30,7 @@ Each abstracted object is flagged inline at its use site.
 -/
 import Mathlib
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
+import ForMathlib.MeasureTheory.GaussianEntropy
 
 set_option autoImplicit false
 
@@ -151,13 +152,45 @@ def FiniteEnergyDiffusion (u : Control X) (ρ₀ : ProbabilityMeasure X) : Prop 
 /-- **Energy identity (CGP (4.19)).**  By Girsanov, for a finite-energy diffusion
 `P = P^{u,ρ₀}`,
 `D(P‖W) = D(ρ₀‖ρ₀^W) + 𝔼_P[∫₀¹ ½‖u_t‖² dt]`,
-i.e. relative entropy splits into a constant endpoint term plus the control energy. -/
+i.e. relative entropy splits into a constant endpoint term plus the control energy.
+
+Still a bare `sorry`: the continuous statement needs multi-dimensional controlled-diffusion
+Girsanov + KL between path measures, absent from Mathlib (T4; AGENTS §6, PROOF_PIPELINE §2).
+The **discrete / Euler–Maruyama layer** — the actual card measurement (AGENTS §3) — is
+proved sorry-free in `energy_identity_euler_maruyama` below, from the vendored Cameron–Martin
+identity. The remaining gap is exactly the `Δt → 0` SDE limit. -/
 theorem energy_identity (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hfe : FiniteEnergyDiffusion d u ρ₀) :
     klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
       = klReal (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R)
         + energy u (d.pathLaw u ρ₀) := by
   sorry
+
+/-- **Euler–Maruyama (discrete) energy identity — the card's actual measurement of (4.19).**
+
+The DRSB card does not evaluate the continuous `energy_identity`; it evaluates the
+**Euler–Maruyama discretization** (AGENTS §3: "exact `𝔼_μ[V]` → Euler–Maruyama SDE").
+For the `N`-step discretization of `dX = u dt + √ε dW` (unit diffusion `ε = 1`, both chains
+started at the same point so the endpoint-entropy term of (4.19) vanishes), the whitened
+increments are a standard Gaussian on the `Fin N × ι` increment space, and the controlled
+law is that Gaussian shifted by `emShift Δt u` (`√Δt·u_k` per step). The relative entropy of
+the controlled vs. reference *path* law is then exactly the discrete control energy
+`∑ₖ Δt·½‖u_k‖²` — the Riemann sum of `𝔼[∫₀¹ ½‖u_t‖² dt]`.
+
+Proved sorry-free, axiom-clean, by delegating to
+`ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy`, which is built on the **vendored**
+Cameron–Martin lemma `klDiv_stdGaussian_map_add` (`KL(N(·+h) ‖ N) = ½‖h‖²`) from
+`mrdouglasny/gibbs-variational` (Apache-2.0; see that file's header + README).  This is the
+discrete/Gaussian layer of the (still-open) continuous `energy_identity` above; the only
+remaining edge is the `Δt → 0` SDE limit (T4; PROOF_PIPELINE §2). -/
+theorem energy_identity_euler_maruyama {ι : Type*} [Fintype ι] {N : ℕ} {Δt : ℝ}
+    (hΔt : 0 ≤ Δt) (u : Fin N → ι → ℝ) :
+    klReal ((ForMathlib.MeasureTheory.stdGaussian (Fin N × ι)).map
+          (· + ForMathlib.MeasureTheory.emShift Δt u))
+        (ForMathlib.MeasureTheory.stdGaussian (Fin N × ι))
+      = ForMathlib.MeasureTheory.emEnergy Δt u := by
+  unfold klReal
+  exact ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy hΔt u
 
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄
 Problem 4.3, via the energy identity (4.19)).**  Since the endpoint entropy

@@ -296,6 +296,16 @@ The **`Drsb` capstone** composes the above:
   conservation `∑p=∑q` exactly killing the Lagrange multiplier**. `ChenGeorgiouPavon2021.
   sinkhorn_potentials_exist` now delegates to a sorry-free proof. `matrix_scaling_exists`
   is a clean general lemma staged for Mathlib upstreaming (Sinkhorn scaling is a genuine gap).
+- **Vendored external proof + discrete energy identity — ✅ landed (2026-07):** vendored
+  `mrdouglasny/gibbs-variational`'s `GaussianEntropy.lean` (Apache-2.0, commit `75e08d8`) →
+  `ForMathlib/MeasureTheory/GaussianEntropy.lean` (Cameron–Martin `KL(N(·+h)‖N)=½‖h‖²`;
+  attribution in file header + README + `formalization.yaml` + `SURVEY_LEADS.md`). Built on
+  it, the **sorry-free, axiom-clean** Euler–Maruyama discrete energy identity
+  `ForMathlib…klDiv_emShift_eq_emEnergy` → `ChenGeorgiouPavon2021.energy_identity_euler_maruyama`:
+  `(KL(P^u‖P^0)).toReal = ∑ₖ Δt·½‖u_k‖²`, the discrete/Gaussian layer of `energy_identity`
+  (4.19) — the quantity the card measures (§3). The continuous `energy_identity` stays a bare
+  `sorry` (count unchanged at 12); the single remaining edge is the Δt→0 SDE limit
+  (PROOF_PIPELINE §2).
 - **Remaining `sorry`s (12)** are the genuine **T4** frontier:
   - **SDE/PDE controls (6, `ChenGeorgiouPavon2021`):** `energy_identity` (Girsanov),
     `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB),

@@ -125,6 +125,22 @@ worstCase_program, worstCase_exists}` (6).
 optimal_control_eq_sigma_grad_log, optimal_control_eq_grad_value (HJB),
 dynamic_eq_static_SB (Léonard gluing), optimal_coupling_factorization}`.
 
+> **`energy_identity` — discrete layer PROVED (2026-07, vendored external proof).** The
+> continuous `energy_identity` (CGP (4.19)) is still a bare `sorry` (needs multi-D
+> controlled-diffusion Girsanov + KL between path measures, neither in Mathlib). But its
+> **Euler–Maruyama / Gaussian discretization — the quantity the DRSB card actually
+> measures (AGENTS §3) — is now proved sorry-free, axiom-clean**:
+> `ChenGeorgiouPavon2021.energy_identity_euler_maruyama` delegates to
+> `ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy`, which shows
+> `(KL(P^u ‖ P^0)).toReal = ∑ₖ Δt·½‖u_k‖²` (the discrete control energy) built on the
+> **vendored** Cameron–Martin identity `klDiv_stdGaussian_map_add` (`KL(N(·+h) ‖ N) = ½‖h‖²`)
+> from `mrdouglasny/gibbs-variational` (Apache-2.0, commit `75e08d8`; see
+> `ForMathlib/MeasureTheory/GaussianEntropy.lean` header + README "Vendored / adapted external
+> proofs"). **The single remaining edge** between this proved discrete identity and the
+> continuous `energy_identity` is the **`Δt → 0` Euler–Maruyama → SDE limit** (a documented
+> OT/SDE edge; needs limits of path-measure KL as the mesh refines). That is the honest
+> next target here — the algebraic/Girsanov content per mesh is done.
+
 These are correct as *statements* (that was the first pass). Proving them means either
 building the missing Mathlib theory (a multi-month effort, its own upstream program) or
 recording them as `axiom`s with provenance. **Do not spend Fable cycles here yet.**

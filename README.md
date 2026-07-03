@@ -54,6 +54,23 @@ number every declaration corresponds to.
 ├── lakefile.toml / lake-manifest.json / lean-toolchain
 ```
 
+## Vendored / adapted external proofs
+
+Verified truth does not waive credit — every reused external proof is attributed here,
+in its file header, and in `formalization.yaml` (per the vendoring policy at the top of
+[`SURVEY_LEADS.md`](SURVEY_LEADS.md)).
+
+| Vendored declaration(s) | Source | Commit | License |
+|---|---|---|---|
+| `ForMathlib.MeasureTheory.{stdGaussian, klDiv_gaussianReal_shift, klDiv_map_measurableEquiv, klDiv_prod, klDiv_pi, klDiv_pi_fintype, klDiv_stdGaussian_map_add}` (Cameron–Martin relative entropy `KL(N(·+h) ‖ N) = ½‖h‖²`) | Michael R. Douglas, [`mrdouglasny/gibbs-variational`](https://github.com/mrdouglasny/gibbs-variational) · `GibbsVariational/GaussianEntropy.lean` | [`75e08d8`](https://github.com/mrdouglasny/gibbs-variational/blob/75e08d8aaca83bb090fc43855898991fbfc9abf3/GibbsVariational/GaussianEntropy.lean) | Apache-2.0 |
+
+Vendored verbatim (only the enclosing namespace was changed, `GibbsVariational →
+ForMathlib.MeasureTheory`), retrieved 2026-07-03, axiom-clean under our Mathlib pin. The
+Euler–Maruyama discrete energy identity built on it (`emShift`, `emEnergy`,
+`klDiv_emShift_eq_emEnergy`, consumed by `ChenGeorgiouPavon2021.energy_identity_euler_maruyama`)
+is original to this repo — it proves the discrete/Gaussian layer of CGP's control-energy
+identity (4.19), the quantity the DRSB card actually measures (AGENTS §3).
+
 `reference/` is quarantined (see [reference/README.md](reference/README.md)) and is
 not a `lean_lib`, so `lake build` ignores it. It holds the earlier hand-written
 attempts — useful for salvage (e.g. the *proved* Donsker–Varadhan / Hoeffding lemmas

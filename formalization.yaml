@@ -167,9 +167,28 @@ main_results:
       proved: true   # PROVED, axiom-clean. Short reduction to matrix_scaling_exists (φ0/φ̂1 are the row/column marginals). Adds mass-conservation hyp ∑pᵢ=∑qⱼ (necessary). ChenGeorgiouPavon2021.sinkhorn_potentials_exist delegates here (now sorry-free). See FOUNDATIONS.md Chain 3.
     - declaration: "ForMathlib.OT.{expect,klReal,otCost,W2sq,wassersteinBall,Wkappa,sinkhornBall,droValue}"
       informal: "Shared OT/DRO vocabulary (object definitions, no theorems)."
+    - declaration: "ForMathlib.MeasureTheory.klDiv_stdGaussian_map_add"
+      informal: "Cameron–Martin relative entropy: KL((stdGaussian ι).map (·+h) ‖ stdGaussian ι) = ½∑ᵢ(hᵢ)² — the finite-dim / Euler–Maruyama core of CGP's energy identity (4.19)."
+      proved: true   # axiom-clean (propext/Classical.choice/Quot.sound)
+      provenance:
+        status: "VENDORED"
+        original_author: "Michael R. Douglas (mrdouglasny)"
+        source_repo: "https://github.com/mrdouglasny/gibbs-variational"
+        source_file: "GibbsVariational/GaussianEntropy.lean"
+        source_commit: "75e08d8aaca83bb090fc43855898991fbfc9abf3"
+        permalink: "https://github.com/mrdouglasny/gibbs-variational/blob/75e08d8aaca83bb090fc43855898991fbfc9abf3/GibbsVariational/GaussianEntropy.lean"
+        license: "Apache-2.0"   # SPDX; compatible with ours (Apache-2.0)
+        retrieved: "2026-07-03"
+        adaptation: "verbatim; only the enclosing namespace changed (GibbsVariational → ForMathlib.MeasureTheory). Also vendors the supporting lemmas klDiv_gaussianReal_shift, klDiv_map_measurableEquiv, klDiv_prod, klDiv_pi, klDiv_pi_fintype, and the def stdGaussian, from the same file/commit. See ForMathlib/MeasureTheory/GaussianEntropy.lean header + README."
+    - declaration: "ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy"
+      informal: "Euler–Maruyama discrete energy identity: (KL(controlled path law ‖ reference path law)).toReal = ∑ₖ Δt·½‖u_k‖² (the discrete control energy). ORIGINAL to this repo; built on the vendored klDiv_stdGaussian_map_add."
+      proved: true   # axiom-clean; the discrete/Gaussian layer of CGP energy_identity (4.19) — the quantity the DRSB card measures (AGENTS §3). Remaining edge: the Δt→0 SDE limit (T4).
   ChenGeorgiouPavon2021:
     - declaration: "ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC"
       source: "Chen–Georgiou–Pavon Problem 4.1 ⇄ Problem 4.3 (eq. 4.19)"
+    - declaration: "ChenGeorgiouPavon2021.energy_identity_euler_maruyama"
+      source: "Chen–Georgiou–Pavon eq. (4.19), Euler–Maruyama / Gaussian discretization"
+      note: "PROVED axiom-clean — the discrete/Gaussian layer of the (still-sorry, T4) continuous energy_identity: klReal(controlled path law ‖ reference) = emEnergy Δt u (discrete control energy ∑ₖ Δt·½‖u_k‖²). Delegates to the ForMathlib lemma klDiv_emShift_eq_emEnergy, built on the VENDORED Cameron–Martin identity klDiv_stdGaussian_map_add (mrdouglasny/gibbs-variational, Apache-2.0). This is what the DRSB card actually measures (AGENTS §3); the only remaining edge to the continuous statement is the Δt→0 SDE limit."
     - declaration: "ChenGeorgiouPavon2021.optimal_control_eq_grad_log"
       source: "eq. (4.21): u* = ∇log φ"
     - declaration: "ChenGeorgiouPavon2021.optimal_control_eq_sigma_grad_log"
@@ -279,35 +298,30 @@ automation:
         note: "placeholder Opus-class decode rate; UNVALIDATED — replace with a measured value, then recompute the ledger from transcripts"
     # BEGIN lifetime_totals (auto-generated; do not edit by hand)
     lifetime_totals:
-      generated_at: 2026-07-03T14:33:42.246631+00:00
-      ledger_rows: 37
-      commits_accounted: 36
-      turns: 453
+      generated_at: 2026-07-03T18:21:52.605483+00:00
+      schema: resource-ledger/v2
+      ledger_rows: 40
+      commits_accounted: 39
+      turns: 649
       tokens:
-        input: 100159
-        cache_write: 3617093
-        cache_read: 169135995
-        output: 969468
-        billable_input: 172853247
+        input: 121019
+        cache_write: 4267981
+        cache_read: 206967278
+        output: 1309849
+        billable_input: 211356278
       output_tokens_by_model:
-        claude-opus-4-8: 969468
+        claude-opus-4-8: 1309849
         <synthetic>: 0
+      output_tokens_by_activity:
+        unlabeled: 1309849
       server_tool_calls:
         web_search: 0
         web_fetch: 0
       time:
-        wall_clock_s: 47545.0
-        inference_s_est: 17626.5
-        assumptions_version: time-v0
-      estimated_overhead:
-        compaction_events: 1
-        input_tokens_est: 476631
-        output_tokens_est: 4718
-        inference_s_est: 85.8
-        assumptions_version: compact-est-v0
-      grand_total_tokens:
-        input_incl_estimated: 173329878
-        output_incl_estimated: 974186
-      energy_kwh: null
-      carbon_gco2e: null
+        wall_clock_s: 57199.0
+      compaction_signals:
+        events: 1
+        peak_context_tokens: 0
+        summary_chars: 0
+      modeled_post_hoc: inference_seconds, energy_kwh, carbon_gco2e — derived from the measurements above by a separate pass; not stored here.
     # END lifetime_totals

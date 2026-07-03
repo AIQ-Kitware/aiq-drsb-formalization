@@ -1,0 +1,52 @@
+# formalization_terms.txt — keyword/regex filters for mining Lean proof PRs.
+# One term per line; blank lines and #-comments ignored. Interpreted as
+# case-insensitive regex unless the tool is run with --substring.
+# Tune per project; this set targets hard-analysis / probability / optimal-transport
+# formalizations (e.g. the DRSB / DKPS effort).
+
+# --- optimal transport / convex duality (Chain 1) ---
+optimal transport
+kantorovich
+wasserstein
+\bmonge\b
+c-transform
+fenchel
+convex conjugate
+legendre transform
+rockafellar
+measurable selection
+\bminimax\b
+\bsion\b
+
+# --- entropic / Sinkhorn / matrix scaling / Perron-Frobenius (Chain 3) ---
+\bsinkhorn\b
+matrix scaling
+doubly[- ]stochastic
+birkhoff
+perron
+frobenius(?! number)
+collatz[- ]wielandt
+entropic
+
+# --- information theory / KL / Gibbs (Chain 2) ---
+donsker
+varadhan
+\bpinsker\b
+relative entropy
+\bkl div
+gibbs
+
+# --- stochastic analysis / SDE / PDE control (Chain 4) ---
+girsanov
+\bit[oô]\b
+stochastic integral
+stochastic differential
+\bsde\b
+semimartingale
+\bmartingale
+brownian
+feynman
+hamilton[- ]jacobi
+\bbellman\b
+schr[oö]dinger
+fokker

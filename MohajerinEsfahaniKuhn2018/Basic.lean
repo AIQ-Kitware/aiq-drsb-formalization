@@ -203,6 +203,77 @@ noncomputable def worstCaseLaw {N K : ℕ} (α : Fin N → Fin K → ℝ)
     (ξ : Fin N → Fin K → X) : Measure X :=
   (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K, ENNReal.ofReal (α i k) • Measure.dirac (ξ i k)
 
+/-- **Constructive core (sorry-free): the discrete law of a feasible config is in the ball
+and dominates its extremal objective.** For any feasible `(α, q)` (Assumption 4.1 program),
+the explicit discrete law `Q = (1/N) Σᵢₖ αᵢₖ δ_{ξ̂ᵢ − qᵢₖ/αᵢₖ}` (i) lies in the
+ε-Wasserstein ball around the empirical nominal, witnessed by the explicit transport plan
+`(1/N) Σᵢₖ αᵢₖ δ_{(ξ̂ᵢ, ξ̂ᵢ − qᵢₖ/αᵢₖ)}` (cost `(1/N) Σ ‖qᵢₖ‖ ≤ ε`, via
+`ForMathlib.OT.otCost_le_couplingCost`), and (ii) satisfies `𝔼_Q[ℓ] ≥ extremalObjective`
+(since `ℓ = maxₖ ℓₖ ≥ ℓₖ`). No measurable selection — the atoms are the finitely many
+data-point perturbations. This is the shared engine behind Theorem 4.4 (`worstCase_program`)
+and Corollary 4.6 (`worstCase_exists`). -/
+theorem worstCaseLaw_ball_ge [MeasurableSingletonClass X]
+    {N : ℕ} (ξhat : Fin N → X) (hN : 0 < N) (μhat : ProbabilityMeasure X)
+    (hμ : (μhat : Measure X) = empiricalMeasure ξhat) (ε : ℝ)
+    {K : ℕ} (ℓk : Fin K → X → ℝ) (ℓ : X → ℝ)
+    (hKne : (Finset.univ : Finset (Fin K)).Nonempty)
+    (hℓ : ∀ ξ, ℓ ξ = (Finset.univ : Finset (Fin K)).sup' hKne (fun k => ℓk k ξ))
+    (Ξ : Set X) (α : Fin N → Fin K → ℝ) (q : Fin N → Fin K → X)
+    (hfeas : extremalFeasible ξhat Ξ ε α q) :
+    ∃ Q : ProbabilityMeasure X,
+      (Q : Measure X) = worstCaseLaw α (fun i k => ξhat i - (α i k)⁻¹ • q i k)
+      ∧ Q ∈ wass1Ball μhat ε
+      ∧ extremalObjective ξhat ℓk α q ≤ expect Q ℓ := by
+  obtain ⟨hα0, hαsum, hqbudget, hatomΞ⟩ := hfeas
+  set atom : Fin N → Fin K → X := fun i k => ξhat i - (α i k)⁻¹ • q i k with hatom
+  have hprobQ : IsProbabilityMeasure (worstCaseLaw α atom) :=
+    isProbabilityMeasure_wsum hN α atom hα0 hαsum
+  set Q : ProbabilityMeasure X := ⟨worstCaseLaw α atom, hprobQ⟩ with hQ
+  have hQcoe : (Q : Measure X) = worstCaseLaw α atom := rfl
+  -- the explicit transport plan π from μ̂ to Q
+  have hprobπ : IsProbabilityMeasure ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+      ENNReal.ofReal (α i k) • Measure.dirac (ξhat i, atom i k)) :=
+    isProbabilityMeasure_wsum hN α (fun i k => (ξhat i, atom i k)) hα0 hαsum
+  set π : ProbabilityMeasure (X × X) := ⟨_, hprobπ⟩ with hπ
+  have hπcoe : (π : Measure (X × X)) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
+      ENNReal.ofReal (α i k) • Measure.dirac (ξhat i, atom i k) := rfl
+  have hcoupl : π ∈ couplings μhat Q := by
+    constructor
+    · rw [hπcoe, map_wsum α (fun i k => (ξhat i, atom i k)) Prod.fst measurable_fst, hμ,
+        empiricalMeasure]
+      congr 1
+      refine Finset.sum_congr rfl (fun i _ => ?_)
+      simp only
+      rw [← Finset.sum_smul,
+        ← ENNReal.ofReal_sum_of_nonneg (fun k _ => hα0 i k), hαsum i, ENNReal.ofReal_one,
+        one_smul]
+    · rw [hπcoe, map_wsum α (fun i k => (ξhat i, atom i k)) Prod.snd measurable_snd, hQcoe,
+        worstCaseLaw]
+  have hcostπ : couplingCost (fun x y => ‖x - y‖) π ≤ ε := by
+    rw [couplingCost, hπcoe,
+      integral_wsum α (fun i k => (ξhat i, atom i k)) hα0 (fun z => ‖z.1 - z.2‖)]
+    refine le_trans ?_ hqbudget
+    rw [one_div]
+    refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    refine Finset.sum_le_sum (fun i _ => Finset.sum_le_sum (fun k _ => ?_))
+    have hdiff : ξhat i - atom i k = (α i k)⁻¹ • q i k := by rw [hatom]; simp
+    rw [hdiff, norm_smul, Real.norm_eq_abs, abs_inv, abs_of_nonneg (hα0 i k), ← mul_assoc]
+    exact mul_le_of_le_one_left (norm_nonneg _) (by
+      rcases eq_or_lt_of_le (hα0 i k) with h | h
+      · simp [← h]
+      · rw [mul_inv_cancel₀ (ne_of_gt h)])
+  have hball : Q ∈ wass1Ball μhat ε :=
+    le_trans (otCost_le_couplingCost _ (fun x y => norm_nonneg _) μhat Q π hcoupl) hcostπ
+  have hexp : extremalObjective ξhat ℓk α q ≤ expect Q ℓ := by
+    rw [expect, hQcoe, worstCaseLaw, integral_wsum α atom hα0 ℓ, extremalObjective, one_div]
+    simp only [hatom]
+    refine mul_le_mul_of_nonneg_left ?_ (by positivity)
+    refine Finset.sum_le_sum (fun i _ => Finset.sum_le_sum (fun k _ => ?_))
+    refine mul_le_mul_of_nonneg_left ?_ (hα0 i k)
+    rw [hℓ (ξhat i - (α i k)⁻¹ • q i k)]
+    exact Finset.le_sup' (fun k' => ℓk k' (ξhat i - (α i k)⁻¹ • q i k)) (Finset.mem_univ k)
+  exact ⟨Q, hQcoe, hball, hexp⟩
+
 /-- **Theorem 4.4 — worst-case (extremal) distributions, program form**
 (`prose/wasserstein-dro-duality.md` §3.3, Theorem 4.4, eq. (13)).
 
@@ -257,65 +328,10 @@ theorem worstCase_program [MeasurableSingletonClass X]
     · simp [hε]
     · intro i k; simpa using hdata i
   · -- every feasible objective is ≤ droValue, via the constructed worst-case law Q
-    rintro v ⟨α, q, ⟨hα0, hαsum, hqbudget, hatomΞ⟩, rfl⟩
-    -- the atoms and the discrete worst-case law Q
-    set atom : Fin N → Fin K → X := fun i k => ξhat i - (α i k)⁻¹ • q i k with hatom
-    have hprobQ : IsProbabilityMeasure (worstCaseLaw α atom) :=
-      isProbabilityMeasure_wsum hN α atom hα0 hαsum
-    set Q : ProbabilityMeasure X := ⟨worstCaseLaw α atom, hprobQ⟩ with hQ
-    have hQcoe : (Q : Measure X) = worstCaseLaw α atom := rfl
-    -- the explicit transport plan π from μ̂ to Q
-    have hprobπ : IsProbabilityMeasure ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
-        ENNReal.ofReal (α i k) • Measure.dirac (ξhat i, atom i k)) :=
-      isProbabilityMeasure_wsum hN α (fun i k => (ξhat i, atom i k)) hα0 hαsum
-    set π : ProbabilityMeasure (X × X) :=
-      ⟨_, hprobπ⟩ with hπ
-    have hπcoe : (π : Measure (X × X)) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,
-        ENNReal.ofReal (α i k) • Measure.dirac (ξhat i, atom i k) := rfl
-    -- π is a coupling of μ̂ and Q
-    have hcoupl : π ∈ couplings μhat Q := by
-      constructor
-      · rw [hπcoe, map_wsum α (fun i k => (ξhat i, atom i k)) Prod.fst measurable_fst, hμ,
-          empiricalMeasure]
-        congr 1
-        refine Finset.sum_congr rfl (fun i _ => ?_)
-        simp only
-        rw [← Finset.sum_smul,
-          ← ENNReal.ofReal_sum_of_nonneg (fun k _ => hα0 i k), hαsum i, ENNReal.ofReal_one,
-          one_smul]
-      · rw [hπcoe, map_wsum α (fun i k => (ξhat i, atom i k)) Prod.snd measurable_snd, hQcoe,
-          worstCaseLaw]
-    -- Q lies in the ε-Wasserstein ball: otCost ≤ (plan cost) = budget ≤ ε
-    have hcostπ : couplingCost (fun x y => ‖x - y‖) π ≤ ε := by
-      rw [couplingCost, hπcoe,
-        integral_wsum α (fun i k => (ξhat i, atom i k)) hα0 (fun z => ‖z.1 - z.2‖)]
-      -- termwise αᵢₖ‖ξ̂ᵢ − atomᵢₖ‖ = αᵢₖ(αᵢₖ)⁻¹‖qᵢₖ‖ ≤ ‖qᵢₖ‖
-      refine le_trans ?_ hqbudget
-      rw [one_div]
-      refine mul_le_mul_of_nonneg_left ?_ (by positivity)
-      refine Finset.sum_le_sum (fun i _ => Finset.sum_le_sum (fun k _ => ?_))
-      have hdiff : ξhat i - atom i k = (α i k)⁻¹ • q i k := by
-        rw [hatom]; simp
-      rw [hdiff, norm_smul, Real.norm_eq_abs, abs_inv, abs_of_nonneg (hα0 i k)]
-      rw [← mul_assoc]
-      exact mul_le_of_le_one_left (norm_nonneg _) (by
-        rcases eq_or_lt_of_le (hα0 i k) with h | h
-        · simp [← h]
-        · rw [mul_inv_cancel₀ (ne_of_gt h)])
-    have hball : Q ∈ wass1Ball μhat ε :=
-      le_trans (otCost_le_couplingCost _ (fun x y => norm_nonneg _) μhat Q π hcoupl) hcostπ
-    -- 𝔼_Q[ℓ] ≥ extremalObjective, since ℓ = maxₖ ℓₖ ≥ ℓₖ
-    have hexp : extremalObjective ξhat ℓk α q ≤ expect Q ℓ := by
-      rw [expect, hQcoe, worstCaseLaw,
-        integral_wsum α atom hα0 ℓ, extremalObjective, one_div]
-      simp only [hatom]
-      refine mul_le_mul_of_nonneg_left ?_ (by positivity)
-      refine Finset.sum_le_sum (fun i _ => Finset.sum_le_sum (fun k _ => ?_))
-      refine mul_le_mul_of_nonneg_left ?_ (hα0 i k)
-      rw [hℓ (ξhat i - (α i k)⁻¹ • q i k)]
-      exact Finset.le_sup' (fun k' => ℓk k' (ξhat i - (α i k)⁻¹ • q i k)) (Finset.mem_univ k)
-    -- assemble: extremalObjective ≤ 𝔼_Q[ℓ] ≤ droValue
-    exact hexp.trans (le_csSup hbddP ⟨Q, hball, rfl⟩)
+    rintro v ⟨α, q, hfeas, rfl⟩
+    obtain ⟨Q, _, hball, hge⟩ :=
+      worstCaseLaw_ball_ge ξhat hN μhat hμ ε ℓk ℓ hKne hℓ Ξ α q hfeas
+    exact hge.trans (le_csSup hbddP ⟨Q, hball, rfl⟩)
 
 /-- **Corollary 4.6 — existence of a worst-case distribution**
 (`prose/wasserstein-dro-duality.md` §3.3, Corollary 4.6).
@@ -330,8 +346,16 @@ perturbations of the data points along the transport vectors `qᵢₖ`; these ma
 the support of `P̂_N` (a Wasserstein-ball feature). (Gao–Kleywegt Corollary 2(ii) further
 refines the support to at most `N + 1` atoms — not encoded here.)
 
-Body is `sorry` (statement-only scaffold). -/
-theorem worstCase_exists
+**Proof (house pattern, `[MeasurableSingletonClass X]`).** The paper's existence condition
+`hExist` (`Ξ` compact or `K = 1`) is what *guarantees* the extremal program's optimum is
+attained; deriving attainment from compactness is an extreme-value argument over the feasible
+set (absent from Mathlib as a packaged result), so it is isolated as the single explicit edge
+`hattain` — a feasible `(α, q)` whose extremal objective equals `droValue`. Given it, the
+construction lemma `worstCaseLaw_ball_ge` produces the discrete law `Q` in the ball with
+`𝔼_Q[ℓ] ≥ extremalObjective = droValue`, and `𝔼_Q[ℓ] ≤ droValue` (as `Q` is in the ball,
+`le_csSup`), so `𝔼_Q[ℓ] = droValue` — `Q` attains it. Everything except `hattain` is proved
+sorry-free. -/
+theorem worstCase_exists [MeasurableSingletonClass X]
     (N : ℕ) (ξhat : Fin N → X) (hN : 0 < N)
     (μhat : ProbabilityMeasure X) (hμ : (μhat : Measure X) = empiricalMeasure ξhat)
     (ε : ℝ) (hε : 0 ≤ ε)
@@ -343,12 +367,24 @@ theorem worstCase_exists
     (hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
     (hdata : ∀ i, ξhat i ∈ Ξ)
     -- Corollary 4.6 existence hypothesis: `Ξ` compact or the loss concave (`K = 1`)
-    (hExist : IsCompact Ξ ∨ K = 1) :
+    (hExist : IsCompact Ξ ∨ K = 1)
+    -- the DRO worst-case value is finite (bounded ambiguity ball), an honest edge:
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ wass1Ball μhat ε ∧ r = expect μ ℓ })
+    -- attainment edge: the extremal program's optimum is attained (what `hExist` supplies —
+    -- an extreme-value argument absent from Mathlib), isolated as one explicit hypothesis:
+    (hattain : ∃ (α : Fin N → Fin K → ℝ) (q : Fin N → Fin K → X),
+        extremalFeasible ξhat Ξ ε α q
+          ∧ extremalObjective ξhat ℓk α q = droValue (wass1Ball μhat ε) ℓ) :
     ∃ (α : Fin N → Fin K → ℝ) (q : Fin N → Fin K → X) (Q : ProbabilityMeasure X),
         extremalFeasible ξhat Ξ ε α q
       ∧ (Q : Measure X) = worstCaseLaw α (fun i k => ξhat i - (α i k)⁻¹ • q i k)
       ∧ Q ∈ wass1Ball μhat ε
       ∧ expect Q ℓ = droValue (wass1Ball μhat ε) ℓ := by
-  sorry
+  obtain ⟨α, q, hfeas, hval⟩ := hattain
+  obtain ⟨Q, hQeq, hball, hge⟩ :=
+    worstCaseLaw_ball_ge ξhat hN μhat hμ ε ℓk ℓ hKne hℓ Ξ α q hfeas
+  exact ⟨α, q, Q, hfeas, hQeq, hball,
+    le_antisymm (le_csSup hbddP ⟨Q, hball, rfl⟩) (hval ▸ hge)⟩
 
 end MohajerinEsfahaniKuhn2018

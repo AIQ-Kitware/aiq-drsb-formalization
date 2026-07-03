@@ -239,12 +239,17 @@ The **`Drsb` capstone** composes the above:
   - `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO
     per-coupling **weak-duality kernel** (ported from `reference/V4.lean`, generalized to
     arbitrary cost `c`); axiom-clean.
-  - ⭐ **`Drsb.wdrsb_cost_bound` — a DRSB evaluation-card claim, PROVED** (axiom-clean):
-    the WDRSB `𝔼_μ[V] ≤` worst-case bound, via the weak-duality kernel + `sqCost`
-    symmetry, under explicit regularity + the OT-attainment edge `hOT` (the T4 seam stated
-    as a hypothesis, not faked). The cards need only this `≤` direction, so the
-    research-grade strong-duality `≥` is *not* on the card path. `sdrsb_cost_bound`
-    (Sinkhorn) is the remaining card — needs a Sinkhorn weak-duality kernel.
+  - ⭐ **BOTH DRSB evaluation-card claims PROVED, axiom-clean** — the project's headline
+    result `𝔼_perturbed[V] ≤ 𝔼_worst-case[V]` for both balls:
+    - `Drsb.wdrsb_cost_bound` (Wasserstein): weak-duality kernel + `sqCost` symmetry, under
+      regularity + the OT-attainment edge `hOT`.
+    - `Drsb.sdrsb_cost_bound` (Sinkhorn): composes the proved
+      `WangGaoXie2023.sinkhorn_weak_duality_kernel` (per-point Gibbs/DV bound integrated
+      over `p₀`) with `budget ≤ ε`, under `hκ>0` + the Sinkhorn attainment+disintegration
+      edge `hSink`; dual restricted to `0<lam` (the `lam=0` `logPartition` is junk — a
+      third statement issue found this pass; ess-sup convention unencoded).
+    The cards need only the `≤` direction, so the strong-duality `≥` seams remain `sorry`
+    and are *not* on the card path.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Headline: the **card cost bounds need only WEAK duality** (`≤`), so the tractable
   critical path is `weak_duality_prop1` (T3, Fable) → `Drsb.*_cost_bound` (T2). The

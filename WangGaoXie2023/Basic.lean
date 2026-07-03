@@ -194,4 +194,94 @@ theorem worstCase_conditional_tilted
   congr 1 with z
   rw [div_eq_inv_mul]
 
+/-! ## Sinkhorn weak-duality kernel (the entropic per-coupling Lagrangian bound) -/
+
+omit [NormedAddCommGroup X] in
+/-- **Sinkhorn per-conditional-family weak-duality kernel.** For a family of conditionals
+`P : X → Measure X` (each `≪` the reference `ν`), the nominal `p₀`, and `λ, κ > 0`, the
+`p₀`-averaged reward is bounded by `λ·(disintegrated Sinkhorn budget) + 𝔼_{p₀}[logPartition]`:
+`∫_{x∼p₀} 𝔼_{P_x}[f] ≤ λ · ∫_{x∼p₀} (𝔼_{P_x}[c(x,·)] + κ·KL(P_x‖ν)) + 𝔼_{x∼p₀}[v_x(λ)]`.
+
+This is the entropic analogue of `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost`:
+the proved Gibbs/Donsker–Varadhan inequality (`ForMathlib.MeasureTheory.
+integral_le_klDiv_add_log_integral_exp`) applied to `A_x = (f − λc(x,·))/(λκ)` per nominal
+point `x`, then integrated over `p₀`. It is the load-bearing `≤` half behind
+`WangGaoXie2023.strong_duality` and `Drsb.sdrsb_cost_bound` (once composed with a
+disintegration of the ball-witnessing coupling `γ = p₀ ⊗ₘ P`). The many integrability
+hypotheses make the per-point DV bound apply and the aggregate integrals well defined. -/
+theorem sinkhorn_weak_duality_kernel
+    (p₀ ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
+    (hκ : 0 < κ) (hlam : 0 < lam)
+    (P : X → Measure X) (hP : ∀ x, IsProbabilityMeasure (P x))
+    (hac : ∀ x, P x ≪ (ν : Measure X))
+    (hf_P : ∀ x, Integrable f (P x))
+    (hc_P : ∀ x, Integrable (fun y => c x y) (P x))
+    (h_llr : ∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x))
+    (h_exp : ∀ x, Integrable
+        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
+    (hI_f : Integrable (fun x => ∫ y, f y ∂(P x)) (p₀ : Measure X))
+    (hI_c : Integrable (fun x => ∫ y, c x y ∂(P x)) (p₀ : Measure X))
+    (hI_kl : Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X))
+    (hI_lp : Integrable (fun x => logPartition ν c f κ lam x) (p₀ : Measure X)) :
+    (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X))
+      ≤ lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+        + ∫ x, logPartition ν c f κ lam x ∂(p₀ : Measure X) := by
+  have hlamκ : (0 : ℝ) < lam * κ := mul_pos hlam hκ
+  have hne : lam * κ ≠ 0 := ne_of_gt hlamκ
+  -- per-nominal-point Gibbs/DV bound
+  have hpt : ∀ x, (∫ y, f y ∂(P x))
+      ≤ lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+        + logPartition ν c f κ lam x := by
+    intro x
+    haveI := hP x
+    have hsub : Integrable (fun y => f y - lam * c x y) (P x) :=
+      (hf_P x).sub ((hc_P x).const_mul lam)
+    have hA_int : Integrable (fun y => (f y - lam * c x y) / (lam * κ)) (P x) :=
+      hsub.div_const _
+    have hDV := ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp
+      (hac x) hA_int (h_llr x) (h_exp x)
+    have hAeq : (∫ y, (f y - lam * c x y) / (lam * κ) ∂(P x))
+        = (lam * κ)⁻¹ * ((∫ y, f y ∂(P x)) - lam * ∫ y, c x y ∂(P x)) := by
+      simp_rw [div_eq_mul_inv]
+      rw [integral_mul_const, integral_sub (hf_P x) ((hc_P x).const_mul lam),
+        integral_const_mul]
+      ring
+    rw [hAeq] at hDV
+    have hlp : logPartition ν c f κ lam x
+        = lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)) :=
+      rfl
+    have hmul := mul_le_mul_of_nonneg_left hDV (le_of_lt hlamκ)
+    rw [← mul_assoc, mul_inv_cancel₀ hne, one_mul, mul_add] at hmul
+    have hkl : (InformationTheory.klDiv (P x) (ν : Measure X)).toReal
+        = klReal (P x) (ν : Measure X) := rfl
+    rw [hkl] at hmul
+    rw [hlp]
+    linarith [hmul]
+  -- integrate the pointwise bound over p₀
+  have hRHS_int : Integrable
+      (fun x => lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+        + logPartition ν c f κ lam x) (p₀ : Measure X) :=
+    ((hI_c.const_mul lam).add (hI_kl.const_mul (lam * κ))).add hI_lp
+  calc (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X))
+      ≤ ∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+          + logPartition ν c f κ lam x) ∂(p₀ : Measure X) := integral_mono hI_f hRHS_int hpt
+    _ = lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+          + ∫ x, logPartition ν c f κ lam x ∂(p₀ : Measure X) := by
+        have e1 : (∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
+              + logPartition ν c f κ lam x) ∂(p₀ : Measure X))
+            = lam * (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure X))
+              + lam * κ * (∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X))
+              + ∫ x, logPartition ν c f κ lam x ∂(p₀ : Measure X) := by
+          have hAB : Integrable (fun x => lam * (∫ y, c x y ∂(P x))
+              + lam * κ * klReal (P x) (ν : Measure X)) (p₀ : Measure X) :=
+            (hI_c.const_mul lam).add (hI_kl.const_mul (lam * κ))
+          rw [integral_add hAB hI_lp,
+            integral_add (hI_c.const_mul lam) (hI_kl.const_mul (lam * κ)),
+            integral_const_mul, integral_const_mul]
+        have e2 : (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+            = (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure X))
+              + κ * (∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X)) := by
+          rw [integral_add hI_c (hI_kl.const_mul κ), integral_const_mul]
+        rw [e1, e2]; ring
+
 end WangGaoXie2023

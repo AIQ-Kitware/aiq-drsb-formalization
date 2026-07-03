@@ -129,21 +129,53 @@ theorem sdrsb_strong_duality (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (�
 
 /-- **SDRSB cost bound** (the `sdrsb_cost_bound.yaml` claim): any source inside the
 Sinkhorn ball (external reference `ν`) has expected cost bounded by the Sinkhorn-DRO dual
-worst-case value.
+worst-case value. **PROVED** — the `≤`/weak-duality direction, the entropic analogue of
+`wdrsb_cost_bound`, composing the proved Sinkhorn weak-duality kernel
+`WangGaoXie2023.sinkhorn_weak_duality_kernel` (the per-point Gibbs/DV bound integrated over
+`p₀`) with `budget ≤ ε` and `le_csInf`.
 
-The Sinkhorn ball and the dual now share the same external reference `ν` (audit fix — see
-`prose/sinkhorn-dro-duality.md`). The proof is the entropic analogue of `wdrsb_cost_bound`:
-disintegrate the witnessing coupling `γ = p₀ ⊗ₘ γ_x`, apply the proved Gibbs/DV bound
-(`WangGaoXie2023.logPartition_eq_gibbs_sSup` / `ForMathlib…integral_le_klDiv_add_log_integral_exp`)
-per nominal point `x` to get `logPartition`, and average over `p₀` using the KL chain rule
-(`Mathlib…klDiv_compProd_eq_add`). Staged as `sorry` pending that Sinkhorn weak-duality
-kernel — a disintegration proof (roadmap in `PROOF_PIPELINE.md`). -/
-theorem sdrsb_cost_bound (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ)
-    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ ν κ ε) :
+Formalization edges (honest hypotheses, cf. AGENTS.md §6; the audit fixed the ball to
+share the external reference `ν` — `prose/sinkhorn-dro-duality.md`):
+* `hSink` is the **Sinkhorn attainment + disintegration edge**: the `W_{κ,ν}(p₀,μ) ≤ ε`
+  constraint is realized by a conditional family `P` (each `≪ ν`) with `μ` its second
+  marginal (`expect μ V = ∫∫ V dP dp₀`), disintegrated budget `≤ ε`, and the standard
+  DV/aggregate integrability. This bundles the OT-attainment (not in Mathlib), the
+  `condKernel` disintegration, and the KL chain rule into one edge — the entropic
+  counterpart of `wdrsb_cost_bound`'s `hOT`.
+* **`0 < lam`** in the dual set (not `0 ≤ lam`): at `lam = 0` the Lean `logPartition`
+  degenerates to `0` (junk from `0/0`) rather than the paper's `λ↓0` ess-sup limit, so
+  the `λ=0` term is excluded (documented limitation — the ess-sup convention is unencoded).
+-/
+theorem sdrsb_cost_bound (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
+    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ ν κ ε)
+    (hSink : Wkappa κ ν p₀ μ ≤ ε →
+      ∃ P : X → Measure X,
+        (∀ x, IsProbabilityMeasure (P x)) ∧ (∀ x, P x ≪ (ν : Measure X)) ∧
+        expect μ V = (∫ x, (∫ y, V y ∂(P x)) ∂(p₀ : Measure X)) ∧
+        (∫ x, ((∫ y, sqCost x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
+            ∂(p₀ : Measure X)) ≤ ε ∧
+        (∀ x, Integrable V (P x)) ∧ (∀ x, Integrable (fun y => sqCost x y) (P x)) ∧
+        (∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x)) ∧
+        (∀ lam, 0 < lam → ∀ x, Integrable
+            (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X)) ∧
+        Integrable (fun x => ∫ y, V y ∂(P x)) (p₀ : Measure X) ∧
+        Integrable (fun x => ∫ y, sqCost x y ∂(P x)) (p₀ : Measure X) ∧
+        Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X) ∧
+        (∀ lam, 0 < lam → Integrable
+            (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))) :
     expect μ V
-      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
-  sorry
+  obtain ⟨P, hP, hac, hVdis, hbudget, hf_P, hc_P, h_llr, h_exp, hI_V, hI_c, hI_kl, hI_lp⟩ :=
+    hSink hμ
+  refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
+  rintro v ⟨lam, hlam, rfl⟩
+  have key := WangGaoXie2023.sinkhorn_weak_duality_kernel p₀ ν sqCost V κ lam hκ hlam P hP hac
+    hf_P hc_P h_llr (h_exp lam hlam) hI_V hI_c hI_kl (hI_lp lam hlam)
+  have hb := mul_le_mul_of_nonneg_left hbudget (le_of_lt hlam)
+  rw [hVdis]
+  simp only [WangGaoXie2023.sinkhornDualObjective, expect]
+  linarith [key, hb]
 
 /-- **DRSB "Eq. 47"** — the SDRSB bound as coded in the GaTech repo
 (`compute_bound.py` Term3 / `wdrsb_bridge.py`): the worst-case cost minus a

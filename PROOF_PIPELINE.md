@@ -55,11 +55,12 @@ capstones, but the cards do not depend on it.
 |---|---|---|---|
 | `Drsb.wdrsb_cost_bound` | ✅ **PROVED** (axiom-clean) | — | **The WDRSB evaluation-card claim, discharged.** Composes the weak-duality kernel + `sqCost` symmetry + `couplingCost ≤ ε`, under explicit regularity + the OT-attainment edge `hOT` (the T4 seam stated as a hypothesis, not faked). `#print axioms` = propext/Classical.choice/Quot.sound only. |
 | `GaoKleywegt2023.weak_duality_prop1` | **T3** | add integrability/`BddAbove` hyps; then the coupling-ε + `sInf`/`sSup` assembly | linchpin — kernel DONE (`ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost`) and now demonstrated end-to-end by `wdrsb_cost_bound`. Only the general `droValue` assembly remains; **Sion** (`Mathlib.Topology.Sion`) available for the minimax step. |
-| `Drsb.sdrsb_cost_bound` | **T3** | a **Sinkhorn per-coupling weak-duality kernel** (entropic Lagrangian atop the proved DV/Gibbs engine `logPartition_eq_gibbs_sSup`), then the same composition as `wdrsb_cost_bound` | the *other* card claim; next target. |
+| `Drsb.sdrsb_cost_bound` | ✅ **PROVED** (axiom-clean) | — | **The SDRSB evaluation-card claim, discharged.** Composes the proved `WangGaoXie2023.sinkhorn_weak_duality_kernel` (per-point DV bound integrated over `p₀`) with `budget ≤ ε`, under `hκ>0` + the Sinkhorn attainment+disintegration edge `hSink`; dual restricted to `0<lam` (the `lam=0` `logPartition` is junk — ess-sup convention unencoded). Ball uses the audit-fixed external `ν`. |
 | `WangGaoXie2023.strong_duality` (≤ half only) | **T3** | outer `inf_{λ}` + ball Lagrangian on top of the proved `logPartition_eq_gibbs_sSup` | the DV engine (`ForMathlib`) is already done; this is the Sinkhorn analogue of the linchpin. |
 
-**Sinkhorn weak-duality kernel — roadmap** (de-risked by the 2026-07 audit; the next real
-target for the *second* card). The audit fixed the ball to use the external reference `ν`
+**Sinkhorn weak-duality kernel — ✅ DONE** (`WangGaoXie2023.sinkhorn_weak_duality_kernel`,
+axiom-clean; the second card `sdrsb_cost_bound` composes it). The roadmap below is how it
+was built (kept for reference). The audit fixed the ball to use the external reference `ν`
 (`sinkhornBall μ̂ ν κ ε`; ball & dual now share `ν`). The kernel to prove — the entropic
 analogue of `expect_le_dualIntegrand_add_lam_couplingCost` — is: for `γ ∈ couplings p₀ μ`
 and `λ ≥ 0`,

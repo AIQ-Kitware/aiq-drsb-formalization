@@ -100,7 +100,7 @@ sources:
     library: "Drsb"   # capstone, composed from the libraries above
 
 status:
-  phase: "proofs landing; first evaluation-card claim (WDRSB cost bound) PROVED"
+  phase: "BOTH evaluation-card claims (WDRSB + SDRSB cost bounds) PROVED, axiom-clean"
   policy: >
     First pass established theorem STATEMENTS as close to the published results as
     possible (verified against prose/). The proof pass discharges the tractable/
@@ -207,7 +207,10 @@ main_results:
       proved: true   # axiom-clean (propext/Classical.choice/Quot.sound). The ≤/weak-duality direction — all the card needs. Composes ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost with sqCost symmetry; regularity + OT-attainment (hOT) as explicit hypotheses (the T4 seam, not faked).
     - declaration: "Drsb.sdrsb_cost_bound"
       informal: "𝔼_μ[V] ≤ Sinkhorn dual worst-case — the sdrsb_cost_bound.yaml card claim."
-      note: "sorry. AUDIT (2026-07) fixed the Sinkhorn ball to use the EXTERNAL reference ν (was product-of-marginals; ball & dual now share ν). Proof is the entropic analogue of wdrsb_cost_bound but needs a Sinkhorn weak-duality kernel via disintegration + KL chain rule (Mathlib klDiv_compProd_eq_add) — roadmap in PROOF_PIPELINE.md."
+      proved: true   # axiom-clean. The ≤/weak-duality direction, entropic analogue of wdrsb_cost_bound. Composes the proved WangGaoXie2023.sinkhorn_weak_duality_kernel (per-point Gibbs/DV bound integrated over p₀) with budget ≤ ε; hypotheses: hκ>0, the Sinkhorn attainment+disintegration edge hSink, dual over 0<lam (lam=0 gives junk logPartition — ess-sup convention unencoded). Ball uses the audit-fixed external ν."
+    - declaration: "WangGaoXie2023.sinkhorn_weak_duality_kernel"
+      informal: "Sinkhorn per-conditional-family weak-duality kernel: ∫_{p₀} 𝔼_{P_x}[f] ≤ λ·(disintegrated budget) + 𝔼_{p₀}[logPartition]."
+      proved: true   # axiom-clean. Per-point Donsker–Varadhan bound (ForMathlib engine) integrated over p₀; the entropic analogue of ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost. Candidate for ForMathlib generalization.
     - declaration: "Drsb.eq47Bound"
       informal: "DRSB 'Eq. 47' bound = E_wc[V] − ρ·log 𝔼_ν[e^g] (from GaTech code; unpublished)."
 

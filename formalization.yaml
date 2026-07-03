@@ -100,19 +100,22 @@ sources:
     library: "Drsb"   # capstone, composed from the libraries above
 
 status:
-  phase: "statements complete; proofs — foundational leaves landing"
+  phase: "proofs landing; first evaluation-card claim (WDRSB cost bound) PROVED"
   policy: >
     First pass established theorem STATEMENTS as close to the published results as
-    possible (verified against prose/, not a prior attempt). The proof pass has now
-    begun, foundational-first: the tractable/self-contained leaves are being discharged
-    while the research-grade strong-duality `≥` (attainment) seams stay `sorry` (they
-    need OT measurable-selection / worst-case-measure constructions not in Mathlib —
-    see AGENTS.md §6). Proved so far: the Donsker–Varadhan family (ForMathlib), the
-    Sinkhorn continuous-Gibbs worst-case existence (WangGaoXie2023.exists_worstCase_gibbs,
-    a measure-normalization), and the Lc-form dual equivalence
-    (BlanchetMurthy2019.wdro_strong_duality_dualFn, derived from its sibling). The
-    earlier hand-written attempts are quarantined in `reference/` (see reference/README.md)
-    and are reference-only — they contain subtle traps and must not be trusted as canon.
+    possible (verified against prose/). The proof pass discharges the tractable/
+    self-contained leaves and the card `≤` (weak-duality) direction, while the
+    research-grade strong-duality `≥` (attainment) seams stay `sorry` (they need OT
+    measurable-selection not in Mathlib — see AGENTS.md §6). PROVED so far: the
+    Donsker–Varadhan family + measure normalization (ForMathlib); the OT-DRO per-coupling
+    weak-duality kernel (ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost,
+    ported from reference/V4.lean); and — the headline — **Drsb.wdrsb_cost_bound, the
+    WDRSB evaluation-card claim, axiom-clean**, under explicit regularity + an
+    OT-attainment hypothesis (the T4 edge, stated not faked). Also
+    WangGaoXie2023.exists_worstCase_gibbs, ChenGeorgiouPavon2021.staticSB_eq_entropicOT,
+    BlanchetMurthy2019.wdro_strong_duality_dualFn. Remaining card: sdrsb_cost_bound
+    (needs a Sinkhorn weak-duality kernel via disintegration — see PROOF_PIPELINE.md).
+    The earlier hand-written attempts are quarantined in `reference/` — reference-only.
   build:
     toolchain: "leanprover/lean4:v4.31.0-rc2"
     mathlib_rev: "476fb97b621c68d5d9709822416356273c1785cf"

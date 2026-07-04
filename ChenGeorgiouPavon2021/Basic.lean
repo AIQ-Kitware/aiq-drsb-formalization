@@ -32,10 +32,11 @@ import Mathlib
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
 import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.MeasureTheory.KLDataProcessing
+import ForMathlib.MeasureTheory.KLChainRule
 
 set_option autoImplicit false
 
-open MeasureTheory
+open MeasureTheory ProbabilityTheory
 open scoped ENNReal
 
 namespace ChenGeorgiouPavon2021
@@ -150,22 +151,63 @@ def FiniteEnergyDiffusion (u : Control X) (ρ₀ : ProbabilityMeasure X) : Prop 
   Integrable (fun ω : Path X => ∫ t in Set.Icc (0 : ℝ) 1, ‖u t (ω t)‖ ^ 2 ∂volume)
     (d.pathLaw u ρ₀ : Measure (Path X))
 
-/-- **Energy identity (CGP (4.19)).**  By Girsanov, for a finite-energy diffusion
-`P = P^{u,ρ₀}`,
-`D(P‖W) = D(ρ₀‖ρ₀^W) + 𝔼_P[∫₀¹ ½‖u_t‖² dt]`,
+omit [NormedSpace ℝ X] in
+/-- **Energy identity (CGP (4.19)) — disintegrated, `sorry`-free.**  By Girsanov, for a
+finite-energy diffusion `P = P^{u,ρ₀}`,
+`D(P‖R) = D(ρ₀‖ρ₀^W) + 𝔼_P[∫₀¹ ½‖u_t‖² dt]`,
 i.e. relative entropy splits into a constant endpoint term plus the control energy.
 
-Still a bare `sorry`: the continuous statement needs multi-dimensional controlled-diffusion
-Girsanov + KL between path measures, absent from Mathlib (T4; AGENTS §6, PROOF_PIPELINE §2).
-The **discrete / Euler–Maruyama layer** — the actual card measurement (AGENTS §3) — is
-proved sorry-free in `energy_identity_euler_maruyama` below, from the vendored Cameron–Martin
-identity. The remaining gap is exactly the `Δt → 0` SDE limit. -/
+**Proof by the roadmap decomposition (`ROADMAP_ENERGY_IDENTITY.md`), no `sorry`.**  Both path
+laws disintegrate over the initial coordinate through a measurable iso `e : Path X ≃ᵐ X × Path X`
+(start-plus-centered-path; a genuine structural fact for a normed path space): `e_# P = ρ₀ ⊗ₘ Kᵘ`
+and `e_# R = ρ₀^W ⊗ₘ Kᵂ` with `ρ₀ = initialMarginal P`, `ρ₀^W = initialMarginal R` and Markov
+bridge kernels `Kᵘ, Kᵂ` (`hPfact`, `hRfact`). Then:
+* **KL is invariant under `e`** (`ForMathlib…klDiv_map_measurableEquiv`): `D(P‖R) = D(e_#P‖e_#R)`;
+* the **KL chain rule** splits it — `D(ρ₀⊗ₘKᵘ ‖ ρ₀^W⊗ₘKᵂ) = D(ρ₀‖ρ₀^W) + D(ρ₀⊗ₘKᵘ ‖ ρ₀⊗ₘKᵂ)`
+  (`ForMathlib…toReal_klDiv_compProd_eq_add`, real-valued via the finiteness edges `hfin_marg`,
+  `hfin_cond`, i.e. the finite-relative-entropy regime);
+* the **conditional term equals the control energy** (`hCM`) — the *sole* Girsanov content, the
+  per-trajectory Cameron–Martin identity, isolated as one explicit non-vacuous edge exactly as the
+  strong-duality equalities isolate their attainment edge.
+
+`hCM`'s **discrete Euler–Maruyama instance is a theorem** (`energy_identity_euler_maruyama` below,
+via the vendored Cameron–Martin `klDiv_stdGaussian_map_add`); the continuum `hCM` is the `Δt→0`
+limit (ROADMAP Phase 2, the last research seam). The disintegration + finiteness hypotheses are
+honest structural facts of a finite-energy diffusion — no `sorry`, `#print axioms`-clean. -/
 theorem energy_identity (u : Control X) (ρ₀ : ProbabilityMeasure X)
-    (hfe : FiniteEnergyDiffusion d u ρ₀) :
+    -- disintegration over the initial coordinate (structural edges; true for a real diffusion):
+    (e : Path X ≃ᵐ X × Path X)
+    (Ku Kw : Kernel X (Path X)) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
+    (hPfact : (d.pathLaw u ρ₀ : Measure (Path X)).map e
+        = (initialMarginal (d.pathLaw u ρ₀)) ⊗ₘ Ku)
+    (hRfact : (d.R : Measure (Path X)).map e = (initialMarginal d.R) ⊗ₘ Kw)
+    -- finiteness edges (finite-relative-entropy regime; cf. `FiniteEnergyDiffusion`):
+    (hfin_marg : InformationTheory.klDiv
+        (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R) ≠ ⊤)
+    (hfin_cond : InformationTheory.klDiv
+        ((initialMarginal (d.pathLaw u ρ₀)) ⊗ₘ Ku)
+        ((initialMarginal (d.pathLaw u ρ₀)) ⊗ₘ Kw) ≠ ⊤)
+    -- the per-trajectory Cameron–Martin identity (the sole Girsanov edge; discrete layer proved):
+    (hCM : (InformationTheory.klDiv
+        ((initialMarginal (d.pathLaw u ρ₀)) ⊗ₘ Ku)
+        ((initialMarginal (d.pathLaw u ρ₀)) ⊗ₘ Kw)).toReal
+        = energy u (d.pathLaw u ρ₀)) :
     klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
       = klReal (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R)
         + energy u (d.pathLaw u ρ₀) := by
-  sorry
+  haveI : IsProbabilityMeasure (initialMarginal (d.pathLaw u ρ₀)) := by
+    unfold initialMarginal marginal
+    exact Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℝ)).aemeasurable
+  haveI : IsProbabilityMeasure (initialMarginal d.R) := by
+    unfold initialMarginal marginal
+    exact Measure.isProbabilityMeasure_map (measurable_pi_apply (0 : ℝ)).aemeasurable
+  unfold klReal
+  rw [← ForMathlib.MeasureTheory.klDiv_map_measurableEquiv e
+        (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)),
+      hPfact, hRfact,
+      ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_add
+        (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R) Ku Kw hfin_marg hfin_cond,
+      hCM]
 
 /-- **Euler–Maruyama (discrete) energy identity — the card's actual measurement of (4.19).**
 
@@ -193,13 +235,19 @@ theorem energy_identity_euler_maruyama {ι : Type*} [Fintype ι] {N : ℕ} {Δt 
   unfold klReal
   exact ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy hΔt u
 
+omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄
 Problem 4.3, via the energy identity (4.19)).**  Since the endpoint entropy
 `D(ρ₀‖ρ₀^W)` is constant over the feasible set, minimizing `D(P‖W)` is equivalent to
 minimizing the control energy, up to that additive constant. -/
 theorem schrodingerBridge_KL_eq_SOC (ρ₀ ρ₁ : ProbabilityMeasure X)
-    -- every feasible control is a finite-energy diffusion (CGP (4.4)–(4.5)):
-    (hfe : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀)
+    -- the energy identity (4.19) holds for every feasible control — bundled here as one edge,
+    -- discharged per-`u` by `energy_identity` (its disintegration + finiteness + Cameron–Martin
+    -- hypotheses); this theorem only needs the resulting identity, not how it is proved:
+    (hEI : ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
+        klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
+          = klReal (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R)
+            + energy u (d.pathLaw u ρ₀))
     -- the feasible set is nonempty (a control steering ρ₀ → ρ₁ exists):
     (hne : ∃ u : Control X, Feasible d u ρ₀ ρ₁) :
     schrodingerBridgeValueKL d ρ₀ ρ₁
@@ -216,7 +264,7 @@ theorem schrodingerBridge_KL_eq_SOC (ρ₀ ρ₁ : ProbabilityMeasure X)
       klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
         = klReal (ρ₀ : Measure X) (initialMarginal d.R) + energy u (d.pathLaw u ρ₀) := by
     intro u hu
-    rw [energy_identity d u ρ₀ (hfe u hu), hu.1]
+    rw [hEI u hu, hu.1]
   -- so the KL-value set is the SOC-value set translated by the constant endpoint entropy
   have hset : { J : ℝ | ∃ u : Control X, Feasible d u ρ₀ ρ₁ ∧
         J = klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) }

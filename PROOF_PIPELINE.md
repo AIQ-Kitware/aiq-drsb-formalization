@@ -47,7 +47,7 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (8)
+## 2. Ranked remaining `sorry`s (7)
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
@@ -59,11 +59,11 @@ capstones, but the cards do not depend on it.
 > is now **PROVED** (axiom-clean; see below). `dataDriven_strongDuality_cor2i` is also now
 > PROVED (house pattern; see §T4 note). `MohajerinEsfahaniKuhn2018.worstCase_program`
 > (Thm 4.4) and `worstCase_exists` (Cor 4.6) are also PROVED (constructive worst-case law +
-> one edge each). `GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) is also now
-> PROVED (same house pattern; see §T4 note). The **8** remaining `sorry`s are the genuine T4
-> frontier: the 6 SDE/PDE controls in `ChenGeorgiouPavon2021` and the 2 worst-case-*structure*
-> corollaries `GaoKleywegt2023.worstCase_structure_cor1` +
-> `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`.
+> one edge each). `GaoKleywegt2023.{dataDriven_worstCase_cor2ii, worstCase_structure_cor1}`
+> (Cor 2(ii)/1(ii), eqs. 29/27) are also now PROVED (same house pattern; see §T4 note) —
+> **`GaoKleywegt2023` is now sorry-free**. The **7** remaining `sorry`s are the genuine T4
+> frontier: the 6 SDE/PDE controls in `ChenGeorgiouPavon2021` and the single worst-case-*structure*
+> duality equality `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`.
 
 ### On the card critical path (do these first)
 
@@ -120,8 +120,7 @@ Fable ticket or a focused session.
 
 **Worst-case *structure*** (the `≥`/attainment equalities are already discharged modulo an
 explicit attainment hypothesis; what remains as `sorry` is the *shape* of the worst-case
-measure): `GaoKleywegt2023.worstCase_structure_cor1`,
-`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (2).
+measure): `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (1).
 *Need OT measurable-selection / worst-case-measure construction — absent from Mathlib.*
 
 > **`GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) — PROVED (2026-07,
@@ -144,7 +143,23 @@ measure): `GaoKleywegt2023.worstCase_structure_cor1`,
 > Reuses local copies of `isProbabilityMeasure_wsum`/`integral_wsum`/`map_wsum` (verbatim from
 > the sibling) — both consumers now exist, so promoting these three to `ForMathlib.OT` is the
 > natural small dedup follow-up. `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2,
-> the duality *equality*) remains the cleaner next worst-case target.
+> the duality *equality*) remains the last open worst-case-structure target.
+
+> **`GaoKleywegt2023.worstCase_structure_cor1` (Cor 1(ii), eq. 27) — PROVED (2026-07,
+> house pattern, axiom-clean).** The general-`ν` sibling of `cor2ii`: the worst case is a
+> **2-map transport** `μ* = pstar·T̄#ν + (1−pstar)·T*#ν`. Same §5-safe decomposition — the
+> structured optimizer is not hypothesized; the inputs are only the mixture weight `pstar ∈ [0,1]`
+> and the two **measurable** transport maps `Tbar`/`Tstar` that are `ν`-a.e. argmins (`hargmin`),
+> plus honest **regularity edges** (`Ψ` and the cost integrable along each transport — required
+> because `c`/`Ψ` carry no standing measurability, unlike the finite-Dirac `cor2ii` where
+> `integral_dirac` needs none) and the two content edges (feasibility budget + attainment `≥`).
+> Proved sorry-free: `μ*` built as the mixture (probability measure via `Measure.map_apply` +
+> `measure_univ`), `∈ ambiguitySet` via the explicit plan `pstar·(T̄,id)#ν + (1−pstar)·(T*,id)#ν`
+> (2nd marginal `= ν` because `snd∘(T,id)=id` and `Measure.map_id`; cost `≤ δ` via
+> `otCost_le_couplingCost`), `Ψ`-expectation `integral_map`'d to the mixture value, `≤` half of
+> attainment by `le_csSup`. The eq. (27) measure form is `rfl`. **`GaoKleywegt2023` is now
+> sorry-free.** (The four `Measure.map`/`smul`/`add` pushforward manipulations here are the
+> reusable pattern if `worstCaseExpectation_eq_dual`'s attainment measure is built the same way.)
 
 > **`MohajerinEsfahaniKuhn2018.worstCase_program` (Thm 4.4, eq. 13) — PROVED (2026-07,
 > house pattern, axiom-clean).** The `≥` direction (`sup(program) ≤ droValue`) is proved
@@ -299,6 +314,13 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
 ---
 
 ### Change log
+- **2026-07 (general worst-case structure landed; GaoKleywegt2023 sorry-free):** count
+  **8 → 7**. Proved `GaoKleywegt2023.worstCase_structure_cor1` (Cor 1(ii), eq. 27) axiom-clean —
+  the general-`ν` 2-map transport `μ* = pstar·T̄#ν + (1−pstar)·T*#ν`, same house pattern as
+  `cor2ii` but via `Measure.map` pushforwards + `integral_map` (with regularity edges since
+  `c`/`Ψ` carry no standing measurability); attainment isolated to §5-safe ingredient edges.
+  Only `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` remains of the worst-case
+  structure block.
 - **2026-07 (data-driven worst-case structure landed):** count **9 → 8**. Proved
   `GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) axiom-clean via the house
   pattern — explicit `K = 2` weighted-Dirac `μ*` construction (probability measure, `∈ ambiguitySet`

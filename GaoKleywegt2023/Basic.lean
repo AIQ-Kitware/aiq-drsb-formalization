@@ -278,16 +278,62 @@ distribution (the content of Corollary 1(i)'s explicit `λ*`-vs-`κ` trichotomy)
 taken as the hypothesis `hexists`; the conclusion produces a *structured* one that
 still attains the sup. The printed clause "if `λ* > 0`, the induced `γ^T` is an
 optimal coupling of `W_p^p(μ*, ν)`" is omitted from the formal conclusion
-(documented gap) — it constrains the coupling realizing the mixture, not `μ*`. -/
+(documented gap) — it constrains the coupling realizing the mixture, not `μ*`.
+
+**Proof (house pattern; the general-`ν` sibling of `dataDriven_worstCase_cor2ii`).** As
+there, the §5 trap forbids taking the structured optimizer `μ*` as a hypothesis. We take
+only the genuinely-weaker **extremal ingredients** a full OT measurable-selection would
+extract from `hexists`: the mixture weight `pstar ∈ [0,1]` and the two measurable transport
+maps `Tbar`, `Tstar` that are `ν`-a.e. argmins of `λ* c(·,ζ) − Ψ` (`hargmin` — argmin
+*existence* along `ν`, strictly weaker than the conclusion), plus honest **regularity edges**
+(`Ψ` and the cost integrable along each transport — needed because `c`, `Ψ` carry no standing
+measurability) and the two content edges: a **feasibility budget** `hbudget`
+(`pstar·𝔼_ν[c(T̄,·)] + (1−pstar)·𝔼_ν[c(T*,·)] ≤ δ`) and the **attainment `≥` edge** `hattain`
+(the mixture value dominates `droValue`). Everything else is proved **sorry-free**: `μ*` is
+built as the explicit 2-map mixture `pstar·T̄#ν + (1−pstar)·T*#ν`, shown a probability measure,
+shown `∈ ambiguitySet` via the explicit transport plan `pstar·(T̄,id)#ν + (1−pstar)·(T*,id)#ν`
+(second marginal `ν` since `snd∘(T,id)=id`; cost `≤ δ` through
+`ForMathlib.OT.otCost_le_couplingCost`), and its `Ψ`-expectation is `integral_map`'d to the
+mixture value; the `≤` half of attainment is `le_csSup`, so `hattain` supplies only the `≥`.
+The eq. (27) measure form is then `rfl`. Same `le_antisymm(constructive, one attainment edge)`
+posture as every other worst-case result here. `hκ`/`husc`/`hproper`/`hlam`/`hexists` are
+retained as the paper's premises (the ingredients are what they would yield). -/
 theorem worstCase_structure_cor1
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ) (lam_star : ℝ)
     (hκ : kappa c Ψ ν ≠ ⊤)                                  -- κ < ∞
     (husc : UpperSemicontinuous Ψ)                          -- Ψ upper semicontinuous
     (hproper : ∀ s : Set X, Bornology.IsBounded s → TotallyBounded s)
                                                             -- bounded ⇒ totally bounded
+    (hc : ∀ x y, 0 ≤ c x y)                                  -- nonnegative cost (Remark 2)
     (hlam : 0 ≤ lam_star)                                    -- dual minimizer λ* ≥ 0
     (hexists : ∃ μ ∈ ambiguitySet c ν δ,
-        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ) :      -- a worst-case distribution exists
+        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ)        -- a worst-case distribution exists
+    -- the extremal INGREDIENTS a full proof extracts from `hexists` (each strictly weaker
+    -- than the structured conclusion): the mixture weight and the two argmin transport maps.
+    (pstar : ℝ) (Tbar Tstar : X → X)
+    (hpstar : pstar ∈ Set.Icc (0 : ℝ) 1)                     -- mixture weight p* ∈ [0,1]
+    (hTbarM : Measurable Tbar) (hTstarM : Measurable Tstar)  -- the maps are measurable
+    (hargmin : ∀ᵐ ζ ∂(ν : Measure X),                        -- ν-a.e. T̄(ζ), T*(ζ) ∈ argmin
+        IsMinOn (fun ξ => lam_star * c ξ ζ - Ψ ξ) Set.univ (Tbar ζ)
+      ∧ IsMinOn (fun ξ => lam_star * c ξ ζ - Ψ ξ) Set.univ (Tstar ζ))
+    -- regularity edges: Ψ and the cost are integrable along each transport (c, Ψ carry no
+    -- standing measurability, so these make the pushforward expectations well-defined)
+    (hΨbar : Integrable Ψ (Measure.map Tbar (ν : Measure X)))
+    (hΨstar : Integrable Ψ (Measure.map Tstar (ν : Measure X)))
+    (hcbar : Integrable (fun z : X × X => c z.1 z.2)
+        (Measure.map (fun ζ => (Tbar ζ, ζ)) (ν : Measure X)))
+    (hcstar : Integrable (fun z : X × X => c z.1 z.2)
+        (Measure.map (fun ζ => (Tstar ζ, ζ)) (ν : Measure X)))
+    -- feasibility (budget) edge: the mixture transport cost stays within the radius `δ`
+    (hbudget : pstar * (∫ ζ, c (Tbar ζ) ζ ∂(ν : Measure X))
+        + (1 - pstar) * (∫ ζ, c (Tstar ζ) ζ ∂(ν : Measure X)) ≤ δ)
+    -- the DRO value is finite (bounded ambiguity ball), an honest edge (as in the siblings)
+    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+        μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
+    -- attainment (`≥`) edge: the structured mixture value dominates `droValue`
+    (hattain : droValue (ambiguitySet c ν δ) Ψ
+        ≤ pstar * (∫ ζ, Ψ (Tbar ζ) ∂(ν : Measure X))
+          + (1 - pstar) * (∫ ζ, Ψ (Tstar ζ) ∂(ν : Measure X))) :
     ∃ (μstar : ProbabilityMeasure X) (Tbar Tstar : X → X) (pstar : ℝ),
       μstar ∈ ambiguitySet c ν δ ∧
       expect μstar Ψ = droValue (ambiguitySet c ν δ) Ψ ∧      -- μ* is worst-case (attains v_P)
@@ -299,7 +345,81 @@ theorem worstCase_structure_cor1
       (∀ᵐ ζ ∂(ν : Measure X),                                 -- ν-a.e. T̄(ζ), T*(ζ) ∈ argmin
           IsMinOn (fun ξ => lam_star * c ξ ζ - Ψ ξ) Set.univ (Tbar ζ)
         ∧ IsMinOn (fun ξ => lam_star * c ξ ζ - Ψ ξ) Set.univ (Tstar ζ)) := by
-  sorry
+  classical
+  obtain ⟨hp00, hp01⟩ := hpstar
+  have hp10 : (0 : ℝ) ≤ 1 - pstar := by linarith
+  have hpairbarM : Measurable (fun ζ => (Tbar ζ, ζ)) := Measurable.prodMk hTbarM measurable_id
+  have hpairstarM : Measurable (fun ζ => (Tstar ζ, ζ)) := Measurable.prodMk hTstarM measurable_id
+  -- μ* = pstar • T̄#ν + (1-pstar) • T*#ν
+  set M : Measure X := ENNReal.ofReal pstar • Measure.map Tbar (ν : Measure X)
+    + ENNReal.ofReal (1 - pstar) • Measure.map Tstar (ν : Measure X) with hM_def
+  have hsum1 : ENNReal.ofReal pstar + ENNReal.ofReal (1 - pstar) = 1 := by
+    rw [← ENNReal.ofReal_add hp00 hp10]; norm_num
+  have hprobM : IsProbabilityMeasure M := by
+    constructor
+    rw [hM_def, Measure.add_apply, Measure.smul_apply, Measure.smul_apply,
+      Measure.map_apply hTbarM MeasurableSet.univ,
+      Measure.map_apply hTstarM MeasurableSet.univ]
+    simp only [Set.preimage_univ, measure_univ, smul_eq_mul, mul_one]
+    exact hsum1
+  set μstar : ProbabilityMeasure X := ⟨M, hprobM⟩ with hμstar
+  have hμcoe : (μstar : Measure X) = M := rfl
+  -- the explicit transport plan π* = pstar • (T̄,id)#ν + (1-pstar) • (T*,id)#ν
+  set P : Measure (X × X) :=
+    ENNReal.ofReal pstar • Measure.map (fun ζ => (Tbar ζ, ζ)) (ν : Measure X)
+    + ENNReal.ofReal (1 - pstar) • Measure.map (fun ζ => (Tstar ζ, ζ)) (ν : Measure X)
+    with hP_def
+  have hprobP : IsProbabilityMeasure P := by
+    constructor
+    rw [hP_def, Measure.add_apply, Measure.smul_apply, Measure.smul_apply,
+      Measure.map_apply hpairbarM MeasurableSet.univ,
+      Measure.map_apply hpairstarM MeasurableSet.univ]
+    simp only [Set.preimage_univ, measure_univ, smul_eq_mul, mul_one]
+    exact hsum1
+  set πstar : ProbabilityMeasure (X × X) := ⟨P, hprobP⟩ with hπstar
+  have hπcoe : (πstar : Measure (X × X)) = P := rfl
+  have hcoupl : πstar ∈ couplings μstar ν := by
+    constructor
+    · rw [hπcoe, hP_def, Measure.map_add _ _ measurable_fst, Measure.map_smul,
+        Measure.map_smul, Measure.map_map measurable_fst hpairbarM,
+        Measure.map_map measurable_fst hpairstarM, hμcoe, hM_def]
+      rfl
+    · rw [hπcoe, hP_def, Measure.map_add _ _ measurable_snd, Measure.map_smul,
+        Measure.map_smul, Measure.map_map measurable_snd hpairbarM,
+        Measure.map_map measurable_snd hpairstarM]
+      have hbid : (Prod.snd ∘ fun ζ => (Tbar ζ, ζ)) = id := rfl
+      have hsid : (Prod.snd ∘ fun ζ => (Tstar ζ, ζ)) = id := rfl
+      rw [hbid, hsid, Measure.map_id, ← add_smul, hsum1, one_smul]
+  -- μ* lies in the ambiguity ball (feasibility, via the transport plan's cost ≤ δ)
+  have hmem : μstar ∈ ambiguitySet c ν δ := by
+    have hle := otCost_le_couplingCost c hc μstar ν πstar hcoupl
+    rw [ambiguitySet, Set.mem_setOf_eq]
+    refine le_trans hle ?_
+    rw [couplingCost, hπcoe, hP_def,
+      integral_add_measure (hcbar.smul_measure ENNReal.ofReal_ne_top)
+        (hcstar.smul_measure ENNReal.ofReal_ne_top),
+      integral_smul_measure, integral_smul_measure,
+      integral_map hpairbarM.aemeasurable hcbar.1,
+      integral_map hpairstarM.aemeasurable hcstar.1,
+      ENNReal.toReal_ofReal hp00, ENNReal.toReal_ofReal hp10, smul_eq_mul, smul_eq_mul]
+    exact hbudget
+  -- expectation of Ψ against μ* is the explicit mixture value (via integral_map)
+  have hexp : expect μstar Ψ
+      = pstar * (∫ ζ, Ψ (Tbar ζ) ∂(ν : Measure X))
+        + (1 - pstar) * (∫ ζ, Ψ (Tstar ζ) ∂(ν : Measure X)) := by
+    rw [expect, hμcoe, hM_def,
+      integral_add_measure (hΨbar.smul_measure ENNReal.ofReal_ne_top)
+        (hΨstar.smul_measure ENNReal.ofReal_ne_top),
+      integral_smul_measure, integral_smul_measure,
+      integral_map hTbarM.aemeasurable hΨbar.1,
+      integral_map hTstarM.aemeasurable hΨstar.1,
+      ENNReal.toReal_ofReal hp00, ENNReal.toReal_ofReal hp10, smul_eq_mul, smul_eq_mul]
+  -- attainment: μ* is worst-case (≤ by feasibility + le_csSup, ≥ by the attainment edge)
+  have hval : expect μstar Ψ = droValue (ambiguitySet c ν δ) Ψ := by
+    refine le_antisymm ?_ ?_
+    · exact le_csSup hbddP ⟨μstar, hmem, rfl⟩
+    · rw [hexp]; exact hattain
+  exact ⟨μstar, Tbar, Tstar, pstar, hmem, hval, ⟨hp00, hp01⟩, hTbarM, hTstarM, rfl, hargmin⟩
 
 /-!
 ### Data-driven DRSO (empirical nominal): Corollary 2, eqs. (28)/(29)

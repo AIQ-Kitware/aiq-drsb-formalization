@@ -306,25 +306,32 @@ The **`Drsb` capstone** composes the above:
   (4.19) — the quantity the card measures (§3). The continuous `energy_identity` stays a bare
   `sorry` (count unchanged at 12); the single remaining edge is the Δt→0 SDE limit
   (PROOF_PIPELINE §2).
-- **Data-driven worst-case structure — ✅ PROVED, axiom-clean (2026-07):**
-  `GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29 — the `≤ N+1`-atom empirical
-  worst case). House pattern, §5-safe: `μ*` built as the explicit `K = 2` weighted-Dirac
-  double-sum and **proved** a probability measure, `∈ ambiguitySet` (explicit transport plan +
-  `ForMathlib.OT.otCost_le_couplingCost`), with closed-form `Ψ`-expectation and the printed
-  eq. (29) split-form measure identity; the structured optimizer is **not** hypothesized — only
-  genuinely-weaker ingredient edges are (split index/weight, per-point argmins, a feasibility
-  budget, and one `≥` attainment edge — same `le_antisymm(constructive, one edge)` posture as
-  `MohajerinEsfahaniKuhn2018.worstCase_exists`). Reuses local copies of
-  `isProbabilityMeasure_wsum`/`integral_wsum`/`map_wsum` (→ ForMathlib dedup TODO).
-- **Remaining `sorry`s (8)** are the genuine **T4** frontier:
+- **Worst-case structure — ✅ BOTH GaoKleywegt corollaries PROVED, axiom-clean (2026-07);
+  `GaoKleywegt2023` is now sorry-free:**
+  - `dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29 — the `≤ N+1`-atom empirical worst case):
+    `μ*` built as the explicit `K = 2` weighted-Dirac double-sum; probability measure,
+    `∈ ambiguitySet` (explicit transport plan + `ForMathlib.OT.otCost_le_couplingCost`),
+    closed-form `Ψ`-expectation and the eq. (29) split-form identity all **proved**. Local
+    copies of `isProbabilityMeasure_wsum`/`integral_wsum`/`map_wsum` (→ ForMathlib dedup TODO).
+  - `worstCase_structure_cor1` (Cor 1(ii), eq. 27 — the general-`ν` 2-map transport
+    `μ* = pstar·T̄#ν + (1−pstar)·T*#ν`): same house pattern via `Measure.map` pushforwards +
+    `integral_map` (with **regularity edges** since `c`/`Ψ` carry no standing measurability);
+    2nd marginal `= ν` because `snd∘(T,id)=id`; eq. (27) measure form is `rfl`.
+
+  Both are §5-safe: the structured optimizer is **not** hypothesized — only genuinely-weaker
+  ingredient edges are (mixture weight, measurable a.e.-argmin maps/atoms, feasibility budget,
+  and one `≥` attainment edge — the `le_antisymm(constructive, one edge)` posture shared with
+  `MohajerinEsfahaniKuhn2018.worstCase_exists`).
+- **Remaining `sorry`s (7)** are the genuine **T4** frontier:
   - **SDE/PDE controls (6, `ChenGeorgiouPavon2021`):** `energy_identity` (Girsanov),
     `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB),
     `dynamic_eq_static_SB` (Léonard gluing), `optimal_coupling_factorization`. No Mathlib
     SDE / path-measure theory.
-  - **Worst-case *structure* (2):** `GaoKleywegt2023.worstCase_structure_cor1` +
-    `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`. Need OT measurable-selection /
-    worst-case-measure construction. (`dataDriven_strongDuality_cor2i`, `worstCase_program`,
-    `worstCase_exists`, `dataDriven_worstCase_cor2ii` are now all PROVED.)
+  - **Worst-case *structure* (1):** `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`
+    (Thm 4.2, the data-driven duality *equality*). Need OT measurable-selection /
+    worst-case-measure construction. (All of `dataDriven_strongDuality_cor2i`,
+    `worstCase_program`, `worstCase_exists`, `dataDriven_worstCase_cor2ii`,
+    `worstCase_structure_cor1` are now PROVED.)
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Per the user (2026-07): **no Fable** — decompose each remaining target into its natural
   subproblems and prove step-by-step with the thinking budget turned up. The SDE/PDE and

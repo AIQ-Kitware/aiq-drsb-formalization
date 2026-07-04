@@ -47,7 +47,7 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (6)
+## 2. Ranked remaining `sorry`s (5)
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
@@ -63,8 +63,12 @@ capstones, but the cards do not depend on it.
 > (Cor 2(ii)/1(ii), eqs. 29/27) are also now PROVED (same house pattern; see §T4 note) —
 > **`GaoKleywegt2023` is now sorry-free**. `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`
 > (Thm 4.2) is likewise PROVED (see §T4 note) — **`MohajerinEsfahaniKuhn2018` is now sorry-free
-> too**. The **6** remaining `sorry`s are the genuine T4 frontier, **all in `ChenGeorgiouPavon2021`**:
-> the SDE/PDE/path-measure controls (Girsanov, HJB, Léonard gluing) — no Mathlib SDE theory exists.
+> too**. `ChenGeorgiouPavon2021.dynamic_eq_static_SB` (Léonard dynamic⇄static SB) is now PROVED in
+> one direction via the **new KL data-processing inequality** (see §T4 note + §3). The **5** remaining
+> `sorry`s are all in `ChenGeorgiouPavon2021`: `energy_identity` (continuous Girsanov) and four
+> **under-specified** HJB/factorization statements (`optimal_control_eq_grad_log` / `_sigma_grad_log`
+> / `_grad_value`, `optimal_coupling_factorization` — each equates `u*`/`dens*` to an *arbitrary
+> passed-in operator* with no linking hypothesis, so they need statement work, not a proof).
 
 ### On the card critical path (do these first)
 
@@ -211,7 +215,26 @@ Fable ticket or a focused session.
 **SDE / PDE / path-measure** (no Mathlib SDE theory):
 `ChenGeorgiouPavon2021.{energy_identity (Girsanov), optimal_control_eq_grad_log,
 optimal_control_eq_sigma_grad_log, optimal_control_eq_grad_value (HJB),
-dynamic_eq_static_SB (Léonard gluing), optimal_coupling_factorization}`.
+optimal_coupling_factorization}`. (`dynamic_eq_static_SB` was in this block — now PROVED in
+one direction, see below.)
+
+> **`dynamic_eq_static_SB` (Léonard dynamic⇄static SB) — PROVED one direction (2026-07,
+> house pattern, axiom-clean) via a NEW KL data-processing inequality.** `le_antisymm(hglue, DPI)`.
+> The `staticSBValue ≤ schrodingerBridgeValueKL` direction is **genuinely proved**: the endpoint
+> projection `e = (ω↦(ω₀,ω₁))` sends every feasible path law `P` to a coupling `e#P ∈ Π(ρ₀,ρ₁)`
+> (marginals from feasibility via `Measure.map_map`), and *coarse-graining cannot increase
+> relative entropy* — `klReal(e#P ‖ endpointLaw) ≤ klReal(P ‖ R)` — by the **new**
+> `ForMathlib.MeasureTheory.toReal_klDiv_map_le` (§3). Honest edges `hac` (`P ≪ R`), `hfin`
+> (finite KL), `hne` (nonempty). The reverse (**gluing** reference bridges onto a coupling to
+> reconstruct a path law of equal KL — Léonard Prop 2.3, path reconstruction absent from Mathlib)
+> is isolated to the single edge `hglue`. This is the first genuine crack in the SDE frontier:
+> a bare-`sorry` T4 theorem turned into `le_antisymm(edge, proved)`, and it forced a real Mathlib
+> contribution (KL DPI). **NB the four `optimal_control_*` / `optimal_coupling_factorization`
+> `sorry`s are structurally different — UNDER-SPECIFIED** (each concludes `u* = <expr in an
+> arbitrary passed-in `grad`/`lam`/`φ`/`p`>` with no hypothesis linking them; false for e.g.
+> `grad := 0`). Honestly closing them needs the SDE *verification theorem* as an added hypothesis
+> (statement work / TX), not a proof against the current statements. `energy_identity`'s discrete
+> layer is proved (below); the continuous form needs Girsanov.
 
 > **`energy_identity` — discrete layer PROVED (2026-07, vendored external proof).** The
 > continuous `energy_identity` (CGP (4.19)) is still a bare `sorry` (needs multi-D
@@ -254,6 +277,7 @@ surveying existing AI/human Lean proofs** — are in **[`FOUNDATIONS.md`](FOUNDA
 | `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost_restrict` — the **Ξ-restricted** Lagrangian bound (`P(Ξ)`-supported source ⇒ conjugate `sup` over `Ξ`) | ✅ **proved** (axiom-clean; same proof, `integral_mono_ae` since the pointwise bound holds `π`-a.e. on the `Ξ`-supported marginal) | yes — the entropic/Ξ-restricted Kantorovich variant | (done) | — |
 | `OptimalTransport.WeakDuality.expect_kernel_le_lam_sinkhornBudget_add_logPartition` — the **entropic (Sinkhorn) weak-duality kernel** (per-point DV integrated over `p₀`) | ✅ **proved** (axiom-clean; the entropic analogue, paper-agnostic) | yes — no entropic-DRO duality in Mathlib | (done) | — |
 | `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`matrix_scaling_exists` + `sinkhorn_potentials_exist`, with mass-conservation hyp) | ✅ **proved** (axiom-clean; log-domain min, no Brouwer/Birkhoff needed) | yes — Sinkhorn scaling absent from Mathlib | T3 | (done) |
+| `MeasureTheory.KLDataProcessing.toReal_klDiv_map_le` — **data-processing inequality for KL** (`KL(g#μ‖g#ν) ≤ KL(μ‖ν)`) | ✅ **proved** (axiom-clean; conditional Jensen on `klFun` + `toReal_rnDeriv_map` = condExp of the RN-derivative + `integral_condExp`) | **yes — Mathlib has the KL chain rule but no DPI / f-divergence monotonicity** | T3 | (done) |
 | Chain 1 roots (Sion minimax, Fenchel conjugate/duality, Kantorovich) · Chain 3 (Perron–Frobenius) | 🔜 queued (see FOUNDATIONS.md) | ❌ absent | L–XL | survey → Fable |
 
 **Extraction rule.** When a `sorry` is a *general* fact (no DRSB/paper-specific
@@ -332,6 +356,14 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
 ---
 
 ### Change log
+- **2026-07 (first crack in the SDE frontier; KL data-processing proved):** count **6 → 5**.
+  Proved `ChenGeorgiouPavon2021.dynamic_eq_static_SB` (Léonard dynamic⇄static SB) in one direction
+  via a **new axiom-clean ForMathlib contribution** `MeasureTheory.toReal_klDiv_map_le` — the KL
+  **data-processing inequality** (a genuine Mathlib gap: no DPI / f-divergence file), proved by
+  conditional Jensen on the convex `klFun` (`toReal_rnDeriv_map` gives the pushforward RN-derivative
+  as a conditional expectation). The gluing (path-reconstruction) direction is isolated to an edge.
+  The remaining 5 CGP sorries are `energy_identity` (continuous Girsanov) + 4 under-specified
+  HJB/factorization statements (need statement work, not proofs).
 - **2026-07 (Thm 4.2 landed + statement correction; MohajerinEsfahaniKuhn2018 sorry-free):**
   count **7 → 6**. Proved `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2)
   axiom-clean via `le_antisymm(weak, attainment)`, weak `≤` from the **new**

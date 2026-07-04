@@ -287,3 +287,22 @@ sharply-named, disjoint Mathlib gaps**: (1) Kolmogorov extension for dependent f
 continuum reference measure), and (2) the Itô/Girsanov stack (→ the feedback-drift density). Both are
 multi-file Mathlib-scale ports; neither is faked, and the analytic + discrete Cameron–Martin layers
 around them are now fully proved and axiom-clean.
+
+### Session 4 addendum 5 — ≤-half core generalized: `hfin`-free ℝ≥0∞ convergence extracted
+Factored `klDiv_map_tendsto_toReal` into its genuinely more general `ℝ≥0∞` core:
+- `ForMathlib…klDiv_map_tendsto` (NEW, axiom-clean, **no finiteness hypothesis**):
+  `klDiv (μ.map gₙ) (ν.map gₙ) → klDiv μ ν` in `ℝ≥0∞` whenever `μ ≪ ν` and `comap gₙ` generates
+  `m𝓧`. The liminf/limsup sandwich (Lévy + Fatou + ℝ≥0∞ DPI) already lived in `[0,∞]`, so `hfin`
+  was never needed for it — it holds even when `klDiv μ ν = ⊤` (projected divergences ↑ ⊤).
+- `klDiv_map_tendsto_toReal` is now the one-line `toReal` corollary (adds `hfin` only to push
+  through `ENNReal.continuousAt_toReal`). Downstream `energy_eq_klReal_of_projections` unchanged.
+
+This is the right generality for the singular/infinite-energy continuum case (where `μ ⊥ ν` and
+both KL and the energy are `⊤`). Full build green (8598).
+
+Also scoped (and honestly declined) the concrete edge-free instance on `infinitePiNat` Gaussians:
+`klDiv_map_tendsto` needs `μ ≪ ν`, which for infinite Gaussian products is Kakutani's dichotomy
+(`≪` iff `∑ cₙ² < ∞`, else `⊥`) — and the pin has **no** infinite-product absolute-continuity /
+Kakutani lemma (grep-confirmed; only Riesz–Markov–Kakutani, unrelated). So even a concrete
+finitely-supported instance needs an infinite-product-ac lemma that isn't there. A THIRD named,
+disjoint pin gap (after Kolmogorov extension and Itô/Girsanov) — not faked, recorded here.

@@ -225,17 +225,21 @@ projections capture all of the KL" — and it is **Itô-free**: it is Lévy's up
 `Mₙ = ν[dμ/dν | ℱ n]`, plus Fatou (`lintegral_liminf_le`) for `KL ≤ liminf` and the `ℝ≥0∞`
 data-processing inequality (`klDiv_map_le`) for `limsup ≤ KL`. Combined with the DPI, it turns
 `ChenGeorgiouPavon2021.energy_le_klReal_of_projections` from a `≥` bound into a full `=`, modulo only
-the (Itô-flavoured) marginal-KL convergence edge — see `ROADMAP_ENERGY_IDENTITY.md`. -/
-theorem klDiv_map_tendsto_toReal
+the (Itô-flavoured) marginal-KL convergence edge — see `ROADMAP_ENERGY_IDENTITY.md`.
+
+This `ℝ≥0∞` form needs **no finiteness hypothesis** — the liminf/limsup sandwich lives in `[0,∞]`,
+so it holds even when `klDiv μ ν = ⊤` (then the projected divergences increase to `⊤`). The
+finite/real-valued corollary `klDiv_map_tendsto_toReal` below adds `hfin` only to pass through
+`ENNReal.toReal`. -/
+theorem klDiv_map_tendsto
     (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
-    (hμν : μ ≪ ν) (hfin : klDiv μ ν ≠ ⊤)
+    (hμν : μ ≪ ν)
     {𝓨' : ℕ → Type*} [hm𝓨' : ∀ n, MeasurableSpace (𝓨' n)]
     (g : ∀ n, 𝓧 → 𝓨' n) (hg : ∀ n, Measurable (g n))
     (ℱ : MeasureTheory.Filtration ℕ m𝓧)
     (hℱ : ∀ n, ℱ n = (hm𝓨' n).comap (g n))
     (hgen : ⨆ n, ℱ n = m𝓧) :
-    Tendsto (fun n => (klDiv (μ.map (g n)) (ν.map (g n))).toReal) atTop
-      (nhds (klDiv μ ν).toReal) := by
+    Tendsto (fun n => klDiv (μ.map (g n)) (ν.map (g n))) atTop (nhds (klDiv μ ν)) := by
   classical
   set F₀ : 𝓧 → ℝ := fun a => (μ.rnDeriv ν a).toReal with hF₀
   have hF₀int : Integrable F₀ ν := Measure.integrable_toReal_rnDeriv
@@ -262,21 +266,35 @@ theorem klDiv_map_tendsto_toReal
     (measurable_klFun.comp
       (stronglyMeasurable_condExp.mono (ℱ.le n)).measurable).ennreal_ofReal
   -- ℝ≥0∞ convergence of the divergences via a liminf/limsup sandwich
-  have htends : Tendsto (fun n => klDiv (μ.map (g n)) (ν.map (g n))) atTop
-      (nhds (klDiv μ ν)) := by
-    simp_rw [hbn]; rw [hM]
-    refine tendsto_of_le_liminf_of_limsup_le ?_ ?_
-    · -- Fatou: `∫⁻ klFun(F₀) = ∫⁻ liminf klFun(Mₙ) ≤ liminf ∫⁻ klFun(Mₙ)`
-      calc ∫⁻ x, ENNReal.ofReal (klFun (F₀ x)) ∂ν
-          = ∫⁻ x, liminf (fun n => ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x))) atTop ∂ν := by
-            refine lintegral_congr_ae ?_
-            filter_upwards [hklconv] with x hx using hx.liminf_eq.symm
-        _ ≤ liminf (fun n => ∫⁻ x, ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x)) ∂ν) atTop :=
-            lintegral_liminf_le hmeas_n
-    · -- each term `≤ KL` by the ℝ≥0∞ data-processing inequality
-      refine limsup_le_of_le ?_ (Eventually.of_forall fun n => ?_)
-      · exact isCobounded_le_of_bot
-      · rw [← hbn n, ← hM]; exact klDiv_map_le μ ν hμν (g n) (hg n)
-  exact (ENNReal.continuousAt_toReal hfin).tendsto.comp htends
+  simp_rw [hbn]; rw [hM]
+  refine tendsto_of_le_liminf_of_limsup_le ?_ ?_
+  · -- Fatou: `∫⁻ klFun(F₀) = ∫⁻ liminf klFun(Mₙ) ≤ liminf ∫⁻ klFun(Mₙ)`
+    calc ∫⁻ x, ENNReal.ofReal (klFun (F₀ x)) ∂ν
+        = ∫⁻ x, liminf (fun n => ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x))) atTop ∂ν := by
+          refine lintegral_congr_ae ?_
+          filter_upwards [hklconv] with x hx using hx.liminf_eq.symm
+      _ ≤ liminf (fun n => ∫⁻ x, ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x)) ∂ν) atTop :=
+          lintegral_liminf_le hmeas_n
+  · -- each term `≤ KL` by the ℝ≥0∞ data-processing inequality
+    refine limsup_le_of_le ?_ (Eventually.of_forall fun n => ?_)
+    · exact isCobounded_le_of_bot
+    · rw [← hbn n, ← hM]; exact klDiv_map_le μ ν hμν (g n) (hg n)
+
+/-- **Real-valued martingale-convergence identity for KL** — the `toReal` corollary of
+`klDiv_map_tendsto`, adding `hfin : klDiv μ ν ≠ ⊤` only to push the `ℝ≥0∞` convergence through
+`ENNReal.toReal` (continuous at the finite point). This is the form wired into
+`ChenGeorgiouPavon2021.energy_eq_klReal_of_projections`. -/
+theorem klDiv_map_tendsto_toReal
+    (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμν : μ ≪ ν) (hfin : klDiv μ ν ≠ ⊤)
+    {𝓨' : ℕ → Type*} [hm𝓨' : ∀ n, MeasurableSpace (𝓨' n)]
+    (g : ∀ n, 𝓧 → 𝓨' n) (hg : ∀ n, Measurable (g n))
+    (ℱ : MeasureTheory.Filtration ℕ m𝓧)
+    (hℱ : ∀ n, ℱ n = (hm𝓨' n).comap (g n))
+    (hgen : ⨆ n, ℱ n = m𝓧) :
+    Tendsto (fun n => (klDiv (μ.map (g n)) (ν.map (g n))).toReal) atTop
+      (nhds (klDiv μ ν).toReal) :=
+  (ENNReal.continuousAt_toReal hfin).tendsto.comp
+    (klDiv_map_tendsto μ ν hμν g hg ℱ hℱ hgen)
 
 end ForMathlib.MeasureTheory

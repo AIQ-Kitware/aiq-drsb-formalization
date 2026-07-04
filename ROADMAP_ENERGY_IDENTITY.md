@@ -180,6 +180,20 @@ Neither is faked; both are multi-file Mathlib-scale ports. Everything around the
 Cameron–Martin layer, the projection-exhaustion martingale theorem, the DPI `≥`-half, and now the
 Riemann-quadrature limit — is proved and axiom-clean.
 
+**Plan A(i) — the embedding edge — DONE (2026-07-04, `ForMathlib/MeasureTheory/PathEmbedding.lean`).**
+The abstract measurable-embedding edge `e : Path X ↪ (ℕ→ℝ)` of `energy_eq_klReal_via_embedding` is now
+a **theorem** for the continuous-path model, not a hypothesis. `exists_measurableEmbedding_nat_of_separating`
+(engine: standard-Borel + countable separating measurable family ⇒ measurable embedding into `ℕ→ℝ`
+with measurable left inverse, via Lusin–Souslin `Measurable.measurableEmbedding` +
+`MeasurableEmbedding.invFun`); `exists_measurableEmbedding_nat_continuousMap` (the concrete `C(T,ℝ)`
+instance, `φ n = eval at denseSeq T n`); `toReal_klDiv_map_frestrictLe_tendsto_of_separating` /
+`eq_toReal_klDiv_of_separating_tendsto` (absorb the edge into the KL-limit); and
+`eq_toReal_klDiv_continuousMap_of_tendsto` (the continuum identity for `C(T,ℝ)` laws, embedding edge
+gone, only `hconv` + regularity left). **No vendor needed** — Mathlib's `ContinuousMap` instances
+already make `C(T,ℝ)` Polish; only a `BorelSpace C(T,ℝ)` is taken as a satisfiable hypothesis. All
+axiom-clean. Remaining for a *fully closed* continuum identity: `hconv` (gap #2 below) and re-typing
+`SBData.Path` to `C([0,1],X)` so these feed `Drsb` directly.
+
 **Bottom line:** the continuum `hCM` is a known Girsanov identity that cannot be discharged in Lean
 until the Itô-integral / stochastic-analysis stack exists in (or is ported into) Mathlib. Until
 then it stays an explicit, non-vacuous edge whose discrete instance is proved — the honest state.

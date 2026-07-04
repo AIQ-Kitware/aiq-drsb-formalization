@@ -21,6 +21,10 @@ One file per proposed Mathlib destination area:
   always-true `≤` half of OT-DRO duality). STAGING (`sorry`); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
   existence (discrete Schrödinger potentials). STAGING (`sorry`); see `FOUNDATIONS.md`.
+* `ForMathlib.MeasureTheory.PathEmbedding` — a standard-Borel space with a countable
+  point-separating measurable family embeds measurably into `ℕ→ℝ` with a measurable left
+  inverse (Lusin–Souslin); the concrete continuous-path (`C(T,ℝ)`) instance and the resulting
+  KL-limit that discharges the embedding edge of the continuum energy identity. PROVED.
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.Normalization
@@ -34,3 +38,6 @@ import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
 import ForMathlib.KolmogorovExtension.KolmogorovExtension
 -- The continuum reference path law R (Wiener measure), built via the vendored extension.
 import ForMathlib.MeasureTheory.WienerMeasure
+-- Measurable embedding of a standard-Borel (continuous-)path space into `ℕ→ℝ` with measurable left
+-- inverse; discharges the embedding edge of the continuum energy identity for continuous-path models.
+import ForMathlib.MeasureTheory.PathEmbedding

@@ -353,3 +353,42 @@ whereas the old `hgen` on `ℝ→X` was unsatisfiable. Itô-free. Remaining for 
 identity: (i) realise `e` concretely for the DRSB continuous-path model (needs the standard-Borel
 continuous-path structure — a further vendor from brownian-motion's Continuity/Choquet), and (ii)
 `hconv` for the controlled law (still the Girsanov/gap-#2 content for feedback drift).
+
+### Session 4 addendum 8 — plan A(i) DONE: the embedding edge is now a THEOREM (no vendor needed)
+Item (i) above turned out **not** to need a brownian-motion vendor at all — Mathlib already has every
+piece, they just had to be assembled. New module `ForMathlib/MeasureTheory/PathEmbedding.lean`
+(all axiom-clean, `[propext, Classical.choice, Quot.sound]`, full build green 8667 jobs):
+- `exists_measurableEmbedding_nat_of_separating` — **the engine.** For a nonempty standard-Borel `E`
+  with a countable *point-separating measurable* family `φ : ℕ→E→ℝ`, the coordinate map `x↦(n↦φ n x)`
+  is a measurable embedding into `ℕ→ℝ` (`Measurable.measurableEmbedding`, Lusin–Souslin — needs only
+  `StandardBorelSpace E` + `CountablySeparated (ℕ→ℝ)`, both inferred) with a measurable left inverse
+  (`MeasurableEmbedding.{invFun, measurable_invFun, leftInverse_invFun}`, needs `[Nonempty E]`). Pure
+  measurable-space content, no topology.
+- `exists_measurableEmbedding_nat_continuousMap` — **the concrete continuous-path instance.** For `T`
+  compact / locally-compact / second-countable / nonempty, `C(T,ℝ)` (sup-norm) is separable
+  (`ContinuousMap.instSeparableSpace`) + complete (`…instCompleteSpaceOfCompactlyCoherentSpace`, via
+  `CompactSpace→WeaklyLocallyCompact→CompactlyCoherentSpace`) metric ⇒ Polish ⇒ (with the assumed
+  Borel σ-algebra) standard Borel; dense-time evaluation `f↦f(denseSeq T n)` is measurable
+  (`continuous_eval_const`) and point-separating (`Continuous.ext_on` + `DFunLike.coe_injective`), so
+  the engine applies. **This is the `e`/`g` the abstract edge asked for, now constructed.**
+- `toReal_klDiv_map_frestrictLe_tendsto_of_separating` — **absorbs the embedding edge into a KL-limit
+  theorem.** Composes the engine with `toReal_klDiv_map_eq_of_leftInverse` (embedding preserves KL) +
+  `klDiv_map_tendsto_toReal` (Lévy, `hgen` from `iSup_comap_frestrictLe_eq_pi` on `ℕ→ℝ`): for `P≪R`
+  finite-KL on such an `E`, the grid-projected divergences (first `n+1` coords of `x↦(n↦φ n x)`)
+  converge to `KL(P‖R)`. `eq_toReal_klDiv_of_separating_tendsto` is the `=` corollary vs an energy
+  edge `L`.
+- `eq_toReal_klDiv_continuousMap_of_tendsto` — **the continuum energy identity for the continuous-path
+  model with the embedding edge DISCHARGED.** Same statement shape as
+  `energy_eq_klReal_via_embedding` but the measurable-embedding hypothesis is *gone* (proved
+  internally from dense-time evaluation); only `hconv` (finite-dim marginal KLs → energy, the
+  Girsanov/gap-#2 content) and regularity (`hac`/`hfin`) remain.
+
+Key discovery correcting addendum 7's plan: **no standard-Borel `C(T,ℝ)` TYPE needs building/vendoring
+— Mathlib's `ContinuousMap` topology instances (SecondCountableSpace.lean, Compact.lean,
+CompactConvergence.lean) already make `C(T,ℝ)` Polish**; only a `MeasurableSpace`/`BorelSpace C(T,ℝ)`
+is absent, and that is taken as a satisfiable *hypothesis* (`= borel _`; the same instance
+`RemyDegenne/brownian-motion` adds locally — cited `DRSB-INDEP`) rather than an orphan instance. So
+plan A(i) is complete. The ONLY continuum content still open is `hconv` for the controlled law
+(gap #2, feedback-drift Girsanov density — genuinely Itô-blocked), plus the modeling step of
+re-typing DRSB's `SBData.Path` from the placeholder `ℝ→X` to `C([0,1],X)` to feed these lemmas
+into `Drsb` directly (roadmap step 3).

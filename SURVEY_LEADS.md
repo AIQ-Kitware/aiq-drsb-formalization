@@ -5,9 +5,9 @@ Zulip threads, papers) that may supply proofs for the DRSB foundational chains
 ([`FOUNDATIONS.md`](FOUNDATIONS.md)). Kept so we can **follow up and re-check for updates
 later** — many of these are moving targets (open PRs, active repos).
 
-**Last swept: 2026-07-03** (multiple web-survey passes by the coordinator; provenance
-uneven; still not exhausted — next layer is generated-proof corpora + declaration search
-indices, below).
+**Last swept: 2026-07-04** (targeted re-survey for the three continuum energy-identity gaps —
+see [§ Continuum energy-identity: the three named gaps](#continuum-energy-identity-the-three-named-gaps-re-survey-2026-07-04) — plus a survey of `rjwalters/lean-genius`; prior full
+sweep 2026-07-03. Provenance uneven; corpus-mining frontier still open, below).
 
 > ## ⚖️ Vendoring & attribution policy (READ before pulling in ANY external proof)
 > Nothing here is vendored yet. When we DO adapt/copy an external proof, provenance is
@@ -100,10 +100,49 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 
 | Lead | Link | Note |
 |---|---|---|
-| `RemyDegenne/brownian-motion` 🔁 ✅AUDITED 2026-07-03 | https://github.com/RemyDegenne/brownian-motion | **Apache-2.0**. AUDITED: Brownian construction complete (Gaussian/Kolmogorov/Chentsov); Itô in progress; **NO Girsanov, NO SDE-existence** (grep-confirmed). Foundational only — not directly usable for our Chain-4 controls yet. |
+| ⭐ `RemyDegenne/brownian-motion` 🔁 ✅RE-AUDITED 2026-07-04 | https://github.com/RemyDegenne/brownian-motion | **Apache-2.0**. **RE-AUDIT (2026-07-04, for continuum gap #1):** README confirms it **constructs the projective family of Gaussians AND its projective limit via the Kolmogorov extension theorem**, giving a **full Brownian measure on `ℝ≥0`-indexed path space** — the exact piece the pinned Mathlib lacks (Mathlib's `Probability.BrownianMotion.GaussianProjectiveFamily` proves the family consistent but says the extension "is not in Mathlib yet"). Results are **"now migrating to Mathlib"** — so **gap #1 (Kolmogorov extension → continuum reference measure) is a *vendor / wait-for-upstream*, NOT a from-scratch port.** Itô "in progress" (building toward Itô's lemma); still **NO Girsanov, no KL** (gap #2 remains open). **Re-check before Phase-2 continuum work** — this may already be in the Mathlib master ahead of our pin `476fb97b62`. |
 | ⭐ `raphaelrrcoelho/formal-mathfin` 🔁 ✅AUDITED 2026-07-03 | https://github.com/raphaelrrcoelho/formal-mathfin | **Apache-2.0** (reusable) · **AUDITED (survey note was badly stale — it is NOT immature):** 227 files, ~45k lines, **build-enforced axioms-clean** (`AxiomAudit.lean` `#guard_msgs`; the only real `sorry` is one càdlàg-modification lemma). **Full continuous stochastic-analysis stack**: Itô integral + Itô formula (general `ItoIntegralProcessGeneral`, `ItoFormulaUnrestricted`, L² isometry, local martingales, quadratic variation), **`SDEExistence.lean`** (Picard–Banach existence/uniqueness — but **scalar 1-D**), **`Girsanov.lean`/`GaussianGirsanov.lean`** (but **Black–Scholes-specific**, `bs_discounted_isQMartingale`), `FeynmanKacHeatEquation.lean`, `ChangeOfMeasure`/`MarkovPathMeasure`, and `ConvexDuality`/`SuperhedgingDuality`/`ConvexSeparation`. **Scope caveat:** 1-D / finance-flavoured, and **no relative-entropy/KL** (grep-empty) — so it does NOT drop-in-close our multi-D Schrödinger-bridge controls (`energy_identity` needs KL between path measures). But it is the **real Itô/SDE foundation** to refound `ChenGeorgiouPavon2021`'s abstract `SBData` on, and `ConvexDuality` may feed Chain-1. Likely AI-assisted (45k lines, fast cadence). |
 | Brownian motion in Lean (paper) | https://arxiv.org/abs/2511.20118 | construction of Brownian motion |
 | Verified math-finance library (paper) | https://arxiv.org/abs/2606.01356 | L2 Itô integral, risk-neutral pricing measure |
+
+## Continuum energy-identity: the three named gaps (re-survey 2026-07-04)
+
+Proving the DRSB continuum energy identity `D(P^{u,ρ₀}‖R) = D(ρ₀‖ρ₀^W) + 𝔼[∫₀¹ ½‖u‖²]` (CGP 4.19)
+past its Euler–Maruyama instance is now walled by **three sharply-named, disjoint missing Mathlib
+pieces** (everything around them — discrete Cameron–Martin, KL DPI, the projection-exhaustion
+martingale theorem `ForMathlib.klDiv_map_tendsto`, and the Riemann-quadrature limit
+`ForMathlib.tendsto_emEnergy_sampled` — is proved & axiom-clean). Were these anticipated at survey
+time? Two of three; here is the mapping so we don't re-derive the wall each session:
+
+| Gap | Needed for | Anticipated 2026-07-03? | Status after re-survey | Lead / action |
+|---|---|---|---|---|
+| **(1) Kolmogorov extension for dependent projective families** | the continuum reference path measure on `ℝ→X` | Partially (on radar via `brownian-motion`, but not called out as the reference-measure blocker) | **Likely SOLVED upstream** — `RemyDegenne/brownian-motion` (Apache-2.0) has the projective-limit/Kolmogorov-extension Brownian measure, "migrating to Mathlib" | **Re-check Mathlib master + vendor from `brownian-motion`.** Reclassify: *vendor/wait*, not a multi-session build. |
+| **(2) Itô / Girsanov stack** | the feedback-drift path-measure density `dP^u/dR` (a stochastic exponential) | **Yes** — audited `formal-mathfin` (1-D/finance Girsanov, no KL) + `brownian-motion` (Itô in progress) | Still open (both sources 1-D and/or KL-free) | Port `formal-mathfin` Itô/SDE → multi-D + add KL; the genuine multi-session project. |
+| **(3) Infinite-product absolute continuity (Kakutani dichotomy)** | any *concrete* infinite-dimensional instance (`∏ N(cₙ,1) ≪ ∏ N(0,1)` iff `∑cₙ²<∞`) | **No** — new; only surfaced when we tried the `infinitePiNat` concrete route this session | Open; **no known Lean source** (pin has only Riesz–Markov–Kakutani, unrelated) | Add to query terms; author ourselves or find a Hellinger-integral / Kakutani-dichotomy lead. |
+
+**"We can always upgrade the Mathlib pin" — does it close any gap? (checked against master 2026-07-04).**
+Our pin is `476fb97b62` (2026-06-11); master moves fast, so re-check before Phase 2. But as of the
+master check today, **a pin bump alone closes none of the three yet**:
+- **Gap #1** — master's `Probability/BrownianMotion/GaussianProjectiveFamily.lean` *still* says Kolmogorov
+  extension "is not in Mathlib yet"; `MeasureTheory/Constructions/` has only the `IsProjectiveLimit`
+  predicate (`Projective.lean`) + the premeasure content (`ProjectiveFamilyContent.lean`) + **the newly
+  present `ClosedCompactCylinders.lean`** — the *tightness/compactness ingredient* for the extension. So
+  it is **actively being assembled upstream but not landed.** Action: **watch master and bump the pin the
+  moment the extension theorem lands** (cheapest path); if we need it sooner, vendor from
+  `RemyDegenne/brownian-motion` (Apache-2.0, already has it). This is the gap most likely to close by
+  upgrade in the near term.
+- **Gap #2 (Itô/Girsanov)** — `Mathlib/Probability` on master has **no** Girsanov / stochastic-integral /
+  Itô file. Upgrade won't help; still the multi-session port.
+- **Gap #3 (Kakutani)** — not on master (no Hellinger / infinite-product-ac declaration). Upgrade won't help.
+
+So the standing posture: **re-check master + upgrade opportunistically at Phase-2 start (gap #1 first),
+and vendor from `brownian-motion` only if upstream lags.** Bumping the pin also risks breaking our proved
+`ForMathlib` layer, so do it deliberately (rebuild + `#print axioms` re-verify), not reflexively.
+
+### `rjwalters/lean-genius` — surveyed 2026-07-04 (NEGATIVE for our chains; collaboration lead)
+| Lead | Link | Note |
+|---|---|---|
+| `rjwalters/lean-genius` 🔁 ✅SURVEYED 2026-07-04 | https://github.com/rjwalters/lean-genius | **Research *platform* (open-problem attack surface: Erdős, irrationality, fixed-point, Yang–Mills), not a probability library.** 5,679 `.lean` files. **License: mostly per-file Apache-2.0** (headers "Copyright (c) 2026 Lean Genius / RJ Walters … Released under Apache 2.0"; some ported-from-DeepMind-AlphaProof with their own attribution) — **but NO top-level `LICENSE` file** (several headers say "as described in the file LICENSE", which is absent → flag when collaborating). **NEGATIVE for all three gaps and for every theorem we've proved:** grep-empty on `girsanov`, `ito`, `klDiv`, `condExp`/`martingale`, `gaussian`, `riemann`, `DPI`; `kakutani`→ 152× the *fixed-point* theorem, `kolmogorov`→ SLLN/complexity, `cameron`→ Cameron–*Erdős*, `brownian`→ a local first-passage `BrownianMotion` struct in `BallotProblemOQ02OQ02OQ05.lean` (hitting-time measurability, Karatzas–Shreve). **Only genuine neighbour:** `Proofs/AntitoneIntegralSumComparison.lean` (`integral_sandwich`) — the monotone integral-test sandwich, itself a thin wrapper of Mathlib `AntitoneOn.sum_le_integral`/`integral_le_sum`; cross-referenced from our `ForMathlib…tendsto_equispaced_riemannSum` docstring as related work. **Collaboration:** maintainer **RJ Walters** (`rjwalters`) is a desirable future collaborator on navigable AI-proof webs — no reuse yet, but keep on the radar and attribute if we ever do. |
 
 ## Declaration search engines (find hidden supporting lemmas — semantic, not name-match)
 
@@ -145,6 +184,8 @@ Kantorovich · Wasserstein · optimal transport · coupling · cTransform · Lip
 Sinkhorn · KLProjection · matrix scaling
 Perron Frobenius · Collatz Wielandt · primitive matrix
 Feynman Kac · Girsanov · Ito
+Kolmogorov extension · projective limit · IsProjectiveLimit · cylinder measure
+Kakutani dichotomy · infinite product measure · mutual singularity · Hellinger integral · equivalence of Gaussian measures
 ```
 
 ## Mathlib PR search recipes (what actually worked)

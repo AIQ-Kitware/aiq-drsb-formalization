@@ -337,7 +337,21 @@ theorem klDiv_emShift_eq_emEnergy {ι : Type*} [Fintype ι] {N : ℕ} {Δt : ℝ
 `g : ℝ → ℝ`, the `n`-point left Riemann sum on `[0,1]` with nodes `k/n` converges to
 `∫₀¹ g`.  Elementary proof from uniform continuity of `g` on the compact `[0,1]`: the error
 is `∑ₖ ∫_{k/n}^{(k+1)/n} (g(k/n) − g t) dt`, each integrand bounded by the modulus of
-continuity at scale `1/n`, so the total error is `≤ ε/2` once `1/n < δ(ε)`. -/
+continuity at scale `1/n`, so the total error is `≤ ε/2` once `1/n < δ(ε)`.
+
+**Related work (Mathlib cousins — none reused; the proof above is self-contained).** Mathlib has
+the *inequality* side of Riemann/integral comparison but not, to our knowledge, this equispaced
+*convergence* for a continuous integrand:
+* `MeasureTheory.AntitoneOn.sum_le_integral` / `AntitoneOn.integral_le_sum` — the integral-test
+  sandwich `∑ f(x₀+i+1) ≤ ∫ ≤ ∑ f(x₀+i)` for a *monotone* `f` (inequality, not a limit).
+* `BoxIntegral.UnitPartition.tendsto_tsum_div_pow_atTop_integral` — equispaced Riemann sums over
+  integer-lattice points converge to `∫`, in general dimension but phrased as a lattice `tsum`
+  (this is the nearest convergence statement; our lemma is the direct 1-D continuous-`g` form).
+* `MeasureTheory.…TrapezoidalRule.trapezoidal_error_le` — quadrature error, but requires a `C²`
+  (second-derivative) bound the DRSB controls do not have.
+* External (Apache-2.0 project `rjwalters/lean-genius`, `Proofs/AntitoneIntegralSumComparison.lean`,
+  `integral_sandwich`) — a thin wrapper of the two Mathlib `AntitoneOn` lemmas above; same
+  monotone-integral-test neighbourhood, different (inequality) conclusion. -/
 theorem tendsto_equispaced_riemannSum (g : ℝ → ℝ) (hg : Continuous g) :
     Filter.Tendsto (fun n : ℕ => (∑ k ∈ Finset.range n, g ((k : ℝ) / n)) / n) Filter.atTop
       (nhds (∫ t in (0 : ℝ)..1, g t)) := by

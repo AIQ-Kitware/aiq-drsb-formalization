@@ -101,10 +101,11 @@ equally hard:
   irreducible Phase-2 core below.
 
 ### Phase 2 core (`≤` half) — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
-**Status (re-verified 2026-07-04 against the pinned Mathlib `476fb97b62`, 2026-06-11):** genuinely
-blocked — Mathlib ships **no stochastic integral, no Girsanov, no stochastic exponential, no
-Cameron–Martin, and no quadratic variation** (all grep-confirmed absent at the current pin; only
-basic martingales + predictable processes are present). So the `≤` half requires building
+**Status (re-verified 2026-07-04 against latest-master Mathlib `d3716e6d`, Lean `v4.32.0-rc1` — pin
+upgraded this day from `476fb97b62`):** genuinely blocked — Mathlib ships **no stochastic integral,
+no Girsanov, no stochastic exponential, no Cameron–Martin, and no quadratic variation** (all
+grep-confirmed absent even at latest master; only basic martingales + predictable processes are
+present). So the `≤` half requires building
 substantial infrastructure; neither route is a session's work. This is a mathematical fact about what the continuum identity's proof requires
 (its Radon–Nikodym derivative between path measures *is* a stochastic exponential), not a matter
 of effort. The gap is reduced to the single per-trajectory Cameron–Martin atom (above), whose

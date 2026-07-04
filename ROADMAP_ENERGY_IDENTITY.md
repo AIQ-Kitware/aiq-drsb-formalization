@@ -120,6 +120,28 @@ Two routes, each a real project:
   (*absent from Mathlib*). Port path: `raphaelrrcoelho/formal-mathfin` (Apache-2.0, 1-D
   Itô/Girsanov) → generalize to multi-D + add KL. This is the recommended long-term project.
 
+#### `≤`-half sub-plan — the projection-EXHAUSTION theorem (Itô-FREE, in progress 2026-07-04)
+The `≤` half's *structural* core — "the finite-dimensional projections capture all of the KL" — is
+**not** Itô-blocked: it is the L¹ martingale-convergence identity
+`KL(μ‖ν) = limₙ KL(πₙ_#μ ‖ πₙ_#ν)` when `comap πₙ ↑ m𝓧`. Combined with the `≥`-half DPI bound this
+gives BOTH inequalities, i.e. it upgrades `energy_le_klReal_of_projections` from `≥` to a full `=`,
+**modulo only the convergence edge `hconv`** (grid KLs → energy). It relies on Lévy's upward theorem,
+which Mathlib **has** (`MeasureTheory.Integrable.tendsto_ae_condExp`). Proof skeleton (all ingredients
+present):
+1. **Representation** (DONE — `ForMathlib…toReal_klDiv_map_eq_integral_condExp`):
+   `(klDiv (μ.map g)(ν.map g)).toReal = ∫ x, klFun ((ν[dμ/dν | comap g]) x) ∂ν` — the projected KL is
+   the `klFun`-integral of the conditional expectation of the density (extracted from the DPI proof).
+2. **Limit** (next): with `ℱₙ = comap πₙ`, `Mₙ = ν[dμ/dν|ℱₙ] → dμ/dν` a.e. (Lévy); `klFun ≥ 0`
+   continuous, so Fatou gives `KL ≤ liminf ∫klFun(Mₙ)`, while the DPI gives each `∫klFun(Mₙ) ≤ KL`;
+   the sandwich forces `∫klFun(Mₙ) → KL`, i.e. `KL(πₙ_#μ‖πₙ_#ν) → KL(μ‖ν)`.
+3. **Package** (after): a projection-form corollary + the CGP `=` identity modulo `hconv`.
+
+**What remains genuinely Itô after this:** only `hconv` itself — the statement that the *exact* SDE
+finite-dimensional marginal KLs converge to the energy. For the Euler–Maruyama/Gaussian marginals
+(the card's object) that is Itô-free (discrete Cameron–Martin + Riemann sums); for the *exact*
+feedback-diffusion marginals it is the finite-dimensional Girsanov density, the true stochastic-
+exponential content. So this sub-plan localises the entire Itô requirement to `hconv`.
+
 **Bottom line:** the continuum `hCM` is a known Girsanov identity that cannot be discharged in Lean
 until the Itô-integral / stochastic-analysis stack exists in (or is ported into) Mathlib. Until
 then it stays an explicit, non-vacuous edge whose discrete instance is proved — the honest state.

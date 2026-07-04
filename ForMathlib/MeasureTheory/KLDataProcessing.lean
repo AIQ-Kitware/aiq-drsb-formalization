@@ -32,6 +32,39 @@ namespace ForMathlib.MeasureTheory
 
 variable {𝓧 𝓨 : Type*} [m𝓧 : MeasurableSpace 𝓧] [m𝓨 : MeasurableSpace 𝓨]
 
+/-- **Conditional-expectation representation of a pushforward KL** (`≤`-half sub-plan, step 1).
+For probability measures `μ ≪ ν` and measurable `g`, the pushforward divergence is the `klFun`
+integral of the *conditional expectation* of the density `dμ/dν` onto the sub-σ-algebra `comap g`:
+`(klDiv (μ.map g) (ν.map g)).toReal = ∫ x, klFun ((ν[dμ/dν | comap g]) x) ∂ν`.
+
+This is the martingale-value representation underlying both the data-processing inequality
+(`toReal_klDiv_map_le`, one conditional-Jensen step past this) and the L¹ martingale-convergence
+identity `KL(μ‖ν) = limₙ KL(gₙ_#μ ‖ gₙ_#ν)` (Lévy's upward theorem applied to `Mₙ = ν[dμ/dν|comap gₙ]`,
+the Itô-free structural core of the continuum energy identity's `≤` half — see
+`ROADMAP_ENERGY_IDENTITY.md`).
+
+Proof: express the pushforward KL as `∫ klFun(d(g_#μ)/d(g_#ν))` (`toReal_klDiv_eq_integral_klFun`),
+pull the integral back through `g` (`integral_map`), and rewrite the pushed-forward Radon–Nikodym
+derivative as the conditional expectation (`toReal_rnDeriv_map`). -/
+theorem toReal_klDiv_map_eq_integral_condExp
+    (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμν : μ ≪ ν) (g : 𝓧 → 𝓨) (hg : Measurable g) :
+    (klDiv (μ.map g) (ν.map g)).toReal
+      = ∫ x, klFun ((ν[fun a => (μ.rnDeriv ν a).toReal | m𝓨.comap g]) x) ∂ν := by
+  classical
+  haveI : IsProbabilityMeasure (ν.map g) := Measure.isProbabilityMeasure_map hg.aemeasurable
+  haveI : IsProbabilityMeasure (μ.map g) := Measure.isProbabilityMeasure_map hg.aemeasurable
+  have hmapac : μ.map g ≪ ν.map g := hμν.map hg
+  rw [toReal_klDiv_eq_integral_klFun hmapac]
+  have hLHSmap : (∫ y, klFun ((μ.map g).rnDeriv (ν.map g) y).toReal ∂(ν.map g))
+      = ∫ x, klFun ((μ.map g).rnDeriv (ν.map g) (g x)).toReal ∂ν := by
+    rw [integral_map hg.aemeasurable]
+    exact Measurable.aestronglyMeasurable (by fun_prop)
+  rw [hLHSmap]
+  refine integral_congr_ae ?_
+  filter_upwards [toReal_rnDeriv_map (μ := μ) (ν := ν) hμν hg] with x hx
+  rw [hx]
+
 /-- **Data-processing inequality for KL divergence** (real / `toReal` form). For probability
 measures `μ ≪ ν` on `𝓧` with finite `KL(μ‖ν)`, and any measurable `g : 𝓧 → 𝓨`,
 `KL(g_# μ ‖ g_# ν) ≤ KL(μ‖ν)`. -/

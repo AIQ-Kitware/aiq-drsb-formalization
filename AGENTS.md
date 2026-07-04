@@ -344,14 +344,22 @@ The **`Drsb` capstone** composes the above:
   DPI / f-divergence file), proved by conditional Jensen on the convex `klFun` (`ConvexOn.map_condExp_le`)
   + `toReal_rnDeriv_map` (pushforward RN-derivative = conditional expectation). Honest edges `hac`
   (`P ≪ R`), `hfin` (finite KL), `hne`; the gluing (path-reconstruction) `≤` isolated to `hglue`.
-- **Remaining `sorry`s (5) — ALL in `ChenGeorgiouPavon2021`:** `energy_identity` (continuous
-  Girsanov; discrete/EM layer already proved), and four **under-specified** statements —
-  `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB), `optimal_coupling_factorization`
-  — which each equate `u*`/`dens*` to an *arbitrary passed-in operator* with **no linking
-  hypothesis** (false for e.g. `grad := 0`), so honestly closing them needs the SDE *verification
-  theorem* added as a hypothesis (statement work / TX), not a proof. Every Wasserstein/Sinkhorn DRO
-  duality + worst-case-structure result (`BlanchetMurthy2019`, `GaoKleywegt2023`,
-  `MohajerinEsfahaniKuhn2018`, `WangGaoXie2023`, `Drsb`) is PROVED — those five libraries are sorry-free.
+- **Soundness audit + fix (2026-07 — see [`JOURNAL.md`](JOURNAL.md)):** the four **under-specified**
+  statements — `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB) and
+  `optimal_coupling_factorization` — were **false as stated** (they equate `u*`/`dens*` to a *free*
+  operator/function argument with no linking hypothesis; `grad := 0` refutes them). Worse,
+  `optimal_control_eq_neg_grad_value` was **green but false** — it compiled only by `rw`ing through
+  the false `grad_log` (`#print axioms` carried `sorryAx`): a genuine hidden `if False then True`.
+  All four are now **reformulated to TRUE statements** and are **axiom-clean**: the real SDE/OT
+  content (Hopf–Cole / product-form **verification** — the candidate is optimal — + optimizer
+  **uniqueness**) is isolated to explicit non-vacuous edges (`hHC`/`hprodopt`, `huniq`), and the
+  identity is *derived* (the `isolate-content-to-an-edge` posture used everywhere here). Blast
+  radius was contained: `Drsb` uses `V` abstractly, so no card claim was ever affected.
+- **Remaining `sorry`s (1) — the sole HONEST one:** `ChenGeorgiouPavon2021.energy_identity`
+  (continuous Girsanov / KL between path measures — genuinely absent from Mathlib; the discrete
+  Euler–Maruyama layer `energy_identity_euler_maruyama` is already proved via the vendored
+  Cameron–Martin identity). Every other declaration in the repo is proved; the six paper libraries
+  + `Drsb` + `ForMathlib` are otherwise sorry-free.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Per the user (2026-07): **no Fable** — decompose each remaining target into its natural
   subproblems and prove step-by-step with the thinking budget turned up. The SDE/PDE and

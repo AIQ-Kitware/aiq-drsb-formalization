@@ -281,28 +281,54 @@ The optimal feedback control of Problem 4.3 is the gradient of `log φ`, where
 `(φ, φhat)` solve the Schrödinger system (4.22):
 `u*(t,x) = ∇ log φ(t,x)`.
 
-Abstracted: `grad = ∇`, `lap = Δ`; `dens0`, `dens1` are the endpoint densities. -/
+Abstracted: `grad = ∇`, `lap = Δ`; `dens0`, `dens1` are the endpoint densities.
+
+**Soundness note (2026-07 audit).** As originally scaffolded this theorem was *false as
+stated*: `grad` is a free operator argument, so with `grad := fun _ _ => 0` the hypotheses
+stay satisfiable while the conclusion `u* = 0` fails — a bare `sorry` here could never be
+discharged soundly (see `JOURNAL.md`). The faithful content of CGP (4.21) is the **verification
+theorem** (the Hopf–Cole control `∇log φ` *is* optimal) plus **uniqueness** of the SOC optimizer;
+both are genuine SDE/convexity facts absent from Mathlib, so — exactly as the strong-duality
+equalities isolate their attainment edge — they are made explicit hypotheses (`hHC`, `huniq`) and
+the stated identity is *derived*. With them the theorem is true and non-vacuous (in the real
+problem `∇log φ` is optimal and the optimizer is unique); no free-operator counterexample
+survives (`hHC` pins the candidate down). -/
 theorem optimal_control_eq_grad_log
     (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
-    (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁) :
+    (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
+    -- CGP (4.21) verification: the Hopf–Cole control `∇log φ` is itself optimal (the SDE content
+    -- that `∇log φ` steers `ρ₀→ρ₁` and attains the SOC minimum) — an explicit edge, not a `sorry`:
+    (hHC : IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
+    -- uniqueness of the SOC optimizer (strict convexity of the control energy) — an explicit edge:
+    (huniq : ∀ u u' : Control X,
+        IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u') :
     ∀ t x, u_star t x = grad (fun y => Real.log (φ t y)) x := by
-  sorry
+  intro t x
+  rw [huniq u_star _ hopt hHC]
 
 /-- **Optimal control with diffusion scaling `σ` (CGP Theorem 5.2, (5.11a)).**
 For the general controlled diffusion, the optimal control is `u* = σ'∇log φ`; in the
 isotropic case `a = σσ' = σ²I` this reads
-`u*(t,x) = σ²·∇ log φ(t,x)`. -/
+`u*(t,x) = σ²·∇ log φ(t,x)`.
+
+Same soundness note as `optimal_control_eq_grad_log`: false as originally stated (free `grad`);
+the verification (`hHC`: the scaled Hopf–Cole control is optimal) + uniqueness (`huniq`) edges make
+it true and let the identity be derived. -/
 theorem optimal_control_eq_sigma_grad_log
     (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
-    (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁) :
+    (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
+    (hHC : IsOptimalSOC d (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
+    (huniq : ∀ u u' : Control X,
+        IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u') :
     ∀ t x, u_star t x = (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x := by
-  sorry
+  intro t x
+  rw [huniq u_star _ hopt hHC]
 
 /-- **Optimal control = negative value-gradient (DRSB reconciliation of CGP (4.21) /
 Thm 5.2 (5.11a)).**  This is the key fact the DRSB value function `V` and its optimal
@@ -312,13 +338,25 @@ negative gradient of the value function:
 `u*(0,x) = −∇V(x)`.
 
 Abstracted: `grad = ∇`; `φ` is the forward Schrödinger potential; the hypothesis
-`hVlogφ` records the sign identification `V = −log φ`. -/
+`hVlogφ` records the sign identification `V = −log φ`.
+
+**Soundness note (2026-07 audit).** This theorem previously compiled *green but false*: its
+proof `rw`s through `optimal_control_eq_grad_log`, which was itself false-as-stated (free `grad`),
+so a `#print axioms` would show `sorryAx` and the stated `u*(0,·) = −∇V` was not actually a
+theorem (`grad := 0` counterexample). It is now sound: it inherits the `hHC` (Hopf–Cole control
+optimal) + `huniq` (optimizer unique) edges from `optimal_control_eq_grad_log` and threads them
+through. With `grad := 0`, `hHC` forces `u* = 0` and the conclusion `u*(0,·) = −0 = 0` holds — no
+counterexample survives. -/
 theorem optimal_control_eq_neg_grad_value
     (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
+    -- the verification + uniqueness edges (inherited from `optimal_control_eq_grad_log`):
+    (hHC : IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
+    (huniq : ∀ u u' : Control X,
+        IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u')
     -- sign identification of the cost-to-go with the log-potential (CGP "Sign note"):
     (hVlogφ : ∀ x, d.V x = - Real.log (φ 0 x))
     -- `∇` is additive/linear, so `∇(−V) = −∇V` (the property that makes the sign flip work):
@@ -326,7 +364,7 @@ theorem optimal_control_eq_neg_grad_value
     ∀ x, u_star 0 x = - grad d.V x := by
   intro x
   -- u*(0,x) = ∇log φ(0,x) (Hopf–Cole, `optimal_control_eq_grad_log`), and log φ(0,·) = −V
-  rw [optimal_control_eq_grad_log d grad lap φ φhat dens0 dens1 ρ₀ ρ₁ hsys u_star hopt 0 x]
+  rw [optimal_control_eq_grad_log d grad lap φ φhat dens0 dens1 ρ₀ ρ₁ hsys u_star hopt hHC huniq 0 x]
   have hφV : (fun y => Real.log (φ 0 y)) = (fun y => -(d.V y)) := by
     funext y; linarith [hVlogφ y]
   rw [hφV, hgrad_neg]
@@ -346,14 +384,22 @@ steering `ρ₀ → ρ₁`, then the optimal feedback is the gradient of the val
 co-state: `u*(t,x) = ∇λ(t,x)`.  This is the value-function form of the Hopf–Cole
 control; with the log transform `λ = log φ` it matches (4.21) / Thm 5.2 (5.11a).
 
-Abstracted: `grad = ∇`; `λ` is the value function / co-state. -/
+Abstracted: `grad = ∇`; `λ` is the value function / co-state.
+
+Same soundness note as `optimal_control_eq_grad_log`: false as originally stated (free `grad`);
+the verification (`hHC`: the value-gradient control `∇λ` is optimal) + uniqueness (`huniq`) edges
+make it true and let the identity be derived. -/
 theorem optimal_control_eq_grad_value
     (grad : (X → ℝ) → X → X) (lam : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (hHJ : HamiltonJacobi grad lam)
-    (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁) :
+    (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
+    (hHC : IsOptimalSOC d (fun t x => grad (lam t) x) ρ₀ ρ₁)
+    (huniq : ∀ u u' : Control X,
+        IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u') :
     ∀ t x, u_star t x = grad (lam t) x := by
-  sorry
+  intro t x
+  rw [huniq u_star _ hopt hHC]
 
 --------------------------------------------------------------------------------
 -- §6  Static problem, entropic OT / Sinkhorn (CGP §I.2–I.3, §7–§8)
@@ -484,16 +530,44 @@ theorem staticSB_eq_entropicOT (πB : ProbabilityMeasure (X × X))
 static form (7.17)).**  The optimal coupling density factors as
 `ρ*₀₁(x,y) = φ̂(x)·p(0,x,1,y)·φ(y)`, with `(φ̂,φ)` solving the Schrödinger system.
 
-Abstracted: `π_star` is the static optimizer, `dens_star = dπ*/d(x,y)` its density;
-`p` the reference transition density; `φhat0`, `φ1` the Schrödinger potentials. -/
+`φhat0`, `φ1` are the Schrödinger potentials. The reference transition density `p` is the
+density of the reference endpoint law `R₀₁ = endpointLaw` w.r.t. Lebesgue, so *relative to
+`R₀₁`* the optimal coupling's density is just the potential product `φ̂(x)·φ(y)` — the form used
+here (`dπ*/dR₀₁ = φ̂(x)·φ(y)`, i.e. `π* = R₀₁.withDensity (φ̂(x)·φ(y))`); multiplying by
+`dR₀₁/dLeb = p` recovers the printed `φ̂·p·φ` form.
+
+**Soundness note (2026-07 audit).** As originally scaffolded this was *false as stated*: it
+asserted a pointwise identity `∀ x y, dens_star(x,y) = φhat0 x · p x y · φ1 y` with `dens_star`,
+`p`, `φhat0`, `φ1` all free (counterexample `dens_star := 0`), and a pointwise-everywhere density
+identity is anyway ill-typed (densities are only a.e.-defined). Reformulated to the well-typed
+**measure** identity `π* = R₀₁.withDensity (φ̂(x)·φ(y))`, derived — as everywhere else — by
+isolating the genuine content to explicit edges: the **verification** that the product-form
+coupling `π_prod` is feasible and optimal (`hprodfeas`, `hprodopt`; the Schrödinger structure of
+CGP (4.11)) and **uniqueness** of the KL-projection optimizer (`huniq`; strict convexity of KL
+over `Π(ρ₀,ρ₁)`). Given them, `π* = π_prod` and `π_prod`'s density is the product (`hπprod`). -/
 theorem optimal_coupling_factorization
-    (dens_star : X × X → ℝ) (p : X → X → ℝ) (φhat0 φ1 : X → ℝ)
-    (ρ₀ ρ₁ : ProbabilityMeasure X) (π_star : ProbabilityMeasure (X × X))
-    -- π_star is the static Schrödinger optimizer (Problem 4.2) with density dens_star:
+    (φhat0 φ1 : X → ℝ)
+    (ρ₀ ρ₁ : ProbabilityMeasure X) (π_star π_prod : ProbabilityMeasure (X × X))
+    -- π_star is the static Schrödinger optimizer (Problem 4.2):
     (hfeas : π_star ∈ couplings ρ₀ ρ₁)
-    (hopt : klReal (π_star : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁) :
-    ∀ x y, dens_star (x, y) = φhat0 x * p x y * φ1 y := by
-  sorry
+    (hopt : klReal (π_star : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁)
+    -- π_prod is the Schrödinger product-form coupling: `dπ_prod/dR₀₁ = φ̂(x)·φ(y)` (CGP (4.11)):
+    (hπprod : (π_prod : Measure (X × X))
+        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)))
+    -- verification: the product-form coupling is feasible and optimal (the SDE/OT content):
+    (hprodfeas : π_prod ∈ couplings ρ₀ ρ₁)
+    (hprodopt : klReal (π_prod : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁)
+    -- uniqueness of the KL-projection optimizer (strict convexity of KL over the coupling set):
+    (huniq : ∀ π π' : ProbabilityMeasure (X × X),
+        π ∈ couplings ρ₀ ρ₁ →
+        klReal (π : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ →
+        π' ∈ couplings ρ₀ ρ₁ →
+        klReal (π' : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ →
+        π = π') :
+    (π_star : Measure (X × X))
+      = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)) := by
+  rw [huniq π_star π_prod hfeas hopt hprodfeas hprodopt]
+  exact hπprod
 
 --------------------------------------------------------------------------------
 -- §7  Fortet–IPF–Sinkhorn existence (CGP Theorem 8.1, discrete Schrödinger system)

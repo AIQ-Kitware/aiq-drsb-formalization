@@ -47,7 +47,19 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (5)
+## 2. Ranked remaining `sorry`s (1)
+
+> **Soundness fix (2026-07 audit — see `JOURNAL.md`).** Four of the five former sorries were
+> **false as stated** (they equated `u*`/`dens*` to *free* operator/function arguments with no
+> linking hypothesis; `optimal_control_eq_neg_grad_value` was **green but false**, surviving only
+> by `rw`ing through the false `optimal_control_eq_grad_log` — a hidden `if False then True`).
+> All four are now reformulated to TRUE statements: the genuine SDE/OT content (Hopf–Cole /
+> product-form **verification** + optimizer **uniqueness**) is isolated to explicit non-vacuous
+> edges, and the identity is *derived* — the same `isolate-content-to-an-edge` posture as the
+> strong-duality equalities. `#print axioms` on all four (+ `neg_grad_value`) is now clean
+> (`propext/Classical.choice/Quot.sound`, no `sorryAx`). The **single** remaining sorry is the
+> honest one: `energy_identity` (continuous Girsanov), whose discrete Euler–Maruyama layer is
+> already proved. Every other library is sorry-free.
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The

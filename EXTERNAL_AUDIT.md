@@ -7,8 +7,9 @@ file records the result of **rigorously auditing** those leads — clone + `#pri
 "what exists / what's absent" map for the remaining `sorry`s, so nobody re-searches ground
 already covered or re-proves something that exists.
 
-**Swept: 2026-07-03/04.** Method + queries at the bottom (reproducible). Counts/licenses
-verified by clone, not by README claim.
+**Swept: 2026-07-03/04**, incl. the generated-proof / declaration-index corpora
+(Lean-Workbook, LeanSearch, LeanExplore, LeanStateSearch) on 2026-07-04. Method + queries at
+the bottom (reproducible). Counts/licenses verified by clone, not by README claim.
 
 ---
 
@@ -25,6 +26,13 @@ repo metadata, not in file contents, not in Mathlib. What's reusable is *buildin
 (finite entropic-OT, Gaussian-KL, an Itô/SDE foundation) that require a bridge, which is
 where the parallel vendoring effort is aimed.
 
+The 2026-07-04 sweep of the generated-proof / declaration-index corpora (Lean-Workbook,
+LeanSearch, LeanExplore, LeanStateSearch) **re-confirms this under *semantic* search**, not
+just lexical: the hard objects surface only false friends, and the Lean-Workbook olympiad
+corpus is 0. The sweep's one actionable byproduct is an **already-in-pin, untapped** Mathlib
+minimax framework — `Mathlib.Probability.Decision.Risk` (`minimaxRisk`/`bayesRisk`) — flagged
+as *candidate* (not proven-fitting) scaffolding for the worst-case-duality `le` direction.
+
 ---
 
 ## Coverage map — external state vs. the 8 remaining sorries
@@ -36,8 +44,8 @@ where the parallel vendoring effort is aimed.
 | `…optimal_control_eq_grad_value` | HJB / verification theorem | **Absent** (HJB has 0 Lean repos; RL "Bellman" is discrete-MDP only) | **absent** |
 | `…dynamic_eq_static_SB` | Schrödinger-problem static⇄dynamic (Léonard) | **Absent** ("Schrödinger" hits are the QM *equation*, not the *bridge*) | **absent** |
 | `…optimal_coupling_factorization` | entropic-OT coupling factorization | `flow-sinkhorn` (finite entropic-OT) only | **partial** (finite; needs bridge) |
-| `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` | data-driven Wasserstein-DRO strong duality | `flow-sinkhorn` finite OT + LP↔entropic reduction; Mathlib `Sion` for minimax | **partial** (finite-reduction path exists; bridge) |
-| `GaoKleywegt2023.{worstCase_structure_cor1 / dataDriven_worstCase_cor2ii}` | worst-case-measure **construction** / measurable selection | **Absent** (measurable selection = 0 repos; general OT duality = 0) | **absent** |
+| `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` | data-driven Wasserstein-DRO strong duality | `flow-sinkhorn` finite OT + LP↔entropic reduction; Mathlib `Sion` for minimax; **in-pin `Probability.Decision.Risk` minimax weak-duality (untapped, candidate `le` scaffolding)** | **partial** (finite-reduction path exists; bridge) |
+| `GaoKleywegt2023.{worstCase_structure_cor1 / dataDriven_worstCase_cor2ii}` | worst-case-measure **construction** / measurable selection | **Absent** (measurable selection = 0 repos; general OT duality = 0); `Decision.Risk` bounds minimax but not the *construction* | **absent** |
 
 ---
 
@@ -145,13 +153,72 @@ all absent; `condKernel`/disintegration and `Topology.Sion` present.
   in `SURVEY_LEADS.md`.
 - **LLM-PR pool:** all 414 closed-unmerged `LLM-generated` mathlib PRs swept (see
   `dev/journals/2026-07-03-mathlib-llm-proof-mining-journal.md`) — nothing for our gaps.
+- **Corpus / declaration indices** (own web APIs): Lean-Workbook via HuggingFace
+  `datasets-server` (`GET /search?dataset=internlm/Lean-Workbook&query=…` — rows inspected,
+  not just counted); LeanSearch semantic (`POST leansearch.net/search`,
+  `{"query":[term],"num_results":N}`); LeanStateSearch (`premise-search.com/api/search` —
+  NL-rejecting, inapplicable); LeanExplore (`leanexplore.com/api/v1/search` — API-key-gated,
+  not run). Same term list as above. In-pin presence of any surfaced Mathlib decl verified
+  directly in `.lake/packages/mathlib` at `476fb97b62`.
 
-## Open frontier (not yet mined)
+## Generated-proof / declaration-index corpora — MINED 2026-07-04
 
-- **Generated-proof corpora** (Lean-Workbook, OProofs, LeanNavigator, LeanExplore /
-  LeanSearch declaration indices) — the one un-mined layer; own web APIs, not `gh`. Given
-  the whole-GitHub zero result for our exact terms, expect *nearby* lemmas at best.
+The one previously un-mined layer, now swept via each service's own web API (not `gh`).
+Reproducible calls in the Method section. **Net: no drop-in close, but the semantic sweep
+surfaced in-pin Mathlib assets a literal name-grep had missed, and re-confirmed the hard
+absences under semantic (not just lexical) matching.**
+
+- **Lean-Workbook** (`internlm/Lean-Workbook`, autoformalized olympiad/textbook corpus, via
+  HuggingFace `datasets-server` full-text search): **0 relevant.** All apparent hits are
+  word-collision false matches — verified by pulling the rows: "measurable selection" →
+  combinatorial *"measure* / *choose"* problems; "distributionally robust" → *"distribut*"*;
+  "convex conjugate" → generic convexity / *complex* conjugate. Zero measure-theoretic
+  stochastic-control content (expected: it's competition math).
+- **LeanSearch** (`leansearch.net`, semantic Mathlib index — `POST /search`,
+  `{"query":[…],"num_results":N}`): the **value-add layer.** Semantic matching surfaced real
+  Mathlib declarations that the earlier literal grep for *"Girsanov" / "Kantorovich" /
+  "Wasserstein"* missed because Mathlib names them differently — and **all are already
+  present at our pinned rev `476fb97b62`** (verified in `.lake/packages/mathlib`), so this is
+  "already in scope," not "bump the pin":
+  - `InformationTheory.klDiv` + the whole **`KullbackLeibler`** namespace (`Basic`, `KLFun`,
+    **`ChainRule`** with `klDiv_compProd_eq_add` / `klDiv_compProd_left`) and
+    `MeasureTheory.Measure.tilted` (Gibbs/Esscher tilt). **Already heavily used** by the repo
+    (142 refs; `ChainRule` is used in `ForMathlib/…/GaussianEntropy.lean`, DV via
+    `integral_le_klDiv_add_log_integral_exp`). Not a new lead — confirms the EM-discrete
+    `energy_identity` path is built on the right Mathlib infrastructure.
+  - **`Mathlib.Probability.Decision.Risk`** (`ProbabilityTheory.minimaxRisk`, `bayesRisk`,
+    with `bayesRisk_le_minimaxRisk` and `iSup_bayesRisk_le_minimaxRisk` — the weak-duality
+    direction of kernel-based statistical decision theory). **In-pin and 0 repo references —
+    the one genuinely untapped asset this sweep found.** Candidate scaffolding for the
+    `le`/weak-duality direction of the worst-case-duality sorries
+    (`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`,
+    `GaoKleywegt2023.*`). **Caveat, not a solution:** `Decision.Risk` is structured over a
+    prior/loss/`Kernel` triple, whereas our DRO worst-case is over a Wasserstein/transport
+    ball — the mapping is non-obvious and may not fit; flagged for the proof agents to
+    evaluate, not asserted to close anything.
+- **Hard objects re-confirmed absent under *semantic* search** (strong negative — a concept
+  index would surface them under any name if they existed): for *"Hamilton-Jacobi-Bellman",
+  "Schrödinger bridge stochastic control", "Kantorovich duality", "Hopf-Cole"*, LeanSearch's
+  top hits were all **false friends** — `Decision.Risk`/`HahnBanach` (HJB),
+  `Probability.Decision.Risk` (SB), `Topology.MetricSpace.GromovHausdorff` /
+  `Analysis.Convex.Cone.Dual` (Kantorovich), `Analysis.Fourier` / `MellinInversion`
+  (Hopf-Cole). Consistent with the GitHub + Mathlib-grep zeros.
+- **LeanExplore** (`leanexplore.com`, `GET /api/v1/search`) — **not mined: requires an API
+  key.** Its only corpus beyond Mathlib (which LeanSearch already covers semantically) is
+  **PhysLean**, i.e. QM/physics — the "Schrödinger *equation*," not the stochastic-control
+  *bridge*; low marginal value. Left for a keyed rerun if ever needed.
+- **LeanStateSearch** (`premise-search.com/api/search`) — **inapplicable:** its `query` must
+  be a *Lean proof state*, not a natural-language concept (API rejects NL outright), and it
+  indexes Mathlib only. It's a premise-retrieval-given-a-goal tool, not a concept/absence
+  probe.
+
+**Corpus-layer verdict:** closed. No generated or indexed corpus contains a usable proof of
+any hard gap; the only actionable output is the in-pin, untapped **`Decision.Risk` minimax
+scaffolding** (candidate for the worst-case-duality `le` direction) — recorded, not overstated.
+
+## Still open / low-priority
+
 - **`measurableSelection` code search** 403'd mid-run — rerun to confirm the 0 (repo search
-  already = 0).
+  and LeanSearch semantic both already = 0).
 - **`YuanheZ/lean-stat-learning-theory`** (ICML2026 SLT, 91⭐) — KL / Le Cam / minimax;
   Chain-2-adjacent (our DV is done), low priority; skim if convenient.

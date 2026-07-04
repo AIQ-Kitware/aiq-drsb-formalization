@@ -322,16 +322,24 @@ The **`Drsb` capstone** composes the above:
   ingredient edges are (mixture weight, measurable a.e.-argmin maps/atoms, feasibility budget,
   and one `≥` attainment edge — the `le_antisymm(constructive, one edge)` posture shared with
   `MohajerinEsfahaniKuhn2018.worstCase_exists`).
-- **Remaining `sorry`s (7)** are the genuine **T4** frontier:
-  - **SDE/PDE controls (6, `ChenGeorgiouPavon2021`):** `energy_identity` (Girsanov),
-    `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value` (HJB),
-    `dynamic_eq_static_SB` (Léonard gluing), `optimal_coupling_factorization`. No Mathlib
-    SDE / path-measure theory.
-  - **Worst-case *structure* (1):** `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`
-    (Thm 4.2, the data-driven duality *equality*). Need OT measurable-selection /
-    worst-case-measure construction. (All of `dataDriven_strongDuality_cor2i`,
-    `worstCase_program`, `worstCase_exists`, `dataDriven_worstCase_cor2ii`,
-    `worstCase_structure_cor1` are now PROVED.)
+- **Data-driven duality equality — ✅ PROVED, axiom-clean (2026-07); `MohajerinEsfahaniKuhn2018`
+  is now sorry-free:** `worstCaseExpectation_eq_dual` (Thm 4.2). `le_antisymm(weak, attainment)`:
+  the weak `≤` is **proved** — `csSup_le → le_csInf → per-(Q,λ)` (η/(λ+1) trick) reducing to the
+  **new** `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost_restrict` (the `Ξ`-restricted
+  Lagrangian kernel — `integral_mono_ae` since the source marginal is `Ξ`-supported) + the
+  empirical collapse + the OT ε-approx edge; the `≥`/attainment isolated to one edge.
+  **⚠ STATEMENT CORRECTION:** the ball is now `wass1BallΞ` (`P(Ξ)`-restricted). The `ℝ`-valued
+  (total) `ℓk` encoding drops the paper's `+∞`-off-`Ξ` / `P(Ξ)` restriction, so the raw
+  `wass1Ball` equality is *unsound* for `Ξ ≠ univ` (an escaping `Q` beats the `Ξ`-dual);
+  restricting the ball to `P(Ξ)` restores it — same fidelity-correction class as the Sinkhorn
+  external-`ν` fix / `primal_feasible_radius_nonneg` (§6). `[BorelSpace X]` added for
+  `IsClosed Ξ ⇒ MeasurableSet Ξ`.
+- **Remaining `sorry`s (6) — ALL in `ChenGeorgiouPavon2021`** (the SDE/PDE frontier; no Mathlib
+  path-measure theory): `energy_identity` (Girsanov), `optimal_control_eq_grad_log` /
+  `_sigma_grad_log` / `_grad_value` (HJB), `dynamic_eq_static_SB` (Léonard gluing),
+  `optimal_coupling_factorization`. Every Wasserstein/Sinkhorn DRO duality + worst-case-structure
+  result (`BlanchetMurthy2019`, `GaoKleywegt2023`, `MohajerinEsfahaniKuhn2018`, `WangGaoXie2023`,
+  `Drsb`) is now PROVED — those five libraries are sorry-free.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Per the user (2026-07): **no Fable** — decompose each remaining target into its natural
   subproblems and prove step-by-step with the thinking budget turned up. The SDE/PDE and

@@ -47,7 +47,7 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (7)
+## 2. Ranked remaining `sorry`s (6)
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
@@ -61,9 +61,10 @@ capstones, but the cards do not depend on it.
 > (Thm 4.4) and `worstCase_exists` (Cor 4.6) are also PROVED (constructive worst-case law +
 > one edge each). `GaoKleywegt2023.{dataDriven_worstCase_cor2ii, worstCase_structure_cor1}`
 > (Cor 2(ii)/1(ii), eqs. 29/27) are also now PROVED (same house pattern; see §T4 note) —
-> **`GaoKleywegt2023` is now sorry-free**. The **7** remaining `sorry`s are the genuine T4
-> frontier: the 6 SDE/PDE controls in `ChenGeorgiouPavon2021` and the single worst-case-*structure*
-> duality equality `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`.
+> **`GaoKleywegt2023` is now sorry-free**. `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`
+> (Thm 4.2) is likewise PROVED (see §T4 note) — **`MohajerinEsfahaniKuhn2018` is now sorry-free
+> too**. The **6** remaining `sorry`s are the genuine T4 frontier, **all in `ChenGeorgiouPavon2021`**:
+> the SDE/PDE/path-measure controls (Girsanov, HJB, Léonard gluing) — no Mathlib SDE theory exists.
 
 ### On the card critical path (do these first)
 
@@ -118,10 +119,8 @@ Fable ticket or a focused session.
 
 ### T4 — research-grade / not-in-Mathlib (defer or axiomatize)
 
-**Worst-case *structure*** (the `≥`/attainment equalities are already discharged modulo an
-explicit attainment hypothesis; what remains as `sorry` is the *shape* of the worst-case
-measure): `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (1).
-*Need OT measurable-selection / worst-case-measure construction — absent from Mathlib.*
+**Worst-case *structure*** — ✅ **ALL PROVED** (0 remaining). The last one,
+`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2), landed 2026-07 (see note below).
 
 > **`GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) — PROVED (2026-07,
 > house pattern, axiom-clean).** The data-driven worst case is a `≤ N+1`-atom transport of the
@@ -160,6 +159,24 @@ measure): `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (1).
 > attainment by `le_csSup`. The eq. (27) measure form is `rfl`. **`GaoKleywegt2023` is now
 > sorry-free.** (The four `Measure.map`/`smul`/`add` pushforward manipulations here are the
 > reusable pattern if `worstCaseExpectation_eq_dual`'s attainment measure is built the same way.)
+
+> **`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2, eq. 12b) — PROVED
+> (2026-07, house pattern, axiom-clean) + STATEMENT CORRECTION.** The data-driven worst-case
+> duality *equality* `sup_{Q} 𝔼_Q[ℓ] = inf_{λ≥0}{λε + (1/N)Σᵢ sup_{ξ∈Ξ}(ℓ(ξ)−λ‖ξ−ξ̂ᵢ‖)}`.
+> **Fidelity fix:** the paper's ambiguity set is over `P(Ξ)` and its `−ℓk` are *proper* convex
+> (`= +∞` off `Ξ`); the `ℝ`-valued (total) `ℓk` encoding drops that, so the raw `wass1Ball` (no
+> `Ξ`-support) is too large — for `Ξ ≠ univ` an escaping `Q` makes `𝔼_Q[ℓ]` exceed the `Ξ`-dual
+> and the equality *fails*. Corrected to the `P(Ξ)`-restricted ball `wass1BallΞ` (same class of
+> statement correction as the Sinkhorn external-`ν` fix / `primal_feasible_radius_nonneg`; the
+> proved `worstCase_program`/`worstCase_exists` use `wass1Ball` and are unaffected — their laws
+> are `Ξ`-supported anyway). **Proof:** `le_antisymm(weak, attainment)`. Weak `≤` is PROVED —
+> `csSup_le → le_csInf → per-(Q,λ)` (via `le_of_forall_pos_le_add`, the `η/(λ+1)` trick of
+> `weak_duality_prop1`) reduces to the **new** `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost_restrict`
+> (the `Ξ`-restricted Lagrangian kernel — needs `Q ∈ P(Ξ)`, supplied by the ball, so its conjugate
+> `sup` lands on `Ξ`) composed with the empirical collapse `𝔼_{P̂}[g] = (1/N)Σᵢ g(ξ̂ᵢ)` and the OT
+> coupling ε-approx edge `hOT`; integrability against `P̂` is automatic (finite Dirac sum). The
+> `≥`/attainment is isolated to one explicit edge `hattain`, as everywhere. `[BorelSpace X]` added
+> for `IsClosed Ξ ⇒ MeasurableSet Ξ`. **`MohajerinEsfahaniKuhn2018` is now sorry-free.**
 
 > **`MohajerinEsfahaniKuhn2018.worstCase_program` (Thm 4.4, eq. 13) — PROVED (2026-07,
 > house pattern, axiom-clean).** The `≥` direction (`sup(program) ≤ droValue`) is proved
@@ -234,6 +251,7 @@ surveying existing AI/human Lean proofs** — are in **[`FOUNDATIONS.md`](FOUNDA
 | `MeasureTheory.DonskerVaradhan` (DV inequality + Gibbs variational identity) | ✅ proved | yes — only `Measure.tilted` exists | (done) | — |
 | `MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` | ✅ proved | yes — only `tilted_const'` indirectly | T0 | — |
 | `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO **per-coupling Lagrangian bound** (Wasserstein `≤` kernel) | ✅ **proved** (ported from `reference/V4.lean`, generalized to arbitrary cost `c`) | yes — no Kantorovich/Wasserstein duality in Mathlib at all | (done) | — |
+| `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost_restrict` — the **Ξ-restricted** Lagrangian bound (`P(Ξ)`-supported source ⇒ conjugate `sup` over `Ξ`) | ✅ **proved** (axiom-clean; same proof, `integral_mono_ae` since the pointwise bound holds `π`-a.e. on the `Ξ`-supported marginal) | yes — the entropic/Ξ-restricted Kantorovich variant | (done) | — |
 | `OptimalTransport.WeakDuality.expect_kernel_le_lam_sinkhornBudget_add_logPartition` — the **entropic (Sinkhorn) weak-duality kernel** (per-point DV integrated over `p₀`) | ✅ **proved** (axiom-clean; the entropic analogue, paper-agnostic) | yes — no entropic-DRO duality in Mathlib | (done) | — |
 | `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`matrix_scaling_exists` + `sinkhorn_potentials_exist`, with mass-conservation hyp) | ✅ **proved** (axiom-clean; log-domain min, no Brouwer/Birkhoff needed) | yes — Sinkhorn scaling absent from Mathlib | T3 | (done) |
 | Chain 1 roots (Sion minimax, Fenchel conjugate/duality, Kantorovich) · Chain 3 (Perron–Frobenius) | 🔜 queued (see FOUNDATIONS.md) | ❌ absent | L–XL | survey → Fable |
@@ -314,6 +332,14 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
 ---
 
 ### Change log
+- **2026-07 (Thm 4.2 landed + statement correction; MohajerinEsfahaniKuhn2018 sorry-free):**
+  count **7 → 6**. Proved `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2)
+  axiom-clean via `le_antisymm(weak, attainment)`, weak `≤` from the **new**
+  `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost_restrict` (Ξ-restricted kernel) +
+  empirical collapse + η-trick; **corrected the statement** to the `P(Ξ)`-restricted ball
+  `wass1BallΞ` (the `ℝ`-valued `ℓk` encoding had dropped the paper's `P(Ξ)` restriction, making
+  the raw-`wass1Ball` equality unsound for `Ξ ≠ univ`). **All 6 remaining `sorry`s are now in
+  `ChenGeorgiouPavon2021`** (SDE/PDE — no Mathlib theory).
 - **2026-07 (general worst-case structure landed; GaoKleywegt2023 sorry-free):** count
   **8 → 7**. Proved `GaoKleywegt2023.worstCase_structure_cor1` (Cor 1(ii), eq. 27) axiom-clean —
   the general-`ν` 2-map transport `μ* = pstar·T̄#ν + (1−pstar)·T*#ν`, same house pattern as

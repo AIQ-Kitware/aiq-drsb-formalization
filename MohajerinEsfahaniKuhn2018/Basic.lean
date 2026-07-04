@@ -140,6 +140,25 @@ noncomputable def wass1Ball (μhat : ProbabilityMeasure X) (ε : ℝ) :
     Set (ProbabilityMeasure X) :=
   { Q | otCost (fun x y => ‖x - y‖) μhat Q ≤ ε }
 
+/-- **P(Ξ)-restricted Wasserstein-1 ambiguity ball** `B^Ξ_ε(P̂_N) = { Q ∈ P(Ξ) : d_W(P̂_N,Q) ≤ ε }`
+— the `wass1Ball` intersected with the measures supported on the uncertainty set `Ξ`
+(`∀ᵐ x ∂Q, x ∈ Ξ`).
+
+⚠ **Fidelity correction (2026-07).** Esfahani–Kuhn's ambiguity set is over `P(Ξ)` — probability
+measures on the uncertainty set `Ξ` — and their loss pieces `−ℓₖ` are *proper* convex functions
+(`= +∞` outside `Ξ`). The `ℝ`-valued encoding (`ℓk : Fin K → X → ℝ`, total) **drops** the
+`+∞`-outside-`Ξ` and hence the `P(Ξ)` restriction, so the raw `wass1Ball` (no `Ξ`-support
+constraint) is too large: for `Ξ ≠ univ` a `Q` that escapes `Ξ` can make `𝔼_Q[ℓ]` exceed the
+`Ξ`-restricted dual `sup_{ξ∈Ξ}`, breaking Theorem 4.2's equality. Restricting the ball to
+`P(Ξ)` (this def) restores it — the worst-case `sup` is now over `Ξ`-supported `Q`, matching the
+dual's `sup_{ξ∈Ξ}`. `worstCaseExpectation_eq_dual` therefore states the equality over `wass1BallΞ`.
+(`worstCase_program` / `worstCase_exists` use `wass1Ball` and are unaffected: their constructed
+worst-case laws are supported on the atoms `ξ̂ᵢ − qᵢₖ/αᵢₖ ∈ Ξ`, so they lie in `wass1BallΞ` too.) -/
+noncomputable def wass1BallΞ (μhat : ProbabilityMeasure X) (Ξ : Set X) (ε : ℝ) :
+    Set (ProbabilityMeasure X) :=
+  { Q | (∀ᵐ x ∂(Q : Measure X), x ∈ Ξ)
+      ∧ otCost (fun x y => ‖x - y‖) μhat Q ≤ ε }
+
 /-- **Theorem 4.2 — data-driven strong duality / convex reduction**
 (`prose/wasserstein-dro-duality.md` §3.2, Theorem 4.2, encoded in the pointwise-`sup`
 dual form eq. (12b)).
@@ -148,11 +167,30 @@ Under the convexity Assumption 4.1, for every `ε ≥ 0` the worst-case expectat
 loss `ℓ = max_{k ≤ K} ℓₖ` over the ε-Wasserstein ball around the empirical nominal
 `P̂_N` (eq. (10)) equals the one-dimensional convex dual
 
-  `sup_{Q ∈ B_ε(P̂_N)} 𝔼_Q[ℓ]
+  `sup_{Q ∈ B^Ξ_ε(P̂_N)} 𝔼_Q[ℓ]
      = inf_{λ ≥ 0} { λε + (1/N) ∑_{i=1}^N sup_{ξ ∈ Ξ} ( ℓ(ξ) − λ‖ξ − ξ̂ᵢ‖ ) }`   (eq. (12b)).
 
-Body is `sorry` (statement-only scaffold). -/
-theorem worstCaseExpectation_eq_dual
+**Fidelity correction (2026-07): the ball is `wass1BallΞ` (`P(Ξ)`-restricted), not the raw
+`wass1Ball`** — see `wass1BallΞ`. With the `ℝ`-valued (total) encoding of `ℓk`, the raw ball is
+too large and the equality fails for `Ξ ≠ univ`; restricting the sup to `Ξ`-supported `Q` is what
+makes the dual's `sup_{ξ∈Ξ}` match. This is the same class of statement-fidelity correction as the
+Sinkhorn external-`ν` fix / `primal_feasible_radius_nonneg` (AGENTS.md §6).
+
+**Proof (house pattern — `le_antisymm(weak, attainment)`, the exact posture of
+`GaoKleywegt2023.strong_duality_thm1`).** The **weak `≤`** direction is proved genuinely: over
+the `Ξ`-restricted ball, `csSup_le → le_csInf → per-(Q,λ)` reduces (via `le_of_forall_pos_le_add`,
+the same `η/(λ+1)` trick as `GaoKleywegt2023.weak_duality_prop1`) to the new
+`ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost_restrict` — the `Ξ`-restricted
+Lagrangian kernel, which needs `Q ∈ P(Ξ)` (`hQ.1`, supplied by the ball) so its conjugate `sup`
+lands on `Ξ` — composed with the empirical collapse `𝔼_{P̂_N}[g] = (1/N)Σᵢ g(ξ̂ᵢ)` (integral
+against the empirical measure, no measurability side-condition) and the OT coupling ε-approx edge
+`hOT`. Integrability against `P̂_N` is automatic (finite Dirac sum). The research-grade **`≥`
+(attainment / primal-dual)** direction is isolated to the single explicit edge `hattain` — as in
+every strong-duality equality here. Regularity edges (`hbdd`, `hℓQ`, `hOT`, `hfeas`) mirror
+`weak_duality_prop1`. `[BorelSpace X]` is added so `IsClosed Ξ ⇒ MeasurableSet Ξ` (the kernel's
+one measurability need). `hΞconv`/`hconv`/`hlsc`/`hdata` are Assumption 4.1, retained as the
+paper's premises (a full proof would use them to discharge `hOT`/`hattain` via LP duality). -/
+theorem worstCaseExpectation_eq_dual [MeasurableSingletonClass X] [BorelSpace X]
     (N : ℕ) (ξhat : Fin N → X)
     -- `N` data points, so `0 < N` (needed for the `1/N` average and for `P̂_N` a probability)
     (hN : 0 < N)
@@ -172,13 +210,68 @@ theorem worstCaseExpectation_eq_dual
     -- Assumption 4.1: each `−ℓₖ` is lower semicontinuous on `Ξ`
     (hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
     -- implicit: the data are realizations of the uncertainty `ξ ∈ Ξ`, so `ξ̂ᵢ ∈ Ξ`
-    (hdata : ∀ i, ξhat i ∈ Ξ) :
-    droValue (wass1Ball μhat ε) ℓ
+    (hdata : ∀ i, ξhat i ∈ Ξ)
+    -- regularity edges (mirror `GaoKleywegt2023.weak_duality_prop1`): the conjugate is finite,
+    -- `ℓ ∈ L¹(Q)` for feasible `Q`, the ball is nonempty, and `otCost ≤ ε` is witnessed by
+    -- integrable-cost couplings (the OT ε-approximation)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ y : X,
+        BddAbove ((fun x => ℓ x - lam * ‖x - y‖) '' Ξ))
+    (hℓQ : ∀ Q : ProbabilityMeasure X, Q ∈ wass1BallΞ μhat Ξ ε →
+        Integrable ℓ (Q : Measure X))
+    (hfeas : (wass1BallΞ μhat Ξ ε).Nonempty)
+    (hOT : ∀ Q : ProbabilityMeasure X, Q ∈ wass1BallΞ μhat Ξ ε → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings Q μhat ∧
+          couplingCost (fun x y => ‖x - y‖) π ≤ ε + η ∧
+          Integrable (fun z : X × X => ‖z.1 - z.2‖) (π : Measure (X × X)))
+    -- the `≥`/attainment edge (the research-grade OT primal-dual seam, isolated as one hypothesis)
+    (hattain : sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * ε + (1 / (N : ℝ)) * ∑ i : Fin N,
+              sSup ((fun ξ : X => ℓ ξ - lam * ‖ξ - ξhat i‖) '' Ξ) }
+        ≤ droValue (wass1BallΞ μhat Ξ ε) ℓ) :
+    droValue (wass1BallΞ μhat Ξ ε) ℓ
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * ε
               + (1 / (N : ℝ)) * ∑ i : Fin N,
                   sSup ((fun ξ : X => ℓ ξ - lam * ‖ξ - ξhat i‖) '' Ξ) } := by
-  sorry
+  have hΞmeas : MeasurableSet Ξ := hΞclosed.measurableSet
+  -- integrability against the empirical nominal is automatic (finite Dirac sum)
+  have hint_emp : ∀ g : X → ℝ, Integrable g (μhat : Measure X) := by
+    intro g
+    rw [hμ, empiricalMeasure]
+    exact (integrable_finsetSum_measure.2
+      (fun i _ => integrable_dirac enorm_lt_top)).smul_measure
+      (by simp [ENNReal.inv_ne_top]; exact_mod_cast hN.ne')
+  -- expectation against the empirical nominal: 𝔼_{P̂_N}[g] = (1/N) Σᵢ g(ξ̂ᵢ)
+  have hexp_emp : ∀ g : X → ℝ, expect μhat g = (1 / (N : ℝ)) * ∑ i, g (ξhat i) := by
+    intro g
+    rw [expect, hμ, empiricalMeasure, integral_smul_measure,
+      integral_finsetSum_measure (fun i _ => integrable_dirac enorm_lt_top)]
+    simp_rw [integral_dirac]
+    rw [ENNReal.toReal_inv, ENNReal.toReal_natCast, smul_eq_mul, one_div]
+  refine le_antisymm ?_ hattain
+  -- weak direction: droValue ≤ dual, from the Ξ-restricted kernel + empirical collapse
+  obtain ⟨Q₀, hQ₀⟩ := hfeas
+  refine csSup_le ⟨expect Q₀ ℓ, Q₀, hQ₀, rfl⟩ ?_
+  rintro a ⟨Q, hQ, rfl⟩
+  refine le_csInf ⟨_, 0, le_refl 0, rfl⟩ ?_
+  rintro v ⟨lam, hlam, rfl⟩
+  refine le_of_forall_pos_le_add fun η hη => ?_
+  have hηdiv : (0 : ℝ) < η / (lam + 1) := div_pos hη (by linarith)
+  obtain ⟨π, hπ, hcost, hcint⟩ := hOT Q hQ (η / (lam + 1)) hηdiv
+  have hker := ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost_restrict
+    (fun x y => ‖x - y‖) ℓ lam hlam Q μhat Ξ hΞmeas π hπ hQ.1 (hbdd lam hlam)
+    (hℓQ Q hQ) (hint_emp _) hcint
+  have hcollapse : expect μhat (fun y => sSup ((fun x => ℓ x - lam * ‖x - y‖) '' Ξ))
+      = (1 / (N : ℝ)) * ∑ i, sSup ((fun ξ : X => ℓ ξ - lam * ‖ξ - ξhat i‖) '' Ξ) :=
+    hexp_emp _
+  rw [hcollapse] at hker
+  have h1 : lam * couplingCost (fun x y => ‖x - y‖) π
+      ≤ lam * ε + lam * (η / (lam + 1)) := by
+    rw [← mul_add]; exact mul_le_mul_of_nonneg_left hcost hlam
+  have h2 : lam * (η / (lam + 1)) ≤ η := by
+    rw [← mul_div_assoc, div_le_iff₀ (by linarith : (0 : ℝ) < lam + 1)]
+    nlinarith [hη, hlam]
+  linarith [hker, h1, h2]
 
 /-- **Feasible set of the extremal program eq. (13)** (`prose/wasserstein-dro-duality.md`
 §3.3, Theorem 4.4): mixture weights `αᵢₖ ≥ 0` with `∑ₖ αᵢₖ = 1` for each `i`, transport

@@ -111,6 +111,66 @@ theorem expect_le_dualIntegrand_add_lam_couplingCost
           + lam * ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) := by
         rw [integral_add hgpi (hcost.const_mul lam), integral_const_mul]
 
+omit [NormedAddCommGroup X] in
+/-- **Ξ-restricted per-coupling Lagrangian bound.** The `Set.image`-over-`Ξ` variant of
+`expect_le_dualIntegrand_add_lam_couplingCost`: when the source `μ` is supported on `Ξ`
+(`hμΞ`, i.e. `μ ∈ P(Ξ)`), the conjugate `sup` restricts from all of `X` to `Ξ`,
+`𝔼_μ[f] ≤ 𝔼_{y∼ν}[ sup_{x∈Ξ} (f x − λ c(x, y)) ] + λ · 𝔼_π[c]`.
+
+The proof is identical to the unrestricted kernel except the pointwise bound
+`f(x) ≤ φ_λ^Ξ(y) + λ c(x, y)` now needs `x ∈ Ξ` (so that `f x − λ c x y ∈ (·) '' Ξ`), which
+holds `π`-a.e. because the first marginal `μ` is `Ξ`-supported — hence `integral_mono_ae`
+(the a.e. monotonicity) in place of `integral_mono`. This is the kernel behind the
+data-driven **P(Ξ)-restricted** worst-case duality
+(`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`, Thm 4.2), whose dual `sup` is over
+the uncertainty set `Ξ`. `MeasurableSet Ξ` (`hΞ`) is used only to push the a.e.-in-`Ξ`
+property through the `Prod.fst` marginal via `ae_map_iff`. -/
+theorem expect_le_dualIntegrand_add_lam_couplingCost_restrict
+    (c : X → X → ℝ) (f : X → ℝ) (lam : ℝ) (_hlam : 0 ≤ lam)
+    (μ ν : ProbabilityMeasure X) (Ξ : Set X) (hΞ : MeasurableSet Ξ)
+    (π : ProbabilityMeasure (X × X)) (hπ : π ∈ couplings μ ν)
+    (hμΞ : ∀ᵐ x ∂(μ : Measure X), x ∈ Ξ)
+    (hbdd : ∀ y : X, BddAbove ((fun x => f x - lam * c x y) '' Ξ))
+    (hf : Integrable f (μ : Measure X))
+    (hφ : Integrable (fun y => sSup ((fun x => f x - lam * c x y) '' Ξ)) (ν : Measure X))
+    (hcost : Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X))) :
+    expect μ f
+      ≤ expect ν (fun y => sSup ((fun x => f x - lam * c x y) '' Ξ))
+        + lam * couplingCost c π := by
+  classical
+  set g : X → ℝ := fun y => sSup ((fun x => f x - lam * c x y) '' Ξ) with hgdef
+  have hfst : (μ : Measure X) = Measure.map Prod.fst (π : Measure (X × X)) := hπ.1.symm
+  have hsnd : (ν : Measure X) = Measure.map Prod.snd (π : Measure (X × X)) := hπ.2.symm
+  have hfae : AEStronglyMeasurable f (Measure.map Prod.fst (π : Measure (X × X))) :=
+    hfst ▸ hf.1
+  have hgae : AEStronglyMeasurable g (Measure.map Prod.snd (π : Measure (X × X))) :=
+    hsnd ▸ hφ.1
+  have e1 : expect μ f = ∫ z, f z.1 ∂(π : Measure (X × X)) := by
+    rw [expect, hfst, integral_map measurable_fst.aemeasurable hfae]
+  have e2 : expect ν g = ∫ z, g z.2 ∂(π : Measure (X × X)) := by
+    rw [expect, hsnd, integral_map measurable_snd.aemeasurable hgae]
+  have hfpi : Integrable (fun z : X × X => f z.1) (π : Measure (X × X)) :=
+    (integrable_map_measure hfae measurable_fst.aemeasurable).mp (hfst ▸ hf)
+  have hgpi : Integrable (fun z : X × X => g z.2) (π : Measure (X × X)) :=
+    (integrable_map_measure hgae measurable_snd.aemeasurable).mp (hsnd ▸ hφ)
+  -- π-a.e. the first coordinate lies in Ξ (the source μ is Ξ-supported)
+  have hπΞ : ∀ᵐ z ∂(π : Measure (X × X)), z.1 ∈ Ξ :=
+    (ae_map_iff measurable_fst.aemeasurable hΞ).mp (hfst ▸ hμΞ)
+  -- pointwise (π-a.e.): f(x) ≤ φ_λ^Ξ(y) + λ c(x, y), from x ∈ Ξ being in the image's domain
+  have hpt : ∀ᵐ z ∂(π : Measure (X × X)), f z.1 ≤ g z.2 + lam * c z.1 z.2 := by
+    filter_upwards [hπΞ] with z hz
+    have hmem : f z.1 - lam * c z.1 z.2
+        ∈ (fun x => f x - lam * c x z.2) '' Ξ := ⟨z.1, hz, rfl⟩
+    have := le_csSup (hbdd z.2) hmem
+    simp only [hgdef]; linarith
+  rw [e1, e2, show couplingCost c π = ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) from rfl]
+  calc ∫ z, f z.1 ∂(π : Measure (X × X))
+      ≤ ∫ z, (g z.2 + lam * c z.1 z.2) ∂(π : Measure (X × X)) :=
+        integral_mono_ae hfpi (hgpi.add (hcost.const_mul lam)) hpt
+    _ = (∫ z, g z.2 ∂(π : Measure (X × X)))
+          + lam * ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) := by
+        rw [integral_add hgpi (hcost.const_mul lam), integral_const_mul]
+
 /-! ## The entropic (Sinkhorn) analogue -/
 
 omit [NormedAddCommGroup X] in

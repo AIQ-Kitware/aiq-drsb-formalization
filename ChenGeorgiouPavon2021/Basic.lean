@@ -291,6 +291,47 @@ theorem energy_le_klReal_of_projections
   ForMathlib.MeasureTheory.le_toReal_klDiv_of_map_tendsto
     (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) hac hfin π hπ hconv
 
+omit [NormedSpace ℝ X] in
+/-- **Energy identity (4.19), FULL `=` — the `≤` half's Itô-free structural core wired in.**
+
+Upgrades `energy_le_klReal_of_projections` from `≥` to the full equality
+`𝔼[∫₀¹ ½‖u‖²] = D(P^{u,ρ₀}‖R)` (when both chains start alike, so the endpoint-entropy term
+vanishes), assuming the time-grid projections `π n : Path X → 𝓨 n` **generate** the path σ-algebra
+via a filtration `ℱ` (`⨆ n, ℱ n = ‹MeasurableSpace (Path X)›`, `ℱ n = comap (π n)`).
+
+Both directions now come from one martingale-convergence fact and one edge:
+`ForMathlib…klDiv_map_tendsto_toReal` (Lévy's upward theorem — **Itô-free**) shows the projected
+divergences converge to the full `D(P‖R)`, while the convergence edge `hconv` says they converge to
+the energy; limit-uniqueness (`tendsto_nhds_unique`) forces the two equal.
+
+The **entire remaining Itô content is now localised to `hconv`** — the statement that the
+finite-dimensional (grid) relative entropies converge to the control energy. For the
+Euler–Maruyama/Gaussian marginals (the card's object) `hconv` is Itô-free (discrete Cameron–Martin
+`energy_identity_euler_maruyama` + Riemann sums); for the exact feedback-diffusion marginals it is the
+finite-dimensional Girsanov density, the genuine stochastic-exponential content (ROADMAP Phase 2).
+The generation hypothesis holds for a standard-Borel continuous-path model (countably many rational
+times determine the path); it is a satisfiable hypothesis on the abstract `𝓨`/`ℱ`, not a vacuous
+edge. `#print axioms`-clean. -/
+theorem energy_eq_klReal_of_projections
+    (u : Control X) (ρ₀ : ProbabilityMeasure X)
+    (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))
+    (hfin : InformationTheory.klDiv
+        (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) ≠ ⊤)
+    {𝓨 : ℕ → Type*} [hm𝓨 : ∀ n, MeasurableSpace (𝓨 n)]
+    (π : ∀ n, Path X → 𝓨 n) (hπ : ∀ n, Measurable (π n))
+    (ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace (Path X)))
+    (hℱ : ∀ n, ℱ n = (hm𝓨 n).comap (π n))
+    (hgen : ⨆ n, ℱ n = (inferInstance : MeasurableSpace (Path X)))
+    (hconv : Filter.Tendsto
+        (fun n => klReal ((d.pathLaw u ρ₀ : Measure (Path X)).map (π n))
+                          ((d.R : Measure (Path X)).map (π n))) Filter.atTop
+        (nhds (energy u (d.pathLaw u ρ₀)))) :
+    energy u (d.pathLaw u ρ₀)
+      = klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) :=
+  tendsto_nhds_unique hconv
+    (ForMathlib.MeasureTheory.klDiv_map_tendsto_toReal
+      (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) hac hfin π hπ ℱ hℱ hgen)
+
 /-- **Euler–Maruyama (discrete) energy identity — the card's actual measurement of (4.19).**
 
 The DRSB card does not evaluate the continuous `energy_identity`; it evaluates the

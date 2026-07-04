@@ -233,3 +233,28 @@ Net: the monolithic Girsanov edge `hCM` is now split — the lower bound is a th
 edge), and ONLY the upper bound `D(P^{u}‖R) ≤ 𝔼[∫½‖u‖²]` (projections must *exhaust* the σ-algebra —
 the genuine stochastic-exponential content) remains Itô-blocked. That is the honest, precise Phase-2
 core: it needs the Itô/stochastic-analysis stack built in (or ported into) Mathlib. Not faked.
+
+### Session 4 addendum 3 — Phase 2 ≤-half STRUCTURAL CORE proved (Itô-free martingale convergence)
+Broke the ≤ half into small steps and landed them one by one (all axiom-clean):
+- step 1 `toReal_klDiv_map_eq_integral_condExp`, 2a `klDiv_map_eq_lintegral_ofReal_klFun_condExp`:
+  the (real / ℝ≥0∞) representation `KL(g#μ‖g#ν) = ∫ klFun(ν[dμ/dν|comap g])` — pushforward KL as the
+  klFun-integral of the conditional expectation of the density (the martingale value).
+- step 2b `klDiv_map_le`: the ℝ≥0∞ data-processing inequality (no finiteness), giving `limsup ≤ KL`.
+- step 2c `klDiv_map_tendsto_toReal`: THE theorem. `(klDiv (μ.map gₙ)(ν.map gₙ)).toReal →
+  (klDiv μ ν).toReal` when `comap gₙ` generates `m𝓧`. Lévy's upward theorem
+  (`Integrable.tendsto_ae_condExp`, present in Mathlib) gives `ν[dμ/dν|ℱn] → dμ/dν` a.e.; Fatou
+  (`lintegral_liminf_le`) gives `KL ≤ liminf`, `klDiv_map_le` gives `limsup ≤ KL`; the ℝ≥0∞
+  liminf/limsup sandwich + toReal continuity finish. NO stochastic integral — this is the "projections
+  exhaust the σ-algebra" fact the DPI cannot give.
+- step 3 `ChenGeorgiouPavon2021.energy_eq_klReal_of_projections`: the FULL `=` identity
+  `𝔼[∫½‖u‖²] = D(P^{u}‖R)`. Both directions from step 2c (projected KLs → the full KL) + the edge
+  `hconv` (projected KLs → energy) via `tendsto_nhds_unique`.
+
+Net: the continuum energy identity now has BOTH inequalities proved Itô-free, and the ENTIRE
+remaining Itô content is localised to the single edge `hconv` = "the exact-SDE finite-dimensional
+(grid) relative entropies converge to the control energy." For the Euler–Maruyama/Gaussian marginals
+(the card's object) that edge is Itô-free (discrete Cameron–Martin + Riemann sums,
+`energy_identity_euler_maruyama`); for the exact feedback diffusion it is the finite-dimensional
+Girsanov density — the genuine stochastic-exponential content, still the honest Phase-2 wall. Nothing
+faked; `hconv` and the σ-algebra-generation hypothesis are honest, satisfiable (standard-Borel model)
+edges, not vacuous ones.

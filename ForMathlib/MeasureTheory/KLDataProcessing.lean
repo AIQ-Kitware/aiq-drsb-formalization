@@ -212,4 +212,71 @@ theorem le_toReal_klDiv_of_map_tendsto
   le_of_tendsto hL <| Eventually.of_forall fun i =>
     toReal_klDiv_map_le μ ν hμν (g i) (hg i) hfin
 
+/-- **Martingale-convergence identity for KL along a generating filtration** (`≤`-half core,
+step 2c — the Itô-free structural theorem). For probability measures `μ ≪ ν` with finite `KL`, a
+sequence of measurable maps `gₙ : 𝓧 → 𝓨' n` whose induced sub-σ-algebras `comap gₙ` form a
+filtration `ℱ` that **generates** `m𝓧` (`⨆ n, ℱ n = m𝓧`), the pushforward divergences converge *up*
+to the full divergence:
+`(klDiv (μ.map gₙ) (ν.map gₙ)).toReal → (klDiv μ ν).toReal`.
+
+This is the direction the data-processing inequality does **not** give — "the finite-dimensional
+projections capture all of the KL" — and it is **Itô-free**: it is Lévy's upward theorem
+(`MeasureTheory.Integrable.tendsto_ae_condExp`, which Mathlib has) applied to the density
+`Mₙ = ν[dμ/dν | ℱ n]`, plus Fatou (`lintegral_liminf_le`) for `KL ≤ liminf` and the `ℝ≥0∞`
+data-processing inequality (`klDiv_map_le`) for `limsup ≤ KL`. Combined with the DPI, it turns
+`ChenGeorgiouPavon2021.energy_le_klReal_of_projections` from a `≥` bound into a full `=`, modulo only
+the (Itô-flavoured) marginal-KL convergence edge — see `ROADMAP_ENERGY_IDENTITY.md`. -/
+theorem klDiv_map_tendsto_toReal
+    (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμν : μ ≪ ν) (hfin : klDiv μ ν ≠ ⊤)
+    {𝓨' : ℕ → Type*} [hm𝓨' : ∀ n, MeasurableSpace (𝓨' n)]
+    (g : ∀ n, 𝓧 → 𝓨' n) (hg : ∀ n, Measurable (g n))
+    (ℱ : MeasureTheory.Filtration ℕ m𝓧)
+    (hℱ : ∀ n, ℱ n = (hm𝓨' n).comap (g n))
+    (hgen : ⨆ n, ℱ n = m𝓧) :
+    Tendsto (fun n => (klDiv (μ.map (g n)) (ν.map (g n))).toReal) atTop
+      (nhds (klDiv μ ν).toReal) := by
+  classical
+  set F₀ : 𝓧 → ℝ := fun a => (μ.rnDeriv ν a).toReal with hF₀
+  have hF₀int : Integrable F₀ ν := Measure.integrable_toReal_rnDeriv
+  have hF₀meas : StronglyMeasurable[⨆ n, ℱ n] F₀ := by
+    rw [hgen]; exact (Measure.measurable_rnDeriv μ ν).ennreal_toReal.stronglyMeasurable
+  -- Lévy's upward theorem: the density martingale converges a.e. to `dμ/dν`
+  have hlevy : ∀ᵐ x ∂ν, Tendsto (fun n => (ν[F₀ | ℱ n]) x) atTop (nhds (F₀ x)) :=
+    hF₀int.tendsto_ae_condExp hF₀meas
+  have hklconv : ∀ᵐ x ∂ν,
+      Tendsto (fun n => ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x))) atTop
+        (nhds (ENNReal.ofReal (klFun (F₀ x)))) := by
+    filter_upwards [hlevy] with x hx
+    exact (ENNReal.continuous_ofReal.tendsto _).comp ((continuous_klFun.tendsto _).comp hx)
+  -- ℝ≥0∞ representations of each projected divergence and of the total
+  have hbn : ∀ n, klDiv (μ.map (g n)) (ν.map (g n))
+      = ∫⁻ x, ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x)) ∂ν := by
+    intro n
+    have h := klDiv_map_eq_lintegral_ofReal_klFun_condExp μ ν hμν (g n) (hg n)
+    rw [hℱ n]; exact h
+  have hM : klDiv μ ν = ∫⁻ x, ENNReal.ofReal (klFun (F₀ x)) ∂ν :=
+    klDiv_eq_lintegral_klFun_of_ac hμν
+  have hmeas_n : ∀ n, Measurable
+      (fun x => ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x))) := fun n =>
+    (measurable_klFun.comp
+      (stronglyMeasurable_condExp.mono (ℱ.le n)).measurable).ennreal_ofReal
+  -- ℝ≥0∞ convergence of the divergences via a liminf/limsup sandwich
+  have htends : Tendsto (fun n => klDiv (μ.map (g n)) (ν.map (g n))) atTop
+      (nhds (klDiv μ ν)) := by
+    simp_rw [hbn]; rw [hM]
+    refine tendsto_of_le_liminf_of_limsup_le ?_ ?_
+    · -- Fatou: `∫⁻ klFun(F₀) = ∫⁻ liminf klFun(Mₙ) ≤ liminf ∫⁻ klFun(Mₙ)`
+      calc ∫⁻ x, ENNReal.ofReal (klFun (F₀ x)) ∂ν
+          = ∫⁻ x, liminf (fun n => ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x))) atTop ∂ν := by
+            refine lintegral_congr_ae ?_
+            filter_upwards [hklconv] with x hx using hx.liminf_eq.symm
+        _ ≤ liminf (fun n => ∫⁻ x, ENNReal.ofReal (klFun ((ν[F₀ | ℱ n]) x)) ∂ν) atTop :=
+            lintegral_liminf_le hmeas_n
+    · -- each term `≤ KL` by the ℝ≥0∞ data-processing inequality
+      refine limsup_le_of_le ?_ (Eventually.of_forall fun n => ?_)
+      · exact isCobounded_le_of_bot
+      · rw [← hbn n, ← hM]; exact klDiv_map_le μ ν hμν (g n) (hg n)
+  exact (ENNReal.continuousAt_toReal hfin).tendsto.comp htends
+
 end ForMathlib.MeasureTheory

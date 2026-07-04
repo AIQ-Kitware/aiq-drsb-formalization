@@ -120,7 +120,18 @@ Two routes, each a real project:
   (*absent from Mathlib*). Port path: `raphaelrrcoelho/formal-mathfin` (Apache-2.0, 1-D
   Itô/Girsanov) → generalize to multi-D + add KL. This is the recommended long-term project.
 
-#### `≤`-half sub-plan — the projection-EXHAUSTION theorem (Itô-FREE, in progress 2026-07-04)
+#### `≤`-half sub-plan — the projection-EXHAUSTION theorem (Itô-FREE, ✅ DONE 2026-07-04)
+**PROVED, axiom-clean** — `ForMathlib…klDiv_map_tendsto_toReal`:
+`(klDiv (μ.map gₙ) (ν.map gₙ)).toReal → (klDiv μ ν).toReal` when `comap gₙ` forms a filtration
+generating `m𝓧`. Steps, each landed: 1 `toReal_klDiv_map_eq_integral_condExp`, 2a
+`klDiv_map_eq_lintegral_ofReal_klFun_condExp`, 2b `klDiv_map_le` (ℝ≥0∞ DPI), 2c the Lévy
+(`Integrable.tendsto_ae_condExp`) + Fatou (`lintegral_liminf_le`) sandwich. Wired into
+`ChenGeorgiouPavon2021.energy_eq_klReal_of_projections`: the FULL `=` identity
+`𝔼[∫½‖u‖²] = D(P^{u}‖R)`, both directions from this martingale convergence + limit uniqueness,
+**leaving the entire Itô requirement in the single edge `hconv`** (exact-SDE grid-KL → energy).
+Below is the original plan, now realised.
+
+#### `≤`-half sub-plan — the projection-EXHAUSTION theorem (Itô-FREE, ✅ realised 2026-07-04)
 The `≤` half's *structural* core — "the finite-dimensional projections capture all of the KL" — is
 **not** Itô-blocked: it is the L¹ martingale-convergence identity
 `KL(μ‖ν) = limₙ KL(πₙ_#μ ‖ πₙ_#ν)` when `comap πₙ ↑ m𝓧`. Combined with the `≥`-half DPI bound this

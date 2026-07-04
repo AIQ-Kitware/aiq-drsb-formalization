@@ -28,3 +28,7 @@ import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
+-- Vendored Kolmogorov extension theorem (Apache-2.0, RemyDegenne/kolmogorov_extension4);
+-- see ForMathlib/KolmogorovExtension/README.md. Supplies `projectiveLimit` for the
+-- continuum reference path measure.
+import ForMathlib.KolmogorovExtension.KolmogorovExtension

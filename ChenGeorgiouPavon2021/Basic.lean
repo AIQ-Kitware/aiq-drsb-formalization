@@ -256,6 +256,41 @@ theorem energy_identity_conditional
       ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_add ρ₀ ρ₀' Ku Kw hfin_marg hfin_cond,
       hcond, hCM]
 
+omit [NormedSpace ℝ X] in
+/-- **Energy identity (4.19), lower-bound (`≥`) half — Itô-free, via finite-dimensional projections.**
+
+For the continuous energy identity `D(P^{u,ρ₀}‖R) = D(ρ₀‖ρ₀^W) + 𝔼[∫₀¹ ½‖u‖²]`, the **`≥`
+direction** (specifically `𝔼[∫₀¹ ½‖u‖²] ≤ D(P^{u,ρ₀}‖R)` when both chains start alike) is provable
+with **no stochastic integral**: it rests only on the KL data-processing inequality.
+
+Given measurable *time-grid projections* `π i : Path X → 𝓨 i` (e.g. `ω ↦ (ω_{t₀},…,ω_{t_k})`) whose
+projected relative entropies `D(π i _# P ‖ π i _# R)` converge to the control energy — which holds in
+any concrete SDE model by the **proved** discrete Cameron–Martin layer `energy_identity_euler_maruyama`
+(each grid KL is the discrete energy `emEnergy`, a Riemann sum of `𝔼[∫½‖u‖²]`) — the data-processing
+inequality (`ForMathlib…le_toReal_klDiv_of_map_tendsto`) forces the limit `≤` the full path-measure
+KL, since each projection only loses information.
+
+This **splits the monolithic Girsanov edge `hCM`**: the lower bound is now a *theorem* (modulo the
+Itô-free convergence edge `hconv`), and only the matching upper bound — the direction requiring the
+projections to exhaust the σ-algebra, i.e. the genuine stochastic-exponential / Itô content — remains
+(ROADMAP Phase 2). `#print axioms`-clean. -/
+theorem energy_le_klReal_of_projections
+    (u : Control X) (ρ₀ : ProbabilityMeasure X)
+    (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))
+    (hfin : InformationTheory.klDiv
+        (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) ≠ ⊤)
+    {ι : Type*} {l : Filter ι} [l.NeBot]
+    {𝓨 : ι → Type*} [∀ i, MeasurableSpace (𝓨 i)]
+    (π : ∀ i, Path X → 𝓨 i) (hπ : ∀ i, Measurable (π i))
+    (hconv : Filter.Tendsto
+        (fun i => klReal ((d.pathLaw u ρ₀ : Measure (Path X)).map (π i))
+                          ((d.R : Measure (Path X)).map (π i))) l
+        (nhds (energy u (d.pathLaw u ρ₀)))) :
+    energy u (d.pathLaw u ρ₀)
+      ≤ klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) :=
+  ForMathlib.MeasureTheory.le_toReal_klDiv_of_map_tendsto
+    (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) hac hfin π hπ hconv
+
 /-- **Euler–Maruyama (discrete) energy identity — the card's actual measurement of (4.19).**
 
 The DRSB card does not evaluate the continuous `energy_identity`; it evaluates the

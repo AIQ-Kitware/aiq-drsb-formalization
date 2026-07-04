@@ -86,4 +86,30 @@ theorem toReal_klDiv_map_le
         integral_mono_ae hLHSint hcondint hjensen
     _ = ∫ x, klFun (F₀ x) ∂ν := integral_condExp hm
 
+/-- **The path KL dominates the limit of its finite-dimensional-projection KLs (the `≥` half).**
+If a family of measurable maps `gᵢ : 𝓧 → 𝓨 i` (e.g. finite-dimensional coordinate projections of a
+path space) push `μ, ν` to images whose KL divergences converge to `L` along a nontrivial filter,
+then `L ≤ KL(μ‖ν)`.
+
+Each projection can only *lose* information, so by the data-processing inequality
+`toReal_klDiv_map_le` every projected divergence is `≤ KL(μ‖ν)`; passing to the limit keeps the
+bound. This is the rigorous **lower-bound half** of any *"KL between path measures = limit of
+finite-dimensional (e.g. Euler–Maruyama / Cameron–Martin) KLs"* identity — and, unlike the matching
+upper bound (which needs the projections to *exhaust* the σ-algebra, a martingale/Itô-flavoured
+statement), it is **Itô-free**: it rests only on the DPI. In the DRSB energy identity
+(`ChenGeorgiouPavon2021`), with `gᵢ` the time-grid projections and the projected divergences the
+proved discrete control energies `emEnergy`, this yields `𝔼[∫₀¹ ½‖u‖²] ≤ D(P^{u}‖R)` — the `≥`
+direction of the continuum (4.19) — with no stochastic integral. -/
+theorem le_toReal_klDiv_of_map_tendsto
+    (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμν : μ ≪ ν) (hfin : klDiv μ ν ≠ ⊤)
+    {ι : Type*} {l : Filter ι} [l.NeBot]
+    {𝓨' : ι → Type*} [∀ i, MeasurableSpace (𝓨' i)]
+    (g : ∀ i, 𝓧 → 𝓨' i) (hg : ∀ i, Measurable (g i))
+    {L : ℝ}
+    (hL : Tendsto (fun i => (klDiv (μ.map (g i)) (ν.map (g i))).toReal) l (nhds L)) :
+    L ≤ (klDiv μ ν).toReal :=
+  le_of_tendsto hL <| Eventually.of_forall fun i =>
+    toReal_klDiv_map_le μ ν hμν (g i) (hg i) hfin
+
 end ForMathlib.MeasureTheory

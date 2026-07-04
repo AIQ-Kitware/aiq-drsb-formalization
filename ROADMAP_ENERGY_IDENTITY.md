@@ -85,11 +85,27 @@ theorem, *not* the vacuous edge that instantiating at `Path X = ℝ→X` would b
 shape Phase 2 discharges: instantiate `𝓨` = standard-Borel continuous paths, build the SDE kernels,
 and prove `hCM`'s continuum (Girsanov) — its discrete instance is already `energy_identity_euler_maruyama`.
 
-### Phase 2 — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
-**Status (verified 2026-07):** genuinely blocked — Mathlib ships **no stochastic integral, no
-Girsanov, no stochastic exponential, and no KL lower-semicontinuity** (all four grep-confirmed
-absent). So both candidate routes require building substantial infrastructure; neither is a
-session's work. This is a mathematical fact about what the continuum identity's proof requires
+### Phase 2 — the `≥` half is now Itô-FREE; only the `≤` half needs the stochastic integral
+**Split of the Girsanov edge (2026-07).** The continuum identity is two inequalities; they are *not*
+equally hard:
+- **`≥` half — `𝔼[∫½‖u‖²] ≤ D(P^{u}‖R)` — PROVED (modulo an Itô-free convergence edge).**
+  `ForMathlib…le_toReal_klDiv_of_map_tendsto` + `ChenGeorgiouPavon2021.energy_le_klReal_of_projections`
+  (both axiom-clean): the KL data-processing inequality gives `D(π_# P ‖ π_# R) ≤ D(P‖R)` for every
+  time-grid projection `π`; as the projected divergences → the control energy (their limit is the
+  proved discrete `emEnergy` = a Riemann sum, `energy_identity_euler_maruyama`), the bound passes to
+  the limit. **No stochastic integral** — only the DPI. The single remaining input, `hconv` (grid
+  KLs → energy), is itself Itô-free (finite-dimensional Gaussian Cameron–Martin + Riemann sums).
+- **`≤` half — `D(P^{u}‖R) ≤ 𝔼[∫½‖u‖²]` — still blocked.** This is the direction requiring the
+  finite-dimensional projections to *exhaust* the σ-algebra (a martingale/RN-derivative convergence
+  that recovers the full density), i.e. the genuine stochastic-exponential / Itô content. That is the
+  irreducible Phase-2 core below.
+
+### Phase 2 core (`≤` half) — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
+**Status (re-verified 2026-07-04 against the pinned Mathlib `476fb97b62`, 2026-06-11):** genuinely
+blocked — Mathlib ships **no stochastic integral, no Girsanov, no stochastic exponential, no
+Cameron–Martin, and no quadratic variation** (all grep-confirmed absent at the current pin; only
+basic martingales + predictable processes are present). So the `≤` half requires building
+substantial infrastructure; neither route is a session's work. This is a mathematical fact about what the continuum identity's proof requires
 (its Radon–Nikodym derivative between path measures *is* a stochastic exponential), not a matter
 of effort. The gap is reduced to the single per-trajectory Cameron–Martin atom (above), whose
 **discrete Euler–Maruyama instance is already a proved theorem**.

@@ -213,3 +213,23 @@ standard-Borel `𝓨` — instead of trying to force that (unsatisfiable) instan
 `Path X = ℝ→X`. So Phase 2 now has a crisp target: instantiate `𝓨` = standard-Borel continuous
 paths, build the SDE kernels, and discharge `hCM`'s continuum (Girsanov, still Itô-blocked); the
 discrete instance `energy_identity_euler_maruyama` already proves the grid version of that atom.
+
+### Session 4 addendum 2 — Phase 2 `≥` half made Itô-free (DPI → projection limit)
+"Complete Phase 2" pushed against the honest wall: re-verified against the *current* pinned Mathlib
+(`476fb97b62`, 2026-06-11) that there is **no** stochastic integral / Girsanov / stochastic
+exponential / Cameron–Martin / quadratic variation — only basic martingales + predictable processes.
+The feedback-drift continuum Girsanov density genuinely needs the Itô integral; it cannot be faked.
+
+But the continuum identity is TWO inequalities, and they are not equally hard — so I split the edge:
+- `le_toReal_klDiv_of_map_tendsto` (ForMathlib, axiom-clean): if measurable projections `gᵢ` push
+  `μ,ν` to images whose KL → L, then `L ≤ KL(μ‖ν)`. Pure corollary of the existing DPI
+  `toReal_klDiv_map_le` + `le_of_tendsto`.
+- `energy_le_klReal_of_projections` (CGP, axiom-clean): instantiates it with time-grid projections to
+  give the **`≥` half of (4.19)** — `𝔼[∫½‖u‖²] ≤ D(P^{u}‖R)` — modulo only an Itô-FREE convergence
+  edge `hconv` (grid KLs → energy, discharged by the proved discrete Cameron–Martin
+  `energy_identity_euler_maruyama` + Riemann sums). No stochastic integral.
+
+Net: the monolithic Girsanov edge `hCM` is now split — the lower bound is a theorem (mod an Itô-free
+edge), and ONLY the upper bound `D(P^{u}‖R) ≤ 𝔼[∫½‖u‖²]` (projections must *exhaust* the σ-algebra —
+the genuine stochastic-exponential content) remains Itô-blocked. That is the honest, precise Phase-2
+core: it needs the Itô/stochastic-analysis stack built in (or ported into) Mathlib. Not faked.

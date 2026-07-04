@@ -242,7 +242,7 @@ theorem worstCaseExpectation_eq_dual [MeasurableSingletonClass X] [BorelSpace X]
     rw [hμ, empiricalMeasure]
     exact (integrable_finsetSum_measure.2
       (fun i _ => integrable_dirac enorm_lt_top)).smul_measure
-      (by simp [ENNReal.inv_ne_top]; exact_mod_cast hN.ne')
+      (by simp; exact_mod_cast hN.ne')
   -- expectation against the empirical nominal: 𝔼_{P̂_N}[g] = (1/N) Σᵢ g(ξ̂ᵢ)
   have hexp_emp : ∀ g : X → ℝ, expect μhat g = (1 / (N : ℝ)) * ∑ i, g (ξhat i) := by
     intro g
@@ -421,7 +421,7 @@ theorem worstCase_program [MeasurableSingletonClass X]
     refine ⟨extremalObjective ξhat ℓk (fun _ _ => (K : ℝ)⁻¹) (fun _ _ => 0),
       (fun _ _ => (K : ℝ)⁻¹), (fun _ _ => 0), ⟨?_, ?_, ?_, ?_⟩, rfl⟩
     · exact fun i k => by positivity
-    · intro i; simp [Finset.card_fin]; field_simp
+    · intro i; simp; field_simp
     · simp [hε]
     · intro i k; simpa using hdata i
   · -- every feasible objective is ≤ droValue, via the constructed worst-case law Q

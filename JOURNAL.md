@@ -306,3 +306,25 @@ Also scoped (and honestly declined) the concrete edge-free instance on `infinite
 Kakutani lemma (grep-confirmed; only Riesz–Markov–Kakutani, unrelated). So even a concrete
 finitely-supported instance needs an infinite-product-ac lemma that isn't there. A THIRD named,
 disjoint pin gap (after Kolmogorov extension and Itô/Girsanov) — not faked, recorded here.
+
+### Session 4 addendum 6 — the `hgen`-provider generation lemma (product/discrete-time models)
+After confirming (a) `optimal_control_eq_neg_grad_value` is already proved (PROOF_PIPELINE stale
+there) so the card side is complete, and (b) gap #1 (Kolmogorov extension) is NOT yet on Mathlib
+master (`ProjectiveFamilyContent.lean` still says the extension is "not yet in Mathlib"; only the
+premeasure content + `ClosedCompactCylinders` tightness API are staged) → a pin bump won't close it
+today; wait-for-upstream is the efficient call.
+
+Landed the reusable structural companion to `klDiv_map_tendsto` (axiom-clean):
+- `ForMathlib…iSup_comap_frestrictLe_eq_pi` — for a preorder-indexed product `∀ i, α i`, the
+  finite-prefix restrictions generate the product σ-algebra:
+  `⨆ i, comap (Preorder.frestrictLe i) = MeasurableSpace.pi`. This is the **`hgen`-provider** that
+  makes the martingale-convergence identity `klDiv_map_tendsto` apply to ANY product / discrete-time
+  model (take `gᵢ = frestrictLe i`). Mathlib has the pieces (`measurable_frestrictLe`,
+  `generateFrom_measurableCylinders`) but not this `⨆ = pi` statement — a small standalone gap-fill,
+  upstreamable. Proof: `≤` from measurability of `frestrictLe`; `≥` because each coordinate `eval j`
+  factors as `(eval ⟨j,·⟩) ∘ frestrictLe j`, and `pi = ⨆ j comap (eval j)` by definition.
+
+Note it does NOT discharge the *continuum* `hgen` for `Path X = ℝ→X` (uncountable index → countable
+grid projections do NOT generate the full product σ-algebra; that needs a continuous-path /
+standard-Borel model where rational times determine the path). It is the discrete-time / product
+tool, and the right foundation for a future continuous-path model's rational-grid generation.

@@ -297,4 +297,37 @@ theorem klDiv_map_tendsto_toReal
   (ENNReal.continuousAt_toReal hfin).tendsto.comp
     (klDiv_map_tendsto μ ν hμν g hg ℱ hℱ hgen)
 
+/-- **The finite-prefix restrictions generate the product σ-algebra.** For a preorder-indexed
+product `∀ i, α i`, the sub-σ-algebras pulled back by the finite restrictions
+`Preorder.frestrictLe i : (∀ j, α j) → (∀ j : Iic i, α j)` have supremum equal to the full product
+σ-algebra `MeasurableSpace.pi`:
+`⨆ i, comap (frestrictLe i) = ‹MeasurableSpace (∀ i, α i)›`.
+
+This is the **`hgen`-provider** for `klDiv_map_tendsto` in any *product / discrete-time* model: with
+`g i := frestrictLe i` the induced filtration `ℱ i = comap (g i)` generates `m𝓧`, so the projected
+divergences of the first-`i`-coordinates converge to the full divergence. (Mathlib has the pieces —
+`measurable_frestrictLe`, `generateFrom_measurableCylinders` — but not this `⨆ = pi` statement; it is
+a small standalone gap-fill.) Proof: `≤` since each `frestrictLe i` is measurable; `≥` because each
+coordinate evaluation `eval j` factors as `(eval ⟨j,·⟩) ∘ frestrictLe j`, so `comap (eval j) ≤ comap
+(frestrictLe j)`, and `pi = ⨆ j, comap (eval j)` by definition. -/
+theorem iSup_comap_frestrictLe_eq_pi {ι : Type*} [Preorder ι] [LocallyFiniteOrderBot ι]
+    {α : ι → Type*} [∀ i, MeasurableSpace (α i)] :
+    ⨆ i, MeasurableSpace.comap (Preorder.frestrictLe (π := α) i) inferInstance
+      = (inferInstance : MeasurableSpace (∀ i, α i)) := by
+  apply le_antisymm
+  · exact iSup_le fun i => (Preorder.measurable_frestrictLe i).comap_le
+  · -- `pi = ⨆ j, comap (eval j)` by definition; bound each coordinate σ-algebra
+    refine iSup_le fun j => ?_
+    calc MeasurableSpace.comap (fun b : ∀ i, α i => b j) inferInstance
+        = MeasurableSpace.comap (Preorder.frestrictLe (π := α) j)
+            (MeasurableSpace.comap
+              (fun g : ∀ i : Finset.Iic j, α i => g ⟨j, Finset.mem_Iic.2 le_rfl⟩)
+              inferInstance) := by
+          rw [MeasurableSpace.comap_comp]; rfl
+      _ ≤ MeasurableSpace.comap (Preorder.frestrictLe (π := α) j) inferInstance :=
+          MeasurableSpace.comap_mono (measurable_pi_apply _).comap_le
+      _ ≤ ⨆ i, MeasurableSpace.comap (Preorder.frestrictLe (π := α) i) inferInstance :=
+          le_iSup (fun i => MeasurableSpace.comap (Preorder.frestrictLe (π := α) i) inferInstance) j
+
+
 end ForMathlib.MeasureTheory

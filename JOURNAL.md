@@ -176,3 +176,29 @@ split with the true research content quarantined to a single per-trajectory edge
 **not** a DRSB problem — it is the absence of the Itô integral from Mathlib. Do not fake it with a
 `sorry` or a vacuous edge; either port the Itô/Girsanov stack (the real Phase 2) or leave `hCM` as
 the honest, discrete-instance-proved edge.
+
+## Session 4 (2026-07) — Phase 1.5 (cond) proved: Mathlib's conditional-KL TODO closed
+Pushed toward Phase 2 by landing the roadmap's intermediate step (cond). Two new axiom-clean
+theorems in `ForMathlib/MeasureTheory/KLChainRule.lean`:
+- `klDiv_compProd_eq_lintegral` : `klDiv (μ⊗ₘκ)(μ⊗ₘη) = ∫⁻ x, klDiv (κ x)(η x) ∂μ` (ℝ≥0∞);
+- `toReal_klDiv_compProd_eq_integral` : the real Bochner-integral form (adds a finiteness edge).
+
+This is **exactly the `TODO` Mathlib's own `InformationTheory/KullbackLeibler/ChainRule.lean`
+records** (the `μ[fun x ↦ klDiv (κ x)(η x)]` form, deferred there because `x ↦ klDiv (κ x)(η x)`
+"is not always guaranteed" measurable). The trick to dodge that: never integrate the slice map as a
+black box — show `μ⊗ₘκ = (μ⊗ₘη).withDensity (fun p ↦ Kernel.rnDeriv κ η p.1 p.2)`, so the compProd
+RN-derivative *is* the jointly measurable kernel derivative, then `lintegral_compProd` peels the
+outer integral and each inner slice is recognised as `klDiv (κ x)(η x)`. Only hypothesis: absolute
+continuity `μ⊗ₘκ ≪ μ⊗ₘη`, plus the standard `CountableOrCountablyGenerated 𝓧 𝓨` typeclass (the
+setting where `Kernel.rnDeriv` is jointly measurable). `#print axioms` clean on both.
+
+**Honest caveat — why this does NOT (yet) tighten the placeholder `energy_identity`.** The (cond)
+lemma needs `CountableOrCountablyGenerated X (Path X)`. For the placeholder `Path X = ℝ→X` (an
+uncountable-index `Pi` σ-algebra, not countably generated) with a non-countable state `X`, that
+typeclass is **unsatisfiable** — so wiring (cond) into the current `energy_identity` would demand a
+false instance, i.e. a vacuous edge, which is exactly the "if False then True" landmine this whole
+audit exists to prevent. **Refused.** `energy_identity`'s signature is left unchanged. To actually
+tighten its `hCM` edge to the per-trajectory atom one must first upgrade `Path` to a standard-Borel
+continuous-path model (`C([0,1],X)`/Polish) — a modeling step, not new mathematics. Until then
+(cond) stands as a proved, reusable reduction (a genuine Mathlib contribution) and the roadmap's
+Phase-1.5 box is ticked. Phase 2 (continuum `hCM`) remains blocked on the Itô integral, unchanged.

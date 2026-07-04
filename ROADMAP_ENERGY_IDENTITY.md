@@ -28,7 +28,7 @@ Then the identity splits into three independent facts:
 | # | Fact | Status / Mathlib basis |
 |---|------|------------------------|
 | **(★)** | `D(P‖R) = D(ρ₀‖ρ₀^W) + D(ρ₀⊗ₘKᵘ ‖ ρ₀⊗ₘKᵂ)` (marginal / chain-rule split) | **Provable now.** `InformationTheory.klDiv_compProd_eq_add` — *"holds without any assumption on the measurable spaces"*, so `Path X = ℝ→X` is fine. Real-valued version = that + `ENNReal.toReal_add`. |
-| **(cond)** | `D(ρ₀⊗ₘKᵘ ‖ ρ₀⊗ₘKᵂ) = ∫ D(Kᵘ_x ‖ Kᵂ_x) dρ₀(x)` (conditional KL = averaged pointwise KL) | **Provable now** from the same file's `μ[fun x ↦ klDiv (κ x)(η x)]` form + kernel-integral API. |
+| **(cond)** | `D(ρ₀⊗ₘKᵘ ‖ ρ₀⊗ₘKᵂ) = ∫ D(Kᵘ_x ‖ Kᵂ_x) dρ₀(x)` (conditional KL = averaged pointwise KL) | **PROVED** (`ForMathlib…klDiv_compProd_eq_lintegral`, ℝ≥0∞ form; `…toReal_klDiv_compProd_eq_integral`, real form). Closes Mathlib's own `ChainRule.lean` TODO. Needs only `μ⊗ₘKᵘ ≪ μ⊗ₘKᵂ` + the standard `CountableOrCountablyGenerated` typeclass (standard-Borel spaces). |
 | **(CM)** | `∫ D(Kᵘ_x ‖ Kᵂ_x) dρ₀(x) = 𝔼_P[∫₀¹ ½‖u_t‖² dt]` (per-trajectory Cameron–Martin / Girsanov) | **The one hard edge.** Discrete Euler–Maruyama layer already proved: `ForMathlib…klDiv_emShift_eq_emEnergy`. Remaining: the `Δt→0` limit. |
 
 So the *entire* Girsanov content is (CM), and (CM) itself already has its discrete half proved.
@@ -49,14 +49,32 @@ So the *entire* Girsanov content is (CM), and (CM) itself already has its discre
   `hCM : ∫ D(Kᵘ_x‖Kᵂ_x) dρ₀ = energy`. **Sorry count 1 → 0**; the Girsanov content is now the
   single named, non-vacuous hypothesis `hCM`, exactly the repo's isolate-content-to-an-edge pattern.
 
-### Phase 1.5 — (cond): conditional KL = averaged pointwise KL (Mathlib's own TODO)
+### Phase 1.5 — (cond): conditional KL = averaged pointwise KL (Mathlib's own TODO) — ✅ DONE
 `InformationTheory/KullbackLeibler/ChainRule.lean` explicitly lists as a **TODO**: the integral
-form `klDiv (μ⊗ₘκ) (μ⊗ₘη) = μ[fun x ↦ klDiv (κ x) (η x)]`. Proving it (real-valued) reduces `hCM`
-from the compProd form to the **per-trajectory Cameron–Martin atom**
-`∫ D(Kᵘ_x ‖ Kᵂ_x) dρ₀ = 𝔼[∫½‖u‖²]`, which is *exactly* the object whose discrete instance
-`klDiv_emShift_eq_emEnergy` proves. Achievable now (pieces: `rnDeriv_compProd`,
-`Kernel.rnDeriv`, `integral_compProd`) but PR-sized (that is why Mathlib left it a TODO); a good
-standalone Mathlib contribution. **Does not by itself close (CM)** — it tightens the edge.
+form `klDiv (μ⊗ₘκ) (μ⊗ₘη) = μ[fun x ↦ klDiv (κ x) (η x)]`. **Now PROVED**, both forms, axiom-clean
+(`#print axioms` = `[propext, Classical.choice, Quot.sound]`):
+- `ForMathlib…klDiv_compProd_eq_lintegral` — `klDiv (μ⊗ₘκ)(μ⊗ₘη) = ∫⁻ x, klDiv (κ x)(η x) ∂μ`
+  (ℝ≥0∞), hypotheses: `μ⊗ₘκ ≪ μ⊗ₘη` only;
+- `ForMathlib…toReal_klDiv_compProd_eq_integral` — `(klDiv (μ⊗ₘκ)(μ⊗ₘη)).toReal
+  = ∫ x, (klDiv (κ x)(η x)).toReal ∂μ` (real Bochner integral), adds `klDiv (μ⊗ₘκ)(μ⊗ₘη) ≠ ⊤`.
+
+**Method (how it dodges the measurability wall Mathlib flagged).** We never integrate
+`x ↦ klDiv (κ x)(η x)` as a black box. Instead `μ⊗ₘκ = (μ⊗ₘη).withDensity (fun p ↦ Kernel.rnDeriv κ η
+p.1 p.2)` (from `κ x = η.withDensity (κ.rnDeriv η) x` a.e. + `compProd_withDensity`), so the compProd
+RN-derivative *is* the jointly measurable kernel derivative; `lintegral_compProd` peels the outer
+integral and each inner slice is recognised as `klDiv (κ x)(η x)`. The real form gets
+`AEMeasurable`-ity of the slice map for free (it is a.e. equal to the measurable slice lintegral).
+
+**The one structural cost: `CountableOrCountablyGenerated 𝓧 𝓨`** — the standard typeclass under
+which `Kernel.rnDeriv` is jointly measurable (used throughout `Probability/Kernel/RadonNikodym`).
+It holds for any standard-Borel / Polish state and value space. **Caveat for wiring into
+`energy_identity`:** the *placeholder* path model `Path X = ℝ→X` (uncountable-index `Pi` σ-algebra)
+is **not** countably generated, and `X` is not countable, so this typeclass is not satisfiable there
+— (cond) therefore does **not** plug into the current placeholder `energy_identity` (doing so would
+require a false instance = a vacuous edge, forbidden). Wiring it in requires first upgrading `Path`
+to a standard-Borel continuous-path model (`C([0,1], X)` / Polish), a *modeling* step, not new
+mathematics. Until then (cond) stands as a proved, reusable reduction closing Mathlib's TODO.
+**Does not by itself close (CM)** — it tightens the edge to the per-trajectory atom.
 
 ### Phase 2 — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
 **Status (verified 2026-07):** genuinely blocked — Mathlib ships **no stochastic integral, no

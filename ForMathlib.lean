@@ -41,3 +41,6 @@ import ForMathlib.MeasureTheory.WienerMeasure
 -- Measurable embedding of a standard-Borel (continuous-)path space into `ℕ→ℝ` with measurable left
 -- inverse; discharges the embedding edge of the continuum energy identity for continuous-path models.
 import ForMathlib.MeasureTheory.PathEmbedding
+-- Absolute continuity from a uniformly-integrable density martingale (Kakutani/Doob `≪`-direction);
+-- the regularity input `P^u ≪ R` for the (deterministic) continuum energy identity, Itô-free.
+import ForMathlib.MeasureTheory.AbsoluteContinuityMartingale

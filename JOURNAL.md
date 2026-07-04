@@ -392,3 +392,45 @@ plan A(i) is complete. The ONLY continuum content still open is `hconv` for the 
 (gap #2, feedback-drift Girsanov density — genuinely Itô-blocked), plus the modeling step of
 re-typing DRSB's `SBData.Path` from the placeholder `ℝ→X` to `C([0,1],X)` to feed these lemmas
 into `Drsb` directly (roadmap step 3).
+
+## Session 5 (2026-07-04) — toward FULL closure: gap #3 (Kakutani ≪-direction) DONE
+Goal this session: the *fully closed* continuum energy identity (edge-free, axiom-clean). Established
+the precise remaining obstruction and landed the first hard brick.
+
+**Framing.** After Plan A(i) (addendum 8) + the prior projection/martingale machinery, the continuum
+identity `D(P^u‖R) = D(ρ₀‖ρ₀^W) + 𝔼[∫½‖u‖²]` is reduced to `hconv` (grid KLs → energy) **plus the
+regularity edges `P^u ≪ R` and finite KL**. For the **deterministic (open-loop) drift** case —
+`P^u` = a Cameron–Martin shift of the Wiener reference `R` — EVERYTHING except `P^u ≪ R` is already
+proved or elementary (grid KL = finite-dim Gaussian CM energy via `GaussianEntropy`, → `∫½‖u‖²` via
+`tendsto_emEnergy_sampled`; the reference `R = wienerMeasure` already exists via the vendored
+Kolmogorov extension). So the **sole** remaining hard piece for a fully-closed *deterministic*
+continuum identity is `P^u ≪ R` = gap #3 (infinite-dim Cameron–Martin / Kakutani absolute continuity),
+and — crucially — it is **Itô-FREE** (the shift is deterministic; no stochastic integral).
+
+**Landed (axiom-clean): the Kakutani `≪`-direction.** `ForMathlib/MeasureTheory/AbsoluteContinuityMartingale.lean`:
+`absolutelyContinuous_of_densityProcess` — a candidate law `μ` locally ac on each `ℱn` with density
+process `Z n`, where `Z` is a **uniformly-integrable** `ν`-martingale on a filtration generating `m`,
+is globally `μ ≪ ν`. A genuine Mathlib gap (pin has `Martingale.ae_eq_condExp_limitProcess` but not
+this measure-level consequence). Proof: L¹ martingale convergence `Z n =ᵐ ν[Zlim|ℱn]` +
+`setIntegral_condExp` + π-system uniqueness (`ext_of_generateFrom_of_iUnion`, new helper
+`isPiSystem_iUnion_filtration`) + `withDensity_absolutelyContinuous`. This discharges the `P^u ≪ R`
+edge **once the CM density process is exhibited as a UI (L²-bounded) martingale** — the L² bound being
+`𝔼_R[Zn²] = exp(partial CM energy) ≤ exp(‖u‖²_CM) < ∞`, elementary.
+
+**Route to full deterministic closure (remaining, honestly scoped — NOT yet done):**
+- **Brick 1.5** — L²→UI bridge: uniform `eLpNorm (Zn) 2 ν ≤ C` ⇒ `UniformIntegrable Zn 1 ν` (Chebyshev
+  tail via `uniformIntegrable_of`). Self-contained, moderate. Feeds Brick 1 from the L² bound.
+- **Brick 2** (the big one) — construct the CM density process on `wienerMeasure`: `Zn` = the finite-dim
+  Gaussian shift RN-derivative as a function of the grid coordinates; prove it is an `R`-martingale
+  w.r.t. the grid filtration (Gaussian marginalization/consistency) and L²-bounded by `exp(energy_n)`.
+  **This needs finite-dimensional Gaussian RN-derivative infrastructure** (the density, not just the
+  KL `klDiv_stdGaussian_map_add` that `GaussianEntropy.lean` currently has) — possibly a real sub-gap
+  to fill. Highest-risk, likely multi-session.
+- **Brick 3** — assemble: `P^u := R.withDensity Zlim` (so `≪` is Brick 1 / free), recover the shifted-
+  Gaussian grid marginals via the tower property (`ae_eq_condExp_limitProcess`), grid KL = CM energy,
+  Riemann → `∫½‖u‖²`, feed `eq_toReal_klDiv_continuousMap_of_tendsto` / the projection identity.
+
+Honest status: the **feedback-drift** continuum identity remains Itô-blocked (gap #2, unchanged). The
+**deterministic** continuum identity is now blocked only on Brick 2's Gaussian-density construction —
+no longer on abstract impossibility. Nothing faked; `absolutelyContinuous_of_densityProcess` is a
+real, reusable, axiom-clean contribution and the correct next tool.

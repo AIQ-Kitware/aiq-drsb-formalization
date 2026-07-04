@@ -32,3 +32,5 @@ import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
 -- see ForMathlib/KolmogorovExtension/README.md. Supplies `projectiveLimit` for the
 -- continuum reference path measure.
 import ForMathlib.KolmogorovExtension.KolmogorovExtension
+-- The continuum reference path law R (Wiener measure), built via the vendored extension.
+import ForMathlib.MeasureTheory.WienerMeasure

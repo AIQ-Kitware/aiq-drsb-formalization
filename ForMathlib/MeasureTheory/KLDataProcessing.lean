@@ -330,4 +330,36 @@ theorem iSup_comap_frestrictLe_eq_pi {ι : Type*} [Preorder ι] [LocallyFiniteOr
           le_iSup (fun i => MeasurableSpace.comap (Preorder.frestrictLe (π := α) i) inferInstance) j
 
 
+/-- **KL is preserved by a measurable map with a measurable left inverse** (a measurable split
+mono / embedding). If `f : 𝓧 → 𝓨` is measurable with a measurable left inverse `g` (`g ∘ f = id`),
+pushing forward by `f` loses no relative entropy: `KL(f_#μ ‖ f_#ν) = KL(μ‖ν)`. The
+data-processing inequality gives `≤`; applying it again to `g` — which recovers `μ, ν` since
+`g_#f_#μ = (g∘f)_#μ = μ` — gives `≥`.
+
+This is the tool that makes a *lossless reparametrisation* preserve a path-measure KL: e.g.
+restricting a **continuous** path to a countable dense set of times is injective (`Continuous.ext_on`),
+hence a measurable embedding, so the continuum energy identity's projection argument reduces to the
+countable-product case where the finite-grid projections generate the σ-algebra
+(`iSup_comap_frestrictLe_eq_pi`) and `klDiv_map_tendsto` applies. `#print axioms`-clean. -/
+theorem toReal_klDiv_map_eq_of_leftInverse
+    (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμν : μ ≪ ν) (hfin : klDiv μ ν ≠ ⊤)
+    (f : 𝓧 → 𝓨) (hf : Measurable f) (g : 𝓨 → 𝓧) (hg : Measurable g)
+    (hgf : Function.LeftInverse g f) :
+    (klDiv (μ.map f) (ν.map f)).toReal = (klDiv μ ν).toReal := by
+  haveI : IsProbabilityMeasure (μ.map f) := Measure.isProbabilityMeasure_map hf.aemeasurable
+  haveI : IsProbabilityMeasure (ν.map f) := Measure.isProbabilityMeasure_map hf.aemeasurable
+  have hf_ac : μ.map f ≪ ν.map f := hμν.map hf
+  have hle : (klDiv (μ.map f) (ν.map f)).toReal ≤ (klDiv μ ν).toReal :=
+    toReal_klDiv_map_le μ ν hμν f hf hfin
+  have hf_fin : klDiv (μ.map f) (ν.map f) ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (klDiv_map_le μ ν hμν f hf)
+  have hgfid : g ∘ f = id := funext hgf
+  have hmapμ : (μ.map f).map g = μ := by rw [Measure.map_map hg hf, hgfid, Measure.map_id]
+  have hmapν : (ν.map f).map g = ν := by rw [Measure.map_map hg hf, hgfid, Measure.map_id]
+  have hge : (klDiv μ ν).toReal ≤ (klDiv (μ.map f) (ν.map f)).toReal := by
+    have h := toReal_klDiv_map_le (μ.map f) (ν.map f) hf_ac g hg hf_fin
+    rwa [hmapμ, hmapν] at h
+  linarith
+
 end ForMathlib.MeasureTheory

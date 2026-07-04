@@ -65,6 +65,73 @@ theorem toReal_klDiv_map_eq_integral_condExp
   filter_upwards [toReal_rnDeriv_map (μ := μ) (ν := ν) hμν hg] with x hx
   rw [hx]
 
+/-- **`ℝ≥0∞`-valued conditional-expectation representation of a pushforward KL** (`≤`-half
+sub-plan, step 2a). The `ℝ≥0∞` companion of `toReal_klDiv_map_eq_integral_condExp`:
+`klDiv (μ.map g) (ν.map g) = ∫⁻ x, ENNReal.ofReal (klFun ((ν[dμ/dν | comap g]) x)) ∂ν`.
+Working in `ℝ≥0∞` lets the martingale limit use monotone-convergence / Fatou
+(`lintegral_liminf_le`) with no finiteness bookkeeping, converting to `toReal` only at the end. -/
+theorem klDiv_map_eq_lintegral_ofReal_klFun_condExp
+    (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμν : μ ≪ ν) (g : 𝓧 → 𝓨) (hg : Measurable g) :
+    klDiv (μ.map g) (ν.map g)
+      = ∫⁻ x, ENNReal.ofReal
+          (klFun ((ν[fun a => (μ.rnDeriv ν a).toReal | m𝓨.comap g]) x)) ∂ν := by
+  classical
+  haveI : IsProbabilityMeasure (ν.map g) := Measure.isProbabilityMeasure_map hg.aemeasurable
+  haveI : IsProbabilityMeasure (μ.map g) := Measure.isProbabilityMeasure_map hg.aemeasurable
+  have hmapac : μ.map g ≪ ν.map g := hμν.map hg
+  have hf : Measurable
+      (fun y => ENNReal.ofReal (klFun ((μ.map g).rnDeriv (ν.map g) y).toReal)) :=
+    (measurable_klFun.comp
+      (Measure.measurable_rnDeriv (μ.map g) (ν.map g)).ennreal_toReal).ennreal_ofReal
+  rw [klDiv_eq_lintegral_klFun_of_ac hmapac, lintegral_map hf hg]
+  refine lintegral_congr_ae ?_
+  filter_upwards [toReal_rnDeriv_map (μ := μ) (ν := ν) hμν hg] with x hx
+  rw [hx]
+
+/-- **Data-processing inequality for KL divergence** (`ℝ≥0∞` form; `≤`-half sub-plan, step 2b).
+For probability measures `μ ≪ ν` and measurable `g`, `klDiv (μ.map g) (ν.map g) ≤ klDiv μ ν` as
+elements of `ℝ≥0∞` — no finiteness hypothesis. Coarse-graining decreases relative entropy.
+
+This is the `ℝ≥0∞` strengthening of `toReal_klDiv_map_le`; it supplies the `limsup ≤ KL(μ‖ν)` bound of
+the martingale-convergence limit (each projected divergence is `≤` the full one). Proof: the `ℝ≥0∞`
+representation (`klDiv_map_eq_lintegral_ofReal_klFun_condExp`) puts both sides as `klFun` integrals,
+and conditional Jensen (`ConvexOn.map_condExp_le` on the convex generator `klFun`) plus
+`integral_condExp` gives the pointwise/averaged bound. -/
+theorem klDiv_map_le
+    (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (hμν : μ ≪ ν) (g : 𝓧 → 𝓨) (hg : Measurable g) :
+    klDiv (μ.map g) (ν.map g) ≤ klDiv μ ν := by
+  classical
+  by_cases hfin : klDiv μ ν = ⊤
+  · rw [hfin]; exact le_top
+  have hm : m𝓨.comap g ≤ m𝓧 := hg.comap_le
+  haveI : SigmaFinite (ν.trim hm) := by infer_instance
+  rw [klDiv_map_eq_lintegral_ofReal_klFun_condExp μ ν hμν g hg,
+      klDiv_eq_lintegral_klFun_of_ac hμν]
+  set F₀ : 𝓧 → ℝ := fun a => (μ.rnDeriv ν a).toReal with hF₀
+  have hllr : Integrable (llr μ ν) μ := (klDiv_ne_top_iff.mp hfin).2
+  have hF₀int : Integrable F₀ ν := Measure.integrable_toReal_rnDeriv
+  have hklF₀int : Integrable (fun a => klFun (F₀ a)) ν :=
+    (integrable_klFun_rnDeriv_iff hμν).mpr hllr
+  have hcondnn : (0 : 𝓧 → ℝ) ≤ᵐ[ν] ν[fun a => klFun (F₀ a) | m𝓨.comap g] :=
+    condExp_nonneg (ae_of_all _ fun a => klFun_nonneg ENNReal.toReal_nonneg)
+  have hjensen : (fun x => klFun ((ν[F₀ | m𝓨.comap g]) x))
+      ≤ᵐ[ν] ν[fun a => klFun (F₀ a) | m𝓨.comap g] :=
+    ConvexOn.map_condExp_le hm convexOn_klFun
+      (continuous_klFun.lowerSemicontinuous.lowerSemicontinuousOn _)
+      (ae_of_all _ fun a => ENNReal.toReal_nonneg) isClosed_Ici hF₀int hklF₀int
+  calc ∫⁻ x, ENNReal.ofReal (klFun ((ν[F₀ | m𝓨.comap g]) x)) ∂ν
+      ≤ ∫⁻ x, ENNReal.ofReal ((ν[fun a => klFun (F₀ a) | m𝓨.comap g]) x) ∂ν := by
+        refine lintegral_mono_ae ?_
+        filter_upwards [hjensen] with x hx using ENNReal.ofReal_le_ofReal hx
+    _ = ENNReal.ofReal (∫ x, (ν[fun a => klFun (F₀ a) | m𝓨.comap g]) x ∂ν) :=
+        (ofReal_integral_eq_lintegral_ofReal integrable_condExp hcondnn).symm
+    _ = ENNReal.ofReal (∫ x, klFun (F₀ x) ∂ν) := by rw [integral_condExp hm]
+    _ = ∫⁻ x, ENNReal.ofReal (klFun (F₀ x)) ∂ν :=
+        ofReal_integral_eq_lintegral_ofReal hklF₀int
+          (ae_of_all _ fun a => klFun_nonneg ENNReal.toReal_nonneg)
+
 /-- **Data-processing inequality for KL divergence** (real / `toReal` form). For probability
 measures `μ ≪ ν` on `𝓧` with finite `KL(μ‖ν)`, and any measurable `g : 𝓧 → 𝓨`,
 `KL(g_# μ ‖ g_# ν) ≤ KL(μ‖ν)`. -/

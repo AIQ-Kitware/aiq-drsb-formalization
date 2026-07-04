@@ -49,16 +49,37 @@ So the *entire* Girsanov content is (CM), and (CM) itself already has its discre
   `hCM : ∫ D(Kᵘ_x‖Kᵂ_x) dρ₀ = energy`. **Sorry count 1 → 0**; the Girsanov content is now the
   single named, non-vacuous hypothesis `hCM`, exactly the repo's isolate-content-to-an-edge pattern.
 
-### Phase 2 — discharge (CM): the `Δt→0` limit (the real research seam)
-Two candidate routes; investigate before committing:
+### Phase 1.5 — (cond): conditional KL = averaged pointwise KL (Mathlib's own TODO)
+`InformationTheory/KullbackLeibler/ChainRule.lean` explicitly lists as a **TODO**: the integral
+form `klDiv (μ⊗ₘκ) (μ⊗ₘη) = μ[fun x ↦ klDiv (κ x) (η x)]`. Proving it (real-valued) reduces `hCM`
+from the compProd form to the **per-trajectory Cameron–Martin atom**
+`∫ D(Kᵘ_x ‖ Kᵂ_x) dρ₀ = 𝔼[∫½‖u‖²]`, which is *exactly* the object whose discrete instance
+`klDiv_emShift_eq_emEnergy` proves. Achievable now (pieces: `rnDeriv_compProd`,
+`Kernel.rnDeriv`, `integral_compProd`) but PR-sized (that is why Mathlib left it a TODO); a good
+standalone Mathlib contribution. **Does not by itself close (CM)** — it tightens the edge.
+
+### Phase 2 — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
+**Status (verified 2026-07):** genuinely blocked — Mathlib ships **no stochastic integral, no
+Girsanov, no stochastic exponential, and no KL lower-semicontinuity** (all four grep-confirmed
+absent). So both candidate routes require building substantial infrastructure; neither is a
+session's work. This is a mathematical fact about what the continuum identity's proof requires
+(its Radon–Nikodym derivative between path measures *is* a stochastic exponential), not a matter
+of effort. The gap is reduced to the single per-trajectory Cameron–Martin atom (above), whose
+**discrete Euler–Maruyama instance is already a proved theorem**.
+
+Two routes, each a real project:
 - **2a (discrete-limit).** Take `klDiv_emShift_eq_emEnergy` to the limit: Euler–Maruyama law ⇒
-  SDE law (weak convergence) + KL joint lower-semicontinuity (`Mathlib` has weak-convergence API;
-  audit KL lsc) for `≤`, and a matching `≥` from the energy Riemann sum. Avoids building the Itô
-  integral; cost = a delicate convergence argument.
-- **2b (Girsanov-density).** Refound `Kᵂ` on Mathlib Brownian motion, define `Kᵘ = Kᵂ.withDensity Z`
-  with `Z = exp(∫u dW − ½∫‖u‖²)`, then `D(Kᵘ‖Kᵂ) = 𝔼_{Kᵘ}[log Z]`. Needs the stochastic integral
-  `∫u dW` — the heaviest Mathlib gap; external `raphaelrrcoelho/formal-mathfin` has a 1-D
-  Itô/Girsanov stack (Apache-2.0) to refound on / port to multi-D.
+  SDE law (weak convergence — *absent from Mathlib*) + KL joint lsc (*absent from Mathlib*) for
+  `≤`, matching `≥` from the energy Riemann sum. Avoids the Itô integral but needs SDE-convergence
+  theory + KL lsc.
+- **2b (Girsanov-density).** Refound `Kᵂ` on Mathlib Brownian motion; `Kᵘ = Kᵂ.withDensity Z`,
+  `Z = exp(∫u dW − ½∫‖u‖²)`; `D(Kᵘ‖Kᵂ) = 𝔼_{Kᵘ}[log Z]`. Needs the stochastic integral `∫u dW`
+  (*absent from Mathlib*). Port path: `raphaelrrcoelho/formal-mathfin` (Apache-2.0, 1-D
+  Itô/Girsanov) → generalize to multi-D + add KL. This is the recommended long-term project.
+
+**Bottom line:** the continuum `hCM` is a known Girsanov identity that cannot be discharged in Lean
+until the Itô-integral / stochastic-analysis stack exists in (or is ported into) Mathlib. Until
+then it stays an explicit, non-vacuous edge whose discrete instance is proved — the honest state.
 
 ## External-survey status (SURVEY_LEADS.md)
 - `raphaelrrcoelho/formal-mathfin` (Apache-2.0): full continuous Itô/SDE-existence/Girsanov, but

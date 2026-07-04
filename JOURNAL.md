@@ -129,3 +129,50 @@ is the *source theorem's own premise*, retained for fidelity and subsumed by an 
 **keep it, `_`-prefixed** (fidelity beats a shorter signature; the `_` makes intent machine-checkable).
 Never `_`-mark to hide a hypothesis that *should* be load-bearing — first confirm the conclusion is
 non-vacuous and constructively proved.
+
+# Session 3 — closing the last sorry: `energy_identity` (2026-07)
+
+Goal: stop treating the last `sorry` (`energy_identity`, CGP 4.19) as a monolithic "multi-month
+Girsanov" and actually break it down. Result: **the repo is now `sorry`-free and axiom-clean.**
+
+## The decomposition (ROADMAP_ENERGY_IDENTITY.md)
+Disintegrate both path laws over the initial coordinate — `e_#P = ρ₀ ⊗ₘ Kᵘ`, `e_#R = ρ₀^W ⊗ₘ Kᵂ`
+for a start-plus-centered-path measurable iso `e : Path X ≃ᵐ X × Path X`. Then
+`D(P‖R)` = (i) `D(e_#P‖e_#R)` [KL invariant under `e`] = (ii) `D(ρ₀‖ρ₀^W) + D(cond)` [KL chain rule]
+= (iii) `D(ρ₀‖ρ₀^W) + energy` [conditional term = control energy]. The unlock: Mathlib's
+`klDiv_compProd_eq_add` *"holds without any assumption on the measurable spaces"*, so the abstract
+`Path X = ℝ→X` is no obstruction.
+
+## Phase 0 (committed) — `ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_add`
+Real-valued KL chain rule (`toReal` of `klDiv_compProd_eq_add` + `ENNReal.toReal_add`). Thin,
+reusable, axiom-clean.
+
+## Phase 1 (committed) — `energy_identity` reshaped, last sorry closed
+Proof = `klDiv_map_measurableEquiv` (KL invariance under `e`, from the vendored gibbs file) `rw`
++ the compProd factorizations `hPfact`/`hRfact` `rw` + Phase-0 chain rule (finiteness edges
+`hfin_marg`/`hfin_cond`) + the Cameron–Martin edge `hCM`. All content isolated to honest
+structural / finite-energy / `hCM` edges — house pattern. `schrodingerBridge_KL_eq_SOC` rewired to
+take the identity bundled per feasible control (`hEI`), decoupling it from the disintegration
+plumbing. `#print axioms energy_identity` = `[propext, Classical.choice, Quot.sound]`. Build green,
+**0 sorries repo-wide.**
+
+## Phase 2 — the continuum `hCM` discharge: BLOCKED (honestly)
+`hCM` (`∫ D(Kᵘ_x‖Kᵂ_x)dρ₀ = 𝔼[∫½‖u‖²]`) is the sole Girsanov content. Its **discrete
+Euler–Maruyama instance is already the proved theorem** `energy_identity_euler_maruyama`. The
+**continuum** discharge is genuinely blocked: grep-confirmed, Mathlib has **no stochastic integral,
+no Girsanov, no stochastic exponential, no KL lower-semicontinuity**. The continuum identity's RN
+derivative between path measures *is* a stochastic exponential, so route 2b needs the Itô integral;
+route 2a (discrete→continuum limit) needs SDE weak-convergence + KL lsc — both absent. This is a
+mathematical fact about the proof, not a lack of effort. The honest state: `hCM` stays an explicit,
+non-vacuous edge whose discrete instance is a theorem; closing the continuum requires porting an
+Itô/Girsanov stack into Mathlib (`raphaelrrcoelho/formal-mathfin`, 1-D → multi-D + KL) — a real
+project, scoped in ROADMAP Phase 2. Intermediate win available: (cond), Mathlib's *own* stated
+TODO (`μ[fun x ↦ klDiv (κ x)(η x)]`), would tighten `hCM` to the per-trajectory atom — a PR-sized
+gap-fill, does not by itself close the continuum.
+
+## Takeaway for the next agent
+"Break it down" beat "defer as multi-month": the last sorry fell to a Mathlib-backed chain-rule
+split with the true research content quarantined to a single per-trajectory edge. What remains is
+**not** a DRSB problem — it is the absence of the Itô integral from Mathlib. Do not fake it with a
+`sorry` or a vacuous edge; either port the Itô/Girsanov stack (the real Phase 2) or leave `hCM` as
+the honest, discrete-instance-proved edge.

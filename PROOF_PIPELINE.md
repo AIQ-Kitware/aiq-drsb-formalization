@@ -57,9 +57,19 @@ capstones, but the cards do not depend on it.
 > product-form **verification** + optimizer **uniqueness**) is isolated to explicit non-vacuous
 > edges, and the identity is *derived* — the same `isolate-content-to-an-edge` posture as the
 > strong-duality equalities. `#print axioms` on all four (+ `neg_grad_value`) is now clean
-> (`propext/Classical.choice/Quot.sound`, no `sorryAx`). The **single** remaining sorry is the
-> honest one: `energy_identity` (continuous Girsanov), whose discrete Euler–Maruyama layer is
-> already proved. Every other library is sorry-free.
+> (`propext/Classical.choice/Quot.sound`, no `sorryAx`).
+
+> **Zero sorries (2026-07, `energy_identity` closed).** The last sorry is gone — **the whole repo
+> is now `sorry`-free and axiom-clean**. `energy_identity` (CGP 4.19) was reshaped from a
+> monolithic `sorry` into a *proved* disintegration (`ROADMAP_ENERGY_IDENTITY.md`): KL invariance
+> under a start-plus-centered-path measurable iso (`klDiv_map_measurableEquiv`) + the KL chain rule
+> on the compProd factorizations (new `ForMathlib.toReal_klDiv_compProd_eq_add`) + the conditional
+> term = control energy (`hCM`). The disintegration + finiteness + `hCM` hypotheses are honest
+> structural/finite-energy edges (house pattern). `hCM` is the sole Girsanov content; its discrete
+> Euler–Maruyama instance is the proved `energy_identity_euler_maruyama`. The **continuum** discharge
+> of `hCM` (ROADMAP Phase 2) is blocked on Mathlib's missing Itô integral / Girsanov (grep-confirmed
+> absent; both the density and discrete-limit routes need it) — the honest residual, an explicit
+> edge, not a `sorry`. Every library is sorry-free.
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
@@ -248,11 +258,13 @@ one direction, see below.)
 > (statement work / TX), not a proof against the current statements. `energy_identity`'s discrete
 > layer is proved (below); the continuous form needs Girsanov.
 
-> **`energy_identity` — discrete layer PROVED (2026-07, vendored external proof).** The
-> continuous `energy_identity` (CGP (4.19)) is still a bare `sorry` (needs multi-D
-> controlled-diffusion Girsanov + KL between path measures, neither in Mathlib). But its
+> **`energy_identity` — CLOSED (2026-07, chain-rule split; `sorry`-free).** The continuous
+> `energy_identity` (CGP (4.19)) is no longer a `sorry`: it is proved by disintegrating both path
+> laws over the initial coordinate and applying the KL chain rule, with the Girsanov content
+> isolated to the explicit `hCM` (Cameron–Martin) edge (ROADMAP Phases 0–1). Its continuum edge is
+> blocked on Mathlib's missing Itô integral (ROADMAP Phase 2). Separately, its
 > **Euler–Maruyama / Gaussian discretization — the quantity the DRSB card actually
-> measures (AGENTS §3) — is now proved sorry-free, axiom-clean**:
+> measures (AGENTS §3) — is proved sorry-free, axiom-clean**:
 > `ChenGeorgiouPavon2021.energy_identity_euler_maruyama` delegates to
 > `ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy`, which shows
 > `(KL(P^u ‖ P^0)).toReal = ∑ₖ Δt·½‖u_k‖²` (the discrete control energy) built on the

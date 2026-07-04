@@ -328,3 +328,28 @@ Note it does NOT discharge the *continuum* `hgen` for `Path X = ℝ→X` (uncoun
 grid projections do NOT generate the full product σ-algebra; that needs a continuous-path /
 standard-Borel model where rational times determine the path). It is the discrete-time / product
 tool, and the right foundation for a future continuous-path model's rational-grid generation.
+
+### Session 4 addendum 7 — plan (A): continuum `hgen` discharged via a KL-preserving embedding
+Vendored the Kolmogorov extension (see ForMathlib/KolmogorovExtension/) and built the continuum
+reference `wienerMeasure`; then attacked the `≤`-half's `hgen` (which is *false* for the raw
+`Path X=ℝ→X`: countable finite-time projections can't generate the uncountable-index product
+σ-algebra). Recon: neither Mathlib nor RemyDegenne/brownian-motion exposes a standard-Borel
+`C(T,ℝ)` path-space TYPE (brownian-motion works via continuous *modifications* in the `T→Ω→E`
+process picture). So the honest route is NOT to make `Path X` grid-generated, but to reparametrise:
+
+- `ForMathlib…toReal_klDiv_map_eq_of_leftInverse` (NEW, axiom-clean): a measurable map with a
+  measurable left inverse (split mono / measurable embedding) PRESERVES KL — DPI both ways. Engine.
+- `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` (NEW, axiom-clean): the FULL `=` energy
+  identity whose only continuum edge is a **measurable embedding `e : Path X ↪ (ℕ→ℝ)` with
+  measurable left inverse** (a lossless reparametrisation by countably many reals) + `hconv`.
+  Composes: `toReal_klDiv_map_eq_of_leftInverse` (e preserves KL) → on `ℕ→ℝ`,
+  `iSup_comap_frestrictLe_eq_pi` (prefix restrictions generate) feeds `klDiv_map_tendsto` (Lévy) so
+  grid divergences → `KL(e#P‖e#R)=KL(P‖R)` → `tendsto_nhds_unique` vs `hconv`.
+
+The embedding edge is **satisfiable** (a standard-Borel continuous-path law admits `e` = restriction
+to countably many dense times, injective by `Continuous.ext_on` → a measurable embedding by
+Lusin–Souslin `Measurable.measurableEmbedding`, with `MeasurableEmbedding.invFun` the left inverse),
+whereas the old `hgen` on `ℝ→X` was unsatisfiable. Itô-free. Remaining for a *fully closed* continuum
+identity: (i) realise `e` concretely for the DRSB continuous-path model (needs the standard-Borel
+continuous-path structure — a further vendor from brownian-motion's Continuity/Choquet), and (ii)
+`hconv` for the controlled law (still the Girsanov/gap-#2 content for feedback drift).

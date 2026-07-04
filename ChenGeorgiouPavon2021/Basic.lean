@@ -340,6 +340,80 @@ theorem energy_eq_klReal_of_projections
     (ForMathlib.MeasureTheory.klDiv_map_tendsto_toReal
       (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) hac hfin π hπ ℱ hℱ hgen)
 
+omit [NormedSpace ℝ X] in
+/-- **Energy identity (4.19), FULL `=`, discharged via a KL-preserving embedding into `ℕ→ℝ`
+(plan A — the honest continuum `hgen`).**
+
+The generation hypothesis `hgen` of `energy_eq_klReal_of_projections` is **false** for the raw path
+space `Path X = ℝ→X` (a countable family of finite-time projections cannot generate its uncountable-
+index product σ-algebra). This version removes it: instead of asking the projections to generate
+`m(Path X)`, it asks only for a **measurable embedding with a measurable left inverse**
+`e : Path X → (ℕ→ℝ)`, `g : (ℕ→ℝ) → Path X`, `g ∘ e = id` — a *lossless reparametrisation* of the
+path by countably many real coordinates. This is exactly what a standard-Borel **continuous**-path
+model supplies (a continuous path is determined by its values at countably many dense times, and by
+Lusin–Souslin the restriction is a measurable embedding, `Measurable.measurableEmbedding` +
+`MeasurableEmbedding.invFun`); crucially it is a *satisfiable* hypothesis, not the unsatisfiable
+`hgen` on `ℝ→X`.
+
+The proof composes three Itô-free `ForMathlib` results: `toReal_klDiv_map_eq_of_leftInverse`
+(the embedding preserves `KL`, from the DPI both ways), then on the countable product `ℕ→ℝ`
+`iSup_comap_frestrictLe_eq_pi` (the finite-prefix restrictions generate) feeds `klDiv_map_tendsto`
+(Lévy martingale convergence) so the finite-grid divergences converge to `KL(e_#P ‖ e_#R) = KL(P‖R)`;
+limit-uniqueness against the energy edge `hconv` closes it. `#print axioms`-clean. -/
+theorem energy_eq_klReal_via_embedding
+    (u : Control X) (ρ₀ : ProbabilityMeasure X)
+    (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))
+    (hfin : InformationTheory.klDiv
+        (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) ≠ ⊤)
+    (e : Path X → (ℕ → ℝ)) (he : Measurable e)
+    (g : (ℕ → ℝ) → Path X) (hg : Measurable g) (hge : Function.LeftInverse g e)
+    (hconv : Filter.Tendsto
+        (fun n => klReal
+            ((d.pathLaw u ρ₀ : Measure (Path X)).map
+              (fun ω => Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n (e ω)))
+            ((d.R : Measure (Path X)).map
+              (fun ω => Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n (e ω))))
+        Filter.atTop (nhds (energy u (d.pathLaw u ρ₀)))) :
+    energy u (d.pathLaw u ρ₀)
+      = klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) := by
+  set P := (d.pathLaw u ρ₀ : Measure (Path X)) with hP
+  set R := (d.R : Measure (Path X)) with hR
+  haveI : IsProbabilityMeasure (P.map e) := Measure.isProbabilityMeasure_map he.aemeasurable
+  haveI : IsProbabilityMeasure (R.map e) := Measure.isProbabilityMeasure_map he.aemeasurable
+  have hac' : P.map e ≪ R.map e := hac.map he
+  have hfin' : InformationTheory.klDiv (P.map e) (R.map e) ≠ ⊤ :=
+    ne_top_of_le_ne_top hfin (ForMathlib.MeasureTheory.klDiv_map_le P R hac e he)
+  -- the embedding preserves KL
+  have hemb : (InformationTheory.klDiv (P.map e) (R.map e)).toReal
+      = (InformationTheory.klDiv P R).toReal :=
+    ForMathlib.MeasureTheory.toReal_klDiv_map_eq_of_leftInverse P R hac hfin e he g hg hge
+  -- the finite-prefix restriction filtration on `ℕ → ℝ`
+  let ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace (ℕ → ℝ)) :=
+    { seq := fun n => MeasurableSpace.comap (Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n) inferInstance
+      mono' := by
+        intro n m hnm
+        calc MeasurableSpace.comap (Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n) inferInstance
+            = MeasurableSpace.comap (Preorder.frestrictLe (π := fun _ : ℕ => ℝ) m)
+                (MeasurableSpace.comap (Preorder.frestrictLe₂ (π := fun _ : ℕ => ℝ) hnm)
+                  inferInstance) := by
+              rw [MeasurableSpace.comap_comp, Preorder.frestrictLe₂_comp_frestrictLe]
+          _ ≤ MeasurableSpace.comap (Preorder.frestrictLe (π := fun _ : ℕ => ℝ) m) inferInstance :=
+              MeasurableSpace.comap_mono (Preorder.measurable_frestrictLe₂ hnm).comap_le
+      le' := fun n => (Preorder.measurable_frestrictLe n).comap_le }
+  -- martingale convergence on `ℕ → ℝ`, then transport the grid maps back through `e`
+  have htends := ForMathlib.MeasureTheory.klDiv_map_tendsto_toReal (P.map e) (R.map e) hac' hfin'
+    (fun n => Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n)
+    (fun n => Preorder.measurable_frestrictLe n) ℱ (fun _ => rfl)
+    ForMathlib.MeasureTheory.iSup_comap_frestrictLe_eq_pi
+  have hmapP : ∀ n, (P.map e).map (Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n)
+      = P.map (fun ω => Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n (e ω)) := fun n => by
+    rw [Measure.map_map (Preorder.measurable_frestrictLe n) he]; rfl
+  have hmapR : ∀ n, (R.map e).map (Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n)
+      = R.map (fun ω => Preorder.frestrictLe (π := fun _ : ℕ => ℝ) n (e ω)) := fun n => by
+    rw [Measure.map_map (Preorder.measurable_frestrictLe n) he]; rfl
+  simp only [hmapP, hmapR, hemb] at htends
+  exact tendsto_nhds_unique hconv htends
+
 /-- **Euler–Maruyama (discrete) energy identity — the card's actual measurement of (4.19).**
 
 The DRSB card does not evaluate the continuous `energy_identity`; it evaluates the

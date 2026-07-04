@@ -322,4 +322,123 @@ theorem klDiv_emShift_eq_emEnergy {ι : Type*} [Fintype ι] {N : ℕ} {Δt : ℝ
     rw [mul_pow, Real.sq_sqrt hΔt]
   rw [hstep]; ring
 
+--------------------------------------------------------------------------------
+-- §  Riemann-sum convergence: emEnergy → the continuum control-energy integral
+--
+-- The `Δt → 0` limit of the discrete Euler–Maruyama energy `emEnergy`.  This is the
+-- Itô-free, Kolmogorov-free analytic core of the convergence edge `hconv` of
+-- `ChenGeorgiouPavon2021.energy_eq_klReal_of_projections`: it certifies that the discrete
+-- control energy the DRSB card measures is a consistent quadrature of the continuous
+-- control-energy functional `∫₀¹ ½‖u_t‖² dt` of CGP (4.20).  Pure real analysis (equispaced
+-- left-endpoint Riemann sums of a continuous integrand), no stochastic content.
+--------------------------------------------------------------------------------
+
+/-- **Equispaced left-endpoint Riemann sums converge to the integral.**  For a continuous
+`g : ℝ → ℝ`, the `n`-point left Riemann sum on `[0,1]` with nodes `k/n` converges to
+`∫₀¹ g`.  Elementary proof from uniform continuity of `g` on the compact `[0,1]`: the error
+is `∑ₖ ∫_{k/n}^{(k+1)/n} (g(k/n) − g t) dt`, each integrand bounded by the modulus of
+continuity at scale `1/n`, so the total error is `≤ ε/2` once `1/n < δ(ε)`. -/
+theorem tendsto_equispaced_riemannSum (g : ℝ → ℝ) (hg : Continuous g) :
+    Filter.Tendsto (fun n : ℕ => (∑ k ∈ Finset.range n, g ((k : ℝ) / n)) / n) Filter.atTop
+      (nhds (∫ t in (0 : ℝ)..1, g t)) := by
+  rw [Metric.tendsto_atTop]
+  intro ε hε
+  -- uniform continuity of `g` on the compact interval `[0,1]`
+  have hUC : UniformContinuousOn g (Set.Icc (0 : ℝ) 1) :=
+    (isCompact_Icc).uniformContinuousOn_of_continuous hg.continuousOn
+  obtain ⟨δ, hδ, hδg⟩ := Metric.uniformContinuousOn_iff.mp hUC (ε / 2) (by positivity)
+  obtain ⟨N, hN⟩ := exists_nat_gt (1 / δ)
+  refine ⟨max N 1, fun n hn => ?_⟩
+  have hn1 : 1 ≤ n := le_trans (le_max_right _ _) hn
+  have hnN : N ≤ n := le_trans (le_max_left _ _) hn
+  have hnpos : (0 : ℝ) < n := by exact_mod_cast hn1
+  have hnne : (n : ℝ) ≠ 0 := ne_of_gt hnpos
+  set pt : ℕ → ℝ := fun k => (k : ℝ) / n with hpt
+  -- grid facts
+  have hstep : ∀ k : ℕ, pt (k + 1) - pt k = 1 / (n : ℝ) := by
+    intro k; simp only [hpt]; push_cast; ring
+  have hle : ∀ k : ℕ, pt k ≤ pt (k + 1) := by
+    intro k
+    have h := hstep k
+    have h2 : (0 : ℝ) < 1 / n := by positivity
+    linarith
+  have hIcc : ∀ k : ℕ, k ≤ n → pt k ∈ Set.Icc (0 : ℝ) 1 := by
+    intro k hk
+    refine ⟨by positivity, ?_⟩
+    rw [hpt, div_le_one hnpos]; exact_mod_cast hk
+  have h1nδ : 1 / (n : ℝ) < δ := by
+    have hNn : (N : ℝ) ≤ n := by exact_mod_cast hnN
+    rw [div_lt_iff₀ hnpos, mul_comm]
+    exact (div_lt_iff₀ hδ).mp (lt_of_lt_of_le hN hNn)
+  -- `∫₀¹ g` as a sum of adjacent-interval integrals over the grid
+  have hadj := intervalIntegral.sum_integral_adjacent_intervals
+    (f := g) (μ := volume) (a := pt) (n := n) (fun k _ => hg.intervalIntegrable _ _)
+  have hpt0 : pt 0 = 0 := by simp [hpt]
+  have hptn : pt n = 1 := by simp only [hpt]; exact div_self hnne
+  rw [hpt0, hptn] at hadj
+  -- each Riemann term as a constant integral over its subinterval
+  have hA : ∀ k : ℕ, (∫ _x in pt k..pt (k + 1), g (pt k)) = g (pt k) / n := by
+    intro k
+    rw [intervalIntegral.integral_const, hstep k, smul_eq_mul]; ring
+  -- the total error as a single sum of interval integrals of `g(pt k) − g`
+  have herr : (∑ k ∈ Finset.range n, g (pt k)) / n - ∫ t in (0 : ℝ)..1, g t
+      = ∑ k ∈ Finset.range n, ∫ x in pt k..pt (k + 1), (g (pt k) - g x) := by
+    rw [← hadj, Finset.sum_div, ← Finset.sum_sub_distrib]
+    refine Finset.sum_congr rfl (fun k _ => ?_)
+    rw [← hA k, ← intervalIntegral.integral_sub intervalIntegrable_const (hg.intervalIntegrable _ _)]
+  -- per-term modulus-of-continuity bound
+  have hbound : ∀ k ∈ Finset.range n,
+      ‖∫ x in pt k..pt (k + 1), (g (pt k) - g x)‖ ≤ (ε / 2) * |pt (k + 1) - pt k| := by
+    intro k hk
+    have hkn : k < n := Finset.mem_range.mp hk
+    refine intervalIntegral.norm_integral_le_of_norm_le_const (fun x hx => ?_)
+    rw [Set.uIoc_of_le (hle k)] at hx
+    have hptk_mem : pt k ∈ Set.Icc (0 : ℝ) 1 := hIcc k (by omega)
+    have hx_mem : x ∈ Set.Icc (0 : ℝ) 1 :=
+      ⟨le_of_lt (lt_of_le_of_lt hptk_mem.1 hx.1), le_trans hx.2 (hIcc (k + 1) (by omega)).2⟩
+    have hdist : dist (pt k) x < δ := by
+      rw [Real.dist_eq, abs_sub_comm, abs_of_nonneg (by linarith [hx.1])]
+      calc x - pt k ≤ pt (k + 1) - pt k := by linarith [hx.2]
+        _ = 1 / n := hstep k
+        _ < δ := h1nδ
+    rw [← dist_eq_norm]
+    exact le_of_lt (hδg (pt k) hptk_mem x hx_mem hdist)
+  -- assemble
+  rw [dist_eq_norm, herr]
+  calc ‖∑ k ∈ Finset.range n, ∫ x in pt k..pt (k + 1), (g (pt k) - g x)‖
+      ≤ ∑ k ∈ Finset.range n, ‖∫ x in pt k..pt (k + 1), (g (pt k) - g x)‖ := norm_sum_le _ _
+    _ ≤ ∑ k ∈ Finset.range n, (ε / 2) * |pt (k + 1) - pt k| := Finset.sum_le_sum hbound
+    _ = ∑ k ∈ Finset.range n, (ε / 2) * (1 / n) := by
+        refine Finset.sum_congr rfl (fun k _ => ?_)
+        rw [hstep k, abs_of_nonneg (by positivity)]
+    _ = ε / 2 := by
+        rw [Finset.sum_const, Finset.card_range, nsmul_eq_mul]
+        field_simp
+    _ < ε := by linarith
+
+/-- **The Euler–Maruyama control energy of a sampled continuous control converges to the
+continuum control-energy integral.**  For a continuous control profile `v : ℝ → (ι → ℝ)`
+sampled on the uniform grid `u_n(k) = v(k/n)` with step `1/n`, the discrete energy
+`emEnergy (1/n) u_n = ∑ₖ (1/n)·½‖v(k/n)‖²` converges to `∫₀¹ ½‖v_t‖² dt` (with `‖·‖²`
+meaning the `ℓ²` energy `∑ᵢ (v t i)²`, matching `emEnergy`'s definition).  This is the
+`Δt → 0` limit (`emEnergy → CGP (4.20)`) as pure quadrature — no stochastic content. -/
+theorem tendsto_emEnergy_sampled {ι : Type*} [Fintype ι]
+    (v : ℝ → ι → ℝ) (hv : Continuous v) :
+    Filter.Tendsto
+      (fun n : ℕ => emEnergy (1 / n) (fun k : Fin n => fun i => v ((k : ℝ) / n) i)) Filter.atTop
+      (nhds (∫ t in (0 : ℝ)..1, 2⁻¹ * ∑ i, (v t i) ^ 2)) := by
+  set g : ℝ → ℝ := fun t => 2⁻¹ * ∑ i, (v t i) ^ 2 with hg
+  have hgc : Continuous g := by
+    rw [hg]; fun_prop
+  -- rewrite the discrete energy as the equispaced left-Riemann sum of `g`
+  have hrw : ∀ n : ℕ, emEnergy (1 / n) (fun k : Fin n => fun i => v ((k : ℝ) / n) i)
+      = (∑ k ∈ Finset.range n, g ((k : ℝ) / n)) / n := by
+    intro n
+    rw [emEnergy, Fin.sum_univ_eq_sum_range (fun k => (1 / (n : ℝ)) * (2⁻¹ * ∑ i, (v ((k : ℝ) / n) i) ^ 2)),
+      Finset.sum_div]
+    refine Finset.sum_congr rfl (fun k _ => ?_)
+    rw [hg]; ring
+  simp only [hrw]
+  exact tendsto_equispaced_riemannSum g hgc
+
 end ForMathlib.MeasureTheory

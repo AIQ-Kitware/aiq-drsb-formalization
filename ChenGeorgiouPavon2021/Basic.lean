@@ -306,9 +306,17 @@ the energy; limit-uniqueness (`tendsto_nhds_unique`) forces the two equal.
 
 The **entire remaining Itô content is now localised to `hconv`** — the statement that the
 finite-dimensional (grid) relative entropies converge to the control energy. For the
-Euler–Maruyama/Gaussian marginals (the card's object) `hconv` is Itô-free (discrete Cameron–Martin
-`energy_identity_euler_maruyama` + Riemann sums); for the exact feedback-diffusion marginals it is the
+Euler–Maruyama/Gaussian marginals (the card's object) `hconv` factors into two Itô-free pieces:
+(i) *grid KL = discrete energy* (`energy_identity_euler_maruyama`, the vendored discrete
+Cameron–Martin identity), and (ii) *discrete energy → continuum energy integral*
+(`ForMathlib…tendsto_emEnergy_sampled`, now **proved** — equispaced Riemann-sum convergence, pure
+analysis). The one gap left for the EM model's `hconv` is *grid KL of the continuum path measure =
+discrete energy*, i.e. the existence + finite-dim projection of the continuum reference itself — the
+**Kolmogorov-extension** gap (dependent projective families are not yet in the Mathlib pin; the
+Brownian projective family is proved consistent in `Mathlib.Probability.BrownianMotion.GaussianProjectiveFamily`
+but not yet extendable). For the exact feedback-diffusion marginals `hconv` is additionally the
 finite-dimensional Girsanov density, the genuine stochastic-exponential content (ROADMAP Phase 2).
+So the continuum wall is now two sharply-named, disjoint Mathlib gaps: Kolmogorov extension + Itô.
 The generation hypothesis holds for a standard-Borel continuous-path model (countably many rational
 times determine the path); it is a satisfiable hypothesis on the abstract `𝓨`/`ℱ`, not a vacuous
 edge. `#print axioms`-clean. -/

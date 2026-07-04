@@ -258,3 +258,32 @@ remaining Itô content is localised to the single edge `hconv` = "the exact-SDE 
 Girsanov density — the genuine stochastic-exponential content, still the honest Phase-2 wall. Nothing
 faked; `hconv` and the σ-algebra-generation hypothesis are honest, satisfiable (standard-Borel model)
 edges, not vacuous ones.
+
+### Session 4 addendum 4 — the "+Riemann sums" brick of `hconv` is now PROVED; wall sharpened to two named gaps
+Landed the Δt→0 analytic core (axiom-clean, in `ForMathlib/MeasureTheory/GaussianEntropy.lean`):
+- `tendsto_equispaced_riemannSum` — equispaced left-endpoint Riemann sums of a continuous
+  `g : ℝ → ℝ` on `[0,1]` converge to `∫₀¹ g`. Elementary uniform-continuity proof: error
+  `= Σₖ ∫_{k/n}^{(k+1)/n} (g(k/n) − g t) dt`, each term `≤ (ε/2)·(1/n)` once `1/n < δ(ε)`
+  (`sum_integral_adjacent_intervals`, `norm_integral_le_of_norm_le_const`,
+  `IsCompact.uniformContinuousOn_of_continuous`).
+- `tendsto_emEnergy_sampled` — for a continuous control profile `v` sampled on the uniform grid,
+  `emEnergy (1/n) (v(·/n)) → ∫₀¹ ½ Σᵢ (vₜ i)² dt`. The discrete energy the DRSB card measures is a
+  consistent quadrature of CGP (4.20). Pure analysis, no stochastic content.
+
+This discharges the "+ Riemann sums" half of the EM-model `hconv`. Combined with the already-proved
+`energy_identity_euler_maruyama` (grid KL = discrete energy), the EM-model `hconv` now factors into
+two Itô-free pieces plus ONE remaining gap: *grid KL of the continuum path measure = discrete energy*
+— i.e. the existence + finite-dim projection of the continuum reference measure itself.
+
+Sharpened the wall (verified against the current pin). The continuum reference is **not** the Itô
+integral — it is **Kolmogorov extension for dependent projective families**, which the pin does not
+have: `Mathlib.MeasureTheory.Constructions.Projective` provides only the `IsProjectiveLimit`
+*predicate* + uniqueness; existence exists only for **product** measures (`infinitePi`) and
+Ionescu–Tulcea Markov trajectories. The Brownian projective family IS built and proved consistent
+(`Mathlib.Probability.BrownianMotion.GaussianProjectiveFamily.isProjectiveMeasureFamily_projectiveFamily`,
+with `IsPreBrownianReal`/`IsBrownianReal` predicates in `…BrownianMotion.Basic`) — but the file's own
+docstring notes the extension theorem is "not in Mathlib yet". So the continuum wall is now **two
+sharply-named, disjoint Mathlib gaps**: (1) Kolmogorov extension for dependent families (→ the
+continuum reference measure), and (2) the Itô/Girsanov stack (→ the feedback-drift density). Both are
+multi-file Mathlib-scale ports; neither is faked, and the analytic + discrete Cameron–Martin layers
+around them are now fully proved and axiom-clean.

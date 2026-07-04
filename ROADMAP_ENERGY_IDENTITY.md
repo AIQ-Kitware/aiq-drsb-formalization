@@ -153,6 +153,32 @@ finite-dimensional marginal KLs converge to the energy. For the Euler–Maruyama
 feedback-diffusion marginals it is the finite-dimensional Girsanov density, the true stochastic-
 exponential content. So this sub-plan localises the entire Itô requirement to `hconv`.
 
+#### `hconv`'s "+ Riemann sums" half — PROVED (Itô-free, Kolmogorov-free, 2026-07-04)
+The `Δt → 0` analytic core is now a theorem (axiom-clean, `ForMathlib/MeasureTheory/GaussianEntropy.lean`):
+- `tendsto_equispaced_riemannSum` — equispaced left-Riemann sums of a continuous `g` on `[0,1]`
+  converge to `∫₀¹ g` (uniform-continuity proof; `sum_integral_adjacent_intervals` +
+  `norm_integral_le_of_norm_le_const`).
+- `tendsto_emEnergy_sampled` — `emEnergy (1/n) (v(·/n)) → ∫₀¹ ½ Σᵢ (vₜ i)² dt` for continuous `v`:
+  the card's discrete energy is a consistent quadrature of CGP (4.20).
+
+So the EM-model `hconv` now factors into two **proved** Itô-free pieces — grid KL = discrete energy
+(`energy_identity_euler_maruyama`) and discrete energy → continuum integral (`tendsto_emEnergy_sampled`)
+— plus ONE remaining gap: *grid KL of the continuum path measure = discrete energy*, i.e. the
+existence + finite-dim projection of the continuum reference measure itself.
+
+**The continuum wall is now two sharply-named, disjoint Mathlib gaps** (re-verified 2026-07-04):
+1. **Kolmogorov extension for dependent projective families** → the continuum reference measure.
+   The pin's `MeasureTheory.Constructions.Projective` has only the `IsProjectiveLimit` predicate +
+   uniqueness; existence is present only for **product** measures (`infinitePi`) and Ionescu–Tulcea
+   Markov trajectories. The Brownian projective family is built and proved consistent
+   (`Probability.BrownianMotion.GaussianProjectiveFamily`, with `IsPreBrownianReal`/`IsBrownianReal`
+   in `…BrownianMotion.Basic`) but its own docstring notes the extension theorem is "not in Mathlib yet".
+2. **The Itô/Girsanov stack** → the feedback-drift path-measure density (route 2b above).
+
+Neither is faked; both are multi-file Mathlib-scale ports. Everything around them — the discrete
+Cameron–Martin layer, the projection-exhaustion martingale theorem, the DPI `≥`-half, and now the
+Riemann-quadrature limit — is proved and axiom-clean.
+
 **Bottom line:** the continuum `hCM` is a known Girsanov identity that cannot be discharged in Lean
 until the Itô-integral / stochastic-analysis stack exists in (or is ported into) Mathlib. Until
 then it stays an explicit, non-vacuous edge whose discrete instance is proved — the honest state.

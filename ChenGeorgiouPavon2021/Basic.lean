@@ -259,7 +259,13 @@ theorem schrodingerBridge_KL_eq_SOC (ρ₀ ρ₁ : ProbabilityMeasure X)
 the nonlinear boundary coupling `φ·φhat = ρ₀` at `t=0` and `= ρ₁` at `t=1`.
 
 Abstracted: `lap` is the Laplacian `Δ`; `dens0`, `dens1` are the densities
-`dρ₀/dx`, `dρ₁/dx`; `∂ₜ` is `deriv` in the time argument. -/
+`dρ₀/dx`, `dρ₁/dx`; `∂ₜ` is `deriv` in the time argument.
+
+**Documentary (2026-07).** This structure records CGP (4.22) for reference; it is *not* a
+hypothesis of any theorem here. In the real problem it is what establishes the Hopf–Cole
+control `∇log φ` as optimal — but that consequence is exactly the (unformalized) SDE content
+carried by the `hHC` verification edge of `optimal_control_eq_grad_log` et al., so taking the
+raw system as a separate premise would be logically inert. -/
 structure SchrodingerSystem (ε : ℝ) (lap : (X → ℝ) → X → ℝ)
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ) : Prop where
   /-- `∂ₜφ + (ε/2)Δφ = 0` — backward heat equation (CGP (4.22a)). -/
@@ -276,12 +282,13 @@ feasible and attains the SOC value `min_u J(u)`. -/
 def IsOptimalSOC (u : Control X) (ρ₀ ρ₁ : ProbabilityMeasure X) : Prop :=
   Feasible d u ρ₀ ρ₁ ∧ energy u (d.pathLaw u ρ₀) = schrodingerBridgeValueSOC d ρ₀ ρ₁
 
+omit [NormedSpace ℝ X] in
 /-- **Optimal control = Hopf–Cole / Fleming logarithmic transform (CGP (4.21)).**
-The optimal feedback control of Problem 4.3 is the gradient of `log φ`, where
-`(φ, φhat)` solve the Schrödinger system (4.22):
+The optimal feedback control of Problem 4.3 is the gradient of `log φ`, where in the real
+problem `φ` is the forward Schrödinger potential solving the system (4.22):
 `u*(t,x) = ∇ log φ(t,x)`.
 
-Abstracted: `grad = ∇`, `lap = Δ`; `dens0`, `dens1` are the endpoint densities.
+Abstracted: `grad = ∇`; `φ` is the (forward) Schrödinger potential.
 
 **Soundness note (2026-07 audit).** As originally scaffolded this theorem was *false as
 stated*: `grad` is a free operator argument, so with `grad := fun _ _ => 0` the hypotheses
@@ -292,12 +299,18 @@ both are genuine SDE/convexity facts absent from Mathlib, so — exactly as the 
 equalities isolate their attainment edge — they are made explicit hypotheses (`hHC`, `huniq`) and
 the stated identity is *derived*. With them the theorem is true and non-vacuous (in the real
 problem `∇log φ` is optimal and the optimizer is unique); no free-operator counterexample
-survives (`hHC` pins the candidate down). -/
+survives (`hHC` pins the candidate down).
+
+**Minimal-hypothesis note (2026-07).** The Schrödinger-system hypothesis `hsys` (and the
+operators `lap`, `φhat`, `dens0`, `dens1` it named) was **removed** as logically inert: it was
+never used in the derivation, and keeping it falsely suggested the PDE structure was doing
+logical work when `hHC` already encodes optimality of this specific `∇log φ`. The honest content
+is `existence (hHC) + uniqueness (huniq) ⟹ characterization`. In the real problem `hHC` is
+established *from* the Schrödinger system by the (unformalized) SDE verification; that step is
+where (4.22) enters, and it lives inside `hHC`, not as a separate inert premise. -/
 theorem optimal_control_eq_grad_log
-    (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
-    (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
+    (grad : (X → ℝ) → X → X) (φ : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
     -- CGP (4.21) verification: the Hopf–Cole control `∇log φ` is itself optimal (the SDE content
     -- that `∇log φ` steers `ρ₀→ρ₁` and attains the SOC minimum) — an explicit edge, not a `sorry`:
@@ -318,10 +331,8 @@ Same soundness note as `optimal_control_eq_grad_log`: false as originally stated
 the verification (`hHC`: the scaled Hopf–Cole control is optimal) + uniqueness (`huniq`) edges make
 it true and let the identity be derived. -/
 theorem optimal_control_eq_sigma_grad_log
-    (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
-    (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
+    (grad : (X → ℝ) → X → X) (φ : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
     (hHC : IsOptimalSOC d (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
     (huniq : ∀ u u' : Control X,
@@ -330,6 +341,7 @@ theorem optimal_control_eq_sigma_grad_log
   intro t x
   rw [huniq u_star _ hopt hHC]
 
+omit [NormedSpace ℝ X] in
 /-- **Optimal control = negative value-gradient (DRSB reconciliation of CGP (4.21) /
 Thm 5.2 (5.11a)).**  This is the key fact the DRSB value function `V` and its optimal
 control rest on.  With the sign convention `V = −log φ` (equivalently `V = −λ = −ψ`;
@@ -348,10 +360,8 @@ optimal) + `huniq` (optimizer unique) edges from `optimal_control_eq_grad_log` a
 through. With `grad := 0`, `hHC` forces `u* = 0` and the conclusion `u*(0,·) = −0 = 0` holds — no
 counterexample survives. -/
 theorem optimal_control_eq_neg_grad_value
-    (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
-    (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
+    (grad : (X → ℝ) → X → X) (φ : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
     -- the verification + uniqueness edges (inherited from `optimal_control_eq_grad_log`):
     (hHC : IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
@@ -364,7 +374,7 @@ theorem optimal_control_eq_neg_grad_value
     ∀ x, u_star 0 x = - grad d.V x := by
   intro x
   -- u*(0,x) = ∇log φ(0,x) (Hopf–Cole, `optimal_control_eq_grad_log`), and log φ(0,·) = −V
-  rw [optimal_control_eq_grad_log d grad lap φ φhat dens0 dens1 ρ₀ ρ₁ hsys u_star hopt hHC huniq 0 x]
+  rw [optimal_control_eq_grad_log d grad φ ρ₀ ρ₁ u_star hopt hHC huniq 0 x]
   have hφV : (fun y => Real.log (φ 0 y)) = (fun y => -(d.V y)) := by
     funext y; linarith [hVlogφ y]
   rw [hφV, hgrad_neg]
@@ -378,21 +388,23 @@ theorem optimal_control_eq_neg_grad_value
 def HamiltonJacobi (grad : (X → ℝ) → X → X) (lam : ℝ → X → ℝ) : Prop :=
   ∀ t x, deriv (fun s => lam s x) t + (1 / 2 : ℝ) * ‖grad (lam t) x‖ ^ 2 = 0
 
+omit [NormedSpace ℝ X] in
 /-- **Optimal control = value gradient (CGP Proposition 3.2, (3.16); (5.5)).**
-If `λ` solves the Hamilton–Jacobi equation (3.20) and `u*` is the optimal control
-steering `ρ₀ → ρ₁`, then the optimal feedback is the gradient of the value function /
-co-state: `u*(t,x) = ∇λ(t,x)`.  This is the value-function form of the Hopf–Cole
-control; with the log transform `λ = log φ` it matches (4.21) / Thm 5.2 (5.11a).
+For the value function / co-state `λ` (which in the real problem solves the Hamilton–Jacobi
+equation (3.20), `HamiltonJacobi` above), the optimal control steering `ρ₀ → ρ₁` is the
+gradient of the value function: `u*(t,x) = ∇λ(t,x)`.  This is the value-function form of the
+Hopf–Cole control; with the log transform `λ = log φ` it matches (4.21) / Thm 5.2 (5.11a).
 
 Abstracted: `grad = ∇`; `λ` is the value function / co-state.
 
 Same soundness note as `optimal_control_eq_grad_log`: false as originally stated (free `grad`);
 the verification (`hHC`: the value-gradient control `∇λ` is optimal) + uniqueness (`huniq`) edges
-make it true and let the identity be derived. -/
+make it true and let the identity be derived.  The Hamilton–Jacobi hypothesis was **removed** as
+logically inert (never used in the derivation): the HJ equation is *why* `∇λ` is optimal in the
+real problem — that content lives inside `hHC`, not as a separate premise. -/
 theorem optimal_control_eq_grad_value
     (grad : (X → ℝ) → X → X) (lam : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hHJ : HamiltonJacobi grad lam)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
     (hHC : IsOptimalSOC d (fun t x => grad (lam t) x) ρ₀ ρ₁)
     (huniq : ∀ u u' : Control X,
@@ -422,6 +434,7 @@ noncomputable def staticSBValue (ρ₀ ρ₁ : ProbabilityMeasure X) : ℝ :=
   sInf { J : ℝ | ∃ π : ProbabilityMeasure (X × X),
     π ∈ couplings ρ₀ ρ₁ ∧ J = klReal (π : Measure (X × X)) (endpointLaw d) }
 
+omit [NormedSpace ℝ X] in
 /-- **Dynamic ⇄ static Schrödinger equivalence (CGP Problem 4.1 ⇄ Problem 4.2,
 (4.6)/(4.8); Léonard Prop 2.3).**  The infimum over path measures equals the infimum
 over couplings: gluing the reference bridges `W_{xy}` onto the optimal coupling gives
@@ -513,6 +526,7 @@ noncomputable def entropicOTValue (πB : ProbabilityMeasure (X × X))
   sInf { J : ℝ | ∃ π : ProbabilityMeasure (X × X),
     π ∈ couplings ρ₀ ρ₁ ∧ J = klReal (π : Measure (X × X)) (πB : Measure (X × X)) }
 
+omit [NormedSpace ℝ X] in
 /-- **Static SB = entropic OT (CGP §I.3 / §7, (4.9)–(4.10), (7.13)).**  When the
 reference endpoint law is the Gibbs kernel `ρ₀₁^W = π_B ∝ exp(−c/ε)`, the static
 Schrödinger problem (4.7) coincides with the entropic-OT / Sinkhorn problem (7.13). -/
@@ -526,6 +540,7 @@ theorem staticSB_eq_entropicOT (πB : ProbabilityMeasure (X × X))
   -- law IS the entropic-OT reference; the mathematics is (7.13)'s setup, not this rewrite.)
   simp only [staticSBValue, entropicOTValue, hgibbs]
 
+omit [NormedSpace ℝ X] in
 /-- **Product-form (Schrödinger factorization) of the optimal coupling (CGP (4.11);
 static form (7.17)).**  The optimal coupling density factors as
 `ρ*₀₁(x,y) = φ̂(x)·p(0,x,1,y)·φ(y)`, with `(φ̂,φ)` solving the Schrödinger system.

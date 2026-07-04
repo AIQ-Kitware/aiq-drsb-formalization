@@ -78,3 +78,54 @@ whose stated content was false). The tell: a conclusion that equates a real obje
 last sorries, always ask "is the conclusion actually pinned down by the hypotheses, or could I
 instantiate a free variable to break it?" — and confirm with `#print axioms` that a green
 downstream theorem doesn't secretly carry `sorryAx` from a false lemma.
+
+# Session 2 — "right shape / no erroneous or extra assumptions" audit (2026-07)
+
+Follow-up pass with the explicit goal: *find the right shape for the theorems and ensure there
+are no erroneous or extra assumptions.* Ran the `unusedVariables` / `unusedSectionVars` linters
+across every library and inspected each flagged hypothesis. Two distinct outcomes, one principle:
+**no unused hypothesis is left un-signalled.**
+
+## Finding: two kinds of unused hypothesis
+1. **Restatement leftovers (REMOVE).** The four CGP optimal-control theorems still carried
+   `hsys : SchrodingerSystem …` (plus `lap`/`φhat`/`dens0`/`dens1`) and `optimal_control_eq_grad_value`
+   carried `hHJ : HamiltonJacobi …`. These were **never used** and — worse — *misleading*: they
+   suggested the PDE structure did logical work when the real content was already assumed in the
+   `hHC` verification edge. Because the paper's `hsys ⇒ conclusion` link is unformalizable (no
+   Mathlib path measures), the theorem is *restated* with the consequence `hHC` as hypothesis, so
+   `hsys`/`hHJ` are pure leftovers → **removed**. `SchrodingerSystem`/`HamiltonJacobi` kept as
+   *documentary* defs (docstrings updated to say so). Also `omit [NormedSpace ℝ X]` where unused.
+2. **Faithful paper premises subsumed by explicit edges (KEEP, `_`-mark).** Gao–Kleywegt
+   (`weak_duality_prop1` `hΨ`/`hδ`; `worstCase_structure_cor1` `hκ`/`husc`/`hproper`/`hlam`/`hexists`;
+   `dualValue_eq_empiricalDual` `hN`; `cor2ii` `hlam`/`hexists`) and Mohajerin-Esfahani–Kuhn
+   (`worstCaseExpectation_eq_dual` (Thm 4.2), `worstCase_program`, `worstCase_exists`: Assumption 4.1
+   `hΞconv`/`hconv`/`hlsc`/`hdata`, plus `hε`/`hℓ`/`hExist`) carry the *source theorem's own*
+   hypotheses, unused only because we supply stronger explicit formalization edges (`hOT`/`hattain`/
+   `hdom`/`hbdd`/`hφint`) that subsume them. Removing them would **reduce fidelity** to the paper.
+   Instead `_`-prefixed (matching the pre-existing `_hκ` in `strong_duality_thm1`) so "kept for
+   faithfulness, not proof-critical" is explicit at the binder, and `omit` the unused
+   `[NormedAddCommGroup X]` instance where flagged.
+
+Key discrimination test used before `_`-marking any hypothesis: **is the conclusion non-vacuous
+and does the proof actually establish it constructively (not by assuming it)?** Every `_`-marked
+theorem here has a genuine constructive/duality conclusion (`le_antisymm(constructive, one attainment
+edge)` or an explicit worst-case measure), so the unused paper premise is honest fidelity, not a
+vacuity enabler. Whenever `hℓ` (the "loss = max of `K` pieces" structure) is unused, that is
+*correct*: the Wasserstein-DRO duality equality holds for generic `ℓ`; the max structure only
+feeds the paper's downstream LP reduction.
+
+## Verification
+- Full `lake build` green (8597 jobs). Sorry count unchanged at **1** (`energy_identity`, honest).
+- `#print axioms` on all touched theorems (CGP ×5, Gao ×4, MEK ×3): `[propext, Classical.choice,
+  Quot.sound]`, **no `sorryAx`**. Renaming/removing *unused* hypotheses cannot change a proof term,
+  and the axiom check confirms it.
+- Safety net: `_`-prefixing an actually-used hypothesis errors immediately (its uses become unknown
+  identifiers); the clean build proves every `_`-marked hypothesis was genuinely unused.
+
+## Takeaway for the next agent
+"Extra assumption" splits in two. If a flagged-unused hypothesis is a *restatement leftover* that
+duplicates content assumed elsewhere (or misleads about what does the work) → **remove it**. If it
+is the *source theorem's own premise*, retained for fidelity and subsumed by an explicit edge →
+**keep it, `_`-prefixed** (fidelity beats a shorter signature; the `_` makes intent machine-checkable).
+Never `_`-mark to hide a hypothesis that *should* be load-bearing — first confirm the conclusion is
+non-vacuous and constructively proved.

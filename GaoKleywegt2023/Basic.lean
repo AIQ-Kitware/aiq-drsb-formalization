@@ -158,14 +158,15 @@ noncomputable def kappa (c : X → X → ℝ) (Ψ : X → ℝ) (ν : Probability
 ## 2.2 Strong-duality theorems (prose §2.2)
 -/
 
+omit [NormedAddCommGroup X] in
 /-- **Proposition 1 (Weak duality).** *Consider any `ν ∈ P(Ξ)` and `Ψ ∈ L¹(ν)`.
 Then for any `p ∈ [1,∞)` and `θ > 0`, it holds that `v_P ≤ v_D`.* (prose §2.2,
 Proposition 1 — the always-true Lagrangian direction; `p` and `θ` enter through the
 general cost `c` and radius `δ = θᵖ > 0`.) -/
 theorem weak_duality_prop1
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ)
-    (hΨ : Integrable Ψ (ν : Measure X))   -- Ψ ∈ L¹(ν)
-    (hδ : 0 < δ)                          -- δ = θᵖ with θ > 0
+    (_hΨ : Integrable Ψ (ν : Measure X))  -- Ψ ∈ L¹(ν) (faithful paper premise; subsumed by `hφint`)
+    (_hδ : 0 < δ)                         -- δ = θᵖ > 0 (faithful paper premise; not proof-critical)
     -- regularity / formalization edges (cf. AGENTS.md §6):
     (hfeas : (ambiguitySet c ν δ).Nonempty)                 -- the ambiguity set is nonempty
     (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,                   -- the pointwise conjugate is finite
@@ -218,6 +219,7 @@ theorem weak_duality_prop1
     nlinarith [hε, hlam]
   linarith [hker, h1, h2]
 
+omit [NormedAddCommGroup X] in
 /-- **Theorem 1 (Strong duality with finite optimal value).** *Consider any
 `p ∈ [1,∞)`, any `ν ∈ P(Ξ)`, any `θ > 0`, and any `Ψ ∈ L¹(ν)` such that `κ < ∞`.
 Then `v_P = v_D < ∞`.* (prose §2.2, Theorem 1.)
@@ -296,18 +298,19 @@ shown `∈ ambiguitySet` via the explicit transport plan `pstar·(T̄,id)#ν + (
 `ForMathlib.OT.otCost_le_couplingCost`), and its `Ψ`-expectation is `integral_map`'d to the
 mixture value; the `≤` half of attainment is `le_csSup`, so `hattain` supplies only the `≥`.
 The eq. (27) measure form is then `rfl`. Same `le_antisymm(constructive, one attainment edge)`
-posture as every other worst-case result here. `hκ`/`husc`/`hproper`/`hlam`/`hexists` are
-retained as the paper's premises (the ingredients are what they would yield). -/
+posture as every other worst-case result here. `_hκ`/`_husc`/`_hproper`/`_hlam`/`_hexists` are
+retained as the paper's premises but `_`-marked as not proof-critical (the ingredients — `pstar`,
+`Tbar`/`Tstar`, `hargmin`, `hbudget`, `hattain` — are what they would yield). -/
 theorem worstCase_structure_cor1
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ) (lam_star : ℝ)
-    (hκ : kappa c Ψ ν ≠ ⊤)                                  -- κ < ∞
-    (husc : UpperSemicontinuous Ψ)                          -- Ψ upper semicontinuous
-    (hproper : ∀ s : Set X, Bornology.IsBounded s → TotallyBounded s)
-                                                            -- bounded ⇒ totally bounded
+    (_hκ : kappa c Ψ ν ≠ ⊤)                                 -- κ < ∞ (faithful paper premise; `_`)
+    (_husc : UpperSemicontinuous Ψ)                         -- Ψ upper semicontinuous (faithful; `_`)
+    (_hproper : ∀ s : Set X, Bornology.IsBounded s → TotallyBounded s)
+                                                            -- bounded ⇒ totally bounded (faithful; `_`)
     (hc : ∀ x y, 0 ≤ c x y)                                  -- nonnegative cost (Remark 2)
-    (hlam : 0 ≤ lam_star)                                    -- dual minimizer λ* ≥ 0
-    (hexists : ∃ μ ∈ ambiguitySet c ν δ,
-        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ)        -- a worst-case distribution exists
+    (_hlam : 0 ≤ lam_star)                                   -- dual minimizer λ* ≥ 0 (faithful; `_`)
+    (_hexists : ∃ μ ∈ ambiguitySet c ν δ,
+        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ)        -- a worst-case distribution exists (faithful; `_`)
     -- the extremal INGREDIENTS a full proof extracts from `hexists` (each strictly weaker
     -- than the structured conclusion): the mixture weight and the two argmin transport maps.
     (pstar : ℝ) (Tbar Tstar : X → X)
@@ -439,6 +442,7 @@ noncomputable def empiricalDual {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ)
     v = lam * δ
         - (1 / (N : ℝ)) * ∑ i : Fin N, sInf (Set.range (fun ξ => lam * c ξ (xhat i) - Ψ ξ)) }
 
+omit [NormedAddCommGroup X] in
 /-- **Empirical dual = specialized general dual (sorry-free reduction).** When the
 nominal `ν` is the empirical measure `(1/N) Σᵢ δ_{ξ̂ᵢ}`, the Gao–Kleywegt dual `dualValue`
 (an expectation of the Moreau–Yosida inner map `Φ` against `ν`) collapses to the finite
@@ -452,7 +456,7 @@ no measurability/integrability side-condition on `Φ` is needed. This is the hon
 that turns the general Gao–Kleywegt duality into the data-driven form eq. (28). -/
 theorem dualValue_eq_empiricalDual [MeasurableSingletonClass X]
     {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X)
-    (xhat : Fin N → X) (δ : ℝ) (hN : 0 < N)
+    (xhat : Fin N → X) (δ : ℝ) (_hN : 0 < N)  -- N ≥ 1 samples (faithful paper premise; `_`)
     (hν : (ν : Measure X) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, Measure.dirac (xhat i)) :
     dualValue c Ψ ν δ = empiricalDual c Ψ xhat δ := by
   -- 𝔼_ν[g] = (1/N) ∑ᵢ g(ξ̂ᵢ) for any real g (integral against the empirical measure)
@@ -474,6 +478,7 @@ theorem dualValue_eq_empiricalDual [MeasurableSingletonClass X]
   · rintro ⟨lam, hlam, rfl⟩
     exact ⟨lam, hlam, by rw [hexp (fun ζ => Phi c Ψ lam ζ)]; simp only [Phi]⟩
 
+omit [NormedAddCommGroup X] in
 /-- **Corollary 2(i) — data-driven strong duality, eq. (28).** *For
 `ν = (1/N) Σᵢ δ_{ξ̂ᵢ}`, `p ∈ [1,∞)`, `θ > 0`: the primal has strong dual*
 `v_P = v_D = inf_{λ≥0}{ λ θᵖ − (1/N) Σᵢ inf_ξ(λ dᵖ(ξ,ξ̂ᵢ) − Ψ(ξ)) }` (prose §2.3,
@@ -515,6 +520,7 @@ theorem dataDriven_strongDuality_cor2i [MeasurableSingletonClass X]
   (strong_duality_thm1 c Ψ ν δ hΨ hδ hκ hfeas hbdd hφint hΨμ hOT hbddP hattain).trans
     (dualValue_eq_empiricalDual c Ψ ν xhat δ hN hν)
 
+omit [NormedAddCommGroup X] in
 /-- **Corollary 2(ii) — data-driven worst-case distribution, eq. (29).** *Whenever
 a worst-case distribution exists, there is one supported on at most `N+1` points,*
 `μ* = (1/N) Σ_{i ≠ i₀} δ_{ξ*ⁱ} + (p₀/N) δ_{ξ*^{i₀}} + ((1−p₀)/N) δ_{ξ̄*^{i₀}}`
@@ -554,10 +560,10 @@ theorem dataDriven_worstCase_cor2ii [MeasurableSingletonClass X]
     (hN : 0 < N)
     (hν : (ν : Measure X) = (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, Measure.dirac (xhat i))
     (hc : ∀ x y, 0 ≤ c x y)                                  -- nonnegative cost (Remark 2)
-    (hlam : 0 ≤ lam_star)                                    -- dual minimizer λ* ≥ 0
-    (hexists : ∃ μ ∈ ambiguitySet c ν δ,
-        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ)        -- a worst-case distribution exists
-    -- the extremal INGREDIENTS a full proof extracts from `hexists` (each strictly weaker
+    (_hlam : 0 ≤ lam_star)                                   -- dual minimizer λ* ≥ 0 (faithful; `_`)
+    (_hexists : ∃ μ ∈ ambiguitySet c ν δ,
+        expect μ Ψ = droValue (ambiguitySet c ν δ) Ψ)        -- worst-case dist exists (faithful; `_`)
+    -- the extremal INGREDIENTS a full proof extracts from `_hexists` (each strictly weaker
     -- than the structured conclusion): split index/weight and the per-point argmin atoms.
     (i₀ : Fin N) (ξstar : Fin N → X) (ξbarstar : X) (p0 : ℝ)
     (hp0 : p0 ∈ Set.Icc (0 : ℝ) 1)                           -- (b) optimal split weight

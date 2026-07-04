@@ -188,8 +188,9 @@ against the empirical measure, no measurability side-condition) and the OT coupl
 (attainment / primal-dual)** direction is isolated to the single explicit edge `hattain` — as in
 every strong-duality equality here. Regularity edges (`hbdd`, `hℓQ`, `hOT`, `hfeas`) mirror
 `weak_duality_prop1`. `[BorelSpace X]` is added so `IsClosed Ξ ⇒ MeasurableSet Ξ` (the kernel's
-one measurability need). `hΞconv`/`hconv`/`hlsc`/`hdata` are Assumption 4.1, retained as the
-paper's premises (a full proof would use them to discharge `hOT`/`hattain` via LP duality). -/
+one measurability need). `_hΞconv`/`_hconv`/`_hlsc`/`_hdata` (and `_hℓ`, `_hε`) are Assumption 4.1 / setup, retained as
+the paper's premises but `_`-marked as not proof-critical for the *equality* (a full proof would
+use them to discharge `hOT`/`hattain` via LP duality; `hΞclosed` is used, for `MeasurableSet Ξ`). -/
 theorem worstCaseExpectation_eq_dual [MeasurableSingletonClass X] [BorelSpace X]
     (N : ℕ) (ξhat : Fin N → X)
     -- `N` data points, so `0 < N` (needed for the `1/N` average and for `P̂_N` a probability)
@@ -197,20 +198,21 @@ theorem worstCaseExpectation_eq_dual [MeasurableSingletonClass X] [BorelSpace X]
     (μhat : ProbabilityMeasure X)
     -- the nominal is the empirical measure (sanctioned abstraction)
     (hμ : (μhat : Measure X) = empiricalMeasure ξhat)
-    -- radius `ε ≥ 0` (Theorem 4.2 holds "for any ε ≥ 0")
-    (ε : ℝ) (hε : 0 ≤ ε)
+    -- radius `ε ≥ 0` (Theorem 4.2 holds "for any ε ≥ 0"); faithful, not proof-critical for the equality
+    (ε : ℝ) (_hε : 0 ≤ ε)
     (K : ℕ) (ℓk : Fin K → X → ℝ) (ℓ : X → ℝ)
-    -- the loss is the pointwise max of `K ≥ 1` pieces: `ℓ(ξ) = max_{k ≤ K} ℓₖ(ξ)`
+    -- the loss is the pointwise max of `K ≥ 1` pieces (faithful; the equality holds for generic `ℓ` —
+    -- the max structure only feeds the paper's further LP reduction, so `_hℓ` is not proof-critical)
     (hKne : (Finset.univ : Finset (Fin K)).Nonempty)
-    (hℓ : ∀ ξ, ℓ ξ = (Finset.univ : Finset (Fin K)).sup' hKne (fun k => ℓk k ξ))
-    -- Assumption 4.1: `Ξ` convex and closed
-    (Ξ : Set X) (hΞconv : Convex ℝ Ξ) (hΞclosed : IsClosed Ξ)
-    -- Assumption 4.1: each `−ℓₖ` is convex on `Ξ` (properness is automatic for the ℝ-valued encoding)
-    (hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
-    -- Assumption 4.1: each `−ℓₖ` is lower semicontinuous on `Ξ`
-    (hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
-    -- implicit: the data are realizations of the uncertainty `ξ ∈ Ξ`, so `ξ̂ᵢ ∈ Ξ`
-    (hdata : ∀ i, ξhat i ∈ Ξ)
+    (_hℓ : ∀ ξ, ℓ ξ = (Finset.univ : Finset (Fin K)).sup' hKne (fun k => ℓk k ξ))
+    -- Assumption 4.1: `Ξ` convex (faithful; `_`) and closed (`hΞclosed` used for `MeasurableSet Ξ`)
+    (Ξ : Set X) (_hΞconv : Convex ℝ Ξ) (hΞclosed : IsClosed Ξ)
+    -- Assumption 4.1: each `−ℓₖ` convex on `Ξ` (faithful paper premise; subsumed by `hattain`; `_`)
+    (_hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
+    -- Assumption 4.1: each `−ℓₖ` lower semicontinuous on `Ξ` (faithful; subsumed by `hattain`; `_`)
+    (_hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
+    -- implicit: the data are realizations of the uncertainty `ξ ∈ Ξ` (faithful; `_`)
+    (_hdata : ∀ i, ξhat i ∈ Ξ)
     -- regularity edges (mirror `GaoKleywegt2023.weak_duality_prop1`): the conjugate is finite,
     -- `ℓ ∈ L¹(Q)` for feasible `Q`, the ball is nonempty, and `otCost ≤ ε` is witnessed by
     -- integrable-cost couplings (the OT ε-approximation)
@@ -395,9 +397,11 @@ theorem worstCase_program [MeasurableSingletonClass X]
     (K : ℕ) (ℓk : Fin K → X → ℝ) (ℓ : X → ℝ)
     (hKne : (Finset.univ : Finset (Fin K)).Nonempty)
     (hℓ : ∀ ξ, ℓ ξ = (Finset.univ : Finset (Fin K)).sup' hKne (fun k => ℓk k ξ))
-    (Ξ : Set X) (hΞconv : Convex ℝ Ξ) (hΞclosed : IsClosed Ξ)
-    (hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
-    (hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
+    -- Assumption 4.1 (`Ξ` convex/closed, `−ℓₖ` convex+lsc): faithful paper premises, subsumed by
+    -- the `hdom` reduction edge (the constructive `≥` direction needs none of them); marked `_`
+    (Ξ : Set X) (_hΞconv : Convex ℝ Ξ) (_hΞclosed : IsClosed Ξ)
+    (_hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
+    (_hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
     (hdata : ∀ i, ξhat i ∈ Ξ)
     -- the DRO worst-case value is finite (bounded ambiguity ball), an honest edge:
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
@@ -451,16 +455,18 @@ sorry-free. -/
 theorem worstCase_exists [MeasurableSingletonClass X]
     (N : ℕ) (ξhat : Fin N → X) (hN : 0 < N)
     (μhat : ProbabilityMeasure X) (hμ : (μhat : Measure X) = empiricalMeasure ξhat)
-    (ε : ℝ) (hε : 0 ≤ ε)
+    (ε : ℝ) (_hε : 0 ≤ ε)
     (K : ℕ) (ℓk : Fin K → X → ℝ) (ℓ : X → ℝ)
     (hKne : (Finset.univ : Finset (Fin K)).Nonempty)
     (hℓ : ∀ ξ, ℓ ξ = (Finset.univ : Finset (Fin K)).sup' hKne (fun k => ℓk k ξ))
-    (Ξ : Set X) (hΞconv : Convex ℝ Ξ) (hΞclosed : IsClosed Ξ)
-    (hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
-    (hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
-    (hdata : ∀ i, ξhat i ∈ Ξ)
-    -- Corollary 4.6 existence hypothesis: `Ξ` compact or the loss concave (`K = 1`)
-    (hExist : IsCompact Ξ ∨ K = 1)
+    -- Assumption 4.1 (faithful paper premises, subsumed by `hattain`/`worstCaseLaw_ball_ge`); `_`
+    (Ξ : Set X) (_hΞconv : Convex ℝ Ξ) (_hΞclosed : IsClosed Ξ)
+    (_hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
+    (_hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
+    (_hdata : ∀ i, ξhat i ∈ Ξ)
+    -- Corollary 4.6 existence hypothesis: `Ξ` compact or the loss concave (`K = 1`); it is what
+    -- *supplies* `hattain` in reality, so with `hattain` given it is faithful-but-unused; `_`
+    (_hExist : IsCompact Ξ ∨ K = 1)
     -- the DRO worst-case value is finite (bounded ambiguity ball), an honest edge:
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ wass1Ball μhat ε ∧ r = expect μ ℓ })

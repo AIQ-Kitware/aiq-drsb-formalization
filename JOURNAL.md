@@ -202,3 +202,14 @@ tighten its `hCM` edge to the per-trajectory atom one must first upgrade `Path` 
 continuous-path model (`C([0,1],X)`/Polish) — a modeling step, not new mathematics. Until then
 (cond) stands as a proved, reusable reduction (a genuine Mathlib contribution) and the roadmap's
 Phase-1.5 box is ticked. Phase 2 (continuum `hCM`) remains blocked on the Itô integral, unchanged.
+
+### Session 4 addendum — (cond) WIRED abstractly: `energy_identity_conditional`
+Landed `ChenGeorgiouPavon2021.energy_identity_conditional` (axiom-clean): the `energy_identity`
+disintegration with the (cond) reduction applied *inside*, so its Girsanov edge is already the
+per-trajectory atom `hCM : (∫⁻ x, klDiv (Ku x)(Kw x) ∂ρ₀).toReal = energyVal`. The trick to keep it
+honest (non-vacuous): state it over an **abstract** path-space factor `𝓨` with
+`CountableOrCountablyGenerated 𝒳 𝓨` as a *hypothesis on a free type variable* — satisfiable for any
+standard-Borel `𝓨` — instead of trying to force that (unsatisfiable) instance onto the concrete
+`Path X = ℝ→X`. So Phase 2 now has a crisp target: instantiate `𝓨` = standard-Borel continuous
+paths, build the SDE kernels, and discharge `hCM`'s continuum (Girsanov, still Itô-blocked); the
+discrete instance `energy_identity_euler_maruyama` already proves the grid version of that atom.

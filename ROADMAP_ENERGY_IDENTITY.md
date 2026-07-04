@@ -76,6 +76,15 @@ to a standard-Borel continuous-path model (`C([0,1], X)` / Polish), a *modeling*
 mathematics. Until then (cond) stands as a proved, reusable reduction closing Mathlib's TODO.
 **Does not by itself close (CM)** — it tightens the edge to the per-trajectory atom.
 
+**Wired, abstractly:** `ChenGeorgiouPavon2021.energy_identity_conditional` (axiom-clean) is the
+`energy_identity` disintegration with (cond) applied internally, so its Girsanov edge is already the
+**per-trajectory atom** `hCM : (∫⁻ x, D(Kᵘ_x ‖ Kᵂ_x) dρ₀).toReal = energyVal`. It is stated over an
+*abstract* path-space factor `𝓨` carrying `CountableOrCountablyGenerated 𝒳 𝓨` as a **satisfiable
+hypothesis** (a free type variable — true for standard-Borel `𝓨`), so it is a genuine conditional
+theorem, *not* the vacuous edge that instantiating at `Path X = ℝ→X` would be. This is the exact
+shape Phase 2 discharges: instantiate `𝓨` = standard-Borel continuous paths, build the SDE kernels,
+and prove `hCM`'s continuum (Girsanov) — its discrete instance is already `energy_identity_euler_maruyama`.
+
 ### Phase 2 — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
 **Status (verified 2026-07):** genuinely blocked — Mathlib ships **no stochastic integral, no
 Girsanov, no stochastic exponential, and no KL lower-semicontinuity** (all four grep-confirmed

@@ -209,6 +209,53 @@ theorem energy_identity (u : Control X) (ρ₀ : ProbabilityMeasure X)
         (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R) Ku Kw hfin_marg hfin_cond,
       hCM]
 
+/-- **Energy identity, conditional / per-trajectory form — the `hCM` edge reduced (ROADMAP Phase
+1.5 wired).**
+
+Same disintegration as `energy_identity`, but the Girsanov edge is now the **per-trajectory
+Cameron–Martin atom** `∫⁻ x, D(Kᵘ_x ‖ Kᵂ_x) dρ₀` rather than the abstract conditional relative
+entropy `D(ρ₀⊗ₘKᵘ ‖ ρ₀⊗ₘKᵂ)`. The reduction between the two is the **proved** (cond) lemma
+`ForMathlib…klDiv_compProd_eq_lintegral` (which closes Mathlib's own `ChainRule.lean` TODO), applied
+internally; absolute continuity comes for free from the finiteness edge `hfin_cond`.
+
+**Why this theorem is stated over an abstract path-space factor `𝓨` (and `energy_identity` is not).**
+(cond) needs `Kernel.rnDeriv Kᵘ Kᵂ` to be jointly measurable, i.e. the standard typeclass
+`CountableOrCountablyGenerated 𝒳 𝓨`. Here `𝓨` is a *free type variable*, so that hypothesis is
+**satisfiable** — it holds for every standard-Borel / Polish path space — making this a genuine
+conditional theorem, not a vacuous one. It is deliberately *not* instantiated at the placeholder
+`Path X = ℝ→X` of `energy_identity`, whose uncountable-index `Pi` σ-algebra is **not** countably
+generated (so forcing the typeclass there would be a false instance = a vacuous edge, forbidden).
+
+This is exactly the shape Phase 2 must discharge: with `𝓨` a standard-Borel continuous-path space and
+`Kᵘ, Kᵂ` the SDE/reference kernels, `hCM`'s continuum instance is the Cameron–Martin/Girsanov
+identity `∫⁻ D(Kᵘ_x‖Kᵂ_x) dρ₀ = 𝔼[∫½‖u‖²]`, whose **discrete Euler–Maruyama instance is the proved
+`energy_identity_euler_maruyama`** and whose continuum discharge is blocked only on Mathlib's missing
+Itô integral (ROADMAP Phase 2). No `sorry`, `#print axioms`-clean. -/
+theorem energy_identity_conditional
+    {𝒳 𝒴 Ω : Type*} [MeasurableSpace 𝒳] [MeasurableSpace 𝒴] [MeasurableSpace Ω]
+    [MeasurableSpace.CountableOrCountablyGenerated 𝒳 𝒴]
+    (P R : Measure Ω) [IsProbabilityMeasure P] [IsProbabilityMeasure R]
+    (e : Ω ≃ᵐ 𝒳 × 𝒴)
+    (ρ₀ ρ₀' : Measure 𝒳) [IsProbabilityMeasure ρ₀] [IsProbabilityMeasure ρ₀']
+    (Ku Kw : Kernel 𝒳 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
+    (hPfact : P.map e = ρ₀ ⊗ₘ Ku)
+    (hRfact : R.map e = ρ₀' ⊗ₘ Kw)
+    (hfin_marg : InformationTheory.klDiv ρ₀ ρ₀' ≠ ⊤)
+    (hfin_cond : InformationTheory.klDiv (ρ₀ ⊗ₘ Ku) (ρ₀ ⊗ₘ Kw) ≠ ⊤)
+    (energyVal : ℝ)
+    (hCM : (∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂ρ₀).toReal = energyVal) :
+    klReal P R = klReal ρ₀ ρ₀' + energyVal := by
+  have h_ac_cond : (ρ₀ ⊗ₘ Ku) ≪ (ρ₀ ⊗ₘ Kw) :=
+    (InformationTheory.klDiv_ne_top_iff.mp hfin_cond).1
+  have hcond : InformationTheory.klDiv (ρ₀ ⊗ₘ Ku) (ρ₀ ⊗ₘ Kw)
+      = ∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂ρ₀ :=
+    ForMathlib.MeasureTheory.klDiv_compProd_eq_lintegral ρ₀ Ku Kw h_ac_cond
+  unfold klReal
+  rw [← ForMathlib.MeasureTheory.klDiv_map_measurableEquiv e P R,
+      hPfact, hRfact,
+      ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_add ρ₀ ρ₀' Ku Kw hfin_marg hfin_cond,
+      hcond, hCM]
+
 /-- **Euler–Maruyama (discrete) energy identity — the card's actual measurement of (4.19).**
 
 The DRSB card does not evaluate the continuous `energy_identity`; it evaluates the

@@ -13,7 +13,7 @@ marginals, shift/restriction commutation, the finite-prefix shifted marginal,
 and the real finite-prefix density process.
 
 The filtration/generation layer is already available separately via
-`iSup_comap_frestrictLe_eq_pi` and the `Preorder.frestrictLe`-based construction
+`(iSup_comap_frestrictLe_eq_pi (ι := ℕ) (α := fun _ : ℕ => ℝ))` and the `Preorder.frestrictLe`-based construction
 used in `PathEmbedding.lean`; we keep this file on the exact `Finset.restrict`
 shape expected by `Measure.infinitePi_map_restrict`.
 -/
@@ -22,7 +22,7 @@ import ForMathlib.MeasureTheory.KLDataProcessing
 import ForMathlib.MeasureTheory.PiWithDensity
 import ForMathlib.MeasureTheory.AbsoluteContinuityMartingale
 
-open MeasureTheory Real InformationTheory ProbabilityTheory
+open MeasureTheory Real InformationTheory ProbabilityTheory Filter
 open scoped BigOperators ENNReal NNReal
 
 namespace ForMathlib.MeasureTheory
@@ -72,6 +72,15 @@ theorem stdSeqGaussian_map_prefixRestrict (n : ℕ) :
 theorem stdSeqGaussian_map_frestrictLe (n : ℕ) :
     stdSeqGaussian.map (prefixRestrict n) = stdGaussian (Finset.Iic n) :=
   stdSeqGaussian_map_prefixRestrict n
+
+/-- Mathlib's order-prefix restriction spelling is extensionally the same map as the
+`Finset.restrict` spelling used by `Measure.infinitePi_map_restrict`.  Keeping this as a
+separate bridge lets the finite-prefix API use the exact `Finset.restrict` theorem while
+the martingale/KL convergence API can keep using `Preorder.frestrictLe`. -/
+theorem preorder_frestrictLe_eq_prefixRestrict (n : ℕ) :
+    (Preorder.frestrictLe n : RealSeq → PrefixSpace n) = prefixRestrict n := by
+  funext x i
+  rfl
 
 /-- Restricting a pointwise shift is the same as shifting the restriction. -/
 theorem prefixRestrict_add (c : RealSeq) (n : ℕ) (x : RealSeq) :
@@ -183,6 +192,86 @@ theorem cmPrefixEnergy_le_shift_kl_toReal (c : RealSeq) (n : ℕ)
     hac (prefixRestrict n) (measurable_prefixRestrict n) hfin
   rw [klDiv_stdSeqGaussian_shift_prefix_toReal] at hle
   exact hle
+
+/-- Prefix KL identity using Mathlib's `Preorder.frestrictLe` spelling of the same finite
+restriction map.  This is a convenience bridge for the martingale-convergence theorem
+`klDiv_map_tendsto`, whose product-filtration generator is stated for `frestrictLe`. -/
+theorem klDiv_stdSeqGaussian_shift_frestrictLe (c : RealSeq) (n : ℕ) :
+    klDiv ((stdSeqGaussian.map (fun x : RealSeq => x + c)).map
+        (Preorder.frestrictLe n))
+        (stdSeqGaussian.map (Preorder.frestrictLe n))
+      = ENNReal.ofReal (cmPrefixEnergy c n) := by
+  rw [preorder_frestrictLe_eq_prefixRestrict n]
+  exact klDiv_stdSeqGaussian_shift_prefix c n
+
+/-- Real-valued prefix KL identity using the `Preorder.frestrictLe` spelling. -/
+theorem klDiv_stdSeqGaussian_shift_frestrictLe_toReal (c : RealSeq) (n : ℕ) :
+    (klDiv ((stdSeqGaussian.map (fun x : RealSeq => x + c)).map
+        (Preorder.frestrictLe n))
+        (stdSeqGaussian.map (Preorder.frestrictLe n))).toReal
+      = cmPrefixEnergy c n := by
+  rw [preorder_frestrictLe_eq_prefixRestrict n]
+  exact klDiv_stdSeqGaussian_shift_prefix_toReal c n
+
+/-- The finite-prefix energies, embedded as `ℝ≥0∞`, converge to the full sequence-space KL
+whenever the shifted sequence law is absolutely continuous with respect to the iid Gaussian
+reference.  This is the martingale-convergence half that upgrades the prefix identities from
+finite-dimensional checks to the countable product model. -/
+theorem ofReal_cmPrefixEnergy_tendsto_shift_kl (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian) :
+    Tendsto (fun n => ENNReal.ofReal (cmPrefixEnergy c n)) atTop
+      (nhds (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian)) := by
+  have hshift : Measurable (fun x : RealSeq => x + c) := measurable_shift c
+  haveI : IsProbabilityMeasure (stdSeqGaussian.map (fun x : RealSeq => x + c)) :=
+    Measure.isProbabilityMeasure_map hshift.aemeasurable
+  let ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace RealSeq) :=
+    { seq := fun n => MeasurableSpace.comap
+        (Preorder.frestrictLe n) inferInstance
+      mono' := by
+        intro n m hnm
+        calc MeasurableSpace.comap (Preorder.frestrictLe n) inferInstance
+            = MeasurableSpace.comap (Preorder.frestrictLe m)
+                (MeasurableSpace.comap (Preorder.frestrictLe₂ hnm)
+                  inferInstance) := by
+              rw [MeasurableSpace.comap_comp, Preorder.frestrictLe₂_comp_frestrictLe]
+          _ ≤ MeasurableSpace.comap (Preorder.frestrictLe m) inferInstance :=
+              MeasurableSpace.comap_mono (Preorder.measurable_frestrictLe₂ hnm).comap_le
+      le' := fun n => (Preorder.measurable_frestrictLe n).comap_le }
+  have htend := klDiv_map_tendsto
+    (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian hac
+    (fun n => Preorder.frestrictLe n)
+    (fun n => Preorder.measurable_frestrictLe n) ℱ (fun _ => rfl)
+    (iSup_comap_frestrictLe_eq_pi (ι := ℕ) (α := fun _ : ℕ => ℝ))
+  simpa [klDiv_stdSeqGaussian_shift_frestrictLe] using htend
+
+/-- Real-valued version of `ofReal_cmPrefixEnergy_tendsto_shift_kl` for the finite-KL case. -/
+theorem cmPrefixEnergy_tendsto_shift_kl_toReal (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hfin : klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤) :
+    Tendsto (fun n => cmPrefixEnergy c n) atTop
+      (nhds (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal) := by
+  have hshift : Measurable (fun x : RealSeq => x + c) := measurable_shift c
+  haveI : IsProbabilityMeasure (stdSeqGaussian.map (fun x : RealSeq => x + c)) :=
+    Measure.isProbabilityMeasure_map hshift.aemeasurable
+  let ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace RealSeq) :=
+    { seq := fun n => MeasurableSpace.comap
+        (Preorder.frestrictLe n) inferInstance
+      mono' := by
+        intro n m hnm
+        calc MeasurableSpace.comap (Preorder.frestrictLe n) inferInstance
+            = MeasurableSpace.comap (Preorder.frestrictLe m)
+                (MeasurableSpace.comap (Preorder.frestrictLe₂ hnm)
+                  inferInstance) := by
+              rw [MeasurableSpace.comap_comp, Preorder.frestrictLe₂_comp_frestrictLe]
+          _ ≤ MeasurableSpace.comap (Preorder.frestrictLe m) inferInstance :=
+              MeasurableSpace.comap_mono (Preorder.measurable_frestrictLe₂ hnm).comap_le
+      le' := fun n => (Preorder.measurable_frestrictLe n).comap_le }
+  have htend := klDiv_map_tendsto_toReal
+    (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian hac hfin
+    (fun n => Preorder.frestrictLe n)
+    (fun n => Preorder.measurable_frestrictLe n) ℱ (fun _ => rfl)
+    (iSup_comap_frestrictLe_eq_pi (ι := ℕ) (α := fun _ : ℕ => ℝ))
+  simpa [klDiv_stdSeqGaussian_shift_frestrictLe_toReal] using htend
 
 /-- The finite-prefix Cameron-Martin density process for a deterministic shift `c`.
 It is real-valued and depends only on coordinates `≤ n`.  The split-sum form is

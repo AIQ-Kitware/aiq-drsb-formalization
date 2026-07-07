@@ -23,11 +23,24 @@ Proof: with `Zlim := ℱ.limitProcess Z ν`, the L¹ martingale-convergence theo
 The `ℱ n`-sets form a π-system generating `m`, so `μ` and `ν.withDensity (ofReal ∘ Zlim)` — both
 probability measures — coincide (`ext_of_generateFrom_of_iUnion`), and `withDensity_absolutelyContinuous`
 finishes.
+
+This file also supplies the two reductions that make the theorem *applicable* without any
+martingale/UI verification at the call site (`PLAN_CONTINUUM_CLOSURE.md` M1 + M2.6):
+
+* `martingale_of_setLIntegral_eq` — a locally-consistent density process **is automatically a
+  martingale**: if each `Z n` is `ℱ n`-strongly measurable and integrates on every `ℱ n`-set to
+  `μ` of that set, the tower property is forced (conditional-expectation uniqueness); no
+  distributional computation is needed.
+* `uniformIntegrable_one_of_lintegral_sq_bdd` — a uniform second-moment bound gives uniform
+  integrability (elementary Chebyshev truncation; no maximal inequality).
+* `absolutelyContinuous_of_localDensity` — their composition with the main theorem: local
+  densities + a uniform `L²` bound ⇒ `μ ≪ ν`. This is the form the Gaussian Cameron–Martin
+  application consumes (the `L²` bound being `exp` of the partial Cameron–Martin energy).
 -/
 import Mathlib
 
 open MeasureTheory Filter
-open scoped ENNReal Topology
+open scoped ENNReal NNReal Topology
 
 namespace ForMathlib.MeasureTheory
 
@@ -104,5 +117,122 @@ theorem absolutelyContinuous_of_densityProcess
     exact hagree n s hn
   rw [hμρ, hρdef]
   exact withDensity_absolutelyContinuous _ _
+
+/-- **A uniformly `L²`-bounded nonnegative family is uniformly integrable** (in the
+probability sense, exponent `1`). Elementary Chebyshev truncation: on the tail set
+`{C ≤ ‖Z n ·‖₊}` the pointwise bound `‖Z n x‖ₑ ≤ ‖Z n x‖ₑ ^ 2 / C` holds, so the truncated
+`L¹` mass is at most `M / C`, which is `≤ ε` for `C := (M / ε).toNNReal + 1`. No maximal
+inequality or interpolation is needed. -/
+theorem uniformIntegrable_one_of_lintegral_sq_bdd
+    {ν : Measure Ω} [IsFiniteMeasure ν] {Z : ℕ → Ω → ℝ}
+    (hmeas : ∀ n, AEStronglyMeasurable (Z n) ν) {M : ℝ≥0∞} (hM : M ≠ ⊤)
+    (hL2 : ∀ n, ∫⁻ x, ENNReal.ofReal (Z n x) ^ 2 ∂ν ≤ M)
+    (hnonneg : ∀ n, 0 ≤ᵐ[ν] Z n) :
+    UniformIntegrable Z 1 ν := by
+  refine uniformIntegrable_of le_rfl ENNReal.one_ne_top hmeas fun ε hε => ?_
+  have hε0 : ENNReal.ofReal ε ≠ 0 := (ENNReal.ofReal_pos.mpr hε).ne'
+  set C : ℝ≥0 := (M / ENNReal.ofReal ε).toNNReal + 1 with hC
+  have hCcoe : (C : ℝ≥0∞) = M / ENNReal.ofReal ε + 1 := by
+    rw [hC, ENNReal.coe_add, ENNReal.coe_one,
+      ENNReal.coe_toNNReal (ENNReal.div_ne_top hM hε0)]
+  have hC0 : (C : ℝ≥0∞) ≠ 0 := by
+    rw [hCcoe]
+    exact (lt_of_lt_of_le one_pos le_add_self).ne'
+  refine ⟨C, fun n => ?_⟩
+  -- pointwise Chebyshev truncation bound, valid at every `x`
+  have hpt : ∀ x, ‖({x | C ≤ ‖Z n x‖₊}.indicator (Z n)) x‖ₑ ≤ ‖Z n x‖ₑ ^ 2 / C := by
+    intro x
+    by_cases hx : x ∈ {x | C ≤ ‖Z n x‖₊}
+    · rw [Set.indicator_of_mem hx]
+      have hCle : (C : ℝ≥0∞) ≤ ‖Z n x‖ₑ := by
+        rw [enorm_eq_nnnorm]
+        exact_mod_cast hx
+      calc ‖Z n x‖ₑ = ‖Z n x‖ₑ * ((C : ℝ≥0∞) / C) := by
+            rw [ENNReal.div_self hC0 ENNReal.coe_ne_top, mul_one]
+        _ = ‖Z n x‖ₑ * C / C := by rw [mul_div_assoc]
+        _ ≤ ‖Z n x‖ₑ * ‖Z n x‖ₑ / C := by gcongr
+        _ = ‖Z n x‖ₑ ^ 2 / C := by rw [sq]
+    · rw [Set.indicator_of_notMem hx]
+      simp
+  calc eLpNorm ({x | C ≤ ‖Z n x‖₊}.indicator (Z n)) 1 ν
+      = ∫⁻ x, ‖({x | C ≤ ‖Z n x‖₊}.indicator (Z n)) x‖ₑ ∂ν :=
+        eLpNorm_one_eq_lintegral_enorm
+    _ ≤ ∫⁻ x, ‖Z n x‖ₑ ^ 2 / C ∂ν := lintegral_mono hpt
+    _ = (∫⁻ x, ‖Z n x‖ₑ ^ 2 ∂ν) / C := by
+        simp_rw [ENNReal.div_eq_inv_mul]
+        exact lintegral_const_mul' _ _ (ENNReal.inv_ne_top.mpr hC0)
+    _ = (∫⁻ x, ENNReal.ofReal (Z n x) ^ 2 ∂ν) / C := by
+        congr 1
+        refine lintegral_congr_ae ((hnonneg n).mono fun x hx => ?_)
+        simp only [Pi.zero_apply] at hx
+        simp only [Real.enorm_of_nonneg hx]
+    _ ≤ M / C := by gcongr; exact hL2 n
+    _ ≤ ENNReal.ofReal ε := by
+        rw [ENNReal.div_le_iff hC0 ENNReal.coe_ne_top]
+        calc M = M / ENNReal.ofReal ε * ENNReal.ofReal ε :=
+              (ENNReal.div_mul_cancel hε0 ENNReal.ofReal_ne_top).symm
+          _ ≤ (C : ℝ≥0∞) * ENNReal.ofReal ε := by
+              gcongr
+              rw [hCcoe]
+              exact le_self_add
+          _ = ENNReal.ofReal ε * C := mul_comm _ _
+
+/-- **A locally consistent density process is automatically a martingale.** If each `Z n` is
+`ℱ n`-strongly measurable, a.e. nonnegative, and integrates on every `ℱ n`-set to the
+`μ`-measure of that set, then `Z` is a `ν`-martingale: for `s ∈ ℱ i ⊆ ℱ j` both `∫_s Z i dν`
+and `∫_s Z j dν` equal `(μ s).toReal`, so the tower property is forced by uniqueness of the
+conditional expectation (`ae_eq_condExp_of_forall_setIntegral_eq`). No distributional
+computation about `Z` is needed — the martingale property is *free* from the consistency of
+the local-density identities across levels. -/
+theorem martingale_of_setLIntegral_eq
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (ℱ : Filtration ℕ m) (Z : ℕ → Ω → ℝ)
+    (hadapted : StronglyAdapted ℱ Z)
+    (hnonneg : ∀ n, 0 ≤ᵐ[ν] Z n)
+    (hdens : ∀ n, ∀ s, MeasurableSet[ℱ n] s → μ s = ∫⁻ x in s, ENNReal.ofReal (Z n x) ∂ν) :
+    Martingale Z ℱ ν := by
+  have hint : ∀ n, Integrable (Z n) ν := by
+    intro n
+    refine ⟨((hadapted n).mono (ℱ.le n)).aestronglyMeasurable, ?_⟩
+    rw [hasFiniteIntegral_iff_enorm,
+      lintegral_congr_ae ((hnonneg n).mono fun x hx => by rw [Real.enorm_of_nonneg hx]),
+      ← setLIntegral_univ, ← hdens n Set.univ MeasurableSet.univ, measure_univ]
+    exact ENNReal.one_lt_top
+  -- on an `ℱ n`-set, `∫ Z k dν = (μ s).toReal` for every `k ≥ n`
+  have hsetint : ∀ n k, n ≤ k → ∀ s, MeasurableSet[ℱ n] s →
+      ENNReal.ofReal (∫ x in s, Z k x ∂ν) = μ s := fun n k hnk s hs => by
+    rw [ofReal_integral_eq_lintegral_ofReal ((hint k).restrict)
+      (ae_restrict_of_ae (hnonneg k)), ← hdens k s (ℱ.mono hnk s hs)]
+  refine ⟨hadapted, fun i j hij => ?_⟩
+  refine (ae_eq_condExp_of_forall_setIntegral_eq (ℱ.le i) (hint j)
+    (fun s _ _ => (hint i).integrableOn) (fun s hs _ => ?_)
+    (hadapted i).aestronglyMeasurable).symm
+  exact (ENNReal.ofReal_eq_ofReal_iff
+      (integral_nonneg_of_ae (ae_restrict_of_ae (hnonneg i)))
+      (integral_nonneg_of_ae (ae_restrict_of_ae (hnonneg j)))).mp
+    ((hsetint i i le_rfl s hs).trans (hsetint i j hij s hs).symm)
+
+/-- **Absolute continuity from `L²`-bounded local densities** — the composition of
+`absolutelyContinuous_of_densityProcess` with the two reductions above. A candidate
+probability measure `μ` that is locally absolutely continuous along a generating filtration,
+with density process `Z` uniformly bounded in `L²(ν)`, is globally `μ ≪ ν`. The martingale
+property is automatic (`martingale_of_setLIntegral_eq`) and the `L²` bound gives uniform
+integrability (`uniformIntegrable_one_of_lintegral_sq_bdd`), so the call site needs *only*
+the local densities and one moment bound — the exact interface of the Gaussian
+Cameron–Martin application (`PLAN_CONTINUUM_CLOSURE.md` M2.8). -/
+theorem absolutelyContinuous_of_localDensity
+    (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
+    (ℱ : Filtration ℕ m) (hgen : ⨆ n, ℱ n = m)
+    (Z : ℕ → Ω → ℝ) (hadapted : StronglyAdapted ℱ Z)
+    (hnonneg : ∀ n, 0 ≤ᵐ[ν] Z n)
+    (hdens : ∀ n, ∀ s, MeasurableSet[ℱ n] s → μ s = ∫⁻ x in s, ENNReal.ofReal (Z n x) ∂ν)
+    {M : ℝ≥0∞} (hM : M ≠ ⊤)
+    (hL2 : ∀ n, ∫⁻ x, ENNReal.ofReal (Z n x) ^ 2 ∂ν ≤ M) :
+    μ ≪ ν :=
+  absolutelyContinuous_of_densityProcess μ ν ℱ hgen Z
+    (martingale_of_setLIntegral_eq μ ν ℱ Z hadapted hnonneg hdens)
+    (uniformIntegrable_one_of_lintegral_sq_bdd
+      (fun n => ((hadapted n).mono (ℱ.le n)).aestronglyMeasurable) hM hL2 hnonneg)
+    hnonneg hdens
 
 end ForMathlib.MeasureTheory

@@ -43,4 +43,8 @@ import ForMathlib.MeasureTheory.WienerMeasure
 import ForMathlib.MeasureTheory.PathEmbedding
 -- Absolute continuity from a uniformly-integrable density martingale (Kakutani/Doob `≪`-direction);
 -- the regularity input `P^u ≪ R` for the (deterministic) continuum energy identity, Itô-free.
+-- Plus: automatic martingale property of consistent local densities, and the L²-bound ⇒ UI bridge.
 import ForMathlib.MeasureTheory.AbsoluteContinuityMartingale
+-- `Measure.pi` of `withDensity` factors, `withDensity` through a measurable equiv, and the
+-- finite-product Tonelli `lintegral_pi_prod` (the Gaussian Cameron–Martin density bricks).
+import ForMathlib.MeasureTheory.PiWithDensity

@@ -434,3 +434,55 @@ Honest status: the **feedback-drift** continuum identity remains Itô-blocked (g
 **deterministic** continuum identity is now blocked only on Brick 2's Gaussian-density construction —
 no longer on abstract impossibility. Nothing faked; `absolutelyContinuous_of_densityProcess` is a
 real, reusable, axiom-clean contribution and the correct next tool.
+
+## Session 6 (2026-07-07) — continuum-closure survey → plan → the hard abstract bricks landed
+Three-phase session (Fable survey → Opus review → Fable implementation of the reviewed plan's
+hardest tickets), coordinated by the user.
+
+**Phase 1 — survey (Fable → Opus).** Graded every remaining brick of the Session-5 "route to
+full deterministic closure" against the pinned Mathlib; report at
+`dev/journals/2026-07-07-continuum-energy-closure-survey.md`. Verdict: deterministic case
+reachable (blocked only on a finite-dim Gaussian density layer), feedback case genuinely
+Itô-blocked (stochastic integral grep-confirmed absent). Plan written to
+**`PLAN_CONTINUUM_CLOSURE.md`**: work in iid-Gaussian **sequence coordinates**
+(`Measure.infinitePi`), where densities factorize into 1-D `gaussianReal` pieces and the
+prefix filtration is the proved `iSup_comap_frestrictLe_eq_pi` setting; target **Theorem A**
+= the infinite-dimensional Cameron–Martin/Kakutani KL identity
+`klDiv ((infinitePi N(0,1)).map (·+c)) (infinitePi N(0,1)) = ofReal (½∑'c²)` for `ℓ²` shifts.
+
+**Phase 2 — adversarial review (Opus).** Probed every load-bearing pin lemma. Three real
+findings, all then fixed in the plan: **[C]** M4a overclaimed (Theorem A is the sequence
+*model*, NOT CGP's path-kernel `hCM` edge — renamed `energy_identity_sequenceModel`, honest
+docstring; the path identification is the stretch M4b); **[A]** M2.2's both routes
+under-supported (no finite-pi Tonelli in the pin; `withDensity`-through-an-equiv missing);
+**[B]** `frestrictLe` is `Finset.Iic`-based, so every `Set.Iic` in the plan was retyped
+(and M2.4 got *easier*). Difficulty ranking recorded in the plan.
+
+**Phase 3 — implementation (Fable): the review's two hardest bricks, axiom-clean.**
+- `ForMathlib/MeasureTheory/PiWithDensity.lean` (NEW): `map_withDensity_measurableEquiv`
+  (withDensity commutes with a measurable equiv — the review's missing sub-lemma);
+  `pi_withDensity_fin`/`pi_withDensity` (product of withDensity factors = product measure
+  with product density; dependent `Fin` induction via `piFinSuccAbove` + `prod_withDensity`,
+  Fintype transport along `piCongrLeft` in the **cast-free `symm` orientation** —
+  `Equiv.piCongrLeft_symm_apply` has no casts, the forward apply does);
+  `lintegral_pi_prod_fin`/`lintegral_pi_prod` (finite-product Tonelli, instance-free of the
+  density factors — defuses M2.7). Key tricks: state the whole successor step in
+  `Fin.succAbove 0` form (`Fin.prod_univ_succAbove` — mixing in `.succ` breaks motives),
+  and conclude injectivity via `MeasurableEquiv.map_measurableEquiv_injective`.
+- `AbsoluteContinuityMartingale.lean` (EXTENDED): `uniformIntegrable_one_of_lintegral_sq_bdd`
+  (L²-bound ⇒ UI; pointwise Chebyshev truncation `‖·‖ₑ ≤ ‖·‖ₑ²/C` needs NO measurability of
+  the tail set); `martingale_of_setLIntegral_eq` (**the martingale property is free**: local
+  densities consistent across levels force the tower property via
+  `ae_eq_condExp_of_forall_setIntegral_eq`; NB this pin's `Martingale` wants
+  `StronglyAdapted`, its `Adapted` is `Measurable`-based); and the composed
+  `absolutelyContinuous_of_localDensity` (local densities + one L² moment bound ⇒ `μ ≪ ν`) —
+  the exact interface M2.8 will call.
+
+Gotcha for the record: this clone had NO oleans (`lake exe cache get` needed first);
+`ℝ≥0` needs `open scoped NNReal` (the file only had `ENNReal` — the error surfaces as
+bizarre `LE Type` failures at the `set` line).
+
+**Remaining (Opus queue, per the plan's STATUS section):** M2.1→M2.3→M2.4→M2.5→M2.7→M2.8
+(Gaussian specifics; all consumers of the above), M3 (Theorem A assembly), M4a (honest
+sequence-model statement), M5 (docs). M4b (Wiener path transport) stretch; feedback/Itô
+unchanged, forbidden to fake.

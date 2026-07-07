@@ -294,6 +294,29 @@ theorem shift_kl_toReal_eq_of_cmPrefixEnergy_tendsto (c : RealSeq) (L : ℝ)
     (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal = L := by
   exact (tendsto_nhds_unique hconv (cmPrefixEnergy_tendsto_shift_kl_toReal c hac hfin)).symm
 
+/-- The full shifted-sequence KL is an upper bound for the supremum of all finite-prefix
+Cameron--Martin energies, in `ℝ≥0∞`.  This packages the per-prefix data-processing
+bounds into the exact shape needed by the eventual Kakutani/Cameron--Martin converse:
+finite full KL forces uniformly bounded finite prefix energies. -/
+theorem iSup_ofReal_cmPrefixEnergy_le_shift_kl (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian) :
+    (⨆ n : ℕ, ENNReal.ofReal (cmPrefixEnergy c n))
+      ≤ klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian := by
+  exact iSup_le (fun n => ofReal_cmPrefixEnergy_le_shift_kl c n hac)
+
+/-- If the full shifted-sequence KL is finite, then the real finite-prefix energies are
+bounded above.  This is the real-valued boundedness form consumed by later pure-series
+arguments that turn bounded nonnegative prefix energies into square-summability of the
+shift vector. -/
+theorem cmPrefixEnergy_bddAbove_of_shift_kl_finite (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hfin : klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤) :
+    BddAbove (Set.range (cmPrefixEnergy c)) := by
+  refine ⟨(klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal, ?_⟩
+  intro y hy
+  rcases hy with ⟨n, rfl⟩
+  exact cmPrefixEnergy_le_shift_kl_toReal c n hac hfin
+
 /-- The finite-prefix Cameron-Martin density process for a deterministic shift `c`.
 It is real-valued and depends only on coordinates `≤ n`.  The split-sum form is
 used because it is the normal form Lean tends to prefer for finite sums of

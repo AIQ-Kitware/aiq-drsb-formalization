@@ -317,6 +317,39 @@ theorem cmPrefixEnergy_bddAbove_of_shift_kl_finite (c : RealSeq)
   rcases hy with ⟨n, rfl⟩
   exact cmPrefixEnergy_le_shift_kl_toReal c n hac hfin
 
+
+/-- Finite-prefix KLs are always finite.  This packages the finite-dimensional Gaussian
+identity into a form that is convenient for later `toReal` rewrites and sanity checks. -/
+theorem klDiv_stdSeqGaussian_shift_prefix_ne_top (c : RealSeq) (n : ℕ) :
+    klDiv ((stdSeqGaussian.map (fun x : RealSeq => x + c)).map (prefixRestrict n))
+        (stdSeqGaussian.map (prefixRestrict n)) ≠ ⊤ := by
+  simp [klDiv_stdSeqGaussian_shift_prefix]
+
+/-- Finite-prefix KLs are strictly below `⊤`. -/
+theorem klDiv_stdSeqGaussian_shift_prefix_lt_top (c : RealSeq) (n : ℕ) :
+    klDiv ((stdSeqGaussian.map (fun x : RealSeq => x + c)).map (prefixRestrict n))
+        (stdSeqGaussian.map (prefixRestrict n)) < ⊤ := by
+  simp [klDiv_stdSeqGaussian_shift_prefix]
+
+/-- Contrapositive form of `cmPrefixEnergy_bddAbove_of_shift_kl_finite`: under absolute
+continuity, unbounded finite-prefix energies rule out finite full sequence-space KL. -/
+theorem not_shift_kl_finite_of_not_bddAbove_cmPrefixEnergy (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hunbdd : ¬ BddAbove (Set.range (cmPrefixEnergy c))) :
+    ¬ klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤ := by
+  intro hfin
+  exact hunbdd (cmPrefixEnergy_bddAbove_of_shift_kl_finite c hac hfin)
+
+/-- Under absolute continuity, unbounded finite-prefix energies force the full
+shifted-sequence KL to be infinite.  This is the KL-facing converse scaffold that later
+pure-series work will connect to non-square-summability of the deterministic shift. -/
+theorem shift_kl_eq_top_of_not_bddAbove_cmPrefixEnergy (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hunbdd : ¬ BddAbove (Set.range (cmPrefixEnergy c))) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian = ⊤ := by
+  by_contra hfin
+  exact hunbdd (cmPrefixEnergy_bddAbove_of_shift_kl_finite c hac hfin)
+
 /-- The finite-prefix Cameron-Martin density process for a deterministic shift `c`.
 It is real-valued and depends only on coordinates `≤ n`.  The split-sum form is
 used because it is the normal form Lean tends to prefer for finite sums of

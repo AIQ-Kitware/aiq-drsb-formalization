@@ -111,6 +111,38 @@ theorem stdSeqGaussian_map_add_map_frestrictLe (c : RealSeq) (n : ℕ) :
         (fun x : PrefixSpace n => x + prefixRestrict n c) :=
   stdSeqGaussian_map_add_map_prefixRestrict c n
 
+/-- Finite-prefix Cameron--Martin energy for the deterministic shift `c`, restricted to
+the first `n + 1` sequence coordinates.  This is the finite-dimensional quantity that
+converges to `½‖c‖²` in the eventual sequence-model theorem. -/
+noncomputable def cmPrefixEnergy (c : RealSeq) (n : ℕ) : ℝ :=
+  2⁻¹ * ∑ i : Finset.Iic n, (prefixRestrict n c i) ^ 2
+
+/-- Finite-prefix Cameron--Martin energy is nonnegative. -/
+theorem cmPrefixEnergy_nonneg (c : RealSeq) (n : ℕ) :
+    0 ≤ cmPrefixEnergy c n := by
+  unfold cmPrefixEnergy
+  positivity
+
+/-- The finite-prefix KL identity obtained by projecting the shifted iid sequence model
+to the first `n + 1` coordinates.  This is the KL-facing version of the M2.4 prefix
+marginal brick: after projection, the problem is exactly the already-proved
+finite-dimensional Gaussian Cameron--Martin theorem `klDiv_stdGaussian_map_add`. -/
+theorem klDiv_stdSeqGaussian_shift_prefix (c : RealSeq) (n : ℕ) :
+    klDiv ((stdSeqGaussian.map (fun x : RealSeq => x + c)).map (prefixRestrict n))
+        (stdSeqGaussian.map (prefixRestrict n))
+      = ENNReal.ofReal (cmPrefixEnergy c n) := by
+  rw [stdSeqGaussian_map_add_map_prefixRestrict, stdSeqGaussian_map_prefixRestrict]
+  unfold cmPrefixEnergy
+  simpa using (klDiv_stdGaussian_map_add (prefixRestrict n c))
+
+/-- Real-valued form of `klDiv_stdSeqGaussian_shift_prefix`. -/
+theorem klDiv_stdSeqGaussian_shift_prefix_toReal (c : RealSeq) (n : ℕ) :
+    (klDiv ((stdSeqGaussian.map (fun x : RealSeq => x + c)).map (prefixRestrict n))
+        (stdSeqGaussian.map (prefixRestrict n))).toReal
+      = cmPrefixEnergy c n := by
+  rw [klDiv_stdSeqGaussian_shift_prefix]
+  exact ENNReal.toReal_ofReal (cmPrefixEnergy_nonneg c n)
+
 /-- The finite-prefix Cameron-Martin density process for a deterministic shift `c`.
 It is real-valued and depends only on coordinates `≤ n`.  The split-sum form is
 used because it is the normal form Lean tends to prefer for finite sums of

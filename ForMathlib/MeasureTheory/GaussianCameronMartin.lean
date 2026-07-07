@@ -273,6 +273,27 @@ theorem cmPrefixEnergy_tendsto_shift_kl_toReal (c : RealSeq)
     (iSup_comap_frestrictLe_eq_pi (ι := ℕ) (α := fun _ : ℕ => ℝ))
   simpa [klDiv_stdSeqGaussian_shift_frestrictLe_toReal] using htend
 
+/-- Abstract uniqueness wrapper for the sequence-model Cameron--Martin identity in `ℝ≥0∞`.
+If an independent argument identifies the limit of finite prefix energies, then the full
+sequence-space KL has the same value.  Downstream, the independent argument is the pure
+series/tail calculation `cmPrefixEnergy c n → ½ * ∑' k, c k ^ 2`. -/
+theorem shift_kl_eq_of_ofReal_cmPrefixEnergy_tendsto (c : RealSeq) (L : ℝ)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hconv : Tendsto (fun n => ENNReal.ofReal (cmPrefixEnergy c n)) atTop
+      (nhds (ENNReal.ofReal L))) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian = ENNReal.ofReal L := by
+  exact (tendsto_nhds_unique hconv (ofReal_cmPrefixEnergy_tendsto_shift_kl c hac)).symm
+
+/-- Real-valued abstract uniqueness wrapper for the sequence-model Cameron--Martin identity.
+This is the same statement as `shift_kl_eq_of_ofReal_cmPrefixEnergy_tendsto`, phrased after
+`toReal` under a finite-KL hypothesis. -/
+theorem shift_kl_toReal_eq_of_cmPrefixEnergy_tendsto (c : RealSeq) (L : ℝ)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hfin : klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤)
+    (hconv : Tendsto (fun n => cmPrefixEnergy c n) atTop (nhds L)) :
+    (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal = L := by
+  exact (tendsto_nhds_unique hconv (cmPrefixEnergy_tendsto_shift_kl_toReal c hac hfin)).symm
+
 /-- The finite-prefix Cameron-Martin density process for a deterministic shift `c`.
 It is real-valued and depends only on coordinates `≤ n`.  The split-sum form is
 used because it is the normal form Lean tends to prefer for finite sums of

@@ -188,6 +188,46 @@ theorem cmPartialEnergy_tendsto_total_of_summable (c : RealSeq)
   simpa [mul_comm, mul_left_comm, mul_assoc] using
     ((hsum.hasSum.tendsto_sum_nat).const_mul (2⁻¹))
 
+/-- The `Finset.Iic n` finite-prefix energy is the same as the range-indexed
+partial energy through coordinate `n`, i.e. the first `n + 1` coordinates.  This
+is the pure finite-set bridge between the Gaussian-prefix layer and the ordinary
+series API on `ℕ`. -/
+theorem cmPrefixEnergy_eq_cmPartialEnergy_succ (c : RealSeq) (n : ℕ) :
+    cmPrefixEnergy c n = cmPartialEnergy c (n + 1) := by
+  unfold cmPrefixEnergy cmPartialEnergy prefixRestrict
+  have hIic : Finset.Iic n = Finset.range (n + 1) := by
+    ext i
+    simp
+  congr 1
+  simpa [hIic] using
+    (Finset.sum_attach (s := Finset.Iic n) (f := fun i : ℕ => c i ^ 2))
+
+/-- Finite-prefix energies are monotone in the prefix length. -/
+theorem cmPrefixEnergy_le_succ (c : RealSeq) (n : ℕ) :
+    cmPrefixEnergy c n ≤ cmPrefixEnergy c (n + 1) := by
+  rw [cmPrefixEnergy_eq_cmPartialEnergy_succ c n,
+    cmPrefixEnergy_eq_cmPartialEnergy_succ c (n + 1)]
+  exact cmPartialEnergy_le_succ c (n + 1)
+
+/-- If range-indexed partial energies are unbounded, then the finite-prefix energies are
+unbounded as well.  The only missing range index is `0`, whose partial energy is `0`; all
+successor range indices are prefix energies by `cmPrefixEnergy_eq_cmPartialEnergy_succ`. -/
+theorem not_bddAbove_cmPrefixEnergy_of_not_bddAbove_cmPartialEnergy (c : RealSeq)
+    (hunbdd : ¬ BddAbove (Set.range (cmPartialEnergy c))) :
+    ¬ BddAbove (Set.range (cmPrefixEnergy c)) := by
+  intro hpre
+  rcases hpre with ⟨B, hB⟩
+  refine hunbdd ⟨max B 0, ?_⟩
+  intro y hy
+  rcases hy with ⟨n, rfl⟩
+  cases n with
+  | zero =>
+      rw [cmPartialEnergy_zero]
+      exact le_max_right B 0
+  | succ n =>
+      rw [← cmPrefixEnergy_eq_cmPartialEnergy_succ c n]
+      exact le_trans (hB ⟨n, rfl⟩) (le_max_left B 0)
+
 /-- The finite-prefix KL identity obtained by projecting the shifted iid sequence model
 to the first `n + 1` coordinates.  This is the KL-facing version of the M2.4 prefix
 marginal brick: after projection, the problem is exactly the already-proved
@@ -396,6 +436,24 @@ theorem shift_kl_eq_top_of_not_bddAbove_cmPrefixEnergy (c : RealSeq)
     klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian = ⊤ := by
   by_contra hfin
   exact hunbdd (cmPrefixEnergy_bddAbove_of_shift_kl_finite c hac hfin)
+
+/-- If ordinary range partial energies are unbounded, then finite full shifted-sequence KL is
+impossible under absolute continuity.  This is the series-facing converse wrapper. -/
+theorem not_shift_kl_finite_of_not_bddAbove_cmPartialEnergy (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hunbdd : ¬ BddAbove (Set.range (cmPartialEnergy c))) :
+    ¬ klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤ := by
+  exact not_shift_kl_finite_of_not_bddAbove_cmPrefixEnergy c hac
+    (not_bddAbove_cmPrefixEnergy_of_not_bddAbove_cmPartialEnergy c hunbdd)
+
+/-- Under absolute continuity, unbounded ordinary range partial energies force the full
+shifted-sequence KL to be infinite. -/
+theorem shift_kl_eq_top_of_not_bddAbove_cmPartialEnergy (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hunbdd : ¬ BddAbove (Set.range (cmPartialEnergy c))) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian = ⊤ := by
+  exact shift_kl_eq_top_of_not_bddAbove_cmPrefixEnergy c hac
+    (not_bddAbove_cmPrefixEnergy_of_not_bddAbove_cmPartialEnergy c hunbdd)
 
 /-- Specialized `ℝ≥0∞` uniqueness wrapper for the sequence-model Cameron--Martin identity
 with target value `cmTotalEnergy`.  The remaining input is the pure bridge showing that

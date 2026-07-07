@@ -12,10 +12,11 @@ library per source paper, a paper-agnostic `ForMathlib` staging library, a
 > is **not a source** — ~0 weight, §2), the published-theorem chain, the working
 > conventions, and the known traps. This README is just the build + library map.
 
-> **Status: first-pass scaffold — statements, proofs just starting.** Each theorem is
-> stated close to its published form; most bodies are still `sorry`, with the
-> Donsker–Varadhan family in `ForMathlib` now proved (axiom-clean). The project
-> `lake build`s green.
+> **Status: proof-pass active.** The card-level DRSB inequalities and most paper-library
+> links are proved axiom-clean; the remaining research seam is the continuum Cameron–Martin /
+> Girsanov path-law edge documented in [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md).
+> This branch includes a new candidate source pass for the iid Gaussian sequence-model staging layer;
+> compile it locally before marking that milestone complete.
 
 ## What DRSB claims
 
@@ -30,7 +31,7 @@ Wasserstein-2 ball (`wdrsb_cost_bound.yaml`) or a Sinkhorn-divergence ball
 
 | Library | Role | Key declarations |
 |---|---|---|
-| `ForMathlib` | Paper-agnostic staging: Donsker–Varadhan + shared OT/DRO vocabulary | `integral_le_klDiv_add_log_integral_exp`, `log_integral_exp_eq_sSup`; `OT.droValue`, `OT.wassersteinBall`, `OT.sinkhornBall`, `OT.otCost`, `OT.expect`, `OT.klReal` |
+| `ForMathlib` | Paper-agnostic staging: Donsker–Varadhan, shared OT/DRO vocabulary, Gaussian/Sinkhorn/KL infrastructure, and the continuum-closure sequence-model staging layer | `integral_le_klDiv_add_log_integral_exp`, `log_integral_exp_eq_sSup`; `OT.droValue`, `OT.wassersteinBall`, `OT.sinkhornBall`; `stdGaussian`, `stdSeqGaussian`, `prefixFiltration`, `cmDensityProcess` |
 | `ChenGeorgiouPavon2021` | SB ⇄ SOC ⇄ entropic-OT; value function + optimal control | `SBData`, `schrodingerBridge_KL_eq_SOC`, `optimal_control_eq_grad_log`, `optimal_control_eq_neg_grad_value`, `staticSB_eq_entropicOT` |
 | `BlanchetMurthy2019` | Wasserstein-DRO strong duality (primary) | `wdro_strong_duality`, `Lc` |
 | `GaoKleywegt2023` | Wasserstein-DRO strong duality + worst-case distribution | `weak_duality_prop1`, `strong_duality_thm1`, `worstCase_structure_cor1`, `dataDriven_worstCase_cor2ii` |
@@ -79,15 +80,22 @@ in `reference/WellKnown.lean`) but **not canon**; re-derive every statement from
 
 ## Build
 
-Toolchain `leanprover/lean4:v4.31.0-rc2`; Mathlib pinned in `lake-manifest.json`.
+Toolchain `leanprover/lean4:v4.32.0-rc1`; Mathlib pinned in `lake-manifest.json`.
 
 ```bash
 lake exe cache get      # download prebuilt Mathlib oleans
-lake build              # builds green; every leaf emits one `sorry` warning
+lake build              # full project check
 ```
 
 ## Next steps
 
-1. Expert review of the statements against the primary sources (`prose/` + PDFs).
-2. Begin proofs, foundational libraries first (DV → Sinkhorn dual → capstone). The
-   Donsker–Varadhan family is already ported into `ForMathlib` (proved, axiom-clean).
+Follow [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md). The immediate local check for this
+overlay is:
+
+```bash
+lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean
+```
+
+If that succeeds, continue the sequence-model Cameron–Martin queue: M2.1/M2.3
+(one-dimensional and finite-dimensional Gaussian shift densities), then M2.5/M2.7/M2.8
+(local density + L² bound + absolute continuity), then M3 Theorem A.

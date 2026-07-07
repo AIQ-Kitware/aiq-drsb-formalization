@@ -48,3 +48,6 @@ import ForMathlib.MeasureTheory.AbsoluteContinuityMartingale
 -- `Measure.pi` of `withDensity` factors, `withDensity` through a measurable equiv, and the
 -- finite-product Tonelli `lintegral_pi_prod` (the Gaussian Cameron–Martin density bricks).
 import ForMathlib.MeasureTheory.PiWithDensity
+-- Sequence-model Cameron-Martin staging: iid Gaussian sequence law, prefix marginals,
+-- shift/restriction interface, and finite-prefix density process.
+import ForMathlib.MeasureTheory.GaussianCameronMartin

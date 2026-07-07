@@ -371,6 +371,12 @@ The **`Drsb` capstone** composes the above:
   **PathEmbedding ✓ (`exists_measurableEmbedding_nat_of_separating` — standard-Borel + countable
   separating family ⇒ measurable embedding into `ℕ→ℝ` with measurable left inverse; also a Mathlib
   PR candidate)**.
+- **Source-pass note (2026-07-07):** `ForMathlib/MeasureTheory/GaussianCameronMartin.lean`
+  stages the next sequence-model Cameron–Martin brick from `PLAN_CONTINUUM_CLOSURE.md` as a
+  candidate no-`sorry` overlay: iid `stdSeqGaussian`, `prefixFiltration`, finite-prefix marginals,
+  shift/restriction commutation, and `cmDensityProcess`. The producing sandbox had no Lean compiler;
+  run `lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean` before marking M2.4 done.
+
 - **Plan A(i) DONE (2026-07-04) — the continuum embedding edge is now a THEOREM**
   (`ForMathlib/MeasureTheory/PathEmbedding.lean`, all axiom-clean; JOURNAL Session 4 addendum 8).
   `energy_eq_klReal_via_embedding`'s abstract measurable-embedding hypothesis is *constructed* for the

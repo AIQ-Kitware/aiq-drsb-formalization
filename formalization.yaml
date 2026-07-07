@@ -189,6 +189,15 @@ main_results:
     - declaration: "ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy"
       informal: "Euler–Maruyama discrete energy identity: (KL(controlled path law ‖ reference path law)).toReal = ∑ₖ Δt·½‖u_k‖² (the discrete control energy). ORIGINAL to this repo; built on the vendored klDiv_stdGaussian_map_add."
       proved: true   # axiom-clean; the discrete/Gaussian layer of CGP energy_identity (4.19) — the quantity the DRSB card measures (AGENTS §3). Remaining edge: the Δt→0 SDE limit (T4).
+    - declaration: "ForMathlib.MeasureTheory.stdSeqGaussian"
+      informal: "Canonical iid standard-Gaussian sequence law `Measure.infinitePi (fun _ : ℕ => gaussianReal 0 1)` for the sequence-model Cameron–Martin/Kakutani closure plan."
+      proved: false   # Candidate source-pass staging declaration; compile locally before marking the M2.4 milestone done.
+    - declaration: "ForMathlib.MeasureTheory.stdSeqGaussian_map_frestrictLe"
+      informal: "Finite-prefix marginal of the iid sequence model: projecting `stdSeqGaussian` by `Preorder.frestrictLe n` gives `stdGaussian (Finset.Iic n)`."
+      proved: false   # Candidate no-sorry overlay; pending local `lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean`.
+    - declaration: "ForMathlib.MeasureTheory.cmDensityProcess"
+      informal: "Finite-prefix Cameron–Martin density process `exp(∑_{i≤n} cᵢ xᵢ - ½cᵢ²)` used by the local-density and L²-bound steps."
+      proved: false   # Definition-level staging for M2.5/M2.7; pending local compile of the new file.
   ChenGeorgiouPavon2021:
     - declaration: "ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC"
       source: "Chen–Georgiou–Pavon Problem 4.1 ⇄ Problem 4.3 (eq. 4.19)"

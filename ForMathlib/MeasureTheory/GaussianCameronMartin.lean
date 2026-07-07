@@ -50,6 +50,15 @@ instance : IsProbabilityMeasure stdSeqGaussian := by
   unfold stdSeqGaussian
   infer_instance
 
+/-- The prefix-restriction map is measurable. -/
+theorem measurable_prefixRestrict (n : ℕ) : Measurable (prefixRestrict n) := by
+  unfold prefixRestrict
+  exact (Finset.Iic n).measurable_restrict
+
+/-- Deterministic translation of the sequence-coordinate space is measurable. -/
+theorem measurable_shift (c : RealSeq) : Measurable (fun x : RealSeq => x + c) := by
+  fun_prop
+
 /-- Prefix marginals of the iid sequence model are the corresponding finite-dimensional
 standard Gaussian laws.  This is `PLAN_CONTINUUM_CLOSURE.md` M2.4. -/
 theorem stdSeqGaussian_map_prefixRestrict (n : ℕ) :
@@ -142,6 +151,38 @@ theorem klDiv_stdSeqGaussian_shift_prefix_toReal (c : RealSeq) (n : ℕ) :
       = cmPrefixEnergy c n := by
   rw [klDiv_stdSeqGaussian_shift_prefix]
   exact ENNReal.toReal_ofReal (cmPrefixEnergy_nonneg c n)
+
+/-- Data processing gives the finite-prefix Cameron--Martin lower bound on the full
+sequence-space KL.  This is the KL `ℝ≥0∞` half of the eventual sequence-model theorem:
+every finite prefix energy is bounded above by the full shifted-sequence divergence whenever the
+shifted sequence law is absolutely continuous with respect to the reference sequence law. -/
+theorem ofReal_cmPrefixEnergy_le_shift_kl (c : RealSeq) (n : ℕ)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian) :
+    ENNReal.ofReal (cmPrefixEnergy c n)
+      ≤ klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian := by
+  have hshift : Measurable (fun x : RealSeq => x + c) := measurable_shift c
+  haveI : IsProbabilityMeasure (stdSeqGaussian.map (fun x : RealSeq => x + c)) :=
+    Measure.isProbabilityMeasure_map hshift.aemeasurable
+  have hle := klDiv_map_le (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian
+    hac (prefixRestrict n) (measurable_prefixRestrict n)
+  rw [klDiv_stdSeqGaussian_shift_prefix] at hle
+  exact hle
+
+/-- Real-valued version of `ofReal_cmPrefixEnergy_le_shift_kl`.  This is the form consumed by
+`le_toReal_klDiv_of_map_tendsto`-style arguments and is also useful for showing that finite full
+KL forces uniformly bounded prefix energies. -/
+theorem cmPrefixEnergy_le_shift_kl_toReal (c : RealSeq) (n : ℕ)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hfin : klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤) :
+    cmPrefixEnergy c n
+      ≤ (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal := by
+  have hshift : Measurable (fun x : RealSeq => x + c) := measurable_shift c
+  haveI : IsProbabilityMeasure (stdSeqGaussian.map (fun x : RealSeq => x + c)) :=
+    Measure.isProbabilityMeasure_map hshift.aemeasurable
+  have hle := toReal_klDiv_map_le (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian
+    hac (prefixRestrict n) (measurable_prefixRestrict n) hfin
+  rw [klDiv_stdSeqGaussian_shift_prefix_toReal] at hle
+  exact hle
 
 /-- The finite-prefix Cameron-Martin density process for a deterministic shift `c`.
 It is real-valued and depends only on coordinates `≤ n`.  The split-sum form is

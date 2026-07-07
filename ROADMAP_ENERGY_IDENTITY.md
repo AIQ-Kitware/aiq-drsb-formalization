@@ -198,6 +198,14 @@ axiom-clean. Remaining for a *fully closed* continuum identity: `hconv` (gap #2 
 until the Itô-integral / stochastic-analysis stack exists in (or is ported into) Mathlib. Until
 then it stays an explicit, non-vacuous edge whose discrete instance is proved — the honest state.
 
+> **Refinement (2026-07-07 survey):** the bottom line above applies to the **feedback**-drift
+> case only. The **deterministic** (open-loop) case is *not* Itô-blocked: it reduces to the
+> infinite-dimensional Cameron–Martin KL identity on the iid Gaussian sequence model, and every
+> ingredient except one finite-dimensional Gaussian density layer is pin-present. See
+> `dev/journals/2026-07-07-continuum-energy-closure-survey.md` (feasibility grades) and
+> **[`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md)** (the ticket-level implementation
+> plan: Bricks 1.5 / 2 / 3 → Theorem A → CGP wiring).
+
 ## External-survey status (SURVEY_LEADS.md)
 - `raphaelrrcoelho/formal-mathfin` (Apache-2.0): full continuous Itô/SDE-existence/Girsanov, but
   **1-D / finance-flavoured, no KL** → the foundation for route 2b, not drop-in.

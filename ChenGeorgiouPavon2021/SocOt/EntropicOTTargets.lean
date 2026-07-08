@@ -61,12 +61,31 @@ theorem staticSB_klProjection_unique
       π = π' := by
   sorry
 
-/-- Existence/attainment target for the static Schrödinger bridge optimizer. -/
+/-- Existence target for product-form Schrödinger coupling data.
+
+This is the constructive content behind static optimizer attainment: find endpoint potentials and a
+probability coupling whose law is the Schrödinger product-density tilt of the endpoint reference law.
+It does not assume marginal feasibility or optimality; those remain the separate targets above. -/
+theorem schrodinger_product_coupling_data_exists
+    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    ∃ (φhat0 φ1 : X → ℝ) (π_prod : ProbabilityMeasure (X × X)),
+      (π_prod : Measure (X × X))
+        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)) := by
+  sorry
+
+/-- Existence/attainment wrapper for the static Schrödinger bridge optimizer.
+
+The remaining constructive work is isolated in `schrodinger_product_coupling_data_exists`, while
+feasibility and optimality are supplied by the separate marginal and KL-projection targets above. -/
 theorem staticSB_optimizer_exists
     (ρ₀ ρ₁ : ProbabilityMeasure X) :
     ∃ π_star : ProbabilityMeasure (X × X),
       π_star ∈ couplings ρ₀ ρ₁ ∧
       klReal (π_star : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ := by
-  sorry
+  obtain ⟨φhat0, φ1, π_prod, hπprod⟩ :=
+    schrodinger_product_coupling_data_exists d ρ₀ ρ₁
+  exact ⟨π_prod,
+    schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod,
+    schrodinger_product_coupling_optimal d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod⟩
 
 end ChenGeorgiouPavon2021

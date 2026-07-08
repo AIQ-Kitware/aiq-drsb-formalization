@@ -502,6 +502,176 @@ theorem energy_identity_sequenceModel_top_iff_not_summable (c : Nat -> Real) :
     by_contra hne_top
     exact hnsum ((energy_identity_sequenceModel_finite_iff_summable c).mp hne_top)
 
+
+
+--------------------------------------------------------------------------------
+-- §3.M4  Continuum Cameron--Martin / Wiener path-law scaffold
+--------------------------------------------------------------------------------
+
+/-- Real-valued path space used by the M4 Wiener transport scaffold.  The existing
+`Path X` abstraction is intentionally broad; M4 specializes to the scalar Wiener
+case so the dyadic increment maps can be stated concretely. -/
+abbrev RealPath : Type := Path ℝ
+
+/-- Dyadic mesh size `2⁻ⁿ` for level `n`. -/
+noncomputable def dyadicMesh (level : ℕ) : ℝ := ((2 : ℝ) ^ level)⁻¹
+
+/-- Dyadic time `i / 2ⁿ` at level `n`.  The declarations below use the finite
+range `i : Fin (2^n)` for increments, so the right endpoint is `i + 1`. -/
+noncomputable def dyadicTime (level i : ℕ) : ℝ := (i : ℝ) / ((2 : ℝ) ^ level)
+
+/-- Raw dyadic increment of a real path over interval `[i/2ⁿ, (i+1)/2ⁿ]`. -/
+noncomputable def dyadicIncrement (level : ℕ) (ω : RealPath) (i : Fin (2 ^ level)) : ℝ :=
+  ω (dyadicTime level (i.1 + 1)) - ω (dyadicTime level i.1)
+
+/-- Vector of raw dyadic increments at level `n`. -/
+noncomputable def dyadicIncrementMap (level : ℕ) : RealPath → (Fin (2 ^ level) → ℝ) :=
+  fun ω i => dyadicIncrement level ω i
+
+/-- Normalized dyadic increment.  Under standard Wiener measure this should be a
+standard normal coordinate: `(W_{t+Δt}-W_t)/sqrt(Δt)`. -/
+noncomputable def normalizedDyadicIncrement (level : ℕ) (ω : RealPath)
+    (i : Fin (2 ^ level)) : ℝ :=
+  dyadicIncrement level ω i / Real.sqrt (dyadicMesh level)
+
+/-- Vector of normalized dyadic increments at level `n`. -/
+noncomputable def normalizedDyadicIncrementMap (level : ℕ) :
+    RealPath → (Fin (2 ^ level) → ℝ) :=
+  fun ω i => normalizedDyadicIncrement level ω i
+
+/-- Finite dyadic Cameron--Martin energy of a deterministic shift path: the
+finite-dimensional Gaussian cost of its normalized increment vector. -/
+noncomputable def dyadicPathEnergy (level : ℕ) (h : RealPath) : ℝ :=
+  2⁻¹ * ∑ i : Fin (2 ^ level), normalizedDyadicIncrementMap level h i ^ 2
+
+/-- Placeholder predicate for the path-level Cameron--Martin class.  It records
+the derivative used by the continuum energy and keeps the M4 declarations honest
+about where absolute-continuity / Sobolev regularity must eventually enter. -/
+def IsCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop :=
+  IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
+
+/-- Continuum Cameron--Martin energy `½ ∫₀¹ |h'(t)|² dt`. -/
+noncomputable def cameronMartinPathEnergy (hderiv : ℝ → ℝ) : ℝ :=
+  ∫ t in Set.Icc (0 : ℝ) 1, 2⁻¹ * hderiv t ^ 2 ∂volume
+
+/-- Abstract standard-Wiener interface needed for M4.  The main field says that
+each normalized dyadic increment vector has the canonical finite-dimensional
+standard Gaussian law.  Later work should discharge this from Mathlib Brownian
+motion / Wiener measure APIs rather than assume it. -/
+structure IsStandardWiener (W : ProbabilityMeasure RealPath) : Prop where
+  normalized_dyadic_law : ∀ level : ℕ,
+    Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath)
+      = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))
+
+/-- M4.1: dyadic normalized increment maps are measurable. -/
+theorem measurable_normalizedDyadicIncrementMap (level : ℕ) :
+    Measurable (normalizedDyadicIncrementMap level) := by
+  sorry
+
+/-- M4.1: normalized increments commute with deterministic path shifts. -/
+theorem normalizedDyadicIncrementMap_add (level : ℕ) (ω h : RealPath) :
+    normalizedDyadicIncrementMap level (ω + h)
+      = normalizedDyadicIncrementMap level ω + normalizedDyadicIncrementMap level h := by
+  sorry
+
+/-- M4.2: standard Wiener measure has standard-normal normalized dyadic
+increments.  This is exposed as a theorem wrapper around `IsStandardWiener` so
+downstream statements do not inspect the structure field directly. -/
+theorem normalizedDyadicIncrementMap_wiener_law (W : ProbabilityMeasure RealPath)
+    (hW : IsStandardWiener W) (level : ℕ) :
+    Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath)
+      = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level)) := by
+  exact hW.normalized_dyadic_law level
+
+/-- M4.2/M4.3: after shifting a Wiener path by a deterministic path `h`, the
+normalized dyadic increment law is the finite-dimensional standard Gaussian
+shifted by the normalized increment vector of `h`. -/
+theorem normalizedDyadicIncrementMap_shifted_wiener_law
+    (W : ProbabilityMeasure RealPath) (hW : IsStandardWiener W)
+    (level : ℕ) (h : RealPath) :
+    Measure.map (normalizedDyadicIncrementMap level)
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+      = (ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))).map
+          (fun x : Fin (2 ^ level) → ℝ => x + normalizedDyadicIncrementMap level h) := by
+  sorry
+
+/-- M4.3: finite dyadic projection of the deterministic Wiener shift has exactly
+the finite-dimensional Cameron--Martin cost. -/
+theorem klDiv_normalizedDyadicIncrement_shifted_wiener
+    (W : ProbabilityMeasure RealPath) (hW : IsStandardWiener W)
+    (level : ℕ) (h : RealPath) :
+    InformationTheory.klDiv
+        (Measure.map (normalizedDyadicIncrementMap level)
+          ((W : Measure RealPath).map (fun ω : RealPath => ω + h)))
+        (Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath))
+      = ENNReal.ofReal (dyadicPathEnergy level h) := by
+  sorry
+
+/-- M4.4: dyadic finite-grid Cameron--Martin energies converge to the continuum
+energy of a Cameron--Martin path. -/
+theorem dyadicPathEnergy_tendsto_cameronMartinPathEnergy
+    (h : RealPath) (hderiv : ℝ → ℝ) (hCM : IsCameronMartinPath h hderiv) :
+    Filter.Tendsto (fun level : ℕ => dyadicPathEnergy level h) Filter.atTop
+      (nhds (cameronMartinPathEnergy hderiv)) := by
+  sorry
+
+/-- M4.5: dyadic normalized-increment KLs converge to the full path-law KL.
+This is the path-level projection/exhaustion analogue of the sequence-model
+prefix KL convergence theorem. -/
+theorem klDiv_normalizedDyadicIncrement_tendsto_path_kl
+    (W : ProbabilityMeasure RealPath) (h : RealPath)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
+    Filter.Tendsto
+      (fun level : ℕ =>
+        InformationTheory.klDiv
+          (Measure.map (normalizedDyadicIncrementMap level)
+            ((W : Measure RealPath).map (fun ω : RealPath => ω + h)))
+          (Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath)))
+      Filter.atTop
+      (nhds (InformationTheory.klDiv
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath))) := by
+  sorry
+
+/-- M4 final ENNReal form: path-level deterministic Cameron--Martin identity for
+standard Wiener measure.  This is the continuum theorem that should eventually
+replace the abstract `hCM` edge in `energy_identity`. -/
+theorem klDiv_wiener_shift_eq_cameronMartinPathEnergy
+    (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ)
+    (hW : IsStandardWiener W) (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
+    InformationTheory.klDiv
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
+  sorry
+
+/-- M4 final real-valued form: the path-level `klReal` identity used by the CGP
+energy-identity edge. -/
+theorem klReal_wiener_shift_eq_cameronMartinPathEnergy
+    (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ)
+    (hW : IsStandardWiener W) (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
+    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = cameronMartinPathEnergy hderiv := by
+  sorry
+
+/-- M4-to-CGP bridge: if a CGP conditional path-kernel edge is represented as a
+standard Wiener law shifted by a Cameron--Martin path, then the abstract `hCM`
+term required by `energy_identity` is supplied by the path-level theorem above.
+The remaining future work is to instantiate these hypotheses for the actual
+SDE/feedback kernels of CGP. -/
+theorem hCM_from_wiener_shift_scaffold
+    (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ) (E : ℝ)
+    (hW : IsStandardWiener W) (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath))
+    (henergy : E = cameronMartinPathEnergy hderiv) :
+    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = E := by
+  sorry
+
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄
 Problem 4.3, via the energy identity (4.19)).**  Since the endpoint entropy

@@ -626,7 +626,7 @@ theorem gaussianReal_shift_eq_withDensity (c : ℝ) :
       ring
     have hdenom_ne_zero : gaussianPDF 0 1 x ≠ 0 := (gaussianPDF_pos 0 h1 x).ne'
     have hratio_ne_top : ((gaussianPDF 0 1 x)⁻¹ * gaussianPDF c 1 x) ≠ ⊤ := by
-      exact ENNReal.mul_ne_top (by simpa [hdenom_ne_zero]) gaussianPDF_lt_top.ne
+      exact ENNReal.mul_ne_top (by simp [hdenom_ne_zero]) gaussianPDF_lt_top.ne
     have hratio_toReal : ((gaussianPDF 0 1 x)⁻¹ * gaussianPDF c 1 x).toReal
         = Real.exp (c * x - 2⁻¹ * c ^ 2) := by
       rw [ENNReal.toReal_mul, ENNReal.toReal_inv]
@@ -678,6 +678,8 @@ theorem measurable_finiteCmDensity {ι : Type*} [Fintype ι] (h : ι → ℝ) :
   classical
   unfold finiteCmDensity
   fun_prop
+
+attribute [fun_prop] measurable_finiteCmDensity
 
 /-- Product bookkeeping for positive exponential densities embedded into `ℝ≥0∞`. -/
 theorem prod_ofReal_exp_eq_ofReal_exp_sum_finset {ι : Type*} (s : Finset ι) (a : ι → ℝ) :
@@ -796,5 +798,215 @@ theorem map_add_eq_lintegral_cmDensityProcess (c : RealSeq) (n : ℕ) {s : Set R
   change MeasurableSet[MeasurableSpace.comap (prefixRestrict n) inferInstance] s at hs
   rcases hs with ⟨t, ht, rfl⟩
   exact map_add_eq_lintegral_cmDensityProcess_preimage c n ht
+
+/-- Finite-dimensional Cameron--Martin densities are strictly positive. -/
+theorem finiteCmDensity_pos {ι : Type*} [Fintype ι] (h : ι → ℝ) (x : ι → ℝ) :
+    0 < finiteCmDensity h x := by
+  unfold finiteCmDensity
+  exact Real.exp_pos _
+
+/-- Pointwise square identity for the finite-dimensional Cameron--Martin density.  The
+square of the `h`-density is a finite constant times the `2h`-density.  This avoids a
+separate Gaussian MGF proof in the L²-bound step. -/
+theorem finiteCmDensity_sq_eq_const_mul_two {ι : Type*} [Fintype ι]
+    (h : ι → ℝ) (x : ι → ℝ) :
+    finiteCmDensity h x ^ 2 =
+      Real.exp (∑ i, h i ^ 2) * finiteCmDensity (fun i => 2 * h i) x := by
+  classical
+  rw [finiteCmDensity_eq_exp_sum, finiteCmDensity_eq_exp_sum]
+  rw [sq, ← Real.exp_add, ← Real.exp_add]
+  congr 1
+  rw [← Finset.sum_add_distrib, ← Finset.sum_add_distrib]
+  refine Finset.sum_congr rfl ?_
+  intro i _
+  ring
+
+/-- `ℝ≥0∞` form of `finiteCmDensity_sq_eq_const_mul_two`. -/
+theorem ofReal_finiteCmDensity_sq_eq_const_mul_two {ι : Type*} [Fintype ι]
+    (h : ι → ℝ) (x : ι → ℝ) :
+    ENNReal.ofReal (finiteCmDensity h x) ^ 2 =
+      ENNReal.ofReal (Real.exp (∑ i, h i ^ 2)) *
+        ENNReal.ofReal (finiteCmDensity (fun i => 2 * h i) x) := by
+  rw [sq, ← ENNReal.ofReal_mul (le_of_lt (finiteCmDensity_pos h x))]
+  rw [show finiteCmDensity h x * finiteCmDensity h x = finiteCmDensity h x ^ 2 by rw [sq]]
+  rw [finiteCmDensity_sq_eq_const_mul_two]
+  rw [ENNReal.ofReal_mul (Real.exp_nonneg _)]
+
+/-- Exact finite-dimensional L² moment of the Cameron--Martin density. -/
+theorem lintegral_sq_finiteCmDensity {ι : Type*} [Fintype ι] (h : ι → ℝ) :
+    ∫⁻ x, ENNReal.ofReal (finiteCmDensity h x) ^ 2 ∂stdGaussian ι
+      = ENNReal.ofReal (Real.exp (∑ i, h i ^ 2)) := by
+  classical
+  let C : ℝ≥0∞ := ENNReal.ofReal (Real.exp (∑ i, h i ^ 2))
+  let f2 : (ι → ℝ) → ℝ≥0∞ := fun x => ENNReal.ofReal (finiteCmDensity (fun i => 2 * h i) x)
+  have hf2 : Measurable f2 := by
+    unfold f2
+    fun_prop
+  have hmass : ∫⁻ x, f2 x ∂stdGaussian ι = 1 := by
+    rw [← setLIntegral_univ]
+    change ∫⁻ x in Set.univ, ENNReal.ofReal (finiteCmDensity (fun i => 2 * h i) x)
+        ∂stdGaussian ι = 1
+    rw [← withDensity_apply _ MeasurableSet.univ]
+    rw [← stdGaussian_map_add_eq_withDensity_finiteCmDensity (fun i : ι => 2 * h i)]
+    haveI : IsProbabilityMeasure
+        ((stdGaussian ι).map (fun x : ι → ℝ => x + fun i => 2 * h i)) :=
+      Measure.isProbabilityMeasure_map (by fun_prop : AEMeasurable
+        (fun x : ι → ℝ => x + fun i => 2 * h i) (stdGaussian ι))
+    simp
+  calc
+    ∫⁻ x, ENNReal.ofReal (finiteCmDensity h x) ^ 2 ∂stdGaussian ι
+        = ∫⁻ x, C * f2 x ∂stdGaussian ι := by
+            refine lintegral_congr fun x => ?_
+            change ENNReal.ofReal (finiteCmDensity h x) ^ 2 =
+              ENNReal.ofReal (Real.exp (∑ i, h i ^ 2)) *
+                ENNReal.ofReal (finiteCmDensity (fun i => 2 * h i) x)
+            exact ofReal_finiteCmDensity_sq_eq_const_mul_two h x
+    _ = C * ∫⁻ x, f2 x ∂stdGaussian ι := by
+            rw [lintegral_const_mul _ hf2]
+    _ = ENNReal.ofReal (Real.exp (∑ i, h i ^ 2)) := by
+            rw [hmass]
+            simp [C]
+
+/-- Exact finite-prefix L² moment of the sequence Cameron--Martin density process. -/
+theorem lintegral_sq_cmDensityProcess_exact (c : RealSeq) (n : ℕ) :
+    ∫⁻ x, ENNReal.ofReal (cmDensityProcess c n x) ^ 2 ∂stdSeqGaussian
+      = ENNReal.ofReal (Real.exp (∑ i : Finset.Iic n, c i ^ 2)) := by
+  classical
+  let f : PrefixSpace n → ℝ≥0∞ := fun y =>
+    ENNReal.ofReal (finiteCmDensity (prefixRestrict n c) y) ^ 2
+  have hf : Measurable f := by
+    unfold f
+    fun_prop
+  calc
+    ∫⁻ x, ENNReal.ofReal (cmDensityProcess c n x) ^ 2 ∂stdSeqGaussian
+        = ∫⁻ x, f (prefixRestrict n x) ∂stdSeqGaussian := by
+            refine lintegral_congr fun x => ?_
+            unfold f
+            rw [finiteCmDensity_prefixRestrict]
+    _ = ∫⁻ y, f y ∂(stdSeqGaussian.map (prefixRestrict n)) := by
+            rw [lintegral_map hf (measurable_prefixRestrict n)]
+    _ = ∫⁻ y, f y ∂stdGaussian (Finset.Iic n) := by
+            rw [stdSeqGaussian_map_prefixRestrict]
+    _ = ENNReal.ofReal (Real.exp (∑ i : Finset.Iic n, c i ^ 2)) := by
+            unfold f
+            simpa using lintegral_sq_finiteCmDensity (prefixRestrict n c)
+
+/-- Prefix square sums are twice the corresponding prefix Cameron--Martin energy. -/
+theorem prefix_square_sum_eq_two_mul_cmPrefixEnergy (c : RealSeq) (n : ℕ) :
+    (∑ i : Finset.Iic n, c i ^ 2) = 2 * cmPrefixEnergy c n := by
+  rw [cmPrefixEnergy_eq_cmPartialEnergy_succ, cmPartialEnergy]
+  calc
+    (∑ i : Finset.Iic n, c i ^ 2)
+        = (Finset.Iic n).sum (fun i => c i ^ 2) := by
+          simpa using
+            (Finset.sum_attach (s := Finset.Iic n) (f := fun i : ℕ => c i ^ 2))
+    _ = (Finset.range (n + 1)).sum (fun i => c i ^ 2) := by
+          rw [sum_Iic_eq_sum_range_succ]
+    _ = 2 * (2⁻¹ * (Finset.range (n + 1)).sum (fun i => c i ^ 2)) := by
+          ring
+
+/-- Prefix energies are monotone in the prefix length. -/
+theorem monotone_cmPrefixEnergy (c : RealSeq) : Monotone (cmPrefixEnergy c) := by
+  exact monotone_nat_of_le_succ (cmPrefixEnergy_le_succ c)
+
+/-- Under square summability, every finite-prefix energy is bounded by the total energy. -/
+theorem cmPrefixEnergy_le_total_of_summable (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) (n : ℕ) :
+    cmPrefixEnergy c n ≤ cmTotalEnergy c := by
+  have hconv := cmPrefixEnergy_tendsto_total_of_summable c hsum
+  have hmono := monotone_cmPrefixEnergy c
+  exact ge_of_tendsto hconv (eventually_atTop.2 ⟨n, fun m hm => hmono hm⟩)
+
+/-- Uniform L² bound for the finite-prefix density process under square summability.
+This is `PLAN_CONTINUUM_CLOSURE.md` M2.7. -/
+theorem lintegral_sq_cmDensityProcess_le (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    ∀ n, ∫⁻ x, ENNReal.ofReal (cmDensityProcess c n x) ^ 2 ∂stdSeqGaussian
+      ≤ ENNReal.ofReal (Real.exp (2 * cmTotalEnergy c)) := by
+  intro n
+  rw [lintegral_sq_cmDensityProcess_exact]
+  refine ENNReal.ofReal_le_ofReal (Real.exp_le_exp.mpr ?_)
+  calc
+    (∑ i : Finset.Iic n, c i ^ 2) = 2 * cmPrefixEnergy c n :=
+      prefix_square_sum_eq_two_mul_cmPrefixEnergy c n
+    _ ≤ 2 * cmTotalEnergy c := by
+      gcongr
+      exact cmPrefixEnergy_le_total_of_summable c hsum n
+
+/-- The prefix filtration generated by the finite restrictions exhausts the ambient product
+measurable space. -/
+theorem iSup_prefixFiltration_eq :
+    (⨆ n, prefixFiltration n) = (inferInstance : MeasurableSpace RealSeq) := by
+  change (⨆ n, MeasurableSpace.comap (prefixRestrict n) inferInstance) =
+    (inferInstance : MeasurableSpace RealSeq)
+  simp_rw [← preorder_frestrictLe_eq_prefixRestrict]
+  exact (iSup_comap_frestrictLe_eq_pi (ι := ℕ) (α := fun _ : ℕ => ℝ))
+
+/-- The finite-prefix Cameron--Martin density process is adapted to the prefix filtration. -/
+theorem stronglyAdapted_cmDensityProcess (c : RealSeq) :
+    StronglyAdapted prefixFiltration (cmDensityProcess c) := by
+  intro n
+  change StronglyMeasurable[prefixFiltration n] (cmDensityProcess c n)
+  change StronglyMeasurable[MeasurableSpace.comap (prefixRestrict n) inferInstance]
+    (cmDensityProcess c n)
+  have hprefix : @Measurable RealSeq (PrefixSpace n)
+      (MeasurableSpace.comap (prefixRestrict n) inferInstance) inferInstance
+      (prefixRestrict n) := by
+    intro t ht
+    exact ⟨t, ht, rfl⟩
+  have hmeas : @Measurable RealSeq ℝ
+      (MeasurableSpace.comap (prefixRestrict n) inferInstance) inferInstance
+      (cmDensityProcess c n) := by
+    have hcomp : @Measurable RealSeq ℝ
+        (MeasurableSpace.comap (prefixRestrict n) inferInstance) inferInstance
+        (fun x : RealSeq => finiteCmDensity (prefixRestrict n c) (prefixRestrict n x)) :=
+      (measurable_finiteCmDensity (prefixRestrict n c)).comp hprefix
+    convert hcomp using 1
+    ext x
+    exact finiteCmDensity_prefixRestrict c n x
+  exact hmeas.stronglyMeasurable
+
+/-- Square-summable deterministic shifts are absolutely continuous with respect to the iid
+standard Gaussian sequence law.  This is `PLAN_CONTINUUM_CLOSURE.md` M2.8. -/
+theorem absolutelyContinuous_stdSeqGaussian_map_add_of_summable (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian := by
+  haveI : IsProbabilityMeasure (stdSeqGaussian.map (fun x : RealSeq => x + c)) :=
+    Measure.isProbabilityMeasure_map (measurable_shift c).aemeasurable
+  refine absolutelyContinuous_of_localDensity
+    (μ := stdSeqGaussian.map (fun x : RealSeq => x + c))
+    (ν := stdSeqGaussian)
+    (ℱ := prefixFiltration)
+    (hgen := iSup_prefixFiltration_eq)
+    (Z := cmDensityProcess c)
+    (hadapted := stronglyAdapted_cmDensityProcess c)
+    (hnonneg := cmDensityProcess_nonneg c)
+    (hdens := map_add_eq_lintegral_cmDensityProcess c)
+    (hM := ENNReal.ofReal_ne_top)
+    (hL2 := lintegral_sq_cmDensityProcess_le c hsum)
+
+/-- Clean square-summable sequence-model Cameron--Martin KL identity, with absolute
+continuity discharged by the local-density/L² route. -/
+theorem klDiv_stdSeqGaussian_map_add_of_summable (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian
+      = ENNReal.ofReal (cmTotalEnergy c) := by
+  exact shift_kl_eq_cmTotalEnergy_of_summable c
+    (absolutelyContinuous_stdSeqGaussian_map_add_of_summable c hsum) hsum
+
+/-- Finiteness of the clean square-summable sequence-model KL identity. -/
+theorem klDiv_stdSeqGaussian_map_add_ne_top_of_summable (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤ := by
+  rw [klDiv_stdSeqGaussian_map_add_of_summable c hsum]
+  exact ENNReal.ofReal_ne_top
+
+/-- Real-valued clean square-summable sequence-model Cameron--Martin KL identity. -/
+theorem toReal_klDiv_stdSeqGaussian_map_add_of_summable (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal
+      = cmTotalEnergy c := by
+  rw [klDiv_stdSeqGaussian_map_add_of_summable c hsum]
+  exact ENNReal.toReal_ofReal (cmTotalEnergy_nonneg c)
 
 end ForMathlib.MeasureTheory

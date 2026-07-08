@@ -25,12 +25,13 @@ theorem feasible_control_exists_of_cgp_hypotheses
 /-- Energy-identity family target supplying the hypothesis of `schrodingerBridge_KL_eq_SOC`. -/
 theorem energyIdentity_family_of_finiteEnergyDiffusion
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (_hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
+    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
     ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
       klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
         = klReal (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R)
           + energy u (d.pathLaw u ρ₀) := by
-  sorry
+  intro u hu
+  exact klReal_pathLaw_eq_initialKL_add_energy_of_finiteEnergyDiffusion d u ρ₀ ρ₁ hu (hfed u hu)
 
 /-- Hopf--Cole verification theorem target: the logarithmic-transform feedback control is optimal.
 

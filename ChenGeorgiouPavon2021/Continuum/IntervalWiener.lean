@@ -29,15 +29,64 @@ vendored `NNReal → ℝ` Wiener construction into the interval theorem ladder. 
 noncomputable def standardIntervalWienerMeasure : Measure IntervalPath :=
   Measure.map restrictRealPathToInterval standardWienerRealPathMeasure
 
-/-- Finite-dimensional interval Wiener law target.
+/-- Restricting an ambient real-time path to `[0,1]` preserves every dyadic normalized-increment
+vector. -/
+theorem normalizedIntervalDyadicIncrementMap_restrictRealPathToInterval
+    (level : ℕ) (ω : RealPath) :
+    normalizedIntervalDyadicIncrementMap level (restrictRealPathToInterval ω)
+      = normalizedDyadicIncrementMap level ω := by
+  funext i
+  have hsucc_le : dyadicTime level (i.1 + 1) ≤ 1 := by
+    unfold dyadicTime
+    have hle_nat : i.1 + 1 ≤ 2 ^ level := Nat.succ_le_of_lt i.2
+    rw [div_le_one (by positivity : (0 : ℝ) < (2 : ℝ) ^ level)]
+    exact_mod_cast hle_nat
+  have hsucc_nonneg : 0 ≤ dyadicTime level (i.1 + 1) := by
+    unfold dyadicTime
+    positivity
+  have hi_le : dyadicTime level i.1 ≤ 1 := by
+    unfold dyadicTime
+    have hle_nat : i.1 ≤ 2 ^ level := le_of_lt i.2
+    rw [div_le_one (by positivity : (0 : ℝ) < (2 : ℝ) ^ level)]
+    exact_mod_cast hle_nat
+  have hi_nonneg : 0 ≤ dyadicTime level i.1 := by
+    unfold dyadicTime
+    positivity
+  have hsucc : ((intervalDyadicTime level (i.1 + 1) : UnitInterval) : ℝ)
+      = dyadicTime level (i.1 + 1) := by
+    unfold intervalDyadicTime
+    rw [coe_clampUnitInterval, min_eq_right hsucc_le, max_eq_right hsucc_nonneg]
+  have hi : ((intervalDyadicTime level i.1 : UnitInterval) : ℝ)
+      = dyadicTime level i.1 := by
+    unfold intervalDyadicTime
+    rw [coe_clampUnitInterval, min_eq_right hi_le, max_eq_right hi_nonneg]
+  unfold normalizedIntervalDyadicIncrementMap normalizedIntervalDyadicIncrement intervalDyadicIncrement
+    normalizedDyadicIncrementMap normalizedDyadicIncrement dyadicIncrement restrictRealPathToInterval
+  simp [hsucc, hi]
 
-This should be proved by showing that interval normalized dyadic increments commute with restriction
-from `RealPath` and then reusing the already-proved transported Wiener finite-increment theorem. -/
+/-- Finite-dimensional interval Wiener law, obtained by restriction from the already-proved
+transported real-time Wiener finite-increment law. -/
 theorem isStandardIntervalWiener_standardIntervalWienerMeasure
     (W : ProbabilityMeasure IntervalPath)
     (hW : (W : Measure IntervalPath) = standardIntervalWienerMeasure) :
     IsStandardIntervalWiener W := by
-  sorry
+  constructor
+  intro level
+  rw [hW]
+  unfold standardIntervalWienerMeasure standardWienerRealPathMeasure
+  have hN : Measurable (normalizedIntervalDyadicIncrementMap level) :=
+    measurable_normalizedIntervalDyadicIncrementMap level
+  have hrestrict : Measurable restrictRealPathToInterval := by
+    unfold restrictRealPathToInterval
+    fun_prop
+  rw [Measure.map_map hN hrestrict]
+  have hcomm : normalizedIntervalDyadicIncrementMap level ∘ restrictRealPathToInterval
+      = normalizedDyadicIncrementMap level := by
+    funext ω
+    exact normalizedIntervalDyadicIncrementMap_restrictRealPathToInterval level ω
+  rw [hcomm]
+  exact normalizedDyadicIncrementMap_concrete_transport_law wienerToRealPath
+    concreteWienerTransport_wienerToRealPath level
 
 /-- KL exhaustion target on the corrected interval carrier.
 

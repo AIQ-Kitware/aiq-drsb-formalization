@@ -280,3 +280,13 @@ Phases 0–1 do not *fake* the Girsanov content — they prove the genuinely-Mat
 chain-rule reductions and isolate the one remaining fact (CM) as an explicit, non-vacuous edge
 whose discrete instance is already a theorem. Phase 2 then attacks a single, precisely-scoped
 identity rather than a monolithic path-measure statement.
+
+
+## 2026-07-08 module-layout refresh
+
+The sequence Cameron--Martin/Kakutani library and the CGP continuum frontier are now split into
+smaller theorem modules while preserving aggregate imports.  The important workflow consequence is
+that future `sorry`s should be reserved for mathematical capstone targets such as Sobolev-energy
+convergence, KL exhaustion, generation on the corrected path carrier, and Cameron--Martin
+quasi-invariance. Final wrappers that merely connect these results should stay as assembly lemmas
+from explicit inputs until the mathematical targets are proved.

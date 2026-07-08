@@ -159,10 +159,10 @@ The **`Drsb` capstone** composes the above:
   for the Mathlib import, no build lock) when that file's imported local modules already
   have `.olean`s or are unchanged. **Do NOT run `lake build` in parallel** with other
   agents — it takes a lock. Success = exit 0 with only warnings; fix every red `error:`.
-- **Aggregate-import files need a prebuild.** `ChenGeorgiouPavon2021/Basic.lean` is now
-  intentionally an aggregate import over the split CGP modules, so a fresh checkout must run
-  `lake build ChenGeorgiouPavon2021` before `lake env lean ChenGeorgiouPavon2021/Basic.lean`.
-  Use `dev/check_cgp_module_split.sh` for the canonical CGP split smoke test.
+- **Aggregate-import files need a prebuild.** `ForMathlib/MeasureTheory/GaussianCameronMartin.lean`
+  and `ChenGeorgiouPavon2021/Basic.lean` are intentionally aggregate imports over split theorem
+  modules, so a fresh checkout must build their imported modules before direct-file checks. Use
+  `dev/check_cgp_module_split.sh` for the canonical split smoke test.
 - **`set_option autoImplicit false`** in every file (also set globally in `lakefile.toml`).
 - **Note `λ` is a reserved keyword** in Lean 4 — the DRO multiplier is spelled `lam`.
 
@@ -235,12 +235,18 @@ The **`Drsb` capstone** composes the above:
 
 ## 9. Current status & next steps
 
-> **2026-07-08 module-layout note (GPT-5.5 Thinking).** The public
-> `ChenGeorgiouPavon2021.Basic` import is now an aggregate file.  The former monolith is split into
-> `Core`, `EnergyIdentity`, `SequenceGaussian`, `Continuum.RealPath`, `Continuum.IntervalPath`,
-> `Continuum.WienerDyadic`, `Continuum.Closure`, and `SocOt`.  Downstream code may keep importing
-> `ChenGeorgiouPavon2021.Basic`; new proof-debt scaffolds should be placed in the module that owns
-> the relevant mathematics.
+> **2026-07-08 module-layout note (GPT-5.5 Thinking).** Public aggregate imports remain stable,
+> but the theorem libraries are split further. `ForMathlib.MeasureTheory.GaussianCameronMartin`
+> is now an aggregate over `Basic`, `Energy`, `FiniteKL`, `InfiniteKL`, `Density`, and
+> `AbsoluteContinuity`. `ChenGeorgiouPavon2021.Continuum.WienerDyadic` is an aggregate over
+> `Continuum.Wiener.*`; `Continuum.Closure` is split into Sobolev, KL-exhaustion,
+> quasi-invariance, and assembly modules; `SocOt` is split into dynamic, static, entropic-OT,
+> and Sinkhorn wrappers. Downstream code may keep importing the aggregate modules.
+>
+> **Progress-bar policy.** Future `sorry`s should live only on the mathematical theorem targets
+> needed to discharge final DRSB assumptions. Do not add `sorry`s to downstream integration/assembly
+> lemmas that merely consume those targets; those should be wired only after the target theorems are
+> proved or stated as explicit hypotheses/interfaces.
 
 - **Done:** repo scaffolded; `ForMathlib` + 5 paper libraries + `Drsb` capstone all
   `lake build` green; prose transcriptions + PDFs in place; `formalization.yaml` maps

@@ -1,3 +1,29 @@
+# Session journal — theorem-library refactor (2026-07-08, GPT-5.5 Thinking)
+
+- Split the proved sequence Cameron--Martin/Kakutani library into reviewable theorem modules while
+  preserving `ForMathlib.MeasureTheory.GaussianCameronMartin` as the public aggregate import:
+  `Basic`, `Energy`, `FiniteKL`, `InfiniteKL`, `Density`, and `AbsoluteContinuity`.
+- Split the concrete Wiener/dyadic layer under `ChenGeorgiouPavon2021.Continuum.Wiener.*` into
+  grid/projection, concrete Wiener measure, projective reduction, finite Brownian increment algebra,
+  RealPath transport, and finite-shift/CM assembly modules.
+- Split the remaining continuum closure layer into `Sobolev`, `KLExhaustion`, `QuasiInvariance`, and
+  `Assembly`, so future theorem targets can live at the mathematical frontier rather than in a
+  monolithic closure file.
+- Split `SocOt` into dynamic SOC, static SB, entropic OT, and Sinkhorn wrapper modules while keeping
+  `ChenGeorgiouPavon2021.SocOt` as a stable aggregate import.
+- Updated the validation wrapper: aggregate import files now require prebuilt imported `.olean`s, so
+  `dev/check_cgp_module_split.sh` builds `ForMathlib` and `ChenGeorgiouPavon2021` before direct-file
+  aggregate checks.
+- Progress-bar policy recorded: future `sorry`s should correspond to missing mathematical theorem
+  targets needed to discharge ultimate DRSB assumptions, not to final integration lemmas that merely
+  chain those results.
+
+Validation note: this sandbox still has no `lake`/`lean`; Jon validated the preceding split locally.
+This overlay is structure-preserving by construction, but it still needs the repository-local
+`dev/check_cgp_module_split.sh` smoke test.
+
+---
+
 # Session journal — ChenGeorgiouPavon2021 module split (2026-07-08, GPT-5.5 Thinking)
 
 ## Added in this overlay
@@ -35,8 +61,9 @@ owns its mathematical frontier.
 
 ## Local validation note
 This sandbox still did not have `lake` or `lean` installed.  The refactor was therefore validated
-by source inspection only here; the user repository must run `lake env lean
-ChenGeorgiouPavon2021/Basic.lean` and `lake build`.
+by source inspection only here; the user repository must run `dev/check_cgp_module_split.sh`, or
+equivalently `lake build ChenGeorgiouPavon2021`, then `lake env lean
+ChenGeorgiouPavon2021/Basic.lean`, then `lake build`.
 
 ---
 

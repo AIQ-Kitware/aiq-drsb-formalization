@@ -96,12 +96,18 @@ capstones, but the cards do not depend on it.
 > quasi-invariance/AC for the eventual continuous anchored carrier.
 >
 > **Module split checkpoint (2026-07-08, GPT-5.5 Thinking).** Before adding the project-wide
-> theorem-skeleton progress bar, the former `ChenGeorgiouPavon2021/Basic.lean` monolith was split
-> into `Core`, `EnergyIdentity`, `SequenceGaussian`, `Continuum.*`, and `SocOt`, while keeping
-> `ChenGeorgiouPavon2021.Basic` as the stable aggregate import. Because `Basic.lean` is
-> aggregate-only, run `lake build ChenGeorgiouPavon2021` before the historical direct-file check,
-> or use `dev/check_cgp_module_split.sh`. Future proof-debt scaffolds should be placed at these
-> module frontiers rather than appended to a monolithic `Basic.lean`.
+> theorem-skeleton progress bar, the former CGP monolith was split and the larger proved theorem
+> libraries were split as well. `ForMathlib.MeasureTheory.GaussianCameronMartin` is an aggregate
+> over sequence-product, energy, finite-KL, infinite-KL, density, and absolute-continuity modules.
+> `ChenGeorgiouPavon2021.Continuum.WienerDyadic` is an aggregate over concrete Wiener grid,
+> measure, projective reduction, finite-increment algebra, RealPath transport, and finite-shift
+> assembly modules. `Continuum.Closure` and `SocOt` are likewise topic-split. Aggregate imports
+> remain stable; direct-file checks require prebuilt imports, so use `dev/check_cgp_module_split.sh`.
+>
+> **Progress-bar policy.** The future global `sorry` count should measure only missing mathematics
+> needed to discharge final DRSB assumptions. Do not put `sorry`s on final integration lemmas that
+> merely chain proved theorem targets; those lemmas should stay as assembly from explicit inputs
+> until the mathematical targets are proved.
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The

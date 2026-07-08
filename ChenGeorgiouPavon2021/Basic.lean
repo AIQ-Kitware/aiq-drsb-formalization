@@ -11,3 +11,5 @@ exist first. Use `lake build ChenGeorgiouPavon2021` before the direct-file check
 or run `dev/check_cgp_module_split.sh`.
 -/
 import ChenGeorgiouPavon2021.SocOt
+
+set_option autoImplicit false

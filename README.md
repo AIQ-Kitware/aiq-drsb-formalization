@@ -53,7 +53,7 @@ number every declaration corresponds to.
 ├── ForMathlib.lean / ForMathlib/     # DV + OT/DRO staging (import: Mathlib only)
 ├── <Paper>.lean / <Paper>/           # one library per source paper (import: Mathlib + ForMathlib)
 │   └── ChenGeorgiouPavon2021/        # split into Core, EnergyIdentity, SequenceGaussian,
-│       └── Continuum/                # RealPath, IntervalPath, WienerDyadic, Closure
+│       └── Continuum/                # RealPath, IntervalPath, Wiener/*, Closure frontiers
 ├── Drsb.lean / Drsb/                 # capstone (imports the paper libraries)
 ├── prose/                            # faithful transcriptions of every source (papers/ = PDFs, git-ignored)
 ├── reference/                        # ⚠ OLD, trap-laden attempts — reference-only, NOT built
@@ -100,14 +100,15 @@ Cameron–Martin/Kakutani theorem is now complete and should be treated as a che
 milestone:
 
 ```bash
+# These files are aggregate imports over split theorem modules; build imports first.
+lake build ForMathlib
 lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean
-# Basic.lean is now an aggregate import over split CGP modules, so build its imports first.
 lake build ChenGeorgiouPavon2021
 lake env lean ChenGeorgiouPavon2021/Basic.lean
 lake build
 ```
 
-For the CGP split-module smoke test, the equivalent one-command wrapper is:
+For the split-module smoke test, the equivalent one-command wrapper is:
 
 ```bash
 dev/check_cgp_module_split.sh

@@ -61,17 +61,25 @@ theorem staticSB_klProjection_unique
       π = π' := by
   sorry
 
-/-- Existence target for product-form Schrödinger coupling data.
+omit [NormedSpace ℝ X] in
+/-- Existence of a normalized product-density datum over the endpoint reference law.
 
-This is the constructive content behind static optimizer attainment: find endpoint potentials and a
-probability coupling whose law is the Schrödinger product-density tilt of the endpoint reference law.
-It does not assume marginal feasibility or optimality; those remain the separate targets above. -/
+At this abstraction level the endpoint reference law itself gives the trivial product-density tilt
+with both potentials equal to `1`.  This does **not** solve the Schrödinger system marginal or
+optimality problems for prescribed `(ρ₀, ρ₁)`; those remain the visible targets
+`schrodinger_product_coupling_marginals` and `schrodinger_product_coupling_optimal`. -/
 theorem schrodinger_product_coupling_data_exists
-    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    (_ρ₀ _ρ₁ : ProbabilityMeasure X) :
     ∃ (φhat0 φ1 : X → ℝ) (π_prod : ProbabilityMeasure (X × X)),
       (π_prod : Measure (X × X))
         = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)) := by
-  sorry
+  have he : Measurable (fun ω : Path X => (ω (0 : ℝ), ω (1 : ℝ))) :=
+    (measurable_pi_apply 0).prodMk (measurable_pi_apply 1)
+  haveI hprob : IsProbabilityMeasure (endpointLaw d) := by
+    unfold endpointLaw
+    exact Measure.isProbabilityMeasure_map he.aemeasurable
+  refine ⟨fun _ => 1, fun _ => 1, ⟨endpointLaw d, hprob⟩, ?_⟩
+  simp
 
 /-- Existence/attainment wrapper for the static Schrödinger bridge optimizer.
 

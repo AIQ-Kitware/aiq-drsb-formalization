@@ -659,3 +659,35 @@ proved, while the still-open analytic facts are visible at the call site. The ne
 step should not be another attempt to prove generation on `ℝ → ℝ`; it should first choose or build
 a canonical anchored interval path carrier, then prove dyadic generation, KL exhaustion, path-space
 Cameron--Martin quasi-invariance, and finally the Sobolev-energy bridge.
+
+## Session 9 (2026-07-08) — global theorem-target scaffold for the DRSB progress bar
+
+**Author:** GPT-5.5 Thinking, coordinated by Jon Crall.
+
+This session adds a project-wide theorem-target scaffold whose executable `sorry`s are intended to
+serve as the global progress bar for the remaining DRSB mathematics.  The new policy is:
+
+- `sorry`s mark missing mathematical capstones only;
+- downstream assembly theorems should be proved from those capstones, not scaffolded with their own
+  downstream `sorry`s;
+- interval/continuous path-space theorem targets replace the old overstrong RealPath-generation
+  direction;
+- existing provenance tags and previous agent notes are left untouched.
+
+New target modules:
+
+- `ChenGeorgiouPavon2021/Continuum/PathSpace.lean`: anchored continuous interval path carrier,
+  dyadic point separation, and dyadic generation targets.
+- `ChenGeorgiouPavon2021/Continuum/IntervalWiener.lean`: standard interval Wiener finite laws,
+  interval KL exhaustion, interval Cameron--Martin quasi-invariance, and sorry-free interval M4
+  assembly from those targets.
+- `ChenGeorgiouPavon2021/EnergyIdentityTargets.lean`: Girsanov/conditional KL, finite-energy
+  absolute continuity, finite KL, and full feasible-control energy-identity targets.
+- `ChenGeorgiouPavon2021/SocOt/*Targets.lean`: dynamic Hopf--Cole/HJB verification, feasible-control
+  existence, dynamic/static gluing, product-coupling feasibility/optimality/uniqueness, static
+  optimizer existence, and finite Sinkhorn uniqueness/convergence targets.
+- `ChenGeorgiouPavon2021/ProjectTheoremTargets.lean`: aggregate import for the progress-bar scaffold.
+
+Source scan after this overlay finds 27 executable theorem-target `sorry`s, all in the new scaffold
+or in the newly promoted continuum target statements.  The existing proved finite sequence Gaussian
+and finite Wiener dyadic layers remain theorem-bearing and should not be downgraded to assumptions.

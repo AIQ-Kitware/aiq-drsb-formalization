@@ -646,3 +646,24 @@ stop — M4a already discharges the deterministic `hCM` honestly.
 | lintegral↔Bochner conversions proliferate | M2.5–M2.7 | standardize on `ofReal_integral_eq_lintegral_ofReal` (already used in `AbsoluteContinuityMartingale.lean`) |
 | M4b covariance algebra (nested grids, `ℝ≥0` subtraction) | M4b | stretch-scoped; hard stop + journal note after ~2h of fighting `NNReal` arithmetic |
 | scope creep toward the feedback case | — | forbidden by plan; it is Itô-blocked (survey §3) — any "clever" route around the stochastic integral is a red flag for a vacuous edge |
+
+## Global theorem-target scaffold update (2026-07-08)
+
+The continuum plan now distinguishes theorem-building from integration:
+
+- theorem-building is represented by executable `sorry`s in logical target modules;
+- integration theorems should be proved from those targets and should not introduce additional
+  downstream `sorry`s;
+- the corrected interval/anchored-continuous path carrier is the path-space direction for the final
+  M4 theorem, while `RealPath := ℝ → ℝ` remains an ambient compatibility scaffold.
+
+New continuum theorem targets are split across:
+
+- `Continuum.PathSpace`: anchored continuous interval path extensionality and dyadic generation;
+- `Continuum.Sobolev`: analytic Sobolev/AC reconstruction implies dyadic Cameron--Martin energy;
+- `Continuum.KLExhaustion`: KL exhaustion from dyadic generation;
+- `Continuum.IntervalWiener`: interval finite Wiener law, interval KL exhaustion, and path-space
+  Cameron--Martin quasi-invariance.
+
+The interval M4 theorem in `Continuum.IntervalWiener` is assembly-only: once those target theorems are
+proved, it should connect without new mathematical `sorry`s.

@@ -422,3 +422,11 @@ Tokens/model are MEASURED from your session transcript (deduped by message id â€
 hand-count). The ledger `.llm_resource_tally/ledger/` (at this repo's root) is append-only,
 per-session, concurrency-safe, and stores measurements only.
 <!-- END llm_resource_tally -->
+
+## Project-wide theorem-target scaffold
+
+`ChenGeorgiouPavon2021.ProjectTheoremTargets` imports the current global progress-bar scaffold.  New
+`sorry`s should be added only for missing mathematical capstones and should be placed in the logical
+module where the theorem belongs.  Do not add downstream assembly `sorry`s merely to connect already
+named theorem targets; assembly should be proved from the targets or left until the targets are
+proved.

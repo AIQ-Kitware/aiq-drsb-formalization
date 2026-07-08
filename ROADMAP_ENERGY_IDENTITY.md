@@ -290,3 +290,17 @@ that future `sorry`s should be reserved for mathematical capstone targets such a
 convergence, KL exhaustion, generation on the corrected path carrier, and Cameron--Martin
 quasi-invariance. Final wrappers that merely connect these results should stay as assembly lemmas
 from explicit inputs until the mathematical targets are proved.
+
+## Progress-bar theorem targets (2026-07-08)
+
+The energy-identity/Girsanov frontier now has explicit theorem targets in
+`ChenGeorgiouPavon2021/EnergyIdentityTargets.lean`:
+
+- conditional path-kernel KL equals expected quadratic control energy;
+- feasible finite-energy path laws are absolutely continuous with respect to the reference law;
+- feasible finite-energy path laws have finite relative entropy;
+- every feasible finite-energy control satisfies the CGP energy identity family used by
+  `schrodingerBridge_KL_eq_SOC`.
+
+These are model-level SDE/Girsanov capstones.  Downstream KL/SOC equivalence should remain a proved
+assembly theorem from these targets plus feasible-control existence.

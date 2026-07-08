@@ -48,4 +48,42 @@ theorem isCameronMartinPath_of_sobolevCameronMartinPath
     IsCameronMartinPath h hderiv := by
   exact ⟨hSob.square_integrable, hSob.dyadic_energy_tendsto⟩
 
+
+/-- Analytic Cameron--Martin path predicate on the ambient real-time scaffold.
+
+This is stronger and more concrete than the lightweight dyadic `IsCameronMartinPath` interface:
+`h` is anchored at zero, reconstructed on `[0,1]` as the integral of its derivative, and the
+derivative is square-integrable.  The dyadic-energy convergence theorem below is now a real proof
+target rather than a field hidden inside the predicate. -/
+structure IsAnalyticCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop where
+  anchored : h 0 = 0
+  interval_reconstruction : ∀ t : ℝ, t ∈ Set.Icc (0 : ℝ) 1 →
+    h t = ∫ s in Set.Ioc (0 : ℝ) t, hderiv s ∂volume
+  square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
+
+/-- Sobolev/Riemann-sum capstone on the ambient scaffold: an analytically defined
+Cameron--Martin path has dyadic finite-difference energy converging to
+`½ ∫₀¹ |h'|²`.
+
+This is one of the main real-analysis theorem targets behind the final DRSB/M4 result. -/
+theorem isCameronMartinPath_of_analyticCameronMartinPath
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hA : IsAnalyticCameronMartinPath h hderiv) :
+    IsCameronMartinPath h hderiv := by
+  sorry
+
+/-- Analytic Cameron--Martin path predicate on the corrected interval carrier. -/
+structure IsAnalyticIntervalCameronMartinPath (h : IntervalPath) (hderiv : ℝ → ℝ) : Prop where
+  anchored : IntervalPathAnchored h
+  interval_reconstruction : ∀ t : UnitInterval,
+    h t = ∫ s in Set.Ioc (0 : ℝ) (t : ℝ), hderiv s ∂volume
+  square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
+
+/-- Sobolev/Riemann-sum capstone on the corrected interval carrier. -/
+theorem isIntervalCameronMartinPath_of_analyticIntervalCameronMartinPath
+    (h : IntervalPath) (hderiv : ℝ → ℝ)
+    (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
+    IsIntervalCameronMartinPath h hderiv := by
+  sorry
+
 end ChenGeorgiouPavon2021

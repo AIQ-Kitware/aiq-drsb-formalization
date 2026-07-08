@@ -126,3 +126,16 @@ path-space quasi-invariance / density closure. Do not revive the overstrong clai
 increments on `[0,1]` generate all of `RealPath := ℝ → ℝ`; in the current green code those
 continuum facts are explicit interfaces (`HasDyadicKLExhaustion` and path-space absolute
 continuity), not hidden `sorry`s.
+
+## Project theorem-target progress bar
+
+As of the 2026-07-08 theorem-target scaffold, the remaining DRSB mathematics is imported by:
+
+```lean
+import ChenGeorgiouPavon2021.ProjectTheoremTargets
+```
+
+The executable `sorry`s in these target modules are intended to be the project-wide progress bar for
+missing mathematics.  Final assembly lemmas should consume these targets and remain proof-bearing;
+when the target `sorry`s are all discharged, the expected remaining work is integration/rewiring, not
+new theorem scaffolding.

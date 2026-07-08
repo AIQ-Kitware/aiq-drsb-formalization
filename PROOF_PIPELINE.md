@@ -466,3 +466,35 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
   `WangGaoXie2023.exists_worstCase_gibbs` now consumes it.
 - Proved `ChenGeorgiouPavon2021.staticSB_eq_entropicOT` (T0, `hgibbs` rewrite).
 - Prior: `WangGaoXie2023.exists_worstCase_gibbs`, `BlanchetMurthy2019.wdro_strong_duality_dualFn`.
+
+## Project-wide theorem-target scaffold (2026-07-08)
+
+The remaining DRSB work is now intended to be tracked by executable theorem-target `sorry`s, not by
+interfaces hidden inside downstream hypotheses.  The rule for future work is:
+
+1. add `sorry` only for missing mathematics;
+2. place the target in the module where the theorem belongs mathematically;
+3. keep final assembly wrappers proof-bearing from those theorem targets;
+4. when a target is proved, replace downstream hypotheses by the proved theorem as a separate
+   integration step.
+
+The current target aggregate is:
+
+```lean
+import ChenGeorgiouPavon2021.ProjectTheoremTargets
+```
+
+The main groups are:
+
+- path-space carrier/generation: `Continuum.PathSpace`;
+- Sobolev/CM energy bridge: `Continuum.Sobolev`;
+- interval Wiener finite law, KL exhaustion, and quasi-invariance: `Continuum.IntervalWiener`;
+- general KL exhaustion from generation: `Continuum.KLExhaustion`;
+- Girsanov/energy identity model edges: `EnergyIdentityTargets`;
+- dynamic SOC/Hopf--Cole/HJB verification: `SocOt.DynamicTargets`;
+- dynamic/static gluing and finite-energy feasibility facts: `SocOt.StaticTargets`;
+- static product coupling and optimizer uniqueness/attainment: `SocOt.EntropicOTTargets`;
+- Sinkhorn uniqueness/convergence: `SocOt.SinkhornTargets`.
+
+A source-level count after the scaffold overlay gives 27 executable target `sorry`s.  This count is
+now the intended coarse progress bar for the remaining mathematical theorem-building phase.

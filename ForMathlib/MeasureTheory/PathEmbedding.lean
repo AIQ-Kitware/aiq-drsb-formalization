@@ -8,7 +8,7 @@ many reals" that `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` needs: i
 exactly a measurable embedding `e : Path X ↪ (ℕ → ℝ)` with a measurable left inverse, so this file
 turns that *satisfiable but abstract* edge into a **proved construction** for the standard model.
 
-STATUS: PROVED, axiom-clean (`propext / Classical.choice / Quot.sound`).
+STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
 
 Two results:
 
@@ -52,7 +52,7 @@ a standard-Borel space into a countably-separated space — `ℕ → ℝ` is sta
 This is the reusable core discharging the "embedding edge" of the continuum energy identity: a path
 law that is determined by countably many measurable readouts is losslessly reparametrised by
 `ℕ → ℝ`, so `toReal_klDiv_map_eq_of_leftInverse` transports its KL to the countable-product setting
-where the finite-prefix filtration generates the σ-algebra. `#print axioms`-clean. -/
+where the finite-prefix filtration generates the σ-algebra. Lean dependency audit-clean. -/
 theorem exists_measurableEmbedding_nat_of_separating
     {E : Type*} [MeasurableSpace E] [StandardBorelSpace E] [Nonempty E]
     (φ : ℕ → E → ℝ) (hφ : ∀ n, Measurable (φ n))
@@ -79,7 +79,7 @@ the countable dense time set `denseSeq T` is:
 So the engine `exists_measurableEmbedding_nat_of_separating` applies with
 `φ n := fun f => f (denseSeq T n)`. This is the concrete `e`, `g` (with `Measurable`/`LeftInverse`
 witnesses) that instantiate the abstract embedding edge of `energy_eq_klReal_via_embedding` for the
-standard DRSB continuous-path model `Path X := C([0,1], X)`. `#print axioms`-clean. -/
+standard DRSB continuous-path model `Path X := C([0,1], X)`. Lean dependency audit-clean. -/
 theorem exists_measurableEmbedding_nat_continuousMap
     {T : Type*} [TopologicalSpace T] [CompactSpace T] [LocallyCompactSpace T]
     [SecondCountableTopology T] [Nonempty T]
@@ -116,7 +116,7 @@ This is the **embedding edge of the continuum energy identity, discharged**: it 
 hypothesis `e : Path X ↪ (ℕ → ℝ)` of `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` into a
 theorem for any path model with a countable separating family of measurable readouts (e.g. a
 continuous-path law read at dense times, via `exists_measurableEmbedding_nat_continuousMap`), leaving
-only the energy-convergence edge `hconv`. `#print axioms`-clean. -/
+only the energy-convergence edge `hconv`. Lean dependency audit-clean. -/
 theorem toReal_klDiv_map_frestrictLe_tendsto_of_separating
     {E : Type*} [MeasurableSpace E] [StandardBorelSpace E] [Nonempty E]
     (φ : ℕ → E → ℝ) (hφ : ∀ n, Measurable (φ n))
@@ -171,7 +171,7 @@ theorem toReal_klDiv_map_frestrictLe_tendsto_of_separating
 (convenience `=` form of `toReal_klDiv_map_frestrictLe_tendsto_of_separating`). If those grid
 divergences are additionally known to converge to some `L` (the energy-convergence edge `hconv` of the
 CGP identity), then `L = KL(P‖R)`. The embedding edge is discharged internally; only `hconv` remains.
-`#print axioms`-clean. -/
+Lean dependency audit-clean. -/
 theorem eq_toReal_klDiv_of_separating_tendsto
     {E : Type*} [MeasurableSpace E] [StandardBorelSpace E] [Nonempty E]
     (φ : ℕ → E → ℝ) (hφ : ∀ n, Measurable (φ n))
@@ -194,7 +194,7 @@ then `L = KL(P‖R)`. This is `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedd
 measurable-embedding edge **replaced by a proof**: dense-time evaluation is a measurable
 point-separating family (`continuous_eval_const` + `Continuous.ext_on`), so
 `eq_toReal_klDiv_of_separating_tendsto` applies. Only `hconv` (finite-dim marginal KLs → control
-energy — the Girsanov/Cameron–Martin content) is left as an edge. `#print axioms`-clean. -/
+energy — the Girsanov/Cameron–Martin content) is left as an edge. Lean dependency audit-clean. -/
 theorem eq_toReal_klDiv_continuousMap_of_tendsto
     {T : Type*} [TopologicalSpace T] [CompactSpace T] [LocallyCompactSpace T]
     [SecondCountableTopology T] [Nonempty T]

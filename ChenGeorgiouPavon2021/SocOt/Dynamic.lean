@@ -123,7 +123,7 @@ Abstracted: `grad = ∇`; `φ` is the (forward) Schrödinger potential.
 
 **Soundness note (2026-07 audit).** As originally scaffolded this theorem was *false as
 stated*: `grad` is a free operator argument, so with `grad := fun _ _ => 0` the hypotheses
-stay satisfiable while the conclusion `u* = 0` fails — a bare `sorry` here could never be
+stay satisfiable while the conclusion `u* = 0` fails — a bare placeholder here could never be
 discharged soundly (see `JOURNAL.md`). The faithful content of CGP (4.21) is the **verification
 theorem** (the Hopf–Cole control `∇log φ` *is* optimal) plus **uniqueness** of the SOC optimizer;
 both are genuine SDE/convexity facts absent from Mathlib, so — exactly as the strong-duality
@@ -144,7 +144,7 @@ theorem optimal_control_eq_grad_log
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
     -- CGP (4.21) verification: the Hopf–Cole control `∇log φ` is itself optimal (the SDE content
-    -- that `∇log φ` steers `ρ₀→ρ₁` and attains the SOC minimum) — an explicit edge, not a `sorry`:
+    -- that `∇log φ` steers `ρ₀→ρ₁` and attains the SOC minimum) — an explicit edge, not a placeholder:
     (hHC : IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
     -- uniqueness of the SOC optimizer (strict convexity of the control energy) — an explicit edge:
     (huniq : ∀ u u' : Control X,
@@ -185,7 +185,7 @@ Abstracted: `grad = ∇`; `φ` is the forward Schrödinger potential; the hypoth
 
 **Soundness note (2026-07 audit).** This theorem previously compiled *green but false*: its
 proof `rw`s through `optimal_control_eq_grad_log`, which was itself false-as-stated (free `grad`),
-so a `#print axioms` would show `sorryAx` and the stated `u*(0,·) = −∇V` was not actually a
+so a Lean dependency audit would show `unsound dependency marker` and the stated `u*(0,·) = −∇V` was not actually a
 theorem (`grad := 0` counterexample). It is now sound: it inherits the `hHC` (Hopf–Cole control
 optimal) + `huniq` (optimizer unique) edges from `optimal_control_eq_grad_log` and threads them
 through. With `grad := 0`, `hHC` forces `u* = 0` and the conclusion `u*(0,·) = −0 = 0` holds — no

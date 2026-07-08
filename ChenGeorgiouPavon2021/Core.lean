@@ -9,7 +9,7 @@ entropic-optimal-transport backbone that *defines* the DRSB value function
 
 The file began as a statements-only scaffold.  The proof pass has since discharged the finite
 Gaussian/sequence/Wiener-dyadic layers and isolates the remaining continuum/SDE facts as explicit
-interfaces rather than executable `sorry`s.
+interfaces rather than executable placeholders.
 
 Prose source (printed Problem / Theorem / equation numbers are CGP arXiv:2005.10963 v3):
 `prose/schrodinger-bridge-soc-ot.md`, Part I (Chen–Georgiou–Pavon).

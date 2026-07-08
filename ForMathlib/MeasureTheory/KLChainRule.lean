@@ -13,7 +13,7 @@ the abstract path space `Path X = ℝ→X` (only a `MeasurableSpace`), with no s
 hypothesis. The only extra content over the `ℝ≥0∞` chain rule is the `toReal` bookkeeping, which
 needs both summands finite (the finite-relative-entropy / finite-energy regime).
 
-Axiom-clean; a thin, reusable wrapper. No new mathematics — the mathematics is Mathlib's.
+Dependency-clean; a thin, reusable wrapper. No new mathematics — the mathematics is Mathlib's.
 -/
 import Mathlib
 

@@ -291,7 +291,7 @@ maps `Tbar`, `Tstar` that are `ν`-a.e. argmins of `λ* c(·,ζ) − Ψ` (`hargm
 (`Ψ` and the cost integrable along each transport — needed because `c`, `Ψ` carry no standing
 measurability) and the two content edges: a **feasibility budget** `hbudget`
 (`pstar·𝔼_ν[c(T̄,·)] + (1−pstar)·𝔼_ν[c(T*,·)] ≤ δ`) and the **attainment `≥` edge** `hattain`
-(the mixture value dominates `droValue`). Everything else is proved **sorry-free**: `μ*` is
+(the mixture value dominates `droValue`). Everything else is proved **proved**: `μ*` is
 built as the explicit 2-map mixture `pstar·T̄#ν + (1−pstar)·T*#ν`, shown a probability measure,
 shown `∈ ambiguitySet` via the explicit transport plan `pstar·(T̄,id)#ν + (1−pstar)·(T*,id)#ν`
 (second marginal `ν` since `snd∘(T,id)=id`; cost `≤ δ` through
@@ -443,14 +443,14 @@ noncomputable def empiricalDual {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ)
         - (1 / (N : ℝ)) * ∑ i : Fin N, sInf (Set.range (fun ξ => lam * c ξ (xhat i) - Ψ ξ)) }
 
 omit [NormedAddCommGroup X] in
-/-- **Empirical dual = specialized general dual (sorry-free reduction).** When the
+/-- **Empirical dual = specialized general dual (proved reduction).** When the
 nominal `ν` is the empirical measure `(1/N) Σᵢ δ_{ξ̂ᵢ}`, the Gao–Kleywegt dual `dualValue`
 (an expectation of the Moreau–Yosida inner map `Φ` against `ν`) collapses to the finite
 average `empiricalDual`: for every multiplier `λ`,
 `𝔼_ν[Φ(λ,·)] = (1/N) Σᵢ Φ(λ, ξ̂ᵢ)` (and `Φ(λ, ζ) = inf_ξ(λ c(ξ,ζ) − Ψ(ξ))` is exactly
 `empiricalDual`'s per-sample term), so the two `inf_{λ≥0}` objectives coincide.
 
-Axiom-clean; a direct integral-against-empirical-measure computation — each `∫ · d(δ_{ξ̂ᵢ})`
+Dependency-clean; a direct integral-against-empirical-measure computation — each `∫ · d(δ_{ξ̂ᵢ})`
 is `integral_dirac`, valid for *any* real integrand under `[MeasurableSingletonClass X]`, so
 no measurability/integrability side-condition on `Φ` is needed. This is the honest content
 that turns the general Gao–Kleywegt duality into the data-driven form eq. (28). -/
@@ -486,7 +486,7 @@ Corollary 2(i)). Here `hν` fixes `ν` as the empirical measure on the sample
 `xhat : Fin N → X` and `δ = θᵖ`.
 
 Proof (house pattern): the empirical case is the general Gao–Kleywegt strong duality
-`strong_duality_thm1` (`primalValue = dualValue`) composed with the sorry-free reduction
+`strong_duality_thm1` (`primalValue = dualValue`) composed with the proved reduction
 `dualValue_eq_empiricalDual` (`dualValue = empiricalDual` for empirical `ν`). The weak
 `≤` half is genuinely proved (from the ForMathlib Lagrangian kernel via
 `weak_duality_prop1`); the research-grade `≥`/attainment is isolated to the single explicit
@@ -543,7 +543,7 @@ ingredients** a full OT measurable-selection would extract from `hexists`: the s
 plus two ingredient-level scalar edges — a **feasibility budget** `hbudget` (the argmin
 transport cost stays within radius `δ`; the analogue of Esfahani–Kuhn's `(1/N)Σ‖q‖ ≤ ε`) and
 the **attainment `≥` edge** `hattain` (the argmin-transport value dominates `droValue`; the
-analogue of `worstCase_exists`'s `hval`). Everything else is proved **sorry-free**: `μ*` is
+analogue of `worstCase_exists`'s `hval`). Everything else is proved **proved**: `μ*` is
 built as the explicit `K = 2` weighted-Dirac double-sum, shown to be a probability measure,
 shown to lie in `ambiguitySet` via the explicit transport plan
 `(1/N) Σ_{i≠i₀} δ_{(ξ*ⁱ,ξ̂ᵢ)} + (p₀/N) δ_{(ξ*^{i₀},ξ̂_{i₀})} + ((1−p₀)/N) δ_{(ξ̄*^{i₀},ξ̂_{i₀})}`

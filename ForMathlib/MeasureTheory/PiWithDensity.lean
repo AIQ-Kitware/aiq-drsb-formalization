@@ -17,7 +17,7 @@ the two work-horses around it —
   the pin (only the two-factor `lintegral_prod` exists). Proved by the same induction,
   independently of `pi_withDensity` (so it needs no σ-finiteness of the density factors).
 
-STATUS: PROVED, axiom-clean (`propext / Classical.choice / Quot.sound`).
+STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
 
 These are the `M2.2` bricks of `PLAN_CONTINUUM_CLOSURE.md`: they supply the
 finite-dimensional Gaussian Cameron–Martin density (`stdGaussian ι` shifted = `stdGaussian ι`

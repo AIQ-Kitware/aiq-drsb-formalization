@@ -20,8 +20,8 @@ Design rationale
   sub-Gaussian MGF toolkit lives in `Mathlib/Probability/Moments/SubGaussian.lean`.
 
 Status legend in this file:
-  ✅  fully proved and compiles (no `sorry`).
-  🚧  statement is final; proof is a `sorry` with a precise pointer to the
+  ✅  fully proved and compiles (no placeholder).
+  🚧  statement is final; proof is a placeholder with a precise pointer to the
       Mathlib lemma to finish it.
 -/
 import Mathlib

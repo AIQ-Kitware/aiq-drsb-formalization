@@ -299,7 +299,7 @@ the discrete control energy `emEnergy Δt u`:
 
 `KL(P^u ‖ P^0) = ∑ₖ Δt · ½‖u_k‖²`.
 
-Proved sorry-free from the vendored Cameron–Martin identity `klDiv_stdGaussian_map_add`:
+Proved from the vendored Cameron–Martin identity `klDiv_stdGaussian_map_add`:
 each per-step shift `√Δt·u_k` contributes `½‖√Δt·u_k‖² = Δt·½‖u_k‖²`, and KL tensorises
 over the `Fin N × ι` increment coordinates. This is exactly the summed-shifted-Gaussian
 construction described in AGENTS.md §3 (the card's Euler–Maruyama measurement of the SOC

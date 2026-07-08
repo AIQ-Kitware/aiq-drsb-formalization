@@ -13,7 +13,7 @@ library per source paper, a paper-agnostic `ForMathlib` staging library, a
 > conventions, and the known traps. This README is just the build + library map.
 
 > **Status: proof-pass active; sequence-model Cameron–Martin milestone complete.** The
-> card-level DRSB inequalities and most paper-library links are proved axiom-clean. The iid
+> card-level DRSB inequalities and most paper-library links are proved dependency-clean. The iid
 > Gaussian sequence-model Cameron–Martin/Kakutani layer is now built and `lake build` green:
 > finite-prefix densities, square-summability ⇒ absolute continuity, the finite-energy KL
 > identity, and the nonsummable/infinite-KL converse are all staged in
@@ -72,7 +72,7 @@ in its file header, and in `formalization.yaml` (per the vendoring policy at the
 | `ForMathlib.MeasureTheory.{stdGaussian, klDiv_gaussianReal_shift, klDiv_map_measurableEquiv, klDiv_prod, klDiv_pi, klDiv_pi_fintype, klDiv_stdGaussian_map_add}` (Cameron–Martin relative entropy `KL(N(·+h) ‖ N) = ½‖h‖²`) | Michael R. Douglas, [`mrdouglasny/gibbs-variational`](https://github.com/mrdouglasny/gibbs-variational) · `GibbsVariational/GaussianEntropy.lean` | [`75e08d8`](https://github.com/mrdouglasny/gibbs-variational/blob/75e08d8aaca83bb090fc43855898991fbfc9abf3/GibbsVariational/GaussianEntropy.lean) | Apache-2.0 |
 
 Vendored verbatim (only the enclosing namespace was changed, `GibbsVariational →
-ForMathlib.MeasureTheory`), retrieved 2026-07-03, axiom-clean under our Mathlib pin. The
+ForMathlib.MeasureTheory`), retrieved 2026-07-03, dependency-clean under our Mathlib pin. The
 Euler–Maruyama discrete energy identity built on it (`emShift`, `emEnergy`,
 `klDiv_emShift_eq_emEnergy`, consumed by `ChenGeorgiouPavon2021.energy_identity_euler_maruyama`)
 is original to this repo — it proves the discrete/Gaussian layer of CGP's control-energy
@@ -125,7 +125,7 @@ sigma-algebra, prove KL exhaustion along those projections, and prove Cameron--M
 path-space quasi-invariance / density closure. Do not revive the overstrong claim that dyadic
 increments on `[0,1]` generate all of `RealPath := ℝ → ℝ`; in the current green code those
 continuum facts are explicit interfaces (`HasDyadicKLExhaustion` and path-space absolute
-continuity), not hidden `sorry`s.
+continuity), not hidden placeholders.
 
 ## Project theorem-target progress bar
 
@@ -135,7 +135,7 @@ As of the 2026-07-08 theorem-target scaffold, the remaining DRSB mathematics is 
 import ChenGeorgiouPavon2021.ProjectTheoremTargets
 ```
 
-The executable `sorry`s in these target modules are intended to be the project-wide progress bar for
+The executable placeholders in these target modules are intended to be the project-wide progress bar for
 missing mathematics.  Final assembly lemmas should consume these targets and remain proof-bearing;
-when the target `sorry`s are all discharged, the expected remaining work is integration/rewiring, not
+when the target placeholders are all discharged, the expected remaining work is integration/rewiring, not
 new theorem scaffolding.

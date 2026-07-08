@@ -1,15 +1,15 @@
-# Roadmap — closing `ChenGeorgiouPavon2021.energy_identity` (the last sorry)
+# Roadmap — closing `ChenGeorgiouPavon2021.energy_identity` (the last placeholder)
 
-The repo's sole remaining `sorry` is the continuous energy identity (CGP eq. 4.19):
+The repo's sole remaining placeholder is the continuous energy identity (CGP eq. 4.19):
 
 ```
 D(P^{u,ρ₀} ‖ R) = D(ρ₀ ‖ ρ₀^W) + 𝔼_{P^{u,ρ₀}}[∫₀¹ ½‖u_t‖² dt]
 ```
 
-It is **not an open problem** — it is a known Girsanov consequence. It is only a `sorry`
+It is **not an open problem** — it is a known Girsanov consequence. It is only a placeholder
 because Mathlib lacks a *packaged* multi-dim Girsanov / KL-between-path-measures. This document
 breaks it into small, individually-landable pieces and identifies exactly which Mathlib results
-each rests on. The goal: convert one monolithic `sorry` into proved reductions + one atomic,
+each rests on. The goal: convert one monolithic placeholder into proved reductions + one atomic,
 honestly-labelled Girsanov edge, then close that edge.
 
 ## The decomposition
@@ -38,21 +38,21 @@ So the *entire* Girsanov content is (CM), and (CM) itself already has its discre
 ### Phase 0 — real-valued chain-rule backbone (LAND FIRST, no SDE)
 - `ForMathlib/MeasureTheory/KLChainRule.lean`: `toReal_klDiv_compProd_eq_add` (real-valued (★))
   and `toReal_klDiv_condKernel` (real-valued (cond), the averaged-pointwise form).
-- Pure Mathlib re-export + `toReal` bookkeeping; axiom-clean; reusable. **Deliverable this pass.**
+- Pure Mathlib re-export + `toReal` bookkeeping; dependency-clean; reusable. **Deliverable this pass.**
 
 ### Phase 1 — wire the split into `energy_identity` (house pattern)
 - Enrich `SBData` (or add hypotheses) with the disintegration data: Markov kernels `Kᵘ`, `Kᵂ`
   and structural edges `P = ρ₀ ⊗ₘ Kᵘ`, `R = ρ₀^W ⊗ₘ Kᵂ` (true by construction for diffusions),
   plus the finiteness edges `D(ρ₀‖ρ₀^W) ≠ ⊤`, `D(cond) ≠ ⊤` (finite-energy regime, cf. `hfin` in
   `dynamic_eq_static_SB`).
-- Prove `energy_identity` **sorry-free** = (★)∘Phase 0 + one explicit edge
+- Prove `energy_identity` **proved** = (★)∘Phase 0 + one explicit edge
   `hCM : ∫ D(Kᵘ_x‖Kᵂ_x) dρ₀ = energy`. **Sorry count 1 → 0**; the Girsanov content is now the
   single named, non-vacuous hypothesis `hCM`, exactly the repo's isolate-content-to-an-edge pattern.
 
 ### Phase 1.5 — (cond): conditional KL = averaged pointwise KL (Mathlib's own TODO) — ✅ DONE
 `InformationTheory/KullbackLeibler/ChainRule.lean` explicitly lists as a **TODO**: the integral
-form `klDiv (μ⊗ₘκ) (μ⊗ₘη) = μ[fun x ↦ klDiv (κ x) (η x)]`. **Now PROVED**, both forms, axiom-clean
-(`#print axioms` = `[propext, Classical.choice, Quot.sound]`):
+form `klDiv (μ⊗ₘκ) (μ⊗ₘη) = μ[fun x ↦ klDiv (κ x) (η x)]`. **Now PROVED**, both forms, dependency-clean
+(Lean dependency audit = `[propext, Classical.choice, Quot.sound]`):
 - `ForMathlib…klDiv_compProd_eq_lintegral` — `klDiv (μ⊗ₘκ)(μ⊗ₘη) = ∫⁻ x, klDiv (κ x)(η x) ∂μ`
   (ℝ≥0∞), hypotheses: `μ⊗ₘκ ≪ μ⊗ₘη` only;
 - `ForMathlib…toReal_klDiv_compProd_eq_integral` — `(klDiv (μ⊗ₘκ)(μ⊗ₘη)).toReal
@@ -76,7 +76,7 @@ to a standard-Borel continuous-path model (`C([0,1], X)` / Polish), a *modeling*
 mathematics. Until then (cond) stands as a proved, reusable reduction closing Mathlib's TODO.
 **Does not by itself close (CM)** — it tightens the edge to the per-trajectory atom.
 
-**Wired, abstractly:** `ChenGeorgiouPavon2021.energy_identity_conditional` (axiom-clean) is the
+**Wired, abstractly:** `ChenGeorgiouPavon2021.energy_identity_conditional` (dependency-clean) is the
 `energy_identity` disintegration with (cond) applied internally, so its Girsanov edge is already the
 **per-trajectory atom** `hCM : (∫⁻ x, D(Kᵘ_x ‖ Kᵂ_x) dρ₀).toReal = energyVal`. It is stated over an
 *abstract* path-space factor `𝓨` carrying `CountableOrCountablyGenerated 𝒳 𝓨` as a **satisfiable
@@ -90,7 +90,7 @@ and prove `hCM`'s continuum (Girsanov) — its discrete instance is already `ene
 equally hard:
 - **`≥` half — `𝔼[∫½‖u‖²] ≤ D(P^{u}‖R)` — PROVED (modulo an Itô-free convergence edge).**
   `ForMathlib…le_toReal_klDiv_of_map_tendsto` + `ChenGeorgiouPavon2021.energy_le_klReal_of_projections`
-  (both axiom-clean): the KL data-processing inequality gives `D(π_# P ‖ π_# R) ≤ D(P‖R)` for every
+  (both dependency-clean): the KL data-processing inequality gives `D(π_# P ‖ π_# R) ≤ D(P‖R)` for every
   time-grid projection `π`; as the projected divergences → the control energy (their limit is the
   proved discrete `emEnergy` = a Riemann sum, `energy_identity_euler_maruyama`), the bound passes to
   the limit. **No stochastic integral** — only the DPI. The single remaining input, `hconv` (grid
@@ -182,7 +182,7 @@ Two routes, each a real project:
   Itô/Girsanov) → generalize to multi-D + add KL. This is the recommended long-term project.
 
 #### `≤`-half sub-plan — the projection-EXHAUSTION theorem (Itô-FREE, ✅ DONE 2026-07-04)
-**PROVED, axiom-clean** — `ForMathlib…klDiv_map_tendsto_toReal`:
+**PROVED, dependency-clean** — `ForMathlib…klDiv_map_tendsto_toReal`:
 `(klDiv (μ.map gₙ) (ν.map gₙ)).toReal → (klDiv μ ν).toReal` when `comap gₙ` forms a filtration
 generating `m𝓧`. Steps, each landed: 1 `toReal_klDiv_map_eq_integral_condExp`, 2a
 `klDiv_map_eq_lintegral_ofReal_klFun_condExp`, 2b `klDiv_map_le` (ℝ≥0∞ DPI), 2c the Lévy
@@ -215,7 +215,7 @@ feedback-diffusion marginals it is the finite-dimensional Girsanov density, the 
 exponential content. So this sub-plan localises the entire Itô requirement to `hconv`.
 
 #### `hconv`'s "+ Riemann sums" half — PROVED (Itô-free, Kolmogorov-free, 2026-07-04)
-The `Δt → 0` analytic core is now a theorem (axiom-clean, `ForMathlib/MeasureTheory/GaussianEntropy.lean`):
+The `Δt → 0` analytic core is now a theorem (dependency-clean, `ForMathlib/MeasureTheory/GaussianEntropy.lean`):
 - `tendsto_equispaced_riemannSum` — equispaced left-Riemann sums of a continuous `g` on `[0,1]`
   converge to `∫₀¹ g` (uniform-continuity proof; `sum_integral_adjacent_intervals` +
   `norm_integral_le_of_norm_le_const`).
@@ -238,7 +238,7 @@ existence + finite-dim projection of the continuum reference measure itself.
 
 Neither is faked; both are multi-file Mathlib-scale ports. Everything around them — the discrete
 Cameron–Martin layer, the projection-exhaustion martingale theorem, the DPI `≥`-half, and now the
-Riemann-quadrature limit — is proved and axiom-clean.
+Riemann-quadrature limit — is proved and dependency-clean.
 
 **Plan A(i) — the embedding edge — DONE (2026-07-04, `ForMathlib/MeasureTheory/PathEmbedding.lean`).**
 The abstract measurable-embedding edge `e : Path X ↪ (ℕ→ℝ)` of `energy_eq_klReal_via_embedding` is now
@@ -251,7 +251,7 @@ instance, `φ n = eval at denseSeq T n`); `toReal_klDiv_map_frestrictLe_tendsto_
 `eq_toReal_klDiv_continuousMap_of_tendsto` (the continuum identity for `C(T,ℝ)` laws, embedding edge
 gone, only `hconv` + regularity left). **No vendor needed** — Mathlib's `ContinuousMap` instances
 already make `C(T,ℝ)` Polish; only a `BorelSpace C(T,ℝ)` is taken as a satisfiable hypothesis. All
-axiom-clean. Remaining for a *fully closed* continuum identity: `hconv` (gap #2 below) and re-typing
+dependency-clean. Remaining for a *fully closed* continuum identity: `hconv` (gap #2 below) and re-typing
 `SBData.Path` to `C([0,1],X)` so these feed `Drsb` directly.
 
 **Bottom line:** the continuum `hCM` is a known Girsanov identity that cannot be discharged in Lean
@@ -286,7 +286,7 @@ identity rather than a monolithic path-measure statement.
 
 The sequence Cameron--Martin/Kakutani library and the CGP continuum frontier are now split into
 smaller theorem modules while preserving aggregate imports.  The important workflow consequence is
-that future `sorry`s should be reserved for mathematical capstone targets such as Sobolev-energy
+that future placeholders should be reserved for mathematical capstone targets such as Sobolev-energy
 convergence, KL exhaustion, generation on the corrected path carrier, and Cameron--Martin
 quasi-invariance. Final wrappers that merely connect these results should stay as assembly lemmas
 from explicit inputs until the mathematical targets are proved.

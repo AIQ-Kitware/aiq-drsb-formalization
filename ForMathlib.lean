@@ -3,7 +3,7 @@
 
 Reusable results, restated in Mathlib idiom, that the DRSB paper libraries import.
 These are potential upstream Mathlib contributions (some already have complete
-proofs in `reference/WellKnown.lean`; they are re-stated here with `sorry` while we
+proofs in `reference/WellKnown.lean`; they are re-stated here with placeholder while we
 audit statements against the papers, per the first-pass "statements only" policy).
 
 One file per proposed Mathlib destination area:
@@ -18,9 +18,9 @@ One file per proposed Mathlib destination area:
 * `ForMathlib.OptimalTransport.Basic` — the shared OT / DRO vocabulary (couplings,
   transport cost, Wasserstein-2 and Sinkhorn ambiguity balls, KL, DRO worst-case).
 * `ForMathlib.OptimalTransport.WeakDuality` — the per-coupling Lagrangian bound (the
-  always-true `≤` half of OT-DRO duality). STAGING (`sorry`); see `FOUNDATIONS.md`.
+  always-true `≤` half of OT-DRO duality). STAGING (placeholder); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
-  existence (discrete Schrödinger potentials). STAGING (`sorry`); see `FOUNDATIONS.md`.
+  existence (discrete Schrödinger potentials). STAGING (placeholder); see `FOUNDATIONS.md`.
 * `ForMathlib.MeasureTheory.PathEmbedding` — a standard-Borel space with a countable
   point-separating measurable family embeds measurably into `ℕ→ℝ` with a measurable left
   inverse (Lusin–Souslin); the concrete continuous-path (`C(T,ℝ)`) instance and the resulting

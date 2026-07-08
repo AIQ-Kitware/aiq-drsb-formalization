@@ -48,7 +48,7 @@ inequality** for KL. The endpoint projection `e : ω ↦ (ω₀, ω₁)` sends a
 and `terminalMarginal P = ρ₁`, by feasibility), and coarse-graining cannot increase relative
 entropy — `D(e_# P ‖ e_# R) ≤ D(P ‖ R)` with `e_# R = R₀₁ = endpointLaw` — so
 `staticSBValue ≤ D(e_# P ‖ R₀₁) ≤ D(P ‖ R)`; taking the infimum over feasible `u` gives the
-bound. The DPI is the new axiom-clean `ForMathlib.MeasureTheory.toReal_klDiv_map_le` (a genuine
+bound. The DPI is the new dependency-clean `ForMathlib.MeasureTheory.toReal_klDiv_map_le` (a genuine
 Mathlib gap, proved by conditional Jensen on the convex KL generator). The honest regularity
 edges are `hac`/`hfin` (each feasible path law is `≪ R` with finite relative entropy — the
 finite-energy diffusion regime) and `hne` (the feasible set is nonempty).

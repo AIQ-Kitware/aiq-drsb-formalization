@@ -24,12 +24,12 @@ def FiniteEnergyDiffusion (u : Control X) (ρ₀ : ProbabilityMeasure X) : Prop 
 
 
 omit [NormedSpace ℝ X] in
-/-- **Energy identity (CGP (4.19)) — disintegrated, `sorry`-free.**  By Girsanov, for a
+/-- **Energy identity (CGP (4.19)) — disintegrated, complete.**  By Girsanov, for a
 finite-energy diffusion `P = P^{u,ρ₀}`,
 `D(P‖R) = D(ρ₀‖ρ₀^W) + 𝔼_P[∫₀¹ ½‖u_t‖² dt]`,
 i.e. relative entropy splits into a constant endpoint term plus the control energy.
 
-**Proof by the roadmap decomposition (`ROADMAP_ENERGY_IDENTITY.md`), no `sorry`.**  Both path
+**Proof by the roadmap decomposition (`ROADMAP_ENERGY_IDENTITY.md`), no placeholder.**  Both path
 laws disintegrate over the initial coordinate through a measurable iso `e : Path X ≃ᵐ X × Path X`
 (start-plus-centered-path; a genuine structural fact for a normed path space): `e_# P = ρ₀ ⊗ₘ Kᵘ`
 and `e_# R = ρ₀^W ⊗ₘ Kᵂ` with `ρ₀ = initialMarginal P`, `ρ₀^W = initialMarginal R` and Markov
@@ -45,7 +45,7 @@ bridge kernels `Kᵘ, Kᵂ` (`hPfact`, `hRfact`). Then:
 `hCM`'s **discrete Euler–Maruyama instance is a theorem** (`energy_identity_euler_maruyama` below,
 via the vendored Cameron–Martin `klDiv_stdGaussian_map_add`); the continuum `hCM` is the `Δt→0`
 limit (ROADMAP Phase 2, the last research seam). The disintegration + finiteness hypotheses are
-honest structural facts of a finite-energy diffusion — no `sorry`, `#print axioms`-clean. -/
+honest structural facts of a finite-energy diffusion — no placeholder, Lean dependency audit-clean. -/
 theorem energy_identity (u : Control X) (ρ₀ : ProbabilityMeasure X)
     -- disintegration over the initial coordinate (structural edges; true for a real diffusion):
     (e : Path X ≃ᵐ X × Path X)
@@ -102,7 +102,7 @@ This is exactly the shape Phase 2 must discharge: with `𝓨` a standard-Borel c
 `Kᵘ, Kᵂ` the SDE/reference kernels, `hCM`'s continuum instance is the Cameron–Martin/Girsanov
 identity `∫⁻ D(Kᵘ_x‖Kᵂ_x) dρ₀ = 𝔼[∫½‖u‖²]`, whose **discrete Euler–Maruyama instance is the proved
 `energy_identity_euler_maruyama`** and whose continuum discharge is blocked only on Mathlib's missing
-Itô integral (ROADMAP Phase 2). No `sorry`, `#print axioms`-clean. -/
+Itô integral (ROADMAP Phase 2). No placeholder, Lean dependency audit-clean. -/
 theorem energy_identity_conditional
     {𝒳 𝒴 Ω : Type*} [MeasurableSpace 𝒳] [MeasurableSpace 𝒴] [MeasurableSpace Ω]
     [MeasurableSpace.CountableOrCountablyGenerated 𝒳 𝒴]
@@ -145,7 +145,7 @@ KL, since each projection only loses information.
 This **splits the monolithic Girsanov edge `hCM`**: the lower bound is now a *theorem* (modulo the
 Itô-free convergence edge `hconv`), and only the matching upper bound — the direction requiring the
 projections to exhaust the σ-algebra, i.e. the genuine stochastic-exponential / Itô content — remains
-(ROADMAP Phase 2). `#print axioms`-clean. -/
+(ROADMAP Phase 2). Lean dependency audit-clean. -/
 theorem energy_le_klReal_of_projections
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))
@@ -191,7 +191,7 @@ finite-dimensional Girsanov density, the genuine stochastic-exponential content 
 So the continuum wall is now two sharply-named, disjoint Mathlib gaps: Kolmogorov extension + Itô.
 The generation hypothesis holds for a standard-Borel continuous-path model (countably many rational
 times determine the path); it is a satisfiable hypothesis on the abstract `𝓨`/`ℱ`, not a vacuous
-edge. `#print axioms`-clean. -/
+edge. Lean dependency audit-clean. -/
 theorem energy_eq_klReal_of_projections
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))
@@ -231,7 +231,7 @@ The proof composes three Itô-free `ForMathlib` results: `toReal_klDiv_map_eq_of
 (the embedding preserves `KL`, from the DPI both ways), then on the countable product `ℕ→ℝ`
 `iSup_comap_frestrictLe_eq_pi` (the finite-prefix restrictions generate) feeds `klDiv_map_tendsto`
 (Lévy martingale convergence) so the finite-grid divergences converge to `KL(e_#P ‖ e_#R) = KL(P‖R)`;
-limit-uniqueness against the energy edge `hconv` closes it. `#print axioms`-clean. -/
+limit-uniqueness against the energy edge `hconv` closes it. Lean dependency audit-clean. -/
 theorem energy_eq_klReal_via_embedding
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))

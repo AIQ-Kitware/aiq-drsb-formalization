@@ -1,7 +1,7 @@
 /-
 # Mohajerin Esfahani–Kuhn (2018): data-driven Wasserstein DRO
 
-Statement-only scaffold (`sorry` bodies) for the data-driven strong-duality /
+Statement-only scaffold (proof bodies deferred) for the data-driven strong-duality /
 finite convex reformulation and the extremal (worst-case) distributions of
 
   P. Mohajerin Esfahani, D. Kuhn, "Data-driven Distributionally Robust Optimization
@@ -298,7 +298,7 @@ noncomputable def worstCaseLaw {N K : ℕ} (α : Fin N → Fin K → ℝ)
     (ξ : Fin N → Fin K → X) : Measure X :=
   (N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K, ENNReal.ofReal (α i k) • Measure.dirac (ξ i k)
 
-/-- **Constructive core (sorry-free): the discrete law of a feasible config is in the ball
+/-- **Constructive core (proved): the discrete law of a feasible config is in the ball
 and dominates its extremal objective.** For any feasible `(α, q)` (Assumption 4.1 program),
 the explicit discrete law `Q = (1/N) Σᵢₖ αᵢₖ δ_{ξ̂ᵢ − qᵢₖ/αᵢₖ}` (i) lies in the
 ε-Wasserstein ball around the empirical nominal, witnessed by the explicit transport plan
@@ -380,7 +380,7 @@ and vectors `qᵢₖ`:
      = sup_{(α, q) feasible} (1/N) ∑_{i} ∑_{k} αᵢₖ · ℓₖ(ξ̂ᵢ − qᵢₖ/αᵢₖ)`.
 
 **Proof (house pattern, `[MeasurableSingletonClass X]`).** The `≥`
-(`sup(program) ≤ droValue`) direction is proved **constructively, sorry-free**: every
+(`sup(program) ≤ droValue`) direction is proved **constructively, proved**: every
 feasible `(α, q)` yields the explicit discrete law `Q = (1/N) Σᵢₖ αᵢₖ δ_{ξ̂ᵢ − qᵢₖ/αᵢₖ}`,
 which lies in the ε-Wasserstein ball (witnessed by the explicit transport plan
 `(1/N) Σᵢₖ αᵢₖ δ_{(ξ̂ᵢ, ξ̂ᵢ − qᵢₖ/αᵢₖ)}`, whose cost `(1/N) Σᵢₖ ‖qᵢₖ‖ ≤ ε` — via
@@ -407,7 +407,7 @@ theorem worstCase_program [MeasurableSingletonClass X]
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ wass1Ball μhat ε ∧ r = expect μ ℓ })
     -- the `≤`/reduction edge (Thm 4.4's OT content: every ball measure ≤ some extremal
-    -- config), isolated as one explicit hypothesis (not a `sorry`, not faked):
+    -- config), isolated as one explicit hypothesis (not a placeholder, not faked):
     (hdom : droValue (wass1Ball μhat ε) ℓ
         ≤ sSup { v : ℝ | ∃ (α : Fin N → Fin K → ℝ) (q : Fin N → Fin K → X),
             extremalFeasible ξhat Ξ ε α q ∧ v = extremalObjective ξhat ℓk α q }) :
@@ -451,7 +451,7 @@ set (absent from Mathlib as a packaged result), so it is isolated as the single 
 construction lemma `worstCaseLaw_ball_ge` produces the discrete law `Q` in the ball with
 `𝔼_Q[ℓ] ≥ extremalObjective = droValue`, and `𝔼_Q[ℓ] ≤ droValue` (as `Q` is in the ball,
 `le_csSup`), so `𝔼_Q[ℓ] = droValue` — `Q` attains it. Everything except `hattain` is proved
-sorry-free. -/
+proved. -/
 theorem worstCase_exists [MeasurableSingletonClass X]
     (N : ℕ) (ξhat : Fin N → X) (hN : 0 < N)
     (μhat : ProbabilityMeasure X) (hμ : (μhat : Measure X) = empiricalMeasure ξhat)

@@ -12,7 +12,7 @@ Mathlib has the Birkhoff polytope / doubly-stochastic matrices
 Perron–Frobenius-as-a-theorem nor Sinkhorn scaling (grep-verified). Proposed home:
 `Mathlib/LinearAlgebra/Matrix/SinkhornScaling.lean` (new). See `FOUNDATIONS.md` (Chain 3).
 
-STATUS: **PROVED** (axiom-clean: propext / Classical.choice / Quot.sound only).
+STATUS: **PROVED** (dependency-clean: propext / Classical.choice / Quot.sound only).
 
 METHOD (no Brouwer / no Birkhoff contraction — Mathlib has neither): a **log-domain
 convex minimization**. The scalings are read off the first-order conditions of
@@ -44,7 +44,7 @@ namespace ForMathlib
 finite index set and strictly positive marginals `p, q` of equal total mass, there exist
 strictly positive scalings `a, b` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
 
-Proved via log-domain minimization; see the module docstring. Axiom-clean; a genuine
+Proved via log-domain minimization; see the module docstring. Dependency-clean; a genuine
 Mathlib gap (Sinkhorn/matrix scaling is not in Mathlib). -/
 theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)

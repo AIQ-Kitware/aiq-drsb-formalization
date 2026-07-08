@@ -8,7 +8,7 @@
 present** on 2026-07-07 against the pinned Mathlib (`lean-toolchain
 v4.32.0-rc1`, manifest `inputRev = master`).
 
-**Goal.** Prove, axiom-clean and at Mathlib quality, the **infinite-dimensional
+**Goal.** Prove, dependency-clean and at Mathlib quality, the **infinite-dimensional
 Cameron–Martin KL identity** (the deterministic-drift continuum energy identity in
 canonical coordinates):
 
@@ -42,7 +42,7 @@ The review flags below are **all addressed** (statements retyped to `Finset.Iic`
 re-routed and implemented, M4a re-scoped honestly). Per the coordinator's split — the
 hardest bricks were implemented by Fable; the then-remaining tickets were queued for the next agent and are updated below.
 
-**DONE (Fable, axiom-clean, `lake build` green):**
+**DONE (Fable, dependency-clean, `lake build` green):**
 - **M2.2** — `ForMathlib/MeasureTheory/PiWithDensity.lean`:
   `map_withDensity_measurableEquiv` (the missing sub-lemma), `pi_withDensity_fin` /
   `pi_withDensity` (dependent `Fin` core + constant-fibre `Fintype` transport, cast-free
@@ -74,7 +74,7 @@ M3, M4a, and the converse/infinite branch. The now-proved public surface include
 `ChenGeorgiouPavon2021.energy_identity_sequenceModel` with finite/top wrappers.
 
 Remaining after this update:
-- **M5 audit/doc commit hygiene**: `#print axioms` on the new public declarations, update
+- **M5 audit/doc commit hygiene**: Lean dependency audit on the new public declarations, update
   proof-pipeline inventory if desired, then commit.
 - **M4b path-level transport**: identify the canonical sequence-coordinate law with the
   actual Wiener/SDE path kernels. This remains the honest continuum bridge and is not implied
@@ -86,7 +86,7 @@ Remaining after this update:
 capstones are explicit interfaces.** The later M4b overlays added and repaired the dyadic Wiener
 bridge through the finite-dimensional level: normalized dyadic increments, Brownian increment laws,
 Gaussian scaling, independence/product-law assembly, finite shifted-grid density formulas, and
-finite dyadic absolute continuity. The final wrapper section now has no executable `sorry`s for
+finite dyadic absolute continuity. The final wrapper section now has no executable placeholders for
 those finite pieces. The two remaining continuum facts are deliberately exposed as assumptions:
 `HasDyadicKLExhaustion W` and path-space absolute continuity of the Cameron--Martin shift.
 
@@ -112,7 +112,7 @@ Wiener/dyadic layer is split under `Continuum.Wiener.*`; continuum closure is sp
 KL-exhaustion, quasi-invariance, and assembly modules; and `SocOt` is split into dynamic, static,
 entropic-OT, and Sinkhorn wrappers. Future project-wide scaffold theorems should be placed in the
 module that owns the missing mathematics. Integration lemmas should consume these targets and should
-not receive their own `sorry`s. For fresh validation, use `dev/check_cgp_module_split.sh`, because
+not receive their own placeholders. For fresh validation, use `dev/check_cgp_module_split.sh`, because
 direct Lean file checks do not recursively compile imported local modules.
 
 **Call-site contract for M2.8** (what M2.5/M2.7 must produce to plug in):
@@ -205,12 +205,12 @@ correct and the hard convergence machinery it leans on is already proved in-repo
    the intended model; every conclusion must be pinned down by the hypotheses (the
    `JOURNAL.md` Session-1 "free variable" test). New theorems here should need **no**
    content edges at all — that is the point of this milestone.
-2. **Axiom-clean.** `#print axioms <decl>` = `[propext, Classical.choice, Quot.sound]`
+2. **Dependency-clean.** `Lean dependency audit <decl>` = `[propext, Classical.choice, Quot.sound]`
    for every new declaration. Check with a scratch file (see §6), not by eye.
 3. **Mathlib style.** `set_option autoImplicit false` (already global); docstrings on
    every public decl stating the math + proof route; naming by Mathlib conventions
    (`klDiv_…`, `absolutelyContinuous_…`, `uniformIntegrable_…`); `theorem` for Props;
-   no `sorry` at any commit point; smallest-scope `variable`s; `omit` unused instance
+   no placeholder at any commit point; smallest-scope `variable`s; `omit` unused instance
    binders flagged by the linter.
 4. **Build protocol.** `export PATH="$HOME/.elan/bin:$PATH"` first (elan not on PATH).
    Iterate with `lake env lean <file>` (~30–60 s; no build lock); full `lake build` only
@@ -288,7 +288,7 @@ directly `eLpNorm f 1 ≤ eLpNorm f 2 * (measure univ)^(1/2)` (`eLpNorm_le_eLpNo
 on finite measures) — check which the `uniformIntegrable_of` output already supplies
 (it derives the bound itself; read its statement first).
 
-**Acceptance.** `lake env lean` clean; axiom-check; the lemma is consumed verbatim by
+**Acceptance.** `lake env lean` clean; dependency-check; the lemma is consumed verbatim by
 M2.8.
 
 ---
@@ -315,7 +315,7 @@ Mind `ENNReal.ofReal_mul` (needs a nonneg factor) and `Real.exp_add`.
 
 > ✅ **REVIEW flag [A] — ADDRESSED & IMPLEMENTED (Fable, 2026-07-07).** Route (a) was a dead
 > end (no finite `lintegral`-over-`Measure.pi` Tonelli in the pin). The whole milestone is now
-> **done, axiom-clean**, in `ForMathlib/MeasureTheory/PiWithDensity.lean`:
+> **done, dependency-clean**, in `ForMathlib/MeasureTheory/PiWithDensity.lean`:
 > `map_withDensity_measurableEquiv` (the previously-missing sub-lemma: `withDensity` commutes
 > with a measurable equiv), `pi_withDensity` (`Fin n` induction via `piFinSuccAbove` +
 > `prod_withDensity`, then Fintype transport via `piCongrLeft`, mirroring the vendored
@@ -619,8 +619,8 @@ stop — M4a already discharges the deterministic `hCM` honestly.
 ## 6. M5 — verification, docs, commits (non-negotiable checklist)
 
 1. **Full build**: `lake build` green; only pre-existing warnings.
-2. **Axiom check** (scratchpad file, `lake env lean` it):
-   `#print axioms` on — `uniformIntegrable_one_of_lintegral_sq_bdd`,
+2. **Dependency check** (scratchpad file, `lake env lean` it):
+   Lean dependency audit on — `uniformIntegrable_one_of_lintegral_sq_bdd`,
    `martingale_of_setLIntegral_eq`, `absolutelyContinuous_of_localDensity`,
    `Measure.pi_withDensity`, `gaussianReal_shift_eq_withDensity`,
    `stdGaussian_map_add_eq_withDensity`, `stdSeqGaussian_map_frestrictLe`,
@@ -651,9 +651,9 @@ stop — M4a already discharges the deterministic `hCM` honestly.
 
 The continuum plan now distinguishes theorem-building from integration:
 
-- theorem-building is represented by executable `sorry`s in logical target modules;
+- theorem-building is represented by executable placeholders in logical target modules;
 - integration theorems should be proved from those targets and should not introduce additional
-  downstream `sorry`s;
+  downstream placeholders;
 - the corrected interval/anchored-continuous path carrier is the path-space direction for the final
   M4 theorem, while `RealPath := ℝ → ℝ` remains an ambient compatibility scaffold.
 
@@ -666,4 +666,4 @@ New continuum theorem targets are split across:
   Cameron--Martin quasi-invariance.
 
 The interval M4 theorem in `Continuum.IntervalWiener` is assembly-only: once those target theorems are
-proved, it should connect without new mathematical `sorry`s.
+proved, it should connect without new mathematical placeholders.

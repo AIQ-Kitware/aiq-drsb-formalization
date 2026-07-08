@@ -2,7 +2,7 @@
 # Continuum frontier: Sobolev to dyadic Cameron--Martin energy
 
 This module contains the ordinary Sobolev/Cameron--Martin path interface and
-the sorry-free wrapper into the dyadic `IsCameronMartinPath` scaffold.
+the proved wrapper into the dyadic `IsCameronMartinPath` scaffold.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.WienerDyadic

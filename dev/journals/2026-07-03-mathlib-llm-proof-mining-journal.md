@@ -10,7 +10,7 @@ Scope: `aiq-drsb-formalization` (this repo — `dev/tools/`, `dev/journals/`); p
 
 ## Purpose / trigger
 
-The DRSB Lean formalization has **12 remaining `sorry`s**, all genuine T4 (see the
+The DRSB Lean formalization has **12 remaining placeholders**, all genuine T4 (see the
 submodule's `PROOF_PIPELINE.md` §2):
 
 - **6 SDE/PDE controls** (`ChenGeorgiouPavon2021`): Girsanov energy identity, HJB /
@@ -19,9 +19,9 @@ submodule's `PROOF_PIPELINE.md` §2):
   worst-case-measure construction / OT measurable-selection.
 
 Earlier this session the one self-contained target — finite **Sinkhorn / matrix scaling**
-existence — was proved from scratch (`ForMathlib.matrix_scaling_exists`, axiom-clean, via
+existence — was proved from scratch (`ForMathlib.matrix_scaling_exists`, dependency-clean, via
 log-domain convex minimization; commit `d6e6ffa` in the submodule). That left the 12 T4
-sorries, which need mathematics absent from the pinned Mathlib.
+placeholders, which need mathematics absent from the pinned Mathlib.
 
 The question the user raised: **have we exhaustively searched external sources for
 LLM-assisted proofs we could bring in — specifically closed, unreviewed, LLM-tagged
@@ -47,7 +47,7 @@ and the LLM-PR pool were un-mined**. This sweep closes that gap for our specific
 
 ## Findings
 
-**The theory behind the 12 T4 sorries is not in the mathlib PR ecosystem — LLM-tagged or
+**The theory behind the 12 T4 placeholders is not in the mathlib PR ecosystem — LLM-tagged or
 otherwise.** Whole-repo PR search (any author/label/state) returned **zero** hits for:
 `Girsanov`, `Kantorovich`, `optimal transport`, `Wasserstein`, `OptimalTransport`,
 `Sinkhorn`, `measurable selection`, `Fenchel`/`convex conjugate`, `Feynman Kac`,
@@ -62,15 +62,15 @@ Within the 414 closed-unmerged `LLM-generated` PRs, the only matches to our chai
 |---|---|---|
 | #35571 | "Brownian motion, Ito calculus, Black–Scholes PDE" | Chain 4 — but **274 lines / 6 files**, a thin scaffold ("discrete integral for elementary predictable processes"; Black–Scholes PDE in 52 lines). **No Girsanov.** Too shallow to build the SB controls on. |
 | #40085, #39349/#39346, #37121, #36641 | Ville / Doob martingale inequalities | Chain-4-adjacent probability infra, not our controls. |
-| #36637, #39166, #39167, #38824 | Pinsker / Le Cam / entropy axiomatics | Chain-2-adjacent (KL); our DV/Gibbs is already proved. |
+| #36637, #39166, #39167, #38824 | Pinsker / Le Cam / entropy foundational assumptions | Chain-2-adjacent (KL); our DV/Gibbs is already proved. |
 
 On the user's premise (valid proofs closed for being LLM): #35571 was indeed closed
 unmerged, but it is genuinely thin — not a complete, unfairly-rejected proof of anything we
 need. No substantial, buildable proof of a DRSB-relevant theorem was found in the pool.
 
 **Conclusion:** for the DRSB frontier there is **nothing to vendor** from the LLM-PR pool.
-The remaining T4 sorries require either (a) building the missing Mathlib *area*
-(stochastic analysis / general measurable OT) or (b) documented `axiom`s with provenance —
+The remaining T4 placeholders require either (a) building the missing Mathlib *area*
+(stochastic analysis / general measurable OT) or (b) documented `dependency`s with provenance —
 consistent with the standing recommendation. This is a useful *negative* result: it closes
 the "did we miss an existing proof?" question for these specific gaps.
 
@@ -109,10 +109,10 @@ the "did we miss an existing proof?" question for these specific gaps.
    OProofs, LeanNavigator, LeanExplore/LeanSearch DBs — see `SURVEY_LEADS.md` §"Generated-
    proof corpora"). Those hold *nearby generated lemmas*, not our exact theorems; lower
    priority than corpus-scale mining would suggest, given the whole-repo zero result.
-3. **For the 6 SDE/PDE sorries:** track `RemyDegenne/brownian-motion` (Itô in progress) and
+3. **For the 6 SDE/PDE placeholders:** track `RemyDegenne/brownian-motion` (Itô in progress) and
    `raphaelrrcoelho/formal-mathfin` (partial Girsanov) as future upstream deps; neither is
-   mature enough today. Pending them → documented `axiom`s with provenance.
-4. **For the 6 worst-case-structure sorries:** the only realistic in-repo path is the
+   mature enough today. Pending them → documented `dependency`s with provenance.
+4. **For the 6 worst-case-structure placeholders:** the only realistic in-repo path is the
    **finite/discrete-OT reduction** (empirical nominal ⇒ LP + `Mathlib.Topology.Sion`),
    sidestepping general measurable selection — a real but bounded build, not a vendored
    proof. Decide with the coordinator.

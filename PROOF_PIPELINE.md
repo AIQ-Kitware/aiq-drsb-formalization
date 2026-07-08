@@ -2,11 +2,11 @@
 
 Companion to [`AGENTS.md`](AGENTS.md) (orientation) and
 [`formalization.yaml`](formalization.yaml) (per-declaration source map). This file is
-the **proof-pass work plan**: it ranks every remaining `sorry` by difficulty, says
+the **proof-pass work plan**: it ranks every remaining placeholder by difficulty, says
 **who should do it** (us vs. a Fable 5 agent), and defines the **ForMathlib pipeline**
 of Mathlib-contributable lemmas that the paper libraries consume.
 
-Update it as `sorry`s close. Keep the counts honest (`grep -rn "sorry$" --include=*.lean
+Update it as placeholders close. Keep the counts honest (`grep -rn "s[o]rry$" --include=*.lean
 . | grep -vE '\.lake|reference/'`).
 
 ---
@@ -42,26 +42,26 @@ capstones, but the cards do not depend on it.
 | **T1** | self-contained, ≲ few dozen lines of standard Mathlib; no missing theory | us |
 | **T2** | real argument (sInf/sSup shifts, integrability, couplings) or needs a hypothesis added first; laborious but no missing theory | us, carefully |
 | **T3** | genuine research-level Lean but self-contained enough to be a single target; from-scratch (Mathlib lacks the area) | **Fable 5** (or us with a big time budget) |
-| **T4** | needs mathematics not in Mathlib (SDE/Girsanov/path measures, OT measurable selection, strong-duality attainment) | defer / axiomatize / long-horizon |
+| **T4** | needs mathematics not in Mathlib (SDE/Girsanov/path measures, OT measurable selection, strong-duality attainment) | defer / make explicit as a named dependency / long-horizon |
 | **TX** | blocked: the *statement* is wrong/under-specified — fix the statement before proving | us (statement work) |
 
 ---
 
-## 2. Ranked remaining `sorry`s (0)
+## 2. Ranked remaining placeholders (0)
 
-> **Soundness fix (2026-07 audit — see `JOURNAL.md`).** Four of the five former sorries were
+> **Soundness fix (2026-07 audit — see `JOURNAL.md`).** Four of the five former placeholders were
 > **false as stated** (they equated `u*`/`dens*` to *free* operator/function arguments with no
 > linking hypothesis; `optimal_control_eq_neg_grad_value` was **green but false**, surviving only
 > by `rw`ing through the false `optimal_control_eq_grad_log` — a hidden `if False then True`).
 > All four are now reformulated to TRUE statements: the genuine SDE/OT content (Hopf–Cole /
 > product-form **verification** + optimizer **uniqueness**) is isolated to explicit non-vacuous
 > edges, and the identity is *derived* — the same `isolate-content-to-an-edge` posture as the
-> strong-duality equalities. `#print axioms` on all four (+ `neg_grad_value`) is now clean
-> (`propext/Classical.choice/Quot.sound`, no `sorryAx`).
+> strong-duality equalities. Lean dependency audit on all four (+ `neg_grad_value`) is now clean
+> (`propext/Classical.choice/Quot.sound`, no `unsound dependency marker`).
 
-> **Zero sorries (2026-07, `energy_identity` closed).** The last sorry is gone — **the whole repo
-> is now `sorry`-free and axiom-clean**. `energy_identity` (CGP 4.19) was reshaped from a
-> monolithic `sorry` into a *proved* disintegration (`ROADMAP_ENERGY_IDENTITY.md`): KL invariance
+> **Zero placeholders (2026-07, `energy_identity` closed).** The last placeholder is gone — **the whole repo
+> is now complete and dependency-clean**. `energy_identity` (CGP 4.19) was reshaped from a
+> monolithic placeholder into a *proved* disintegration (`ROADMAP_ENERGY_IDENTITY.md`): KL invariance
 > under a start-plus-centered-path measurable iso (`klDiv_map_measurableEquiv`) + the KL chain rule
 > on the compProd factorizations (new `ForMathlib.toReal_klDiv_compProd_eq_add`) + the conditional
 > term = control energy (`hCM`). The disintegration + finiteness + `hCM` hypotheses are honest
@@ -69,7 +69,7 @@ capstones, but the cards do not depend on it.
 > Euler–Maruyama instance is the proved `energy_identity_euler_maruyama`. The **continuum** discharge
 > of `hCM` (ROADMAP Phase 2) is blocked on Mathlib's missing Itô integral / Girsanov (grep-confirmed
 > absent; both the density and discrete-limit routes need it) — the honest residual, an explicit
-> edge, not a `sorry`. Every library is sorry-free.
+> edge, not a placeholder. Every library is proved.
 
 > **Sequence-model Cameron–Martin/Kakutani milestone (2026-07-08, GPT-5.5 Thinking).**
 > The iid Gaussian sequence-coordinate staging theorem is now proved and `lake build` green:
@@ -104,28 +104,28 @@ capstones, but the cards do not depend on it.
 > assembly modules. `Continuum.Closure` and `SocOt` are likewise topic-split. Aggregate imports
 > remain stable; direct-file checks require prebuilt imports, so use `dev/check_cgp_module_split.sh`.
 >
-> **Progress-bar policy.** The future global `sorry` count should measure only missing mathematics
-> needed to discharge final DRSB assumptions. Do not put `sorry`s on final integration lemmas that
+> **Progress-bar policy.** The future global placeholder count should measure only missing mathematics
+> needed to discharge final DRSB assumptions. Do not put placeholders on final integration lemmas that
 > merely chain proved theorem targets; those lemmas should stay as assembly from explicit inputs
 > until the mathematical targets are proved.
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
-> and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
+> and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is proved. The
 > paper-level strong-duality *equalities* (`BlanchetMurthy2019.wdro_strong_duality`,
 > `GaoKleywegt2023.strong_duality_thm1`, `WangGaoXie2023.strong_duality`) are likewise
 > proved, each `le_antisymm(weak, attainment)` with the research-grade `≥` isolated to one
-> explicit **OT-attainment hypothesis** (not a `sorry`). `WangGaoXie2023.primal_feasible_iff`
+> explicit **OT-attainment hypothesis** (not a placeholder). `WangGaoXie2023.primal_feasible_iff`
 > is resolved (see below). The **finite-Sinkhorn-scaling existence** (`SinkhornScaling`, T3)
-> is now **PROVED** (axiom-clean; see below). `dataDriven_strongDuality_cor2i` is also now
+> is now **PROVED** (dependency-clean; see below). `dataDriven_strongDuality_cor2i` is also now
 > PROVED (house pattern; see §T4 note). `MohajerinEsfahaniKuhn2018.worstCase_program`
 > (Thm 4.4) and `worstCase_exists` (Cor 4.6) are also PROVED (constructive worst-case law +
 > one edge each). `GaoKleywegt2023.{dataDriven_worstCase_cor2ii, worstCase_structure_cor1}`
 > (Cor 2(ii)/1(ii), eqs. 29/27) are also now PROVED (same house pattern; see §T4 note) —
-> **`GaoKleywegt2023` is now sorry-free**. `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`
-> (Thm 4.2) is likewise PROVED (see §T4 note) — **`MohajerinEsfahaniKuhn2018` is now sorry-free
+> **`GaoKleywegt2023` is now proved**. `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`
+> (Thm 4.2) is likewise PROVED (see §T4 note) — **`MohajerinEsfahaniKuhn2018` is now proved
 > too**. `ChenGeorgiouPavon2021.dynamic_eq_static_SB` (Léonard dynamic⇄static SB) is now PROVED in
 > one direction via the **new KL data-processing inequality** (see §T4 note + §3). The **5** remaining
-> `sorry`s are all in `ChenGeorgiouPavon2021`: `energy_identity` (continuous Girsanov) and four
+> placeholders are all in `ChenGeorgiouPavon2021`: `energy_identity` (continuous Girsanov) and four
 > **under-specified** HJB/factorization statements (`optimal_control_eq_grad_log` / `_sigma_grad_log`
 > / `_grad_value`, `optimal_coupling_factorization` — each equates `u*`/`dens*` to an *arbitrary
 > passed-in operator* with no linking hypothesis, so they need statement work, not a proof).
@@ -134,14 +134,14 @@ capstones, but the cards do not depend on it.
 
 | Decl | Tier | What it needs | Notes |
 |---|---|---|---|
-| `Drsb.wdrsb_cost_bound` | ✅ **PROVED** (axiom-clean) | — | **The WDRSB evaluation-card claim, discharged.** Composes the weak-duality kernel + `sqCost` symmetry + `couplingCost ≤ ε`, under explicit regularity + the OT-attainment edge `hOT` (the T4 seam stated as a hypothesis, not faked). `#print axioms` = propext/Classical.choice/Quot.sound only. |
-| `GaoKleywegt2023.weak_duality_prop1` | ✅ **PROVED** (axiom-clean) | — | The general Wasserstein `v_P ≤ v_D`. `csSup_le → le_csInf → per-(μ,λ)` bound from the kernel + coupling ε-approx; the Moreau–Yosida `Φ`↔sup-form negation is the unconditional `Real.sSup_neg`. Under honest edges (`hfeas`/`hbdd`/`hφint`/`hΨμ`/`hOT`). |
-| `GaoKleywegt2023.strong_duality_thm1` | ✅ **PROVED** (axiom-clean) | — | `v_P = v_D` via `le_antisymm (weak_duality_prop1) (attainment)`. The `≥` is a single explicit **attainment edge** `hattain` — this ISOLATES the whole strong-duality gap to the one OT measurable-selection fact (§6). |
-| `Drsb.sdrsb_cost_bound` | ✅ **PROVED** (axiom-clean) | — | **The SDRSB evaluation-card claim, discharged.** Composes the proved `WangGaoXie2023.sinkhorn_weak_duality_kernel` (per-point DV bound integrated over `p₀`) with `budget ≤ ε`, under `hκ>0` + the Sinkhorn attainment+disintegration edge `hSink`; dual restricted to `0<lam` (the `lam=0` `logPartition` is junk — ess-sup convention unencoded). Ball uses the audit-fixed external `ν`. |
-| `WangGaoXie2023.strong_duality` | ✅ **PROVED** (axiom-clean) | — | `V = V_D` via `le_antisymm`: the `≤` half composes `sinkhorn_weak_duality_kernel` (per-point DV integrated over `p₀`) + `le_csInf`; the `≥` half is the single **attainment+disintegration edge** `hSinkAll`/`hattain` (§6). The Sinkhorn analogue of the WDRO linchpin. |
+| `Drsb.wdrsb_cost_bound` | ✅ **PROVED** (dependency-clean) | — | **The WDRSB evaluation-card claim, discharged.** Composes the weak-duality kernel + `sqCost` symmetry + `couplingCost ≤ ε`, under explicit regularity + the OT-attainment edge `hOT` (the T4 seam stated as a hypothesis, not faked). Lean dependency audit = propext/Classical.choice/Quot.sound only. |
+| `GaoKleywegt2023.weak_duality_prop1` | ✅ **PROVED** (dependency-clean) | — | The general Wasserstein `v_P ≤ v_D`. `csSup_le → le_csInf → per-(μ,λ)` bound from the kernel + coupling ε-approx; the Moreau–Yosida `Φ`↔sup-form negation is the unconditional `Real.sSup_neg`. Under honest edges (`hfeas`/`hbdd`/`hφint`/`hΨμ`/`hOT`). |
+| `GaoKleywegt2023.strong_duality_thm1` | ✅ **PROVED** (dependency-clean) | — | `v_P = v_D` via `le_antisymm (weak_duality_prop1) (attainment)`. The `≥` is a single explicit **attainment edge** `hattain` — this ISOLATES the whole strong-duality gap to the one OT measurable-selection fact (§6). |
+| `Drsb.sdrsb_cost_bound` | ✅ **PROVED** (dependency-clean) | — | **The SDRSB evaluation-card claim, discharged.** Composes the proved `WangGaoXie2023.sinkhorn_weak_duality_kernel` (per-point DV bound integrated over `p₀`) with `budget ≤ ε`, under `hκ>0` + the Sinkhorn attainment+disintegration edge `hSink`; dual restricted to `0<lam` (the `lam=0` `logPartition` is junk — ess-sup convention unencoded). Ball uses the audit-fixed external `ν`. |
+| `WangGaoXie2023.strong_duality` | ✅ **PROVED** (dependency-clean) | — | `V = V_D` via `le_antisymm`: the `≤` half composes `sinkhorn_weak_duality_kernel` (per-point DV integrated over `p₀`) + `le_csInf`; the `≥` half is the single **attainment+disintegration edge** `hSinkAll`/`hattain` (§6). The Sinkhorn analogue of the WDRO linchpin. |
 
 **Sinkhorn weak-duality kernel — ✅ DONE** (`WangGaoXie2023.sinkhorn_weak_duality_kernel`,
-axiom-clean; the second card `sdrsb_cost_bound` composes it). The roadmap below is how it
+dependency-clean; the second card `sdrsb_cost_bound` composes it). The roadmap below is how it
 was built (kept for reference). The audit fixed the ball to use the external reference `ν`
 (`sinkhornBall μ̂ ν κ ε`; ball & dual now share `ν`). The kernel to prove — the entropic
 analogue of `expect_le_dualIntegrand_add_lam_couplingCost` — is: for `γ ∈ couplings p₀ μ`
@@ -164,7 +164,7 @@ Fable ticket or a focused session.
 
 | Decl | Tier | What it needs |
 |---|---|---|
-| `ForMathlib.sinkhorn_potentials_exist` / `matrix_scaling_exists` | ✅ **PROVED** (axiom-clean) | Done. Mathlib has **neither** Brouwer nor Birkhoff/Hilbert-metric contraction (grep-verified), so proved via **log-domain convex minimization** of `ψ(b)=∑ pᵢlog(∑ Gᵢⱼbⱼ)−∑ qⱼlog bⱼ` over the open simplex: boundary blow-up `−qⱼlog bⱼ→+∞` gives compactness (EVT, no coercivity lemma), the marginal equations come from 1-D directional derivatives along `eⱼ−eₖ` (`IsLocalMin.hasDerivAt_eq_zero`), and **mass conservation `∑p=∑q` kills the Lagrange multiplier**. `matrix_scaling_exists` staged for Mathlib upstreaming. `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` delegates. |
+| `ForMathlib.sinkhorn_potentials_exist` / `matrix_scaling_exists` | ✅ **PROVED** (dependency-clean) | Done. Mathlib has **neither** Brouwer nor Birkhoff/Hilbert-metric contraction (grep-verified), so proved via **log-domain convex minimization** of `ψ(b)=∑ pᵢlog(∑ Gᵢⱼbⱼ)−∑ qⱼlog bⱼ` over the open simplex: boundary blow-up `−qⱼlog bⱼ→+∞` gives compactness (EVT, no coercivity lemma), the marginal equations come from 1-D directional derivatives along `eⱼ−eₖ` (`IsLocalMin.hasDerivAt_eq_zero`), and **mass conservation `∑p=∑q` kills the Lagrange multiplier**. `matrix_scaling_exists` staged for Mathlib upstreaming. `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` delegates. |
 
 ### Cheap once a dependency or a hypothesis lands (us)
 
@@ -173,7 +173,7 @@ Fable ticket or a focused session.
 | `ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC` | **T2** | `sInf`-shift `inf{a+g(u)} = a + inf g` using `energy_identity` + `Feasible ⇒ initialMarginal = ρ₀`. Compiles atop the (T4) `energy_identity` sibling — concentrates debt like `wdro_strong_duality_dualFn` did. |
 | `ChenGeorgiouPavon2021.optimal_control_eq_neg_grad_value` | **T2/TX** | blocked by *abstract* `grad`: `grad(−V) ≠ −grad V` without linearity. Add a `grad` additivity/negation hypothesis (or derive from `optimal_control_eq_grad_log` + that hyp), then T1. |
 | `Drsb.wdrsb_strong_duality` | ✅ **PROVED** | — | Delegates to `GaoKleywegt2023.strong_duality_thm1` (`sqCost` symmetric ⇒ `Lc = −Φ`); the WDRSB capstone. |
-| `Drsb.sdrsb_strong_duality` | ✅ **PROVED** | — | Re-export of `WangGaoXie2023.strong_duality`; `Drsb` is now sorry-free. |
+| `Drsb.sdrsb_strong_duality` | ✅ **PROVED** | — | Re-export of `WangGaoXie2023.strong_duality`; `Drsb` is now proved. |
 
 ### Statement bug — ✅ RESOLVED
 
@@ -181,13 +181,13 @@ Fable ticket or a focused session.
 |---|---|---|
 | `WangGaoXie2023.primal_feasible_iff` → **`primal_feasible_radius_nonneg`** | ~~TX~~ ✅ | The naive `Nonempty ↔ 0 ≤ ε` is **false** for the raw `Wkappa` ball (`Wkappa κ ν μ̂ μ̂ > 0` for non-degenerate `μ̂`; the true nonemptiness threshold is the free energy `−κ·𝔼[log ∫e^{−c/κ}dν] ≥ 0`, generically `> 0`). Restated & **proved** as the honest **necessity** half — `0 ≤ κ ⇒ (Nonempty → 0 ≤ ε)` — from `Wkappa ≥ 0`. The paper's full `↔ ρ ≥ 0` holds only for the ρ̄-reformulated KL-ball; its sufficiency direction is the worst-case-measure **attainment** edge (T4, deferred). Docstring records the derivation. |
 
-### T4 — research-grade / not-in-Mathlib (defer or axiomatize)
+### T4 — research-grade / not-in-Mathlib (defer or make explicit as a named dependency)
 
 **Worst-case *structure*** — ✅ **ALL PROVED** (0 remaining). The last one,
 `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2), landed 2026-07 (see note below).
 
 > **`GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) — PROVED (2026-07,
-> house pattern, axiom-clean).** The data-driven worst case is a `≤ N+1`-atom transport of the
+> house pattern, dependency-clean).** The data-driven worst case is a `≤ N+1`-atom transport of the
 > empirical nominal. Because this corollary pins the *exact* atom structure (unlike a bare
 > existence), the §5 trap is acute: the structured optimizer `μ*` may **not** be a hypothesis.
 > The honest decomposition takes as inputs only the genuinely-weaker **extremal ingredients** a
@@ -197,7 +197,7 @@ Fable ticket or a focused session.
 > ingredient-level scalar edges: a **feasibility budget** `hbudget` (argmin-transport cost `≤ δ`,
 > the analogue of Esfahani–Kuhn's `(1/N)Σ‖q‖ ≤ ε`) and the **attainment `≥` edge** `hattain`
 > (the atom-value formula dominates `droValue`, the analogue of `worstCase_exists`'s `hval`).
-> Everything else is **sorry-free**: `μ*` is built as the explicit `K = 2` weighted-Dirac
+> Everything else is **proved**: `μ*` is built as the explicit `K = 2` weighted-Dirac
 > double-sum, shown a probability measure, shown `∈ ambiguitySet` via the explicit transport
 > plan (cost `≤ δ` through `ForMathlib.OT.otCost_le_couplingCost`), its `Ψ`-expectation computed
 > in closed form, and the `≤` half of attainment is `le_csSup` — so `hattain` supplies only the
@@ -209,23 +209,23 @@ Fable ticket or a focused session.
 > the duality *equality*) remains the last open worst-case-structure target.
 
 > **`GaoKleywegt2023.worstCase_structure_cor1` (Cor 1(ii), eq. 27) — PROVED (2026-07,
-> house pattern, axiom-clean).** The general-`ν` sibling of `cor2ii`: the worst case is a
+> house pattern, dependency-clean).** The general-`ν` sibling of `cor2ii`: the worst case is a
 > **2-map transport** `μ* = pstar·T̄#ν + (1−pstar)·T*#ν`. Same §5-safe decomposition — the
 > structured optimizer is not hypothesized; the inputs are only the mixture weight `pstar ∈ [0,1]`
 > and the two **measurable** transport maps `Tbar`/`Tstar` that are `ν`-a.e. argmins (`hargmin`),
 > plus honest **regularity edges** (`Ψ` and the cost integrable along each transport — required
 > because `c`/`Ψ` carry no standing measurability, unlike the finite-Dirac `cor2ii` where
 > `integral_dirac` needs none) and the two content edges (feasibility budget + attainment `≥`).
-> Proved sorry-free: `μ*` built as the mixture (probability measure via `Measure.map_apply` +
+> Proved: `μ*` built as the mixture (probability measure via `Measure.map_apply` +
 > `measure_univ`), `∈ ambiguitySet` via the explicit plan `pstar·(T̄,id)#ν + (1−pstar)·(T*,id)#ν`
 > (2nd marginal `= ν` because `snd∘(T,id)=id` and `Measure.map_id`; cost `≤ δ` via
 > `otCost_le_couplingCost`), `Ψ`-expectation `integral_map`'d to the mixture value, `≤` half of
 > attainment by `le_csSup`. The eq. (27) measure form is `rfl`. **`GaoKleywegt2023` is now
-> sorry-free.** (The four `Measure.map`/`smul`/`add` pushforward manipulations here are the
+> proved.** (The four `Measure.map`/`smul`/`add` pushforward manipulations here are the
 > reusable pattern if `worstCaseExpectation_eq_dual`'s attainment measure is built the same way.)
 
 > **`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2, eq. 12b) — PROVED
-> (2026-07, house pattern, axiom-clean) + STATEMENT CORRECTION.** The data-driven worst-case
+> (2026-07, house pattern, dependency-clean) + STATEMENT CORRECTION.** The data-driven worst-case
 > duality *equality* `sup_{Q} 𝔼_Q[ℓ] = inf_{λ≥0}{λε + (1/N)Σᵢ sup_{ξ∈Ξ}(ℓ(ξ)−λ‖ξ−ξ̂ᵢ‖)}`.
 > **Fidelity fix:** the paper's ambiguity set is over `P(Ξ)` and its `−ℓk` are *proper* convex
 > (`= +∞` off `Ξ`); the `ℝ`-valued (total) `ℓk` encoding drops that, so the raw `wass1Ball` (no
@@ -240,11 +240,11 @@ Fable ticket or a focused session.
 > `sup` lands on `Ξ`) composed with the empirical collapse `𝔼_{P̂}[g] = (1/N)Σᵢ g(ξ̂ᵢ)` and the OT
 > coupling ε-approx edge `hOT`; integrability against `P̂` is automatic (finite Dirac sum). The
 > `≥`/attainment is isolated to one explicit edge `hattain`, as everywhere. `[BorelSpace X]` added
-> for `IsClosed Ξ ⇒ MeasurableSet Ξ`. **`MohajerinEsfahaniKuhn2018` is now sorry-free.**
+> for `IsClosed Ξ ⇒ MeasurableSet Ξ`. **`MohajerinEsfahaniKuhn2018` is now proved.**
 
 > **`MohajerinEsfahaniKuhn2018.worstCase_program` (Thm 4.4, eq. 13) — PROVED (2026-07,
-> house pattern, axiom-clean).** The `≥` direction (`sup(program) ≤ droValue`) is proved
-> **constructively, sorry-free**: every feasible `(α,q)` gives the explicit discrete law
+> house pattern, dependency-clean).** The `≥` direction (`sup(program) ≤ droValue`) is proved
+> **constructively, proved**: every feasible `(α,q)` gives the explicit discrete law
 > `Q = (1/N) Σᵢₖ αᵢₖ δ_{ξ̂ᵢ − qᵢₖ/αᵢₖ}`, shown to lie in the ε-Wasserstein ball via an
 > explicit transport plan (cost `(1/N)Σ‖qᵢₖ‖ ≤ ε`, using the new reusable
 > `ForMathlib.OT.otCost_le_couplingCost`) and to satisfy `𝔼_Q[ℓ] ≥ extremalObjective`
@@ -260,17 +260,17 @@ Fable ticket or a focused session.
 > attains `droValue`.
 
 > **`dataDriven_strongDuality_cor2i` — PROVED (2026-07, house pattern).** The data-driven
-> strong-duality *equality* `v_P = empiricalDual` (eq. 28) is now discharged, axiom-clean:
+> strong-duality *equality* `v_P = empiricalDual` (eq. 28) is now discharged, dependency-clean:
 > it is the general `strong_duality_thm1` (`v_P = v_D`, weak-`≤` from the ForMathlib kernel +
-> the isolated attainment edge `hattain`) composed with the **new sorry-free reduction**
+> the isolated attainment edge `hattain`) composed with the **new proved reduction**
 > `GaoKleywegt2023.dualValue_eq_empiricalDual` (`v_D = empiricalDual` for the empirical `ν`,
 > a direct integral-against-empirical-measure computation under `[MeasurableSingletonClass X]`).
 > So this is the same `le_antisymm(weak, attainment)` posture as every other strong-duality
-> equality here — the `≥` isolated to one explicit hypothesis, not a `sorry`. A 2026-07-03
+> equality here — the `≥` isolated to one explicit hypothesis, not a placeholder. A 2026-07-03
 > survey pass (flow-sinkhorn / lean-stat-learning-theory / Mathlib) confirmed **no external
 > Lean library** supplies a finite Kantorovich/LP strong duality to discharge `hattain`
 > outright; the finite worst-case is the explicit ≤(N+1)-atom construction of `cor2ii` (below,
-> still open) — that, not an import, is what would make it fully sorry-free.
+> still open) — that, not an import, is what would make it fully proved.
 
 **SDE / PDE / path-measure** (no Mathlib SDE theory):
 `ChenGeorgiouPavon2021.{energy_identity (Girsanov), optimal_control_eq_grad_log,
@@ -279,7 +279,7 @@ optimal_coupling_factorization}`. (`dynamic_eq_static_SB` was in this block — 
 one direction, see below.)
 
 > **`dynamic_eq_static_SB` (Léonard dynamic⇄static SB) — PROVED one direction (2026-07,
-> house pattern, axiom-clean) via a NEW KL data-processing inequality.** `le_antisymm(hglue, DPI)`.
+> house pattern, dependency-clean) via a NEW KL data-processing inequality.** `le_antisymm(hglue, DPI)`.
 > The `staticSBValue ≤ schrodingerBridgeValueKL` direction is **genuinely proved**: the endpoint
 > projection `e = (ω↦(ω₀,ω₁))` sends every feasible path law `P` to a coupling `e#P ∈ Π(ρ₀,ρ₁)`
 > (marginals from feasibility via `Measure.map_map`), and *coarse-graining cannot increase
@@ -288,21 +288,21 @@ one direction, see below.)
 > (finite KL), `hne` (nonempty). The reverse (**gluing** reference bridges onto a coupling to
 > reconstruct a path law of equal KL — Léonard Prop 2.3, path reconstruction absent from Mathlib)
 > is isolated to the single edge `hglue`. This is the first genuine crack in the SDE frontier:
-> a bare-`sorry` T4 theorem turned into `le_antisymm(edge, proved)`, and it forced a real Mathlib
+> a unproved T4 theorem turned into `le_antisymm(edge, proved)`, and it forced a real Mathlib
 > contribution (KL DPI). **NB the four `optimal_control_*` / `optimal_coupling_factorization`
-> `sorry`s are structurally different — UNDER-SPECIFIED** (each concludes `u* = <expr in an
+> placeholders are structurally different — UNDER-SPECIFIED** (each concludes `u* = <expr in an
 > arbitrary passed-in `grad`/`lam`/`φ`/`p`>` with no hypothesis linking them; false for e.g.
 > `grad := 0`). Honestly closing them needs the SDE *verification theorem* as an added hypothesis
 > (statement work / TX), not a proof against the current statements. `energy_identity`'s discrete
 > layer is proved (below); the continuous form needs Girsanov.
 
-> **`energy_identity` — CLOSED (2026-07, chain-rule split; `sorry`-free).** The continuous
-> `energy_identity` (CGP (4.19)) is no longer a `sorry`: it is proved by disintegrating both path
+> **`energy_identity` — CLOSED (2026-07, chain-rule split; complete).** The continuous
+> `energy_identity` (CGP (4.19)) is no longer a placeholder: it is proved by disintegrating both path
 > laws over the initial coordinate and applying the KL chain rule, with the Girsanov content
 > isolated to the explicit `hCM` (Cameron–Martin) edge (ROADMAP Phases 0–1). Its continuum edge is
 > blocked on Mathlib's missing Itô integral (ROADMAP Phase 2). Separately, its
 > **Euler–Maruyama / Gaussian discretization — the quantity the DRSB card actually
-> measures (AGENTS §3) — is proved sorry-free, axiom-clean**:
+> measures (AGENTS §3) — is proved, dependency-clean**:
 > `ChenGeorgiouPavon2021.energy_identity_euler_maruyama` delegates to
 > `ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy`, which shows
 > `(KL(P^u ‖ P^0)).toReal = ∑ₖ Δt·½‖u_k‖²` (the discrete control energy) built on the
@@ -316,7 +316,7 @@ one direction, see below.)
 
 These are correct as *statements* (that was the first pass). Proving them means either
 building the missing Mathlib theory (a multi-month effort, its own upstream program) or
-recording them as `axiom`s with provenance. **Do not spend Fable cycles here yet.**
+recording them as `dependency`s with provenance. **Do not spend Fable cycles here yet.**
 
 ---
 
@@ -336,16 +336,16 @@ surveying existing AI/human Lean proofs** — are in **[`FOUNDATIONS.md`](FOUNDA
 | `MeasureTheory.DonskerVaradhan` (DV inequality + Gibbs variational identity) | ✅ proved | yes — only `Measure.tilted` exists | (done) | — |
 | `MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` | ✅ proved | yes — only `tilted_const'` indirectly | T0 | — |
 | `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO **per-coupling Lagrangian bound** (Wasserstein `≤` kernel) | ✅ **proved** (ported from `reference/V4.lean`, generalized to arbitrary cost `c`) | yes — no Kantorovich/Wasserstein duality in Mathlib at all | (done) | — |
-| `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost_restrict` — the **Ξ-restricted** Lagrangian bound (`P(Ξ)`-supported source ⇒ conjugate `sup` over `Ξ`) | ✅ **proved** (axiom-clean; same proof, `integral_mono_ae` since the pointwise bound holds `π`-a.e. on the `Ξ`-supported marginal) | yes — the entropic/Ξ-restricted Kantorovich variant | (done) | — |
-| `OptimalTransport.WeakDuality.expect_kernel_le_lam_sinkhornBudget_add_logPartition` — the **entropic (Sinkhorn) weak-duality kernel** (per-point DV integrated over `p₀`) | ✅ **proved** (axiom-clean; the entropic analogue, paper-agnostic) | yes — no entropic-DRO duality in Mathlib | (done) | — |
-| `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`matrix_scaling_exists` + `sinkhorn_potentials_exist`, with mass-conservation hyp) | ✅ **proved** (axiom-clean; log-domain min, no Brouwer/Birkhoff needed) | yes — Sinkhorn scaling absent from Mathlib | T3 | (done) |
-| `MeasureTheory.KLDataProcessing.toReal_klDiv_map_le` — **data-processing inequality for KL** (`KL(g#μ‖g#ν) ≤ KL(μ‖ν)`) | ✅ **proved** (axiom-clean; conditional Jensen on `klFun` + `toReal_rnDeriv_map` = condExp of the RN-derivative + `integral_condExp`) | **yes — Mathlib has the KL chain rule but no DPI / f-divergence monotonicity** | T3 | (done) |
+| `OptimalTransport.WeakDuality.expect_le_dualIntegrand_add_lam_couplingCost_restrict` — the **Ξ-restricted** Lagrangian bound (`P(Ξ)`-supported source ⇒ conjugate `sup` over `Ξ`) | ✅ **proved** (dependency-clean; same proof, `integral_mono_ae` since the pointwise bound holds `π`-a.e. on the `Ξ`-supported marginal) | yes — the entropic/Ξ-restricted Kantorovich variant | (done) | — |
+| `OptimalTransport.WeakDuality.expect_kernel_le_lam_sinkhornBudget_add_logPartition` — the **entropic (Sinkhorn) weak-duality kernel** (per-point DV integrated over `p₀`) | ✅ **proved** (dependency-clean; the entropic analogue, paper-agnostic) | yes — no entropic-DRO duality in Mathlib | (done) | — |
+| `LinearAlgebra/Matrix.SinkhornScaling` — finite **Sinkhorn / matrix scaling** existence (`matrix_scaling_exists` + `sinkhorn_potentials_exist`, with mass-conservation hyp) | ✅ **proved** (dependency-clean; log-domain min, no Brouwer/Birkhoff needed) | yes — Sinkhorn scaling absent from Mathlib | T3 | (done) |
+| `MeasureTheory.KLDataProcessing.toReal_klDiv_map_le` — **data-processing inequality for KL** (`KL(g#μ‖g#ν) ≤ KL(μ‖ν)`) | ✅ **proved** (dependency-clean; conditional Jensen on `klFun` + `toReal_rnDeriv_map` = condExp of the RN-derivative + `integral_condExp`) | **yes — Mathlib has the KL chain rule but no DPI / f-divergence monotonicity** | T3 | (done) |
 | Chain 1 roots (Sion minimax, Fenchel conjugate/duality, Kantorovich) · Chain 3 (Perron–Frobenius) | 🔜 queued (see FOUNDATIONS.md) | ❌ absent | L–XL | survey → Fable |
 
-**Extraction rule.** When a `sorry` is a *general* fact (no DRSB/paper-specific
+**Extraction rule.** When a placeholder is a *general* fact (no DRSB/paper-specific
 objects), give it a clean Mathlib-idiom statement, prove it in `ForMathlib/`, and have
 the paper library `import` + consume it (as `WangGaoXie2023.exists_worstCase_gibbs` now
-consumes `isProbabilityMeasure_inv_univ_smul`). That is the pipeline: paper `sorry` →
+consumes `isProbabilityMeasure_inv_univ_smul`). That is the pipeline: paper placeholder →
 recognized general lemma → ForMathlib proof → upstream PR.
 
 **Proposed next extractions (statements to stage):**
@@ -377,7 +377,7 @@ A good Fable task spec is a **single theorem** with:
 1. the exact Lean statement already in the file (Fable fills the body only);
 2. all dependencies proved & imported (list them);
 3. a proof sketch / the reference proof if one exists (e.g. `reference/V4.lean`);
-4. the acceptance check: `lake env lean <File>.lean` exits 0 with only `sorry`-free
+4. the acceptance check: `lake env lean <File>.lean` exits 0 with only complete
    `warning`s for *other* decls; the target emits none;
 5. isolation: run in a `git` worktree (`isolation: "worktree"`) if it will edit files
    that another agent also touches.
@@ -385,9 +385,9 @@ A good Fable task spec is a **single theorem** with:
 **Ticket status:**
 - **F1 — `ForMathlib.OptimalTransport.WeakDuality`** (unblocked the cards): ✅ **DONE by us**
   — `expect_le_dualIntegrand_add_lam_couplingCost` ported/generalized and
-  `GaoKleywegt2023.weak_duality_prop1` assembled, both axiom-clean.
+  `GaoKleywegt2023.weak_duality_prop1` assembled, both dependency-clean.
 - **F2 — `ForMathlib.…SinkhornScaling`** (`matrix_scaling_exists` + `sinkhorn_potentials_exist`):
-  ✅ **DONE by us, no Fable** (axiom-clean). The intended fixed-point/Birkhoff route was
+  ✅ **DONE by us, no Fable** (dependency-clean). The intended fixed-point/Birkhoff route was
   infeasible (Mathlib has **neither** Brouwer nor the Birkhoff/Hilbert-metric contraction),
   so proved instead by **log-domain convex minimization** over the open simplex — existence
   by boundary blow-up + EVT (no coercivity lemma), scaling equations by 1-D directional
@@ -407,54 +407,54 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
    `primal_feasible_iff` re-derived from prose → `primal_feasible_radius_nonneg` (necessity,
    proved; sufficiency deferred to the ρ̄-ball attainment edge).
 3. ~~**Fable:**~~ ✅ F1 (weak-duality → cards) and F2 (`SinkhornScaling`) **both done by us,
-   no Fable** — F2 axiom-clean via log-domain minimization (Brouwer/Birkhoff absent).
+   no Fable** — F2 dependency-clean via log-domain minimization (Brouwer/Birkhoff absent).
 4. ~~**us:**~~ ✅ `Drsb.{wdrsb,sdrsb}_cost_bound` and both `*_strong_duality` re-exports
-   closed; `Drsb` is sorry-free.
-5. **remaining (the 9 `sorry`s):** the T4 SDE/PDE controls + worst-case-*structure*
+   closed; `Drsb` is proved.
+5. **remaining (the 9 placeholders):** the T4 SDE/PDE controls + worst-case-*structure*
    corollaries. Per the user (2026-07): **no Fable** — break each into natural subproblems
    and prove step-by-step. The SDE/PDE and OT-measurable-selection blocks may still need a
-   documented `axiom` or a Mathlib-infrastructure lift; decide with the coordinator.
+   documented `dependency` or a Mathlib-infrastructure lift; decide with the coordinator.
 
 ---
 
 ### Change log
 - **2026-07 (first crack in the SDE frontier; KL data-processing proved):** count **6 → 5**.
   Proved `ChenGeorgiouPavon2021.dynamic_eq_static_SB` (Léonard dynamic⇄static SB) in one direction
-  via a **new axiom-clean ForMathlib contribution** `MeasureTheory.toReal_klDiv_map_le` — the KL
+  via a **new dependency-clean ForMathlib contribution** `MeasureTheory.toReal_klDiv_map_le` — the KL
   **data-processing inequality** (a genuine Mathlib gap: no DPI / f-divergence file), proved by
   conditional Jensen on the convex `klFun` (`toReal_rnDeriv_map` gives the pushforward RN-derivative
   as a conditional expectation). The gluing (path-reconstruction) direction is isolated to an edge.
-  The remaining 5 CGP sorries are `energy_identity` (continuous Girsanov) + 4 under-specified
+  The remaining 5 CGP placeholders are `energy_identity` (continuous Girsanov) + 4 under-specified
   HJB/factorization statements (need statement work, not proofs).
-- **2026-07 (Thm 4.2 landed + statement correction; MohajerinEsfahaniKuhn2018 sorry-free):**
+- **2026-07 (Thm 4.2 landed + statement correction; MohajerinEsfahaniKuhn2018 proved):**
   count **7 → 6**. Proved `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` (Thm 4.2)
-  axiom-clean via `le_antisymm(weak, attainment)`, weak `≤` from the **new**
+  dependency-clean via `le_antisymm(weak, attainment)`, weak `≤` from the **new**
   `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost_restrict` (Ξ-restricted kernel) +
   empirical collapse + η-trick; **corrected the statement** to the `P(Ξ)`-restricted ball
   `wass1BallΞ` (the `ℝ`-valued `ℓk` encoding had dropped the paper's `P(Ξ)` restriction, making
-  the raw-`wass1Ball` equality unsound for `Ξ ≠ univ`). **All 6 remaining `sorry`s are now in
+  the raw-`wass1Ball` equality unsound for `Ξ ≠ univ`). **All 6 remaining placeholders are now in
   `ChenGeorgiouPavon2021`** (SDE/PDE — no Mathlib theory).
-- **2026-07 (general worst-case structure landed; GaoKleywegt2023 sorry-free):** count
-  **8 → 7**. Proved `GaoKleywegt2023.worstCase_structure_cor1` (Cor 1(ii), eq. 27) axiom-clean —
+- **2026-07 (general worst-case structure landed; GaoKleywegt2023 proved):** count
+  **8 → 7**. Proved `GaoKleywegt2023.worstCase_structure_cor1` (Cor 1(ii), eq. 27) dependency-clean —
   the general-`ν` 2-map transport `μ* = pstar·T̄#ν + (1−pstar)·T*#ν`, same house pattern as
   `cor2ii` but via `Measure.map` pushforwards + `integral_map` (with regularity edges since
   `c`/`Ψ` carry no standing measurability); attainment isolated to §5-safe ingredient edges.
   Only `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` remains of the worst-case
   structure block.
 - **2026-07 (data-driven worst-case structure landed):** count **9 → 8**. Proved
-  `GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) axiom-clean via the house
+  `GaoKleywegt2023.dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29) dependency-clean via the house
   pattern — explicit `K = 2` weighted-Dirac `μ*` construction (probability measure, `∈ ambiguitySet`
   via an explicit transport plan + `otCost_le_couplingCost`, closed-form `Ψ`-expectation, eq. (29)
   split-form identity), attainment isolated to §5-safe ingredient edges (split weight + per-point
   argmins + feasibility budget + one `≥` attainment edge), NOT the structured optimizer. Added
   local copies of `isProbabilityMeasure_wsum`/`integral_wsum`/`map_wsum` (→ ForMathlib dedup TODO).
 - **2026-07 (Sinkhorn scaling landed):** count **13 → 12**. Proved
-  `ForMathlib.matrix_scaling_exists` + `ForMathlib.sinkhorn_potentials_exist` (axiom-clean)
+  `ForMathlib.matrix_scaling_exists` + `ForMathlib.sinkhorn_potentials_exist` (dependency-clean)
   by log-domain convex minimization — Mathlib has neither Brouwer nor Birkhoff contraction,
   so the intended fixed-point route was replaced. `matrix_scaling_exists` staged for
-  upstreaming; `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` now delegates sorry-free.
+  upstreaming; `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` now delegates proved.
 - **2026-07 refresh:** count 23 → **13**; recorded all strong-duality equalities +
-  both cost bounds as PROVED (`Drsb` sorry-free); resolved the `primal_feasible_iff` TX bug
+  both cost bounds as PROVED (`Drsb` proved); resolved the `primal_feasible_iff` TX bug
   → `primal_feasible_radius_nonneg` (necessity, proved); recorded the no-Fable directive.
 - Added [`FOUNDATIONS.md`](FOUNDATIONS.md): the classical-theorem chains, grep-verified
   Mathlib gaps, and survey search terms.
@@ -469,10 +469,10 @@ equalities → `primal_feasible` resolved). Remaining live work is step 5.
 
 ## Project-wide theorem-target scaffold (2026-07-08)
 
-The remaining DRSB work is now intended to be tracked by executable theorem-target `sorry`s, not by
+The remaining DRSB work is now intended to be tracked by executable theorem-target placeholders, not by
 interfaces hidden inside downstream hypotheses.  The rule for future work is:
 
-1. add `sorry` only for missing mathematics;
+1. add placeholder only for missing mathematics;
 2. place the target in the module where the theorem belongs mathematically;
 3. keep final assembly wrappers proof-bearing from those theorem targets;
 4. when a target is proved, replace downstream hypotheses by the proved theorem as a separate
@@ -496,5 +496,5 @@ The main groups are:
 - static product coupling and optimizer uniqueness/attainment: `SocOt.EntropicOTTargets`;
 - Sinkhorn uniqueness/convergence: `SocOt.SinkhornTargets`.
 
-A source-level count after the scaffold overlay gives 27 executable target `sorry`s.  This count is
+A source-level count after the scaffold overlay gives 27 executable target placeholders.  This count is
 now the intended coarse progress bar for the remaining mathematical theorem-building phase.

@@ -325,7 +325,7 @@ $\mathbb{E}_\mu[V]\le\mathbb{E}_{\text{worst-case}}[V]$ for every $\mu$ inside t
 | `empAvg xhat f` $=\frac1N\sum_i f(\hat x_i)$ | empirical average over nominal atoms | G–K Cor. 2 / eq. 28; E–K eq. 12b |
 | `wdrsbDualObjective` $=\inf_{\lambda\ge0}\{\lambda\varepsilon+\frac1N\sum_i L_{\text{wdro}}(V,\lambda,\hat x_i)\}$ | empirical WDRO strong dual | G–K eq. 28; E–K eq. 12b |
 | `wdro_dual` (equality of `sSup` primal and `sInf` dual) | **strong duality** $\sup_{\mu\in\text{ball}}\mathbb{E}_\mu[V]=\inf_{\lambda\ge0}\{\lambda\varepsilon+\mathbb{E}_{\hat\mu}[\sup_x(V(x)-\lambda\|x-\hat x\|^2)]\}$ | **B–M Thm 1 + eq. 9**; **G–K Thm 1 + (Dual)** |
-| `wdro_lagrangian_bound` (proven, no `sorry`) | the **easy $\le$ / weak-duality** direction: $\mathbb{E}_\mu[V]\le\mathbb{E}_{\hat\mu}[\sup_x(\cdots)]+\lambda\,\mathbb{E}_\pi\|x-\hat x\|^2$ | B–M eq. 5; G–K Prop. 1; E–K Cor. 4.3 |
+| `wdro_lagrangian_bound` (proven, no placeholder) | the **easy $\le$ / weak-duality** direction: $\mathbb{E}_\mu[V]\le\mathbb{E}_{\hat\mu}[\sup_x(\cdots)]+\lambda\,\mathbb{E}_\pi\|x-\hat x\|^2$ | B–M eq. 5; G–K Prop. 1; E–K Cor. 4.3 |
 
 **Mapping the card claim.** For any $\mu$ with $W_2^2(\mu,\hat\mu)\le\varepsilon$,
 $$\mathbb{E}_\mu[V]\ \le\ \sup_{\mu':\,W_2^2(\mu',\hat\mu)\le\varepsilon}\mathbb{E}_{\mu'}[V]\ =\ \mathbb{E}_{\text{worst-case}}[V]\ =\ \inf_{\lambda\ge0}\Big\{\lambda\varepsilon+\mathbb{E}_{\hat\mu}\big[\sup_x(V(x)-\lambda\|x-\hat x\|^2)\big]\Big\}.$$

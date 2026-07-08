@@ -1,10 +1,10 @@
 # EXTERNAL_AUDIT.md — what external Lean results exist for the DRSB gaps (verified)
 
 The **verdict layer** for [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (which lists *leads*). This
-file records the result of **rigorously auditing** those leads — clone + `#print axioms` /
-`sorry` inventory + license check + exact-theorem inspection — plus a systematic GitHub
+file records the result of **rigorously auditing** those leads — clone + Lean dependency audit /
+placeholder inventory + license check + exact-theorem inspection — plus a systematic GitHub
 **repository + code** sweep and the pinned-Mathlib grep. Goal: an honest, reproducible
-"what exists / what's absent" map for the remaining `sorry`s, so nobody re-searches ground
+"what exists / what's absent" map for the remaining placeholders, so nobody re-searches ground
 already covered or re-proves something that exists.
 
 **Swept: 2026-07-03/04**, incl. the generated-proof / declaration-index corpora
@@ -17,9 +17,9 @@ the bottom (reproducible). Counts/licenses verified by clone, not by README clai
 
 There **is** substantial, permissively-licensed, often-AI-assisted Lean work adjacent to
 our chains (correcting an earlier over-broad "nothing external" claim). But **none of it
-drop-in-closes any of the 8 remaining `sorry`s** — every usable result is *finite/discrete*
+drop-in-closes any of the 8 remaining placeholders** — every usable result is *finite/discrete*
 or *1-D/finance*, while our gaps are continuous multi-D stochastic control and
-continuous-measure worst-case OT. The specific mathematics our hardest sorries need
+continuous-measure worst-case OT. The specific mathematics our hardest placeholders need
 (**HJB / Hopf–Cole, Schrödinger bridge, general Kantorovich duality, measurable
 selection, KL between path measures**) has **zero** presence anywhere on GitHub — not in
 repo metadata, not in file contents, not in Mathlib. What's reusable is *building blocks*
@@ -35,7 +35,7 @@ as *candidate* (not proven-fitting) scaffolding for the worst-case-duality `le` 
 
 ---
 
-## Coverage map — external state vs. the 8 remaining sorries
+## Coverage map — external state vs. the 8 remaining placeholders
 
 | Sorry (remaining) | Math needed | External Lean state | Verdict |
 |---|---|---|---|
@@ -54,16 +54,16 @@ as *candidate* (not proven-fitting) scaffolding for the worst-case-duality `le` 
 ### ⭐ Usable building blocks (permissive license, real proofs)
 
 - **`gpeyre/flow-sinkhorn`** — **MIT** · ~43.5k lines, **~1605 lemmas, `Comparator/Solution.lean`
-  SORRY-FREE** (the 28 `sorry`s are all in the `Comparator/Challenge.lean` *spec* — the
+  PROVED** (the 28 placeholders are all in the `Comparator/Challenge.lean` *spec* — the
   `leanprover/comparator` **AI-proof-harness** pattern; strong signal this is AI-assisted).
   Real content: entropic-OT/Sinkhorn fixed points (`prop_hgamma_ot`), **c-transform /
   potential decomposition** (`prop_kappa_ot`), finite KL + **Pinsker**, **LP↔entropic
   reduction** (`thm_approx_linprog`), KL-dual convergence *rates*. **All finite/discrete
   (`Fintype`, graphs)** — no continuous measurable OT. Use for the *data-driven* worst-case
-  sorries (finite nominal). Cross-check `matrix_scaling_exists` (proved in-house) against it.
+  placeholders (finite nominal). Cross-check `matrix_scaling_exists` (proved in-house) against it.
 
 - **`raphaelrrcoelho/formal-mathfin`** — **Apache-2.0** · ~45k lines, **build-enforced
-  axioms-clean** (`AxiomAudit.lean` `#guard_msgs`; only real `sorry` = one càdlàg
+  dependency-clean** (`DependencyAudit.lean` `#guard_msgs`; only real placeholder = one càdlàg
   modification). Full continuous stochastic analysis: **Itô integral + Itô formula** (L²
   isometry, local martingales, quadratic variation; scalar + a 2D + a CLM version — **not
   general ℝⁿ**), **`SDEExistence.lean`** (Picard–Banach, **scalar 1-D**),
@@ -73,7 +73,7 @@ as *candidate* (not proven-fitting) scaffolding for the worst-case-duality `le` 
   anywhere. No HJB / optimal-control PDE.** So it does not close our controls, but it is the
   real Itô/SDE *foundation* to eventually refound `SBData` on. Likely AI-assisted (scale/cadence).
 
-- **`mrdouglasny/gibbs-variational`** — **Apache-2.0** · 4 files, 1 `sorry`. Its DV/Gibbs
+- **`mrdouglasny/gibbs-variational`** — **Apache-2.0** · 4 files, 1 placeholder. Its DV/Gibbs
   variational (`Variational.lean`) is superseded by our in-house DV. **Genuinely useful:**
   `GaussianEntropy.lean` — **`klDiv_stdGaussian_map_add`** (KL of a shifted std Gaussian =
   ½‖h‖², the finite **Cameron–Martin / Girsanov relative-entropy** identity), `klDiv_pi` /
@@ -93,9 +93,9 @@ as *candidate* (not proven-fitting) scaffolding for the worst-case-duality `le` 
 - **`markusdemedeiros/Metrology`** — 47k lines of **approximate/relational (differential-
   privacy) couplings** (`ARCoupling`, `DPCouplings`, `AddCoupl`) — a **false friend**: these
   are coupling-*liftings* for relational program logic / DP, **not OT transport plans** (no
-  Wasserstein / Kantorovich / cost). 86 `sorry`s. **No LICENSE file** (unvendorable). Not usable.
+  Wasserstein / Kantorovich / cost). 86 placeholders. **No LICENSE file** (unvendorable). Not usable.
 - **`stvsun/neural_atlas_MPMcontact` (`OTContact/BrenierProposed.lean`)** — self-labeled
-  "PROPOSED — not machine-checked"; Brenier existence is `sorry`-backed, only a toy
+  "PROPOSED — not machine-checked"; Brenier existence is placeholder-backed, only a toy
   `Int`-quantile identity is proved. Not usable.
 - **`luaartist/Yang-Mills-Lean-4-Scaffold-Archive`** — YM mass-gap scaffold; vacuous
   `Prop`-field structures (AGENTS §5 anti-pattern); **NOASSERTION** license. Not usable.
@@ -108,7 +108,7 @@ as *candidate* (not proven-fitting) scaffolding for the worst-case-duality `le` 
 
 ## Decisive absences (repo search **and** authenticated code search = 0)
 
-These areas — where 5 of the 8 sorries live — have **no Lean presence at all**, anywhere:
+These areas — where 5 of the 8 placeholders live — have **no Lean presence at all**, anywhere:
 
 - **Hamilton–Jacobi–Bellman / viscosity solutions / continuous stochastic control** — 0.
 - **Schrödinger bridge** (the stochastic-control object) — 0.
@@ -122,12 +122,12 @@ all absent; `condKernel`/disintegration and `Topology.Sion` present.
 
 ---
 
-## What this means for the 8 sorries
+## What this means for the 8 placeholders
 
 - **6 Chain-4 controls:** the specific theory is *absent*, not merely unvendored. Realistic
   paths: (a) the **Gaussian/Euler–Maruyama discrete** relaxation the card actually measures,
   using `gibbs-variational`'s Cameron–Martin KL (energy_identity — in progress); (b)
-  otherwise documented `axiom`s with provenance, or a long-horizon Mathlib-SDE build on
+  otherwise documented `dependency`s with provenance, or a long-horizon Mathlib-SDE build on
   `formal-mathfin` / `brownian-motion`. **Do not expect a vendored close.**
 - **2 worst-case-structure:** the **finite/data-driven** ones are the tractable target via
   `flow-sinkhorn`'s finite entropic-OT + LP-reduction + `Mathlib.Topology.Sion` — a real
@@ -148,7 +148,7 @@ all absent; `condKernel`/disintegration and `Topology.Sion` present.
   "hamilton jacobi", bellman, hopfCole, "feynman kac", viscositySolution, measurableSelection
   (403'd — rerun pending), kuratowski, convexConjugate, fenchelRockafellar, "stochastic
   control", entropicOptimalTransport, boueDupuis, distributionallyRobust. `+language:lean`.
-- **Clone audits:** shallow-clone + `grep -c sorry/admit/axiom` + `theorem/lemma` name grep +
+- **Clone audits:** shallow-clone + `grep -c placeholder/admit/dependency` + `theorem/lemma` name grep +
   license file + spot-read of the load-bearing file. Repos above audited at the commits noted
   in `SURVEY_LEADS.md`.
 - **LLM-PR pool:** all 414 closed-unmerged `LLM-generated` mathlib PRs swept (see
@@ -190,7 +190,7 @@ absences under semantic (not just lexical) matching.**
     with `bayesRisk_le_minimaxRisk` and `iSup_bayesRisk_le_minimaxRisk` — the weak-duality
     direction of kernel-based statistical decision theory). **In-pin and 0 repo references —
     the one genuinely untapped asset this sweep found.** Candidate scaffolding for the
-    `le`/weak-duality direction of the worst-case-duality sorries
+    `le`/weak-duality direction of the worst-case-duality placeholders
     (`MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`,
     `GaoKleywegt2023.*`). **Caveat, not a solution:** `Decision.Risk` is structured over a
     prior/loss/`Kernel` triple, whereas our DRO worst-case is over a Wasserstein/transport

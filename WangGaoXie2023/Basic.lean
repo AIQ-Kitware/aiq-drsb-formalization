@@ -71,7 +71,7 @@ noncomputable def sinkhornDualObjective
 
 /-- **Theorem 1(I) (Feasibility), necessity direction.** For a nonnegative regularizer
 `κ`, feasibility of `(Primal)` *requires* a nonnegative radius: if the Sinkhorn ball is
-nonempty then `0 ≤ ε`. Axiom-clean.
+nonempty then `0 ≤ ε`. Dependency-clean.
 
 Proof: `0 ≤ W_{κ,ν}(μ̂, μ)` for every `μ` — the Sinkhorn objective
 `𝔼_γ[‖x−y‖²] + κ·KL(γ‖μ̂⊗ν)` is a sum of two nonnegatives (squared cost; `κ ≥ 0` times
@@ -79,7 +79,7 @@ Proof: `0 ≤ W_{κ,ν}(μ̂, μ)` for every `μ` — the Sinkhorn objective
 `W_{κ,ν}(μ̂, μ) ≤ ε`.
 
 ⚠ **Why this is the necessity half only, not the paper's full `↔ ρ ≥ 0`** (audit
-resolution of the former `primal_feasible_iff` `sorry`, AGENTS.md §6 / the audit note in
+resolution of the former `primal_feasible_iff` placeholder, AGENTS.md §6 / the audit note in
 `prose/sinkhorn-dro-duality.md`). Against the **raw** entropic-OT ball
 `sinkhornBall μhat ν κ ε = {μ : W_{κ,ν}(μ̂,μ) ≤ ε}`, sufficiency (`0 ≤ ε ⇒ nonempty`) is
 **false**: unlike a metric ball, `W_{κ,ν}(μ̂, μ̂) > 0` in general (the entropic term

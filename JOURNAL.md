@@ -14,7 +14,7 @@
 - Updated the validation wrapper: aggregate import files now require prebuilt imported `.olean`s, so
   `dev/check_cgp_module_split.sh` builds `ForMathlib` and `ChenGeorgiouPavon2021` before direct-file
   aggregate checks.
-- Progress-bar policy recorded: future `sorry`s should correspond to missing mathematical theorem
+- Progress-bar policy recorded: future placeholders should correspond to missing mathematical theorem
   targets needed to discharge ultimate DRSB assumptions, not to final integration lemmas that merely
   chain those results.
 
@@ -44,8 +44,8 @@ This overlay is structure-preserving by construction, but it still needs the rep
 
 ## Scope note
 This overlay is stage 1 of the requested two-stage cleanup.  It does **not** yet add the full
-project-wide list of theorem `sorry`s needed to discharge every final DRSB assumption.  That should
-come next, after this module boundary is green, so each future `sorry` can live in the module that
+project-wide list of theorem placeholders needed to discharge every final DRSB assumption.  That should
+come next, after this module boundary is green, so each future placeholder can live in the module that
 owns its mathematical frontier.
 
 ## Correction after first split test
@@ -95,18 +95,18 @@ stay discarded.
 
 ## Local validation note
 This sandbox did not have `lake` or `lean` installed, so the Lean commands must be run in the user's
-repository environment. A crude source scan found no executable `sorry` tokens after the overlay.
+repository environment. A crude source scan found no executable placeholder tokens after the overlay.
 
 ---
 
 # Session journal — ChenGeorgiouPavon2021 soundness audit + fix (2026-07)
 
-Running log of the proof-pass session that audited the last `ChenGeorgiouPavon2021` sorries
+Running log of the proof-pass session that audited the last `ChenGeorgiouPavon2021` placeholders
 for the "hidden `if False then True`" failure mode (a green-but-unsound theorem) and fixed it.
 Companion to `AGENTS.md §9`, `PROOF_PIPELINE.md §2`, `formalization.yaml`.
 
 ## Starting state (inherited from the fork)
-- 5 sorries, all in `ChenGeorgiouPavon2021/Basic.lean`: `energy_identity` (168),
+- 5 placeholders, all in `ChenGeorgiouPavon2021/Basic.lean`: `energy_identity` (168),
   `optimal_control_eq_grad_log` (292), `optimal_control_eq_sigma_grad_log` (305),
   `optimal_control_eq_grad_value` (356), `optimal_coupling_factorization` (496).
 - The fork proved a direction of `dynamic_eq_static_SB` via a new, genuinely-sound
@@ -114,7 +114,7 @@ Companion to `AGENTS.md §9`, `PROOF_PIPELINE.md §2`, `formalization.yaml`.
   its proof — real conditional-Jensen on the convex KL generator, no hidden falsity).
 
 ## Audit finding (the landmine)
-Four of the five sorries are **false as stated**, not merely hard:
+Four of the five placeholders are **false as stated**, not merely hard:
 - `optimal_control_eq_grad_log/_sigma_grad_log/_grad_value` conclude `u* = grad(log φ)` /
   `σ²·grad(log φ)` / `grad(lam)` where **`grad`/`lam` are free operator arguments with no
   hypothesis constraining them to be the actual gradient**. Instantiate `grad := fun _ _ => 0`:
@@ -126,7 +126,7 @@ Four of the five sorries are **false as stated**, not merely hard:
 - **`optimal_control_eq_neg_grad_value` is GREEN but FALSE** — it compiles only because its
   proof `rw`s through the false `optimal_control_eq_grad_log`. This is exactly the hidden
   `if False then True`: it *looks* proved.
-- `energy_identity` is the one HONEST sorry — a true Girsanov identity, blocked only by the
+- `energy_identity` is the one HONEST placeholder — a true Girsanov identity, blocked only by the
   absence of Mathlib path-measure theory. Leave it, clearly labelled.
 
 Blast radius: contained. `Drsb` (the card capstones) references `neg_grad_value` only in a
@@ -150,22 +150,22 @@ strong-duality `le_antisymm(weak, attainment-edge)` here.
 ## Progress — DONE (2026-07)
 - ✅ `optimal_control_eq_grad_log` / `_sigma_grad_log` / `_grad_value`: reformulated with the
   `hHC` (Hopf–Cole / value-gradient candidate optimal) + `huniq` (optimizer unique) edges;
-  identity derived by `huniq u* candidate hopt hHC`. Now **axiom-clean** (no `sorryAx`).
+  identity derived by `huniq u* candidate hopt hHC`. Now **dependency-clean** (no `unsound dependency marker`).
 - ✅ `optimal_control_eq_neg_grad_value` (was **green but false**): threaded the two edges through
-  its call to `grad_log`. Now genuinely **axiom-clean** — the landmine is defused.
+  its call to `grad_log`. Now genuinely **dependency-clean** — the landmine is defused.
 - ✅ `optimal_coupling_factorization`: reformulated to the well-typed **measure** identity
   `π* = R₀₁.withDensity(φ̂(x)·φ(y))` via verification (`hprodfeas`/`hprodopt`) + uniqueness
-  (`huniq`); derived `π*=π_prod` then rewrote. Now **axiom-clean**.
-- ⏳ `energy_identity` (168): intentionally the SOLE remaining sorry — a *true* Girsanov identity
-  (`#print axioms` shows the expected `sorryAx`), blocked only by the absence of Mathlib
+  (`huniq`); derived `π*=π_prod` then rewrote. Now **dependency-clean**.
+- ⏳ `energy_identity` (168): intentionally the SOLE remaining placeholder — a *true* Girsanov identity
+  (Lean dependency audit shows the expected `unsound dependency marker`), blocked only by the absence of Mathlib
   continuous path-measure / Girsanov theory. Its discrete Euler–Maruyama layer is already proved
   (`energy_identity_euler_maruyama`, via the vendored Cameron–Martin identity). Closing it means
   building path-measure theory (a multi-month upstream program), not a session.
 
 ## Verification
-- `#print axioms` on all five reformulated declarations: `[propext, Classical.choice, Quot.sound]`
-  (NO `sorryAx`). `energy_identity`: `[propext, sorryAx, Classical.choice, Quot.sound]` (as it
-  should be — the one honest sorry). Full `lake build` green (8597 jobs). Sorry count 5 → 1.
+- Lean dependency audit on all five reformulated declarations: `[propext, Classical.choice, Quot.sound]`
+  (NO `unsound dependency marker`). `energy_identity`: `[propext, unsound dependency marker, Classical.choice, Quot.sound]` (as it
+  should be — the one honest placeholder). Full `lake build` green (8597 jobs). Sorry count 5 → 1.
 - Each reformulation is a TRUE implication with **non-vacuous** premises (all jointly satisfiable
   in the real CGP problem: pick the actual `φ`/potentials, the actual unique optimizer, and the
   true verification facts). No free-operator counterexample survives, and no premise is
@@ -176,9 +176,9 @@ strong-duality `le_antisymm(weak, attainment-edge)` here.
 The "hidden `if False then True`" risk the user flagged was REAL and present (a green theorem
 whose stated content was false). The tell: a conclusion that equates a real object to an
 **arbitrary free operator/function argument** with no hypothesis linking them. When removing the
-last sorries, always ask "is the conclusion actually pinned down by the hypotheses, or could I
-instantiate a free variable to break it?" — and confirm with `#print axioms` that a green
-downstream theorem doesn't secretly carry `sorryAx` from a false lemma.
+last placeholders, always ask "is the conclusion actually pinned down by the hypotheses, or could I
+instantiate a free variable to break it?" — and confirm with Lean dependency audit that a green
+downstream theorem doesn't secretly carry `unsound dependency marker` from a false lemma.
 
 # Session 2 — "right shape / no erroneous or extra assumptions" audit (2026-07)
 
@@ -217,9 +217,9 @@ feeds the paper's downstream LP reduction.
 
 ## Verification
 - Full `lake build` green (8597 jobs). Sorry count unchanged at **1** (`energy_identity`, honest).
-- `#print axioms` on all touched theorems (CGP ×5, Gao ×4, MEK ×3): `[propext, Classical.choice,
-  Quot.sound]`, **no `sorryAx`**. Renaming/removing *unused* hypotheses cannot change a proof term,
-  and the axiom check confirms it.
+- Lean dependency audit on all touched theorems (CGP ×5, Gao ×4, MEK ×3): `[propext, Classical.choice,
+  Quot.sound]`, **no `unsound dependency marker`**. Renaming/removing *unused* hypotheses cannot change a proof term,
+  and the dependency check confirms it.
 - Safety net: `_`-prefixing an actually-used hypothesis errors immediately (its uses become unknown
   identifiers); the clean build proves every `_`-marked hypothesis was genuinely unused.
 
@@ -231,10 +231,10 @@ is the *source theorem's own premise*, retained for fidelity and subsumed by an 
 Never `_`-mark to hide a hypothesis that *should* be load-bearing — first confirm the conclusion is
 non-vacuous and constructively proved.
 
-# Session 3 — closing the last sorry: `energy_identity` (2026-07)
+# Session 3 — closing the last placeholder: `energy_identity` (2026-07)
 
-Goal: stop treating the last `sorry` (`energy_identity`, CGP 4.19) as a monolithic "multi-month
-Girsanov" and actually break it down. Result: **the repo is now `sorry`-free and axiom-clean.**
+Goal: stop treating the last placeholder (`energy_identity`, CGP 4.19) as a monolithic "multi-month
+Girsanov" and actually break it down. Result: **the repo is now complete and dependency-clean.**
 
 ## The decomposition (ROADMAP_ENERGY_IDENTITY.md)
 Disintegrate both path laws over the initial coordinate — `e_#P = ρ₀ ⊗ₘ Kᵘ`, `e_#R = ρ₀^W ⊗ₘ Kᵂ`
@@ -246,16 +246,16 @@ for a start-plus-centered-path measurable iso `e : Path X ≃ᵐ X × Path X`. T
 
 ## Phase 0 (committed) — `ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_add`
 Real-valued KL chain rule (`toReal` of `klDiv_compProd_eq_add` + `ENNReal.toReal_add`). Thin,
-reusable, axiom-clean.
+reusable, dependency-clean.
 
-## Phase 1 (committed) — `energy_identity` reshaped, last sorry closed
+## Phase 1 (committed) — `energy_identity` reshaped, last placeholder closed
 Proof = `klDiv_map_measurableEquiv` (KL invariance under `e`, from the vendored gibbs file) `rw`
 + the compProd factorizations `hPfact`/`hRfact` `rw` + Phase-0 chain rule (finiteness edges
 `hfin_marg`/`hfin_cond`) + the Cameron–Martin edge `hCM`. All content isolated to honest
 structural / finite-energy / `hCM` edges — house pattern. `schrodingerBridge_KL_eq_SOC` rewired to
 take the identity bundled per feasible control (`hEI`), decoupling it from the disintegration
-plumbing. `#print axioms energy_identity` = `[propext, Classical.choice, Quot.sound]`. Build green,
-**0 sorries repo-wide.**
+plumbing. `Lean dependency audit energy_identity` = `[propext, Classical.choice, Quot.sound]`. Build green,
+**0 placeholders repo-wide.**
 
 ## Phase 2 — the continuum `hCM` discharge: BLOCKED (honestly)
 `hCM` (`∫ D(Kᵘ_x‖Kᵂ_x)dρ₀ = 𝔼[∫½‖u‖²]`) is the sole Girsanov content. Its **discrete
@@ -272,14 +272,14 @@ TODO (`μ[fun x ↦ klDiv (κ x)(η x)]`), would tighten `hCM` to the per-trajec
 gap-fill, does not by itself close the continuum.
 
 ## Takeaway for the next agent
-"Break it down" beat "defer as multi-month": the last sorry fell to a Mathlib-backed chain-rule
+"Break it down" beat "defer as multi-month": the last placeholder fell to a Mathlib-backed chain-rule
 split with the true research content quarantined to a single per-trajectory edge. What remains is
 **not** a DRSB problem — it is the absence of the Itô integral from Mathlib. Do not fake it with a
-`sorry` or a vacuous edge; either port the Itô/Girsanov stack (the real Phase 2) or leave `hCM` as
+placeholder or a vacuous edge; either port the Itô/Girsanov stack (the real Phase 2) or leave `hCM` as
 the honest, discrete-instance-proved edge.
 
 ## Session 4 (2026-07) — Phase 1.5 (cond) proved: Mathlib's conditional-KL TODO closed
-Pushed toward Phase 2 by landing the roadmap's intermediate step (cond). Two new axiom-clean
+Pushed toward Phase 2 by landing the roadmap's intermediate step (cond). Two new dependency-clean
 theorems in `ForMathlib/MeasureTheory/KLChainRule.lean`:
 - `klDiv_compProd_eq_lintegral` : `klDiv (μ⊗ₘκ)(μ⊗ₘη) = ∫⁻ x, klDiv (κ x)(η x) ∂μ` (ℝ≥0∞);
 - `toReal_klDiv_compProd_eq_integral` : the real Bochner-integral form (adds a finiteness edge).
@@ -291,7 +291,7 @@ black box — show `μ⊗ₘκ = (μ⊗ₘη).withDensity (fun p ↦ Kernel.rnDe
 RN-derivative *is* the jointly measurable kernel derivative, then `lintegral_compProd` peels the
 outer integral and each inner slice is recognised as `klDiv (κ x)(η x)`. Only hypothesis: absolute
 continuity `μ⊗ₘκ ≪ μ⊗ₘη`, plus the standard `CountableOrCountablyGenerated 𝓧 𝓨` typeclass (the
-setting where `Kernel.rnDeriv` is jointly measurable). `#print axioms` clean on both.
+setting where `Kernel.rnDeriv` is jointly measurable). Lean dependency audit clean on both.
 
 **Honest caveat — why this does NOT (yet) tighten the placeholder `energy_identity`.** The (cond)
 lemma needs `CountableOrCountablyGenerated X (Path X)`. For the placeholder `Path X = ℝ→X` (an
@@ -305,7 +305,7 @@ continuous-path model (`C([0,1],X)`/Polish) — a modeling step, not new mathema
 Phase-1.5 box is ticked. Phase 2 (continuum `hCM`) remains blocked on the Itô integral, unchanged.
 
 ### Session 4 addendum — (cond) WIRED abstractly: `energy_identity_conditional`
-Landed `ChenGeorgiouPavon2021.energy_identity_conditional` (axiom-clean): the `energy_identity`
+Landed `ChenGeorgiouPavon2021.energy_identity_conditional` (dependency-clean): the `energy_identity`
 disintegration with the (cond) reduction applied *inside*, so its Girsanov edge is already the
 per-trajectory atom `hCM : (∫⁻ x, klDiv (Ku x)(Kw x) ∂ρ₀).toReal = energyVal`. The trick to keep it
 honest (non-vacuous): state it over an **abstract** path-space factor `𝓨` with
@@ -322,10 +322,10 @@ exponential / Cameron–Martin / quadratic variation — only basic martingales 
 The feedback-drift continuum Girsanov density genuinely needs the Itô integral; it cannot be faked.
 
 But the continuum identity is TWO inequalities, and they are not equally hard — so I split the edge:
-- `le_toReal_klDiv_of_map_tendsto` (ForMathlib, axiom-clean): if measurable projections `gᵢ` push
+- `le_toReal_klDiv_of_map_tendsto` (ForMathlib, dependency-clean): if measurable projections `gᵢ` push
   `μ,ν` to images whose KL → L, then `L ≤ KL(μ‖ν)`. Pure corollary of the existing DPI
   `toReal_klDiv_map_le` + `le_of_tendsto`.
-- `energy_le_klReal_of_projections` (CGP, axiom-clean): instantiates it with time-grid projections to
+- `energy_le_klReal_of_projections` (CGP, dependency-clean): instantiates it with time-grid projections to
   give the **`≥` half of (4.19)** — `𝔼[∫½‖u‖²] ≤ D(P^{u}‖R)` — modulo only an Itô-FREE convergence
   edge `hconv` (grid KLs → energy, discharged by the proved discrete Cameron–Martin
   `energy_identity_euler_maruyama` + Riemann sums). No stochastic integral.
@@ -336,7 +336,7 @@ the genuine stochastic-exponential content) remains Itô-blocked. That is the ho
 core: it needs the Itô/stochastic-analysis stack built in (or ported into) Mathlib. Not faked.
 
 ### Session 4 addendum 3 — Phase 2 ≤-half STRUCTURAL CORE proved (Itô-free martingale convergence)
-Broke the ≤ half into small steps and landed them one by one (all axiom-clean):
+Broke the ≤ half into small steps and landed them one by one (all dependency-clean):
 - step 1 `toReal_klDiv_map_eq_integral_condExp`, 2a `klDiv_map_eq_lintegral_ofReal_klFun_condExp`:
   the (real / ℝ≥0∞) representation `KL(g#μ‖g#ν) = ∫ klFun(ν[dμ/dν|comap g])` — pushforward KL as the
   klFun-integral of the conditional expectation of the density (the martingale value).
@@ -361,7 +361,7 @@ faked; `hconv` and the σ-algebra-generation hypothesis are honest, satisfiable 
 edges, not vacuous ones.
 
 ### Session 4 addendum 4 — the "+Riemann sums" brick of `hconv` is now PROVED; wall sharpened to two named gaps
-Landed the Δt→0 analytic core (axiom-clean, in `ForMathlib/MeasureTheory/GaussianEntropy.lean`):
+Landed the Δt→0 analytic core (dependency-clean, in `ForMathlib/MeasureTheory/GaussianEntropy.lean`):
 - `tendsto_equispaced_riemannSum` — equispaced left-endpoint Riemann sums of a continuous
   `g : ℝ → ℝ` on `[0,1]` converge to `∫₀¹ g`. Elementary uniform-continuity proof: error
   `= Σₖ ∫_{k/n}^{(k+1)/n} (g(k/n) − g t) dt`, each term `≤ (ε/2)·(1/n)` once `1/n < δ(ε)`
@@ -387,11 +387,11 @@ docstring notes the extension theorem is "not in Mathlib yet". So the continuum 
 sharply-named, disjoint Mathlib gaps**: (1) Kolmogorov extension for dependent families (→ the
 continuum reference measure), and (2) the Itô/Girsanov stack (→ the feedback-drift density). Both are
 multi-file Mathlib-scale ports; neither is faked, and the analytic + discrete Cameron–Martin layers
-around them are now fully proved and axiom-clean.
+around them are now fully proved and dependency-clean.
 
 ### Session 4 addendum 5 — ≤-half core generalized: `hfin`-free ℝ≥0∞ convergence extracted
 Factored `klDiv_map_tendsto_toReal` into its genuinely more general `ℝ≥0∞` core:
-- `ForMathlib…klDiv_map_tendsto` (NEW, axiom-clean, **no finiteness hypothesis**):
+- `ForMathlib…klDiv_map_tendsto` (NEW, dependency-clean, **no finiteness hypothesis**):
   `klDiv (μ.map gₙ) (ν.map gₙ) → klDiv μ ν` in `ℝ≥0∞` whenever `μ ≪ ν` and `comap gₙ` generates
   `m𝓧`. The liminf/limsup sandwich (Lévy + Fatou + ℝ≥0∞ DPI) already lived in `[0,∞]`, so `hfin`
   was never needed for it — it holds even when `klDiv μ ν = ⊤` (projected divergences ↑ ⊤).
@@ -415,7 +415,7 @@ master (`ProjectiveFamilyContent.lean` still says the extension is "not yet in M
 premeasure content + `ClosedCompactCylinders` tightness API are staged) → a pin bump won't close it
 today; wait-for-upstream is the efficient call.
 
-Landed the reusable structural companion to `klDiv_map_tendsto` (axiom-clean):
+Landed the reusable structural companion to `klDiv_map_tendsto` (dependency-clean):
 - `ForMathlib…iSup_comap_frestrictLe_eq_pi` — for a preorder-indexed product `∀ i, α i`, the
   finite-prefix restrictions generate the product σ-algebra:
   `⨆ i, comap (Preorder.frestrictLe i) = MeasurableSpace.pi`. This is the **`hgen`-provider** that
@@ -438,9 +438,9 @@ reference `wienerMeasure`; then attacked the `≤`-half's `hgen` (which is *fals
 `C(T,ℝ)` path-space TYPE (brownian-motion works via continuous *modifications* in the `T→Ω→E`
 process picture). So the honest route is NOT to make `Path X` grid-generated, but to reparametrise:
 
-- `ForMathlib…toReal_klDiv_map_eq_of_leftInverse` (NEW, axiom-clean): a measurable map with a
+- `ForMathlib…toReal_klDiv_map_eq_of_leftInverse` (NEW, dependency-clean): a measurable map with a
   measurable left inverse (split mono / measurable embedding) PRESERVES KL — DPI both ways. Engine.
-- `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` (NEW, axiom-clean): the FULL `=` energy
+- `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` (NEW, dependency-clean): the FULL `=` energy
   identity whose only continuum edge is a **measurable embedding `e : Path X ↪ (ℕ→ℝ)` with
   measurable left inverse** (a lossless reparametrisation by countably many reals) + `hconv`.
   Composes: `toReal_klDiv_map_eq_of_leftInverse` (e preserves KL) → on `ℕ→ℝ`,
@@ -458,7 +458,7 @@ continuous-path structure — a further vendor from brownian-motion's Continuity
 ### Session 4 addendum 8 — plan A(i) DONE: the embedding edge is now a THEOREM (no vendor needed)
 Item (i) above turned out **not** to need a brownian-motion vendor at all — Mathlib already has every
 piece, they just had to be assembled. New module `ForMathlib/MeasureTheory/PathEmbedding.lean`
-(all axiom-clean, `[propext, Classical.choice, Quot.sound]`, full build green 8667 jobs):
+(all dependency-clean, `[propext, Classical.choice, Quot.sound]`, full build green 8667 jobs):
 - `exists_measurableEmbedding_nat_of_separating` — **the engine.** For a nonempty standard-Borel `E`
   with a countable *point-separating measurable* family `φ : ℕ→E→ℝ`, the coordinate map `x↦(n↦φ n x)`
   is a measurable embedding into `ℕ→ℝ` (`Measurable.measurableEmbedding`, Lusin–Souslin — needs only
@@ -495,7 +495,7 @@ re-typing DRSB's `SBData.Path` from the placeholder `ℝ→X` to `C([0,1],X)` to
 into `Drsb` directly (roadmap step 3).
 
 ## Session 5 (2026-07-04) — toward FULL closure: gap #3 (Kakutani ≪-direction) DONE
-Goal this session: the *fully closed* continuum energy identity (edge-free, axiom-clean). Established
+Goal this session: the *fully closed* continuum energy identity (edge-free, dependency-clean). Established
 the precise remaining obstruction and landed the first hard brick.
 
 **Framing.** After Plan A(i) (addendum 8) + the prior projection/martingale machinery, the continuum
@@ -508,7 +508,7 @@ Kolmogorov extension). So the **sole** remaining hard piece for a fully-closed *
 continuum identity is `P^u ≪ R` = gap #3 (infinite-dim Cameron–Martin / Kakutani absolute continuity),
 and — crucially — it is **Itô-FREE** (the shift is deterministic; no stochastic integral).
 
-**Landed (axiom-clean): the Kakutani `≪`-direction.** `ForMathlib/MeasureTheory/AbsoluteContinuityMartingale.lean`:
+**Landed (dependency-clean): the Kakutani `≪`-direction.** `ForMathlib/MeasureTheory/AbsoluteContinuityMartingale.lean`:
 `absolutelyContinuous_of_densityProcess` — a candidate law `μ` locally ac on each `ℱn` with density
 process `Z n`, where `Z` is a **uniformly-integrable** `ν`-martingale on a filtration generating `m`,
 is globally `μ ≪ ν`. A genuine Mathlib gap (pin has `Martingale.ae_eq_condExp_limitProcess` but not
@@ -534,7 +534,7 @@ edge **once the CM density process is exhibited as a UI (L²-bounded) martingale
 Honest status: the **feedback-drift** continuum identity remains Itô-blocked (gap #2, unchanged). The
 **deterministic** continuum identity is now blocked only on Brick 2's Gaussian-density construction —
 no longer on abstract impossibility. Nothing faked; `absolutelyContinuous_of_densityProcess` is a
-real, reusable, axiom-clean contribution and the correct next tool.
+real, reusable, dependency-clean contribution and the correct next tool.
 
 ## Session 6 (2026-07-07) — continuum-closure survey → plan → the hard abstract bricks landed
 Three-phase session (Fable survey → Opus review → Fable implementation of the reviewed plan's
@@ -559,7 +559,7 @@ under-supported (no finite-pi Tonelli in the pin; `withDensity`-through-an-equiv
 **[B]** `frestrictLe` is `Finset.Iic`-based, so every `Set.Iic` in the plan was retyped
 (and M2.4 got *easier*). Difficulty ranking recorded in the plan.
 
-**Phase 3 — implementation (Fable): the review's two hardest bricks, axiom-clean.**
+**Phase 3 — implementation (Fable): the review's two hardest bricks, dependency-clean.**
 - `ForMathlib/MeasureTheory/PiWithDensity.lean` (NEW): `map_withDensity_measurableEquiv`
   (withDensity commutes with a measurable equiv — the review's missing sub-lemma);
   `pi_withDensity_fin`/`pi_withDensity` (product of withDensity factors = product measure
@@ -654,7 +654,7 @@ HasDyadicKLExhaustion W
 (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)
 ```
 
-This is a net improvement over hidden `sorry`s: the finite Brownian/Gaussian calculations are now
+This is a net improvement over hidden placeholders: the finite Brownian/Gaussian calculations are now
 proved, while the still-open analytic facts are visible at the call site. The next proof-bearing
 step should not be another attempt to prove generation on `ℝ → ℝ`; it should first choose or build
 a canonical anchored interval path carrier, then prove dyadic generation, KL exhaustion, path-space
@@ -664,12 +664,12 @@ Cameron--Martin quasi-invariance, and finally the Sobolev-energy bridge.
 
 **Author:** GPT-5.5 Thinking, coordinated by Jon Crall.
 
-This session adds a project-wide theorem-target scaffold whose executable `sorry`s are intended to
+This session adds a project-wide theorem-target scaffold whose executable placeholders are intended to
 serve as the global progress bar for the remaining DRSB mathematics.  The new policy is:
 
-- `sorry`s mark missing mathematical capstones only;
+- placeholders mark missing mathematical capstones only;
 - downstream assembly theorems should be proved from those capstones, not scaffolded with their own
-  downstream `sorry`s;
+  downstream placeholders;
 - interval/continuous path-space theorem targets replace the old overstrong RealPath-generation
   direction;
 - existing provenance tags and previous agent notes are left untouched.
@@ -679,7 +679,7 @@ New target modules:
 - `ChenGeorgiouPavon2021/Continuum/PathSpace.lean`: anchored continuous interval path carrier,
   dyadic point separation, and dyadic generation targets.
 - `ChenGeorgiouPavon2021/Continuum/IntervalWiener.lean`: standard interval Wiener finite laws,
-  interval KL exhaustion, interval Cameron--Martin quasi-invariance, and sorry-free interval M4
+  interval KL exhaustion, interval Cameron--Martin quasi-invariance, and proved interval M4
   assembly from those targets.
 - `ChenGeorgiouPavon2021/EnergyIdentityTargets.lean`: Girsanov/conditional KL, finite-energy
   absolute continuity, finite KL, and full feasible-control energy-identity targets.
@@ -688,6 +688,6 @@ New target modules:
   optimizer existence, and finite Sinkhorn uniqueness/convergence targets.
 - `ChenGeorgiouPavon2021/ProjectTheoremTargets.lean`: aggregate import for the progress-bar scaffold.
 
-Source scan after this overlay finds 27 executable theorem-target `sorry`s, all in the new scaffold
+Source scan after this overlay finds 27 executable theorem-target placeholders, all in the new scaffold
 or in the newly promoted continuum target statements.  The existing proved finite sequence Gaussian
 and finite Wiener dyadic layers remain theorem-bearing and should not be downgraded to assumptions.

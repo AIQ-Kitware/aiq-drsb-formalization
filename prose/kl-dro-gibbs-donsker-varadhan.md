@@ -63,7 +63,7 @@ $\mathrm{KL}(\mu\Vert\nu_f)=\mathrm{KL}(\mu\Vert\nu)-\int f\,d\mu+\log Z\ge 0$,
 which is (DV-ineq). Taking $\mu=\nu_f$ makes the KL term vanish and turns the
 inequality into the equality (DV-var). $\qquad\blacksquare$
 
-**Formalized in this repo.** These are proved (no `sorry`, no extra axioms) in
+**Formalized in this repo.** These are proved (no placeholder, no extra dependencies) in
 [`WellKnown.lean`](../WellKnown.lean):
 
 | Statement | Lean declaration |

@@ -272,7 +272,7 @@ paper $\nu\to$ `base`, paper $\hat P\to$ `muhat`, paper $c(x,z)\to\lVert x-z\rVe
 - **`sdro_dual`** $\leftrightarrow$ **Theorem 1(II)**, $V=V_D$:
   $$\sup_{\mu\in\text{sinkhornBall}}\mathbb E_\mu[\Psi_0]=\inf_{\lambda\ge0}\Big\{\lambda\cdot\text{eps}+\mathbb E_{\hat x\sim\hat\mu}\big[M(\Psi_0,\lambda,\kappa,\hat x)\big]\Big\},$$
   i.e. exactly dual `(1)` with $\rho=$ `eps`, $\epsilon=$ `kappa`. The Lean file leaves
-  only the **outer** strong-duality direction as `sorry`; the **inner** soft-max
+  only the **outer** strong-duality direction as placeholder; the **inner** soft-max
   ($v_x(\lambda)$ = log-partition) is the Donsker–Varadhan identity already proved as
   `WellKnown.log_integral_exp_eq_sSup` / `DRSB.donsker_varadhan` (this file's step 2).
 

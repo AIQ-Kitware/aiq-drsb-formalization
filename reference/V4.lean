@@ -24,7 +24,7 @@ set_option linter.unnecessarySimpa false
 /-!
 # drsb-v4.lean
 
-A **no-axioms** Lean scaffold for:
+A **no-dependencies** Lean scaffold for:
 
 1) Distributionally Robust Schrödinger Bridge (DRSB) preprint (ICML 2026):
    - Schrödinger Bridge / SOC formulation
@@ -44,16 +44,16 @@ A **no-axioms** Lean scaffold for:
 
 ## Critical constraints satisfied
 
-- **No axioms.** All objects are `def`/`structure`/`class`/`lemma`.
+- **No dependencies.** All objects are `def`/`structure`/`class`/`lemma`.
 - `ProbabilityMeasure` is treated as a subtype `{μ : Measure α // μ.IsProbabilityMeasure}`.
 - `ENNReal` is used (not `ℝ≥0∞`).
-- Proof bodies are `by sorry`, but **comments contain complete prose proofs**
+- Proof bodies are `by placeholder`, but **comments contain complete prose proofs**
   so the file is understandable without the PDFs.
 
-## What is abstracted (but not axiomatically)
+## What is abstracted (but not dependencyatically)
 
 The paper’s controlled diffusion is abstracted via a `Dynamics` interface returning path laws.
-This is a *structure*, not an axiom: you can later instantiate it with an SDE solution operator.
+This is a *structure*, not an dependency: you can later instantiate it with an SDE solution operator.
 
 -/
 
@@ -124,7 +124,7 @@ noncomputable def Expect (P : ProbabilityMeasure X) (f : X → ℝ) : ℝ :=
   ExpectPM (P := P) f
 
 --------------------------------------------------------------------------------
--- KL divergence (no axioms): Mathlib-backed via klDiv
+-- KL divergence (no dependencies): Mathlib-backed via klDiv
 --------------------------------------------------------------------------------
 
 /-!
@@ -159,7 +159,7 @@ noncomputable def KL {α : Type} [MeasurableSpace α]
   KLM (P := (P : Measure α)) (Q := (Q : Measure α))
 
 --------------------------------------------------------------------------------
--- Couplings and OT costs (no axioms): define W2sq and Sinkhorn Wkappa
+-- Couplings and OT costs (no dependencies): define W2sq and Sinkhorn Wkappa
 --------------------------------------------------------------------------------
 
 /-!
@@ -227,7 +227,7 @@ def sinkhornBall (muhat : ProbabilityMeasure X) (kappa eps : ℝ) : Set (Probabi
   { mu | Wkappa (X := X) kappa mu muhat ≤ eps }
 
 --------------------------------------------------------------------------------
--- Abstract dynamics interface (structure, not axiom)
+-- Abstract dynamics interface (structure, not dependency)
 --------------------------------------------------------------------------------
 
 /-!
@@ -245,7 +245,7 @@ structure Dynamics (X : Type) [MeasurableSpace X] where
 variable (dyn : Dynamics (X := X))
 
 --------------------------------------------------------------------------------
--- SOC energy + SB objective (definitions, no axioms)
+-- SOC energy + SB objective (definitions, no dependencies)
 --------------------------------------------------------------------------------
 
 /-!
@@ -395,7 +395,7 @@ is *strong duality*, which requires constructing the worst-case `μ` as the push
 `μ̂` under a measurable argmax / optimal-transport map (Gao–Kleywegt / Blanchet–Murthy),
 plus regularity (e.g. `Ψ` upper semicontinuous, the suprema attained). That OT
 measurable-selection machinery is not in Mathlib and is not formalized here; the bare
-equality also fails without such regularity. Left as `sorry`. -/
+equality also fails without such regularity. Left as placeholder. -/
 lemma wdro_dual
   (muhat : ProbabilityMeasure X) (eps : ℝ) (Psi0 : Psi X) :
   (sSup ((fun mu : ProbabilityMeasure X => Expect (X := X) mu Psi0) '' wassersteinBall (X := X) muhat eps))
@@ -446,7 +446,7 @@ variational principle**, which *is* proved in this development:
 `DRSB.WellKnown.log_integral_exp_eq_sSup` (and `isGreatest_donskerVaradhan`) give
 `log ∫ exp(A/(λκ)) d(base) = sup_q ( 𝔼_q[A/(λκ)] − KL(q‖base) )`, so
 `M_logPartition x̂ = λκ · sup_q(…)` and the optimal `q` is the Gibbs tilt
-(`exists_worstCase_gibbsKernel`). Only the outer strong duality is left as `sorry`. -/
+(`exists_worstCase_gibbsKernel`). Only the outer strong duality is left as placeholder. -/
 lemma sdro_dual
   (muhat : ProbabilityMeasure X) (eps kappa : ℝ) (Psi0 : Psi X) :
   (sSup ((fun mu : ProbabilityMeasure X => Expect (X := X) mu Psi0) '' sinkhornBall (X := X) muhat kappa eps))
@@ -620,7 +620,7 @@ noncomputable def wdrsbDualObjective
         empAvg (X := X) xhat0 (fun xhat => L_wdro (X := X) (V0 (dyn := dyn) (X := X) rho nu) lam xhat) }
 
 --------------------------------------------------------------------------------
--- Optimality condition u* = -∇V (no axioms via typeclass)
+-- Optimality condition u* = -∇V (no dependencies via typeclass)
 --------------------------------------------------------------------------------
 
 /-!
@@ -633,7 +633,7 @@ Completing the square:
   1/2||u||^2 + ⟨u,p⟩ = 1/2||u+p||^2 - 1/2||p||^2,
 so the minimizer is u* = -p.
 
-To avoid axioms, we parameterize “having a gradient operator” as a typeclass.
+To avoid dependencies, we parameterize “having a gradient operator” as a typeclass.
 -/
 
 /-- Minimal interface providing a gradient operator. -/

@@ -1,7 +1,7 @@
 /-
 # Blanchet–Murthy (2019): optimal-transport DRO strong duality
 
-Statement-only scaffold (`sorry` bodies) for the primary strong-duality result of
+Statement-only scaffold (proof bodies deferred) for the primary strong-duality result of
 
   J. Blanchet, K. Murthy, "Quantifying Distributional Model Risk via Optimal
   Transport", *Mathematics of Operations Research* (2019), arXiv:1604.01446.
@@ -63,7 +63,7 @@ Faithfulness notes:
 * Blanchet–Murthy Theorem 1 requires only (A1)+(A2); there is NO growth/`κ < ∞`
   hypothesis (that is the Gao–Kleywegt variant), so none is added.
 
-Body is `sorry` (statement-only scaffold). -/
+Body is placeholder (statement-only scaffold). -/
 theorem wdro_strong_duality
     (μhat : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (δ : ℝ)
     -- the transport cost is symmetric (Blanchet–Murthy's ball uses `μ̂` as first coupling

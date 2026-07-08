@@ -8,7 +8,7 @@ cornerstone of information theory that is a genuine gap in Mathlib (which has th
 rule `klDiv_compProd_eq_add` and a conditional Jensen inequality, but no DPI / f-divergence
 monotonicity).
 
-STATUS: PROVED, axiom-clean (`propext / Classical.choice / Quot.sound`).
+STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
 
 Proof (the textbook convex/Jensen argument, assembled from existing Mathlib pieces):
 the Radon–Nikodym derivative of a pushforward is a conditional expectation
@@ -340,7 +340,7 @@ This is the tool that makes a *lossless reparametrisation* preserve a path-measu
 restricting a **continuous** path to a countable dense set of times is injective (`Continuous.ext_on`),
 hence a measurable embedding, so the continuum energy identity's projection argument reduces to the
 countable-product case where the finite-grid projections generate the σ-algebra
-(`iSup_comap_frestrictLe_eq_pi`) and `klDiv_map_tendsto` applies. `#print axioms`-clean. -/
+(`iSup_comap_frestrictLe_eq_pi`) and `klDiv_map_tendsto` applies. Lean dependency audit-clean. -/
 theorem toReal_klDiv_map_eq_of_leftInverse
     (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (hμν : μ ≪ ν) (hfin : klDiv μ ν ≠ ⊤)

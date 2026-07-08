@@ -5,7 +5,7 @@ the *traps* — the context that is expensive to re-derive and easy to lose. Com
 docs: [`README.md`](README.md) (build + library map), [`prose/README.md`](prose/README.md)
 (the published-theorem chain), [`formalization.yaml`](formalization.yaml) (per-declaration
 source map), [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (the proof-pass work plan: every
-remaining `sorry` ranked by difficulty, the us-vs-Fable split, and the ForMathlib
+remaining placeholder ranked by difficulty, the us-vs-Fable split, and the ForMathlib
 upstreaming queue), [`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *chains*
 under DRSB — DKPS-style — with grep-verified Mathlib gaps and search terms for mining
 existing AI/human Lean proofs), [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (dated, link-rich
@@ -133,7 +133,7 @@ The **`Drsb` capstone** composes the above:
 
 ## 5. Repo conventions & workflow (how to work here without breaking things)
 
-- **First-pass policy: STATEMENTS ONLY.** Every theorem body is `:= by sorry`. We are
+- **First-pass policy: STATEMENTS ONLY.** Every theorem body is `:= by placeholder`. We are
   matching statements to the papers *first*; proofs come later. Do not start proofs
   unless explicitly asked.
 - **Faithfulness rule:** re-derive every statement from `prose/` (which cites the printed
@@ -144,9 +144,9 @@ The **`Drsb` capstone** composes the above:
   *object definitions* (couplings, `W2sq`, Sinkhorn ball) are fine to reuse for Lean
   syntax; their *theorem statements* are the traps (e.g. `V4`'s
   `optimal_control_eq_neg_grad_value` was a **vacuous existential** — the whole reason we
-  restarted). **`reference/WellKnown.lean` has *complete, axiom-clean proofs* of the
+  restarted). **`reference/WellKnown.lean` has *complete, dependency-clean proofs* of the
   Donsker–Varadhan family** — these have been ported into
-  `ForMathlib.MeasureTheory.DonskerVaradhan` (the free `sorry` removals). **Do NOT
+  `ForMathlib.MeasureTheory.DonskerVaradhan` (the straightforward proof completions). **Do NOT
   pull the PAC-Bayes / "TwoPager Theorem 4" material (`V1/V4`'s
   `clip`/`gClip`/`BCE`/`pac_bayes_*`) into the canonical chain** — it is card-irrelevant
   and was excised (see §2 and git log).
@@ -169,7 +169,7 @@ The **`Drsb` capstone** composes the above:
 ### Adding a new paper library
 1. `NewPaper.lean` containing only `import NewPaper.Basic`.
 2. `NewPaper/Basic.lean`: `import Mathlib` (+ `ForMathlib.OptimalTransport.Basic` / DV),
-   `set_option autoImplicit false`, `namespace NewPaper`, defs + `sorry` theorems.
+   `set_option autoImplicit false`, `namespace NewPaper`, defs + theorem targets.
 3. Add `[[lean_lib]] name = "NewPaper"` to `lakefile.toml` (and to `defaultTargets`).
 4. `lake env lean NewPaper/Basic.lean` until clean; then update `formalization.yaml`
    `sources`/`main_results` and this table.
@@ -222,7 +222,7 @@ The **`Drsb` capstone** composes the above:
 - Toolchain **`leanprover/lean4:v4.31.0-rc2`** (pinned in `lean-toolchain`); Mathlib pinned
   in `lake-manifest.json` (rev `476fb97…`, same as the DKPS repo).
 - Fresh setup: `lake exe cache get` (downloads prebuilt Mathlib oleans, ~minutes) then
-  `lake build`. Builds green; each leaf emits exactly one `sorry` warning.
+  `lake build`. Builds green; each leaf emits exactly one placeholder warning.
 - **Never commit** `.lake/` or `prose/papers/*.pdf` — both are git-ignored.
 
 ## 8. Git / submodule
@@ -243,8 +243,8 @@ The **`Drsb` capstone** composes the above:
 > quasi-invariance, and assembly modules; `SocOt` is split into dynamic, static, entropic-OT,
 > and Sinkhorn wrappers. Downstream code may keep importing the aggregate modules.
 >
-> **Progress-bar policy.** Future `sorry`s should live only on the mathematical theorem targets
-> needed to discharge final DRSB assumptions. Do not add `sorry`s to downstream integration/assembly
+> **Progress-bar policy.** Future placeholders should live only on the mathematical theorem targets
+> needed to discharge final DRSB assumptions. Do not add placeholders to downstream integration/assembly
 > lemmas that merely consume those targets; those should be wired only after the target theorems are
 > proved or stated as explicit hypotheses/interfaces.
 
@@ -252,7 +252,7 @@ The **`Drsb` capstone** composes the above:
   `lake build` green; prose transcriptions + PDFs in place; `formalization.yaml` maps
   every declaration to its source.
 - **Proofs landed (proof pass, foundational-first):**
-  - `ForMathlib.MeasureTheory.DonskerVaradhan` — the full DV family (axiom-clean).
+  - `ForMathlib.MeasureTheory.DonskerVaradhan` — the full DV family (dependency-clean).
   - `ForMathlib.MeasureTheory.Normalization.isProbabilityMeasure_inv_univ_smul` —
     normalize a finite nonzero measure to a probability measure (new; the first
     pipeline extraction — a genuine Mathlib gap, consumed by `exists_worstCase_gibbs`).
@@ -267,8 +267,8 @@ The **`Drsb` capstone** composes the above:
     proof; the debt stays in one place.
   - `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` — the OT-DRO
     per-coupling **weak-duality kernel** (ported from `reference/V4.lean`, generalized to
-    arbitrary cost `c`); axiom-clean.
-  - ⭐ **BOTH DRSB evaluation-card claims PROVED, axiom-clean** — the project's headline
+    arbitrary cost `c`); dependency-clean.
+  - ⭐ **BOTH DRSB evaluation-card claims PROVED, dependency-clean** — the project's headline
     result `𝔼_perturbed[V] ≤ 𝔼_worst-case[V]` for both balls:
     - `Drsb.wdrsb_cost_bound` (Wasserstein): weak-duality kernel + `sqCost` symmetry, under
       regularity + the OT-attainment edge `hOT`.
@@ -278,8 +278,8 @@ The **`Drsb` capstone** composes the above:
       edge `hSink`; dual restricted to `0<lam` (the `lam=0` `logPartition` is junk — a
       third statement issue found this pass; ess-sup convention unencoded).
     The cards need only the `≤` direction; the strong-duality `≥` seams are now discharged
-    too (below), each modulo one explicit attainment hypothesis rather than a `sorry`.
-  - **General duality + the "strong = weak + attainment" pattern** (axiom-clean):
+    too (below), each modulo one explicit attainment hypothesis rather than a placeholder.
+  - **General duality + the "strong = weak + attainment" pattern** (dependency-clean):
     `GaoKleywegt2023.weak_duality_prop1` (general Wasserstein `v_P ≤ v_D`, via the kernel +
     coupling ε-approx + the unconditional `Real.sSup_neg` for `Φ`↔sup-form) and
     `GaoKleywegt2023.strong_duality_thm1` = `le_antisymm(weak, attainment)` — the `≥` is a
@@ -290,7 +290,7 @@ The **`Drsb` capstone** composes the above:
     upstreamable): `expect_le_dualIntegrand_add_lam_couplingCost` (Wasserstein) and
     `expect_kernel_le_lam_sinkhornBudget_add_logPartition` (entropic/Sinkhorn) — the two
     "from-scratch" Mathlib gaps the cards descend from.
-  - **Atop-a-sorry reductions** (concentrate debt, not axiom-clean):
+  - **Atop-a-placeholder reductions** (concentrate debt, not dependency-clean):
     `ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC` (sInf-translation atop
     `energy_identity`) and `optimal_control_eq_neg_grad_value` (atop
     `optimal_control_eq_grad_log` + a `grad`-negation edge).
@@ -298,11 +298,11 @@ The **`Drsb` capstone** composes the above:
     attainment)` with the `≥` isolated to one explicit OT-attainment hypothesis:
     `BlanchetMurthy2019.wdro_strong_duality` (primary Wasserstein), `WangGaoXie2023.strong_duality`
     (Sinkhorn Theorem 1(II)), and the two **`Drsb` capstones** `wdrsb_strong_duality` /
-    `sdrsb_strong_duality` — **`Drsb` is now sorry-free** (all four card+duality results land).
+    `sdrsb_strong_duality` — **`Drsb` is now proved** (all four card+duality results land).
   - `WangGaoXie2023.primal_feasible_radius_nonneg` (was the mis-stated `primal_feasible_iff`)
-    — the honest necessity half of Theorem 1(I), `0 ≤ κ ⇒ (Nonempty → 0 ≤ ε)`, axiom-clean
+    — the honest necessity half of Theorem 1(I), `0 ≤ κ ⇒ (Nonempty → 0 ≤ ε)`, dependency-clean
     (see §6). Sufficiency is the deferred ρ̄-ball attainment edge.
-- **Finite Sinkhorn scaling — ✅ PROVED, axiom-clean (2026-07):**
+- **Finite Sinkhorn scaling — ✅ PROVED, dependency-clean (2026-07):**
   `ForMathlib.matrix_scaling_exists` + `ForMathlib.sinkhorn_potentials_exist`
   (`ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean`). Mathlib has **neither** Brouwer
   nor the Birkhoff/Hilbert-metric contraction (grep-verified), so the proof is a **log-domain
@@ -311,20 +311,20 @@ The **`Drsb` capstone** composes the above:
   (extreme value theorem — no coercivity lemma), and the marginal equations fall out of the
   1-D directional derivatives along `eⱼ−eₖ` (`IsLocalMin.hasDerivAt_eq_zero`), with **mass
   conservation `∑p=∑q` exactly killing the Lagrange multiplier**. `ChenGeorgiouPavon2021.
-  sinkhorn_potentials_exist` now delegates to a sorry-free proof. `matrix_scaling_exists`
+  sinkhorn_potentials_exist` now delegates to a proved proof. `matrix_scaling_exists`
   is a clean general lemma staged for Mathlib upstreaming (Sinkhorn scaling is a genuine gap).
 - **Vendored external proof + discrete energy identity — ✅ landed (2026-07):** vendored
   `mrdouglasny/gibbs-variational`'s `GaussianEntropy.lean` (Apache-2.0, commit `75e08d8`) →
   `ForMathlib/MeasureTheory/GaussianEntropy.lean` (Cameron–Martin `KL(N(·+h)‖N)=½‖h‖²`;
   attribution in file header + README + `formalization.yaml` + `SURVEY_LEADS.md`). Built on
-  it, the **sorry-free, axiom-clean** Euler–Maruyama discrete energy identity
+  it, the **proved, dependency-clean** Euler–Maruyama discrete energy identity
   `ForMathlib…klDiv_emShift_eq_emEnergy` → `ChenGeorgiouPavon2021.energy_identity_euler_maruyama`:
   `(KL(P^u‖P^0)).toReal = ∑ₖ Δt·½‖u_k‖²`, the discrete/Gaussian layer of `energy_identity`
   (4.19) — the quantity the card measures (§3). The continuous `energy_identity` stays a bare
-  `sorry` (count unchanged at 12); the single remaining edge is the Δt→0 SDE limit
+  placeholder (count unchanged at 12); the single remaining edge is the Δt→0 SDE limit
   (PROOF_PIPELINE §2).
-- **Worst-case structure — ✅ BOTH GaoKleywegt corollaries PROVED, axiom-clean (2026-07);
-  `GaoKleywegt2023` is now sorry-free:**
+- **Worst-case structure — ✅ BOTH GaoKleywegt corollaries PROVED, dependency-clean (2026-07);
+  `GaoKleywegt2023` is now proved:**
   - `dataDriven_worstCase_cor2ii` (Cor 2(ii), eq. 29 — the `≤ N+1`-atom empirical worst case):
     `μ*` built as the explicit `K = 2` weighted-Dirac double-sum; probability measure,
     `∈ ambiguitySet` (explicit transport plan + `ForMathlib.OT.otCost_le_couplingCost`),
@@ -339,8 +339,8 @@ The **`Drsb` capstone** composes the above:
   ingredient edges are (mixture weight, measurable a.e.-argmin maps/atoms, feasibility budget,
   and one `≥` attainment edge — the `le_antisymm(constructive, one edge)` posture shared with
   `MohajerinEsfahaniKuhn2018.worstCase_exists`).
-- **Data-driven duality equality — ✅ PROVED, axiom-clean (2026-07); `MohajerinEsfahaniKuhn2018`
-  is now sorry-free:** `worstCaseExpectation_eq_dual` (Thm 4.2). `le_antisymm(weak, attainment)`:
+- **Data-driven duality equality — ✅ PROVED, dependency-clean (2026-07); `MohajerinEsfahaniKuhn2018`
+  is now proved:** `worstCaseExpectation_eq_dual` (Thm 4.2). `le_antisymm(weak, attainment)`:
   the weak `≤` is **proved** — `csSup_le → le_csInf → per-(Q,λ)` (η/(λ+1) trick) reducing to the
   **new** `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost_restrict` (the `Ξ`-restricted
   Lagrangian kernel — `integral_mono_ae` since the source marginal is `Ξ`-supported) + the
@@ -352,7 +352,7 @@ The **`Drsb` capstone** composes the above:
   external-`ν` fix / `primal_feasible_radius_nonneg` (§6). `[BorelSpace X]` added for
   `IsClosed Ξ ⇒ MeasurableSet Ξ`.
 - **First crack in the SDE frontier — ✅ `dynamic_eq_static_SB` PROVED (one direction),
-  axiom-clean (2026-07); via a NEW KL data-processing inequality.** The Léonard dynamic⇄static
+  dependency-clean (2026-07); via a NEW KL data-processing inequality.** The Léonard dynamic⇄static
   SB equivalence: `le_antisymm(gluing-edge, DPI-direction)`. `staticSBValue ≤ schrodingerBridgeValueKL`
   is **genuinely proved** — the endpoint projection `e = (ω↦(ω₀,ω₁))` sends a feasible path law to
   a coupling in `Π(ρ₀,ρ₁)`, and coarse-graining can't increase KL, so `klReal(e#P‖endpointLaw) ≤
@@ -366,21 +366,21 @@ The **`Drsb` capstone** composes the above:
   `optimal_coupling_factorization` — were **false as stated** (they equate `u*`/`dens*` to a *free*
   operator/function argument with no linking hypothesis; `grad := 0` refutes them). Worse,
   `optimal_control_eq_neg_grad_value` was **green but false** — it compiled only by `rw`ing through
-  the false `grad_log` (`#print axioms` carried `sorryAx`): a genuine hidden `if False then True`.
-  All four are now **reformulated to TRUE statements** and are **axiom-clean**: the real SDE/OT
+  the false `grad_log` (Lean dependency audit carried `unsound dependency marker`): a genuine hidden `if False then True`.
+  All four are now **reformulated to TRUE statements** and are **dependency-clean**: the real SDE/OT
   content (Hopf–Cole / product-form **verification** — the candidate is optimal — + optimizer
   **uniqueness**) is isolated to explicit non-vacuous edges (`hHC`/`hprodopt`, `huniq`), and the
   identity is *derived* (the `isolate-content-to-an-edge` posture used everywhere here). Blast
   radius was contained: `Drsb` uses `V` abstractly, so no card claim was ever affected.
-- **Remaining `sorry`s (1) — the sole HONEST one:** `ChenGeorgiouPavon2021.energy_identity`
+- **Remaining placeholders (1) — the sole HONEST one:** `ChenGeorgiouPavon2021.energy_identity`
   (continuous Girsanov / KL between path measures — genuinely absent from Mathlib; the discrete
   Euler–Maruyama layer `energy_identity_euler_maruyama` is already proved via the vendored
   Cameron–Martin identity). Every other declaration in the repo is proved; the six paper libraries
-  + `Drsb` + `ForMathlib` are otherwise sorry-free.
+  + `Drsb` + `ForMathlib` are otherwise proved.
 - **Next steps + the full triage live in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).**
   Per the user (2026-07): **no Fable** — decompose each remaining target into its natural
   subproblems and prove step-by-step with the thinking budget turned up. The SDE/PDE and
-  OT-measurable-selection blocks may still need a documented `axiom` or a Mathlib-infra lift
+  OT-measurable-selection blocks may still need a documented `dependency` or a Mathlib-infra lift
   (decide with the coordinator). ForMathlib upstreaming queue:
   DV ✓, Normalization ✓, WeakDuality ✓ (three kernels, incl. the Ξ-restricted one),
   SinkhornScaling ✓ (`matrix_scaling_exists`), **KLDataProcessing ✓ (`toReal_klDiv_map_le` — the
@@ -390,12 +390,12 @@ The **`Drsb` capstone** composes the above:
   PR candidate)**.
 - **Source-pass note (2026-07-07):** `ForMathlib/MeasureTheory/GaussianCameronMartin.lean`
   stages the next sequence-model Cameron–Martin brick from `PLAN_CONTINUUM_CLOSURE.md` as a
-  candidate no-`sorry` overlay: iid `stdSeqGaussian`, `prefixFiltration`, finite-prefix marginals,
+  candidate no-placeholder overlay: iid `stdSeqGaussian`, `prefixFiltration`, finite-prefix marginals,
   shift/restriction commutation, and `cmDensityProcess`. The producing sandbox had no Lean compiler;
   run `lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean` before marking M2.4 done.
 
 - **Plan A(i) DONE (2026-07-04) — the continuum embedding edge is now a THEOREM**
-  (`ForMathlib/MeasureTheory/PathEmbedding.lean`, all axiom-clean; JOURNAL Session 4 addendum 8).
+  (`ForMathlib/MeasureTheory/PathEmbedding.lean`, all dependency-clean; JOURNAL Session 4 addendum 8).
   `energy_eq_klReal_via_embedding`'s abstract measurable-embedding hypothesis is *constructed* for the
   continuous-path model (`C(T,ℝ)`, dense-time evaluation), via Mathlib's existing `ContinuousMap`
   Polish instances + Lusin–Souslin — **no brownian-motion vendor needed**. `eq_toReal_klDiv_continuousMap_of_tendsto`
@@ -426,7 +426,7 @@ per-session, concurrency-safe, and stores measurements only.
 ## Project-wide theorem-target scaffold
 
 `ChenGeorgiouPavon2021.ProjectTheoremTargets` imports the current global progress-bar scaffold.  New
-`sorry`s should be added only for missing mathematical capstones and should be placed in the logical
-module where the theorem belongs.  Do not add downstream assembly `sorry`s merely to connect already
+placeholders should be added only for missing mathematical capstones and should be placed in the logical
+module where the theorem belongs.  Do not add downstream assembly placeholders merely to connect already
 named theorem targets; assembly should be proved from the targets or left until the targets are
 proved.

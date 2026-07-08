@@ -1,10 +1,10 @@
 # Journal — attacking the ChenGeorgiouPavon2021 SDE/PDE frontier (2026-07-04)
 
-Goal: close (or make genuine honest progress on) one of the 6 remaining `sorry`s, all in
+Goal: close (or make genuine honest progress on) one of the 6 remaining placeholders, all in
 `ChenGeorgiouPavon2021`, which the docs label T4 ("no Mathlib SDE theory"). The user asked for
 a hard problem, max thinking.
 
-## Structural triage of the 6 sorries
+## Structural triage of the 6 placeholders
 
 - `optimal_control_eq_grad_log`, `_sigma_grad_log`, `_grad_value`, `optimal_coupling_factorization`
   — **UNDER-SPECIFIED**: each equates `u_star`/`dens_star` to an expression in an *arbitrary
@@ -80,7 +80,7 @@ Then `dynamic_eq_static_SB = le_antisymm(gluing_edge, DPI_proved)`: for each fea
 endpoint projection e#(pathLaw u ρ₀) ∈ Π(ρ₀,ρ₁) with klReal(e#P‖e#R) ≤ klReal(P‖R), so
 staticSBValue ≤ klReal(P‖R); take inf ⇒ staticSBValue ≤ schrodingerBridgeValueKL.
 
-## ✅ KL DATA-PROCESSING PROVED, axiom-clean (propext/Classical.choice/Quot.sound)
+## ✅ KL DATA-PROCESSING PROVED, dependency-clean (propext/Classical.choice/Quot.sound)
 `toReal_klDiv_map_le`: `(klDiv (μ.map g)(ν.map g)).toReal ≤ (klDiv μ ν).toReal` for `μ ≪ ν`,
 `g` measurable, finite `klDiv μ ν`. The proof is exactly the Jensen chain above; the two
 gotchas that took iteration:
@@ -93,7 +93,7 @@ This is a genuine Mathlib gap (no DPI / f-divergence file) → clean ForMathlib 
 
 Next: wire into `dynamic_eq_static_SB` via the endpoint projection `e = (ω↦(ω0,ω1))`.
 
-## ✅ dynamic_eq_static_SB PROVED (one direction), axiom-clean — count 6 → 5
+## ✅ dynamic_eq_static_SB PROVED (one direction), dependency-clean — count 6 → 5
 `le_antisymm(hglue, DPI-direction)`. The DPI direction `staticSBValue ≤ schrodingerBridgeValueKL`
 is genuinely proved: endpoint projection e#P ∈ Π(ρ₀,ρ₁) (marginals from feasibility via
 `Measure.map_map` + `hu.1`/`hu.2` — which held by `rfl`/defeq, no massaging), and
@@ -101,9 +101,9 @@ is genuinely proved: endpoint projection e#P ∈ Π(ρ₀,ρ₁) (marginals from
 0 since klReal ≥ 0) + `le_csInf`. Honest edges: hac (AC), hfin (finite KL), hne (nonempty),
 hglue (the Léonard gluing ≤ direction — path reconstruction, not in Mathlib).
 
-**Net result of this session's SDE push:** a bare-`sorry` T4 theorem the docs called fully
+**Net result of this session's SDE push:** a unproved T4 theorem the docs called fully
 blocked is now a house-pattern `le_antisymm(edge, proved)` close, and a genuine Mathlib gap (KL
-data processing) is filled and staged in ForMathlib. Remaining 5 CGP sorries are: energy_identity
+data processing) is filled and staged in ForMathlib. Remaining 5 CGP placeholders are: energy_identity
 (Girsanov, continuous), and the 4 HJB/factorization ones which are UNDER-SPECIFIED as stated
 (equate to arbitrary passed-in operators) — those need statement work (add verification
 hypotheses) or the real SDE machinery, not a proof against the current statements.

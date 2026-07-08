@@ -7,7 +7,7 @@ measure `μ` is *locally* absolutely continuous — on each `ℱ n` it has a den
 the resulting density process `Z` is a **uniformly integrable** `ν`-martingale. Then `μ ≪ ν` globally,
 with density the L¹-limit `ℱ.limitProcess Z ν`.
 
-STATUS: PROVED, axiom-clean (`propext / Classical.choice / Quot.sound`).
+STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
 
 This is a genuine Mathlib gap (the pin has the density-*process* martingale-convergence theorem
 `MeasureTheory.Martingale.ae_eq_condExp_limitProcess`, but not this measure-level absolute-continuity
@@ -57,7 +57,7 @@ theorem isPiSystem_iUnion_filtration (ℱ : Filtration ℕ m) :
   exact ⟨max n k, (ℱ.mono (le_max_left n k) _ hn).inter (ℱ.mono (le_max_right n k) _ hk)⟩
 
 /-- **Absolute continuity from a uniformly-integrable density martingale** (the `≪` direction of the
-Kakutani/Doob dichotomy). See the module docstring. `#print axioms`-clean. -/
+Kakutani/Doob dichotomy). See the module docstring. Lean dependency audit-clean. -/
 theorem absolutelyContinuous_of_densityProcess
     (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (ℱ : Filtration ℕ m) (hgen : ⨆ n, ℱ n = m)

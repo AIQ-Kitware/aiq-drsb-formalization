@@ -118,7 +118,7 @@ theorem pacBayes_generalization_bound
 
   -- Step (A): exponential-moment bound (≤ 1).
   have hMoment : (∫ s, Real.exp (Z s) ∂ μn) ≤ 1 := by
-    -- unfold Z and rewrite to match the axiom
+    -- unfold Z and rewrite to match the dependency
     -- note: R = popMean μ g, r = empMean n g, μn = iidsampleMeasure μ n
     simpa [μn, R, r, Z, iidsampleMeasure, popMean, empMean, sub_eq_add_neg, add_assoc,
       add_left_comm, add_comm, mul_add, mul_sub]

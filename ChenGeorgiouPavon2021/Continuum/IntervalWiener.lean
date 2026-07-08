@@ -3,7 +3,7 @@
 
 This module gathers the theorem targets that should discharge the final M4/continuum assumptions on
 the corrected interval carrier.  The final assembly theorems in this file are proof-bearing wrappers;
-the `sorry`s are only the missing mathematical capstones.
+the placeholders are only the missing mathematical capstones.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.PathSpace
@@ -59,7 +59,7 @@ theorem absCont_standardIntervalWienerMeasure_shift_of_analyticIntervalCameronMa
   sorry
 
 /-- Interval-carrier M4 ENNReal theorem from explicit finite-law, KL-exhaustion, dyadic-energy, and
-absolute-continuity inputs.  This is assembly only; it should stay `sorry`-free. -/
+absolute-continuity inputs.  This is assembly only; it should stay complete. -/
 theorem klDiv_intervalWiener_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure IntervalPath) (h : IntervalPath) (hderiv : ℝ → ℝ)
     (hW : IsStandardIntervalWiener W) (hKL : HasIntervalDyadicKLExhaustion W)

@@ -16,7 +16,7 @@ Phase decomposition), [`JOURNAL.md`](../../JOURNAL.md) Sessions 3–5 (the brick
 
 ## 0. TL;DR
 
-- **The repo is sorry-free and axiom-clean today** (0 `sorry` outside `reference/`;
+- **The repo is proved and dependency-clean today** (0 placeholder outside `reference/`;
   `energy_identity` is proved modulo the explicit, non-vacuous `hCM` edge). Nothing here
   is regressed or blocked at the *repo* level — this survey is about the further,
   optional goal of discharging the last continuum edge without any hypothesis.
@@ -57,7 +57,7 @@ Session 5's decomposition (`JOURNAL.md` "Route to full deterministic closure").
 | **Chebyshev/Markov + L^p tails** | `pow_mul_meas_ge_le_eLpNorm`, `meas_ge_le_mul_pow_eLpNorm_enorm` (`…/LpSpace/Basic.lean`), `MemLp.eLpNorm_indicator_le`, `uniformIntegrable_of` (`…/UniformIntegrable.lean`) | **Brick 1.5** (L²-bounded ⇒ UI) |
 | KL machinery (chain rule, DPI, per-coord tensorization) | `klDiv_compProd_eq_add`, repo's `toReal_klDiv_map_le`, `klDiv_map_tendsto(_toReal)`, `klDiv_stdGaussian_map_add` | the whole projection/embedding argument (already proved, §4) |
 
-**Already-proved reductions that surround Brick 2** (all axiom-clean, in-repo):
+**Already-proved reductions that surround Brick 2** (all dependency-clean, in-repo):
 `iSup_comap_frestrictLe_eq_pi` (grid filtration generates the product σ-algebra),
 `PathEmbedding.*` (continuous-path embedding edge discharged),
 `klDiv_emShift_eq_emEnergy` (discrete grid KL = discrete energy),
@@ -162,5 +162,5 @@ Nothing above is faked or hand-waved. The deterministic closure is graded *reach
 because every step except Brick 2's density factor uses a verified-present pin lemma, and
 Brick 2 route (2b) reduces to independent 1-D Gaussian densities that the pin *does* have.
 The feedback closure is graded *blocked* because the stochastic integral it requires is
-grep-confirmed absent. The current repo remains sorry-free and axiom-clean; these bricks are
-about removing the last *hypothesis* (`hCM`), not any `sorry`.
+grep-confirmed absent. The current repo remains proved and dependency-clean; these bricks are
+about removing the last *hypothesis* (`hCM`), not any placeholder.

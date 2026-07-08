@@ -18,7 +18,7 @@ law is that Gaussian shifted by `emShift Δt u` (`√Δt·u_k` per step). The re
 the controlled vs. reference *path* law is then exactly the discrete control energy
 `∑ₖ Δt·½‖u_k‖²` — the Riemann sum of `𝔼[∫₀¹ ½‖u_t‖² dt]`.
 
-Proved sorry-free, axiom-clean, by delegating to
+Proved, dependency-clean, by delegating to
 `ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy`, which is built on the **vendored**
 Cameron–Martin lemma `klDiv_stdGaussian_map_add` (`KL(N(·+h) ‖ N) = ½‖h‖²`) from
 `mrdouglasny/gibbs-variational` (Apache-2.0; see that file's header + README).  This is the

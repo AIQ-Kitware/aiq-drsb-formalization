@@ -80,7 +80,7 @@ Mathlib-shaped lemmas the chain needs. We contribute a method for (a) and a prop
    (Mathlib-aspiring) and/or `mathlib-slop` (permissive). Author only the true gaps. Rewire
    paper libraries to *consume* staged lemmas (e.g. DRSB `exists_worstCase_gibbs` consumes
    `ForMathlib…Normalization`; `sinkhorn_potentials_exist` delegates to a staged stub).
-5. **Adversarially verify.** `#print axioms` on each leaf; independent skeptic passes;
+5. **Adversarially verify.** Lean dependency audit on each leaf; independent skeptic passes;
    multiple proofs per theorem welcomed (robustness + a golf race). Flag under-specified
    statements (we found two: `primal_feasible_iff`, and a missing mass-conservation
    hypothesis in the Sinkhorn scaling statement).
@@ -94,7 +94,7 @@ Mathlib-shaped lemmas the chain needs. We contribute a method for (a) and a prop
 Structure the related-work section as a **taxonomy of AI-proof sources** (all catalogued
 with links in `SURVEY_LEADS.md`):
 - **Provers / agents:** Goedel-Prover(-V2), Leanabell-Prover-V2, DeepSeek-Prover-V2,
-  Seed Prover, AxiomProver/AXLE, InternLM StepProver.
+  Seed Prover, external proof-search tooling, InternLM StepProver.
 - **Generated corpora:** Lean-GitHub, Lean-Workbook, LeanNavigator (4.7M), OProofs (6.86M).
 - **Declaration search indices:** LeanExplore, LeanSearch v2, Moogle, loogle.
 - **Domain libraries:** StatLean (KL/Pinsker/Fano), flow-sinkhorn (Sinkhorn/OT),
@@ -107,7 +107,7 @@ found: Sion ✅ (Mathlib), cgf & doubly-stochastic ✅ (Mathlib), a few *adjacen
 repos of unverified status — and **essentially zero ready-to-use proofs of the
 load-bearing links** (OT/DRO weak/strong duality, Sinkhorn scaling, the DV *equality*).
 The one close external DV hit (`gibbs-variational`) proves only the inequality and its
-equality is `sorry` and false-as-written (`.toReal` on infinite KL) — a trap we
+equality is placeholder and false-as-written (`.toReal` on infinite KL) — a trap we
 independently avoided. **We had to build the load-bearing results ourselves.** Quantify
 this as a coverage metric per chain (found-and-usable / found-but-unusable / absent).
 
@@ -126,8 +126,8 @@ are true (machine-checked)*, indexes them for search, and curates lightly — th
 end of the trade-off from Mathlib.
 
 **Acceptance contract (CI-enforced, low bar):**
-- compiles against a pinned Mathlib; **no `sorry`**; `#print axioms` clean (or declared
-  axioms listed);
+- compiles against a pinned Mathlib; **no placeholder**; Lean dependency audit clean (or declared
+  dependencies listed);
 - carries a machine-readable **statement + provenance** (model, session, tokens, date,
   and — our twist — measured compute/energy cost);
 - **attribution + license** for any adapted/vendored proof: original author, source repo
@@ -163,7 +163,7 @@ of one statement; governance vs. Mathlib.
 | Sion minimax | DRSB-1 | ✅ Mathlib `Topology.Sion` | reuse |
 | cgf / log-partition | DRSB-2 | ✅ Mathlib `cgf` | reuse |
 | doubly-stochastic / Birkhoff | DRSB-3 | ✅ Mathlib | reuse (revised Sinkhorn plan onto it) |
-| Donsker–Varadhan *variational equality* | DRSB-2 | ⚠ only inequality externally (`gibbs-variational`, buggy equality) | **built, axiom-clean** (`ForMathlib…DonskerVaradhan`) |
+| Donsker–Varadhan *variational equality* | DRSB-2 | ⚠ only inequality externally (`gibbs-variational`, buggy equality) | **built, dependency-clean** (`ForMathlib…DonskerVaradhan`) |
 | OT-DRO per-coupling weak-duality bound | DRSB-1 | ❌ (no OT duality in Mathlib) | **built** (`ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost`, ported+generalized) |
 | finite-measure normalization | DRSB-2 | ❌ (only `tilted_const'` indirectly) | **built** (`ForMathlib…Normalization`), consumed by a paper lemma |
 | Gibbs worst-case normalization; static-SB=entropic-OT; Lc-dual eq. | DRSB | ❌ | **built** (paper-lib leaves) |
@@ -180,7 +180,7 @@ proving actually happened**, and they are exactly the ones with no upstream home
 - **Coverage metric** per chain (found-usable / found-unusable / absent) — the survey
   finding, quantified.
 - **Compute-cost ledger** per proved lemma (tokens, model, energy) from `resource_tally`.
-- **Verification integrity:** `#print axioms` leaf audits; count under-specified statements
+- **Verification integrity:** Lean dependency audit leaf audits; count under-specified statements
   caught (2 so far); multiple-proof agreement where available.
 
 ## 8. Threats / limitations

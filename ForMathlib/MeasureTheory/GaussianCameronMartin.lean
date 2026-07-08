@@ -505,6 +505,74 @@ theorem cmPartialEnergy_bddAbove_of_shift_kl_finite (c : RealSeq)
   by_contra hunbdd
   exact (not_shift_kl_finite_of_not_bddAbove_cmPartialEnergy c hac hunbdd) hfin
 
+/-- If the range-indexed Cameron--Martin partial energies are bounded above, then the
+underlying square series is summable.  This is the pure series/order-theory converse
+bridge: bounded nonnegative partial sums converge by monotone convergence, and the
+nonnegative-series `HasSum` criterion turns that limit into summability. -/
+theorem summable_sq_of_bddAbove_cmPartialEnergy (c : RealSeq)
+    (hbdd : BddAbove (Set.range (cmPartialEnergy c))) :
+    Summable (fun n : ℕ => c n ^ 2) := by
+  have hmono_sums : Monotone (fun n : ℕ => (Finset.range n).sum (fun i => c i ^ 2)) := by
+    exact monotone_nat_of_le_succ (fun n => by
+      rw [Finset.sum_range_succ]
+      exact le_add_of_nonneg_right (sq_nonneg (c n)))
+  have hbdd_sums : BddAbove
+      (Set.range (fun n : ℕ => (Finset.range n).sum (fun i => c i ^ 2))) := by
+    rcases hbdd with ⟨B, hB⟩
+    refine ⟨2 * B, ?_⟩
+    intro y hy
+    rcases hy with ⟨n, rfl⟩
+    have henergy : cmPartialEnergy c n ≤ B := hB ⟨n, rfl⟩
+    calc
+      (Finset.range n).sum (fun i => c i ^ 2)
+          = 2 * cmPartialEnergy c n := by
+            unfold cmPartialEnergy
+            ring
+      _ ≤ 2 * B := mul_le_mul_of_nonneg_left henergy (by norm_num)
+  have hconv : Tendsto (fun n : ℕ => (Finset.range n).sum (fun i => c i ^ 2)) atTop
+      (nhds (⨆ n : ℕ, (Finset.range n).sum (fun i => c i ^ 2))) :=
+    tendsto_atTop_ciSup hmono_sums hbdd_sums
+  have hhas : HasSum (fun n : ℕ => c n ^ 2)
+      (⨆ n : ℕ, (Finset.range n).sum (fun i => c i ^ 2)) := by
+    rw [hasSum_iff_tendsto_nat_of_nonneg (fun n : ℕ => sq_nonneg (c n))
+      (⨆ n : ℕ, (Finset.range n).sum (fun i => c i ^ 2))]
+    exact hconv
+  exact hhas.summable
+
+/-- Non-square-summability forces the ordinary Cameron--Martin partial energies to be
+unbounded.  This is the pure series bridge needed by the infinite-KL branch. -/
+theorem not_bddAbove_cmPartialEnergy_of_not_summable (c : RealSeq)
+    (hnsum : ¬ Summable (fun n : ℕ => c n ^ 2)) :
+    ¬ BddAbove (Set.range (cmPartialEnergy c)) := by
+  intro hbdd
+  exact hnsum (summable_sq_of_bddAbove_cmPartialEnergy c hbdd)
+
+/-- Under absolute continuity, non-square-summability rules out finite shifted-sequence KL. -/
+theorem not_shift_kl_finite_of_not_summable_of_ac (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hnsum : ¬ Summable (fun n : ℕ => c n ^ 2)) :
+    ¬ klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤ := by
+  exact not_shift_kl_finite_of_not_bddAbove_cmPartialEnergy c hac
+    (not_bddAbove_cmPartialEnergy_of_not_summable c hnsum)
+
+/-- Under absolute continuity, a non-square-summable deterministic shift has infinite
+shifted-sequence KL. -/
+theorem shift_kl_eq_top_of_not_summable_of_ac (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hnsum : ¬ Summable (fun n : ℕ => c n ^ 2)) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian = ⊤ := by
+  exact shift_kl_eq_top_of_not_bddAbove_cmPartialEnergy c hac
+    (not_bddAbove_cmPartialEnergy_of_not_summable c hnsum)
+
+/-- Finite shifted-sequence KL, together with absolute continuity, forces the shift to be
+square-summable.  This is the finite-KL contrapositive package of the infinite branch. -/
+theorem summable_of_shift_kl_finite_of_ac (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hfin : klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤) :
+    Summable (fun n : ℕ => c n ^ 2) := by
+  exact summable_sq_of_bddAbove_cmPartialEnergy c
+    (cmPartialEnergy_bddAbove_of_shift_kl_finite c hac hfin)
+
 /-- Specialized `ℝ≥0∞` uniqueness wrapper for the sequence-model Cameron--Martin identity
 with target value `cmTotalEnergy`.  The remaining input is the pure bridge showing that
 `ENNReal.ofReal (cmPrefixEnergy c n)` converges to `ENNReal.ofReal (cmTotalEnergy c)`. -/

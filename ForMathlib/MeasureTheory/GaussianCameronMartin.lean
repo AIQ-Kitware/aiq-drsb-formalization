@@ -154,6 +154,12 @@ coordinates, i.e. indices in `Finset.range n`. -/
 noncomputable def cmPartialEnergy (c : RealSeq) (n : ℕ) : ℝ :=
   2⁻¹ * (Finset.range n).sum (fun i => c i ^ 2)
 
+/-- Total sequence Cameron--Martin energy is nonnegative. -/
+theorem cmTotalEnergy_nonneg (c : RealSeq) :
+    0 ≤ cmTotalEnergy c := by
+  unfold cmTotalEnergy
+  exact mul_nonneg (by positivity) (tsum_nonneg (fun n => sq_nonneg (c n)))
+
 /-- Range-indexed partial Cameron--Martin energies are nonnegative. -/
 theorem cmPartialEnergy_nonneg (c : RealSeq) (n : ℕ) :
     0 ≤ cmPartialEnergy c n := by
@@ -188,6 +194,16 @@ theorem cmPartialEnergy_tendsto_total_of_summable (c : RealSeq)
   simpa [mul_comm, mul_left_comm, mul_assoc] using
     ((hsum.hasSum.tendsto_sum_nat).const_mul (2⁻¹))
 
+/-- Lower intervals in `ℕ` have the same sum as the corresponding successor range.
+This small finite-set bridge keeps the sequence-model Cameron--Martin file from depending
+on a particular spelling of the Mathlib `Iic = range` theorem. -/
+theorem sum_Iic_eq_sum_range_succ (f : ℕ → ℝ) (n : ℕ) :
+    (Finset.Iic n).sum f = (Finset.range (n + 1)).sum f := by
+  have hIic : Finset.Iic n = Finset.range (n + 1) := by
+    ext i
+    simp
+  rw [hIic]
+
 /-- The `Finset.Iic n` finite-prefix energy is the same as the range-indexed
 partial energy through coordinate `n`, i.e. the first `n + 1` coordinates.  This
 is the pure finite-set bridge between the Gaussian-prefix layer and the ordinary
@@ -195,12 +211,14 @@ series API on `ℕ`. -/
 theorem cmPrefixEnergy_eq_cmPartialEnergy_succ (c : RealSeq) (n : ℕ) :
     cmPrefixEnergy c n = cmPartialEnergy c (n + 1) := by
   unfold cmPrefixEnergy cmPartialEnergy prefixRestrict
-  have hIic : Finset.Iic n = Finset.range (n + 1) := by
-    ext i
-    simp
-  congr 1
-  simpa [hIic] using
-    (Finset.sum_attach (s := Finset.Iic n) (f := fun i : ℕ => c i ^ 2))
+  calc
+    2⁻¹ * (∑ i : Finset.Iic n, c ↑i ^ 2)
+        = 2⁻¹ * (Finset.Iic n).sum (fun i => c i ^ 2) := by
+          congr 1
+          simpa using
+            (Finset.sum_attach (s := Finset.Iic n) (f := fun i : ℕ => c i ^ 2))
+    _ = 2⁻¹ * (Finset.range (n + 1)).sum (fun i => c i ^ 2) := by
+          rw [sum_Iic_eq_sum_range_succ]
 
 /-- Finite-prefix energies are monotone in the prefix length. -/
 theorem cmPrefixEnergy_le_succ (c : RealSeq) (n : ℕ) :
@@ -455,6 +473,38 @@ theorem shift_kl_eq_top_of_not_bddAbove_cmPartialEnergy (c : RealSeq)
   exact shift_kl_eq_top_of_not_bddAbove_cmPrefixEnergy c hac
     (not_bddAbove_cmPrefixEnergy_of_not_bddAbove_cmPartialEnergy c hunbdd)
 
+/-- Finite-prefix Cameron--Martin energies converge to the total square-series energy
+for square-summable shifts.  This transfers the already-proved range-sum convergence along
+the finite-set bridge `cmPrefixEnergy_eq_cmPartialEnergy_succ`. -/
+theorem cmPrefixEnergy_tendsto_total_of_summable (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    Tendsto (fun n : ℕ => cmPrefixEnergy c n) atTop
+      (nhds (cmTotalEnergy c)) := by
+  have hpart : Tendsto (cmPartialEnergy c) atTop (nhds (cmTotalEnergy c)) :=
+    cmPartialEnergy_tendsto_total_of_summable c hsum
+  have hshift : Tendsto (fun n : ℕ => cmPartialEnergy c (n + 1)) atTop
+      (nhds (cmTotalEnergy c)) := by
+    simpa [Nat.add_comm, Nat.add_left_comm, Nat.add_assoc] using
+      ((Filter.tendsto_add_atTop_iff_nat 1).mpr hpart)
+  simpa [cmPrefixEnergy_eq_cmPartialEnergy_succ] using hshift
+
+/-- `ℝ≥0∞` version of finite-prefix convergence to the total square-series energy. -/
+theorem ofReal_cmPrefixEnergy_tendsto_total_of_summable (c : RealSeq)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    Tendsto (fun n : ℕ => ENNReal.ofReal (cmPrefixEnergy c n)) atTop
+      (nhds (ENNReal.ofReal (cmTotalEnergy c))) := by
+  exact (ENNReal.continuous_ofReal.tendsto (cmTotalEnergy c)).comp
+    (cmPrefixEnergy_tendsto_total_of_summable c hsum)
+
+/-- Finite full shifted-sequence KL forces the ordinary range-indexed partial
+Cameron--Martin energies to be bounded. -/
+theorem cmPartialEnergy_bddAbove_of_shift_kl_finite (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hfin : klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤) :
+    BddAbove (Set.range (cmPartialEnergy c)) := by
+  by_contra hunbdd
+  exact (not_shift_kl_finite_of_not_bddAbove_cmPartialEnergy c hac hunbdd) hfin
+
 /-- Specialized `ℝ≥0∞` uniqueness wrapper for the sequence-model Cameron--Martin identity
 with target value `cmTotalEnergy`.  The remaining input is the pure bridge showing that
 `ENNReal.ofReal (cmPrefixEnergy c n)` converges to `ENNReal.ofReal (cmTotalEnergy c)`. -/
@@ -475,6 +525,44 @@ theorem shift_kl_toReal_eq_of_cmPrefixEnergy_tendsto_cmTotalEnergy (c : RealSeq)
     (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal
       = cmTotalEnergy c := by
   exact shift_kl_toReal_eq_of_cmPrefixEnergy_tendsto c (cmTotalEnergy c) hac hfin hconv
+
+/-- Square-summable sequence-model Cameron--Martin KL identity.  Under absolute
+continuity of the shifted sequence law, the full shifted-sequence divergence is exactly
+the total Cameron--Martin square-series energy. -/
+theorem shift_kl_eq_cmTotalEnergy_of_summable (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian
+      = ENNReal.ofReal (cmTotalEnergy c) := by
+  exact shift_kl_eq_of_ofReal_cmPrefixEnergy_tendsto_cmTotalEnergy c hac
+    (ofReal_cmPrefixEnergy_tendsto_total_of_summable c hsum)
+
+/-- The square-summable shifted-sequence KL is finite under absolute continuity. -/
+theorem shift_kl_ne_top_of_summable (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤ := by
+  rw [shift_kl_eq_cmTotalEnergy_of_summable c hac hsum]
+  simp
+
+/-- Real-valued square-summable sequence-model Cameron--Martin KL identity. -/
+theorem shift_kl_toReal_eq_cmTotalEnergy_of_summable (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal
+      = cmTotalEnergy c := by
+  rw [shift_kl_eq_cmTotalEnergy_of_summable c hac hsum]
+  exact ENNReal.toReal_ofReal (cmTotalEnergy_nonneg c)
+
+/-- Real-valued square-summable sequence-model Cameron--Martin KL identity, packaged
+for callers that already have a finite-KL hypothesis in scope. -/
+theorem shift_kl_toReal_eq_cmTotalEnergy_of_summable_of_finite (c : RealSeq)
+    (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)
+    (_hfin : klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤)
+    (hsum : Summable (fun n : ℕ => c n ^ 2)) :
+    (klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian).toReal
+      = cmTotalEnergy c := by
+  exact shift_kl_toReal_eq_cmTotalEnergy_of_summable c hac hsum
 
 /-- The finite-prefix Cameron-Martin density process for a deterministic shift `c`.
 It is real-valued and depends only on coordinates `≤ n`.  The split-sum form is

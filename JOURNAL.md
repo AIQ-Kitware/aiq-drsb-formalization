@@ -1,3 +1,34 @@
+# Session journal — interval-path carrier seam (2026-07-08, GPT-5.5 Thinking)
+
+## Added in this overlay
+- Introduced `UnitInterval` and `IntervalPath := UnitInterval → ℝ` in
+  `ChenGeorgiouPavon2021.Basic` as the corrected carrier seam for future M4 continuum work.
+- Added interval dyadic projections: `intervalDyadicTime`, `intervalDyadicIncrement(Map)`,
+  `normalizedIntervalDyadicIncrement(Map)`, and `intervalDyadicPathEnergy`.
+- Added explicit interfaces rather than overclaims:
+  `IsIntervalCameronMartinPath`, `IsStandardIntervalWiener`, `HasIntervalDyadicKLExhaustion`, and
+  `HasIntervalDyadicGeneration 𝓜`.
+- Proved only low-risk finite-projection facts on the interval carrier:
+  `measurable_normalizedIntervalDyadicIncrementMap`,
+  `normalizedIntervalDyadicIncrementMap_iSup_comap_le`,
+  `normalizedIntervalDyadicIncrementMap_add`,
+  `normalizedIntervalDyadicIncrementMap_shifted_wiener_law`,
+  `klDiv_normalizedIntervalDyadicIncrement_shifted_wiener`,
+  `intervalDyadicPathEnergy_tendsto_cameronMartinPathEnergy`, and
+  `klDiv_normalizedIntervalDyadicIncrement_tendsto_path_kl`.
+
+## Scope note
+This overlay does **not** prove full path-space generation, KL exhaustion, Sobolev energy
+convergence, or Cameron--Martin quasi-invariance. Those remain explicit interfaces on the corrected
+interval-path frontier. The discarded overstrong generator equality on `RealPath := ℝ → ℝ` should
+stay discarded.
+
+## Local validation note
+This sandbox did not have `lake` or `lean` installed, so the Lean commands must be run in the user's
+repository environment. A crude source scan found no executable `sorry` tokens after the overlay.
+
+---
+
 # Session journal — ChenGeorgiouPavon2021 soundness audit + fix (2026-07)
 
 Running log of the proof-pass session that audited the last `ChenGeorgiouPavon2021` sorries

@@ -144,6 +144,13 @@ the full generation theorem belongs on a canonical interval/anchored/continuous 
 3. Cameron--Martin path-space quasi-invariance from the finite-grid densities;
 4. the Sobolev-energy bridge `dyadic energy → ∫₀¹ |h'|²`.
 
+**Interval-carrier staging update (GPT-5.5 Thinking, 2026-07-08).** The first modelling step is now
+present in `ChenGeorgiouPavon2021.Basic`: `IntervalPath := [0,1] → ℝ`, interval dyadic projections,
+finite interval dyadic energy, `IsIntervalCameronMartinPath`, `IsStandardIntervalWiener`,
+`HasIntervalDyadicGeneration 𝓜`, and `HasIntervalDyadicKLExhaustion`.  The finite Gaussian/projection
+calculus is proved on this carrier; the generator equality, KL exhaustion, Sobolev bridge, and full
+path-space quasi-invariance remain the true continuum work.
+
 ### Phase 2 core (`≤` half) — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
 **Status (re-verified 2026-07-04 against latest-master Mathlib `d3716e6d`, Lean `v4.32.0-rc1` — pin
 upgraded this day from `476fb97b62`):** genuinely blocked — Mathlib ships **no stochastic integral,

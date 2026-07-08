@@ -86,6 +86,14 @@ capstones, but the cards do not depend on it.
 > closure is intentionally represented by explicit interfaces (`HasDyadicKLExhaustion` and
 > path-space AC for the CM shift), because the current ambient `RealPath := ℝ → ℝ` is too broad
 > for the discarded dyadic-generator equality.
+>
+> **Interval-path frontier seam (2026-07-08, GPT-5.5 Thinking).** The next carrier has been staged
+> in `ChenGeorgiouPavon2021.Basic` as `IntervalPath := [0,1] → ℝ`, with proved low-risk finite
+> projection lemmas: measurability of normalized interval dyadic increments, one-sided generated
+> sigma-algebra bound, additivity under deterministic shifts, shifted finite-dimensional Wiener law,
+> and the finite dyadic KL identity. The hard continuum facts are still interfaces:
+> `HasIntervalDyadicGeneration 𝓜`, `HasIntervalDyadicKLExhaustion`, and full path-space CM
+> quasi-invariance/AC for the eventual continuous anchored carrier.
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The

@@ -96,6 +96,14 @@ The next proof-bearing path step is a modelling step first: introduce or select 
 interval/continuous path carrier where dyadic observations plausibly generate the Borel sigma
 algebra, then prove KL exhaustion and CM quasi-invariance there.
 
+**UPDATE (GPT-5.5 Thinking, 2026-07-08): interval-path frontier seam added.**
+`ChenGeorgiouPavon2021.Basic` now has an `IntervalPath := [0,1] → ℝ` staging interface with
+normalized interval dyadic increments, interval dyadic energy, an anchored interval
+Cameron--Martin predicate, interval standard-Wiener and KL-exhaustion interfaces, and the finite
+shifted dyadic KL identity on this corrected carrier.  This is a modelling/projection seam only:
+full interval generation, path-space KL exhaustion, and path-space Cameron--Martin
+quasi-invariance remain explicit assumptions/interfaces, not proved continuum theorems.
+
 **Call-site contract for M2.8** (what M2.5/M2.7 must produce to plug in):
 `absolutelyContinuous_of_localDensity μ ν ℱ hgen Z hadapted hnonneg hdens hM hL2` with
 `hdens : ∀ n s, MeasurableSet[ℱ n] s → μ s = ∫⁻ x in s, ENNReal.ofReal (Z n x) ∂ν` and

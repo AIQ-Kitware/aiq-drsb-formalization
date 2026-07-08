@@ -61,36 +61,26 @@ structure IsAnalyticCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Pr
     h t = ∫ s in Set.Ioc (0 : ℝ) t, hderiv s ∂volume
   square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
 
-/-- Once the dyadic finite-difference convergence theorem is supplied, an analytic
-Cameron--Martin path instantiates the dyadic `IsCameronMartinPath` interface. -/
-theorem isCameronMartinPath_of_analyticCameronMartinPath_and_dyadic_tendsto
-    (h : RealPath) (hderiv : ℝ → ℝ)
-    (hA : IsAnalyticCameronMartinPath h hderiv)
-    (hdyadic : Filter.Tendsto (fun level : ℕ => dyadicPathEnergy level h) Filter.atTop
-      (nhds (cameronMartinPathEnergy hderiv))) :
-    IsCameronMartinPath h hderiv := by
-  exact ⟨hA.square_integrable, hdyadic⟩
+/-- Sobolev/Riemann-sum capstone on the ambient scaffold.
 
-/-- Sobolev/Riemann-sum capstone on the ambient scaffold: an analytically defined
-Cameron--Martin path has dyadic finite-difference energy converging to
-`½ ∫₀¹ |h'|²`.
-
-This is one of the main real-analysis theorem targets behind the final DRSB/M4 result. -/
-theorem analyticCameronMartinPath_dyadic_energy_tendsto
+This is the real-analysis theorem target behind the ambient `IsCameronMartinPath` wrapper: finite
+dyadic difference energies for an analytically defined Cameron--Martin path converge to
+`½ ∫₀¹ |h'|²`. -/
+theorem dyadicPathEnergy_tendsto_of_analyticCameronMartinPath
     (h : RealPath) (hderiv : ℝ → ℝ)
     (_hA : IsAnalyticCameronMartinPath h hderiv) :
     Filter.Tendsto (fun level : ℕ => dyadicPathEnergy level h) Filter.atTop
       (nhds (cameronMartinPathEnergy hderiv)) := by
   sorry
 
-/-- An analytically defined Cameron--Martin path instantiates the dyadic interface once the
-Riemann-sum convergence capstone is available. -/
+/-- Analytically defined Cameron--Martin paths realize the dyadic `IsCameronMartinPath` interface
+once the Riemann-sum capstone is available. -/
 theorem isCameronMartinPath_of_analyticCameronMartinPath
     (h : RealPath) (hderiv : ℝ → ℝ)
     (hA : IsAnalyticCameronMartinPath h hderiv) :
     IsCameronMartinPath h hderiv := by
-  exact isCameronMartinPath_of_analyticCameronMartinPath_and_dyadic_tendsto h hderiv hA
-    (analyticCameronMartinPath_dyadic_energy_tendsto h hderiv hA)
+  exact ⟨hA.square_integrable,
+    dyadicPathEnergy_tendsto_of_analyticCameronMartinPath h hderiv hA⟩
 
 /-- Analytic Cameron--Martin path predicate on the corrected interval carrier. -/
 structure IsAnalyticIntervalCameronMartinPath (h : IntervalPath) (hderiv : ℝ → ℝ) : Prop where
@@ -99,35 +89,29 @@ structure IsAnalyticIntervalCameronMartinPath (h : IntervalPath) (hderiv : ℝ �
     h t = ∫ s in Set.Ioc (0 : ℝ) (t : ℝ), hderiv s ∂volume
   square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
 
-/-- Once the interval dyadic finite-difference convergence theorem is supplied, an analytic
-interval Cameron--Martin path instantiates the interval dyadic interface. -/
-theorem isIntervalCameronMartinPath_of_analyticIntervalCameronMartinPath_and_dyadic_tendsto
-    (h : IntervalPath) (hderiv : ℝ → ℝ)
-    (hA : IsAnalyticIntervalCameronMartinPath h hderiv)
-    (hdyadic : Filter.Tendsto (fun level : ℕ => intervalDyadicPathEnergy level h) Filter.atTop
-      (nhds (cameronMartinPathEnergy hderiv))) :
-    IsIntervalCameronMartinPath h hderiv := by
-  exact {
-    anchored := hA.anchored
-    square_integrable := hA.square_integrable
-    dyadic_energy_tendsto := hdyadic
-  }
+/-- Sobolev/Riemann-sum capstone on the corrected interval carrier.
 
-/-- Sobolev/Riemann-sum capstone on the corrected interval carrier. -/
-theorem analyticIntervalCameronMartinPath_dyadic_energy_tendsto
+This is the interval-carrier analogue of
+`dyadicPathEnergy_tendsto_of_analyticCameronMartinPath`; it is the remaining analytic theorem needed
+to package an analytic interval path as an `IsIntervalCameronMartinPath`. -/
+theorem intervalDyadicPathEnergy_tendsto_of_analyticIntervalCameronMartinPath
     (h : IntervalPath) (hderiv : ℝ → ℝ)
     (_hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
     Filter.Tendsto (fun level : ℕ => intervalDyadicPathEnergy level h) Filter.atTop
       (nhds (cameronMartinPathEnergy hderiv)) := by
   sorry
 
-/-- An analytically defined interval Cameron--Martin path instantiates the interval dyadic interface
-once the Riemann-sum convergence capstone is available. -/
+/-- Analytically defined interval Cameron--Martin paths realize the dyadic interval interface once
+the interval Riemann-sum capstone is available. -/
 theorem isIntervalCameronMartinPath_of_analyticIntervalCameronMartinPath
     (h : IntervalPath) (hderiv : ℝ → ℝ)
     (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
     IsIntervalCameronMartinPath h hderiv := by
-  exact isIntervalCameronMartinPath_of_analyticIntervalCameronMartinPath_and_dyadic_tendsto
-    h hderiv hA (analyticIntervalCameronMartinPath_dyadic_energy_tendsto h hderiv hA)
+  exact {
+    anchored := hA.anchored
+    square_integrable := hA.square_integrable
+    dyadic_energy_tendsto :=
+      intervalDyadicPathEnergy_tendsto_of_analyticIntervalCameronMartinPath h hderiv hA
+  }
 
 end ChenGeorgiouPavon2021

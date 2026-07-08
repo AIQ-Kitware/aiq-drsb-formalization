@@ -15,14 +15,31 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X] [NormedSpace ℝ
 
 variable (d : SBData X)
 
-/-- Feasibility target for the Schrödinger product-form coupling. -/
-theorem schrodinger_product_coupling_feasible
+/-- Marginal computation target for the Schrödinger product-form coupling.
+
+The density identity alone does not imply feasibility against arbitrary endpoint marginals.  The
+missing content is the Schrödinger-system marginal calculation: the product-form endpoint law has
+first marginal `ρ₀` and second marginal `ρ₁`. -/
+theorem schrodinger_product_coupling_marginals
     (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
     (π_prod : ProbabilityMeasure (X × X))
     (_hπprod : (π_prod : Measure (X × X))
         = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2))) :
-    π_prod ∈ couplings ρ₀ ρ₁ := by
+    Measure.map Prod.fst (π_prod : Measure (X × X)) = (ρ₀ : Measure X) ∧
+      Measure.map Prod.snd (π_prod : Measure (X × X)) = (ρ₁ : Measure X) := by
   sorry
+
+/-- Feasibility wrapper for the Schrödinger product-form coupling.
+
+This theorem is now just the definition of `couplings` after the separate marginal-computation
+target above has supplied the two endpoint marginal identities. -/
+theorem schrodinger_product_coupling_feasible
+    (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (π_prod : ProbabilityMeasure (X × X))
+    (hπprod : (π_prod : Measure (X × X))
+        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2))) :
+    π_prod ∈ couplings ρ₀ ρ₁ := by
+  exact schrodinger_product_coupling_marginals d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod
 
 /-- Optimality target for the Schrödinger product-form coupling. -/
 theorem schrodinger_product_coupling_optimal

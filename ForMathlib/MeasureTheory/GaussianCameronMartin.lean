@@ -1077,4 +1077,46 @@ theorem toReal_klDiv_stdSeqGaussian_map_add_of_summable (c : RealSeq)
   rw [klDiv_stdSeqGaussian_map_add_of_summable c hsum]
   exact ENNReal.toReal_ofReal (cmTotalEnergy_nonneg c)
 
+
+/-- Finiteness of the shifted-sequence KL is equivalent to square summability of the
+shift.  The reverse implication uses the clean Cameron--Martin identity; the forward
+implication extracts absolute continuity from finite KL and then applies the infinite-branch
+contrapositive. -/
+theorem summable_iff_klDiv_stdSeqGaussian_map_add_ne_top (c : RealSeq) :
+    Summable (fun n : ℕ => c n ^ 2) ↔
+      klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian ≠ ⊤ := by
+  constructor
+  · intro hsum
+    exact klDiv_stdSeqGaussian_map_add_ne_top_of_summable c hsum
+  · intro hfin
+    haveI : IsProbabilityMeasure (stdSeqGaussian.map (fun x : RealSeq => x + c)) :=
+      Measure.isProbabilityMeasure_map (measurable_shift c).aemeasurable
+    exact summable_of_shift_kl_finite_of_ac c (klDiv_ne_top_iff.mp hfin).1 hfin
+
+/-- The shifted-sequence KL is infinite exactly when the deterministic shift is not
+square-summable. -/
+theorem klDiv_stdSeqGaussian_map_add_eq_top_iff_not_summable (c : RealSeq) :
+    klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian = ⊤ ↔
+      ¬ Summable (fun n : ℕ => c n ^ 2) := by
+  constructor
+  · intro htop hsum
+    exact (klDiv_stdSeqGaussian_map_add_ne_top_of_summable c hsum) htop
+  · intro hnsum
+    by_contra hfin
+    exact hnsum ((summable_iff_klDiv_stdSeqGaussian_map_add_ne_top c).mpr hfin)
+
+/-- Disjunctive version of the complete sequence-model Cameron--Martin dichotomy.
+This avoids an `if Summable ... then ... else ...` statement, because summability is not a
+computably decidable proposition in the theorem statement. -/
+theorem klDiv_stdSeqGaussian_map_add_dichotomy (c : RealSeq) :
+    (Summable (fun n : ℕ => c n ^ 2) ∧
+        klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian =
+          ENNReal.ofReal (cmTotalEnergy c)) ∨
+      (¬ Summable (fun n : ℕ => c n ^ 2) ∧
+        klDiv (stdSeqGaussian.map (fun x : RealSeq => x + c)) stdSeqGaussian = ⊤) := by
+  classical
+  by_cases hsum : Summable (fun n : ℕ => c n ^ 2)
+  · exact Or.inl ⟨hsum, klDiv_stdSeqGaussian_map_add_of_summable c hsum⟩
+  · exact Or.inr ⟨hsum, (klDiv_stdSeqGaussian_map_add_eq_top_iff_not_summable c).mpr hsum⟩
+
 end ForMathlib.MeasureTheory

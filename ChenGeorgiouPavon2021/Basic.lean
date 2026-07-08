@@ -458,6 +458,50 @@ theorem energy_identity_sequenceModel (c : ℕ → ℝ)
   simpa [ForMathlib.MeasureTheory.cmTotalEnergy] using
     ForMathlib.MeasureTheory.toReal_klDiv_stdSeqGaussian_map_add_of_summable c hc
 
+
+/-- **Sequence-model finite-KL criterion.**
+For the canonical iid standard-Gaussian sequence law, the translated law has finite
+relative entropy exactly when the translation vector is square-summable.
+
+This wrapper is proved directly from the already-built finite and converse branch
+lemmas, rather than through the newer packaged iff theorem.  That keeps the file
+check robust when `Basic.lean` is checked with `lake env lean` before rebuilding the
+fresh `GaussianCameronMartin.olean`. -/
+theorem energy_identity_sequenceModel_finite_iff_summable (c : Nat -> Real) :
+    Iff
+      (Ne
+        (InformationTheory.klDiv
+          (ForMathlib.MeasureTheory.stdSeqGaussian.map (fun x : Nat -> Real => x + c))
+          ForMathlib.MeasureTheory.stdSeqGaussian)
+        Top.top)
+      (Summable (fun n : Nat => c n ^ 2)) := by
+  constructor
+  · intro hfin
+    haveI : IsProbabilityMeasure
+        (ForMathlib.MeasureTheory.stdSeqGaussian.map (fun x : Nat -> Real => x + c)) :=
+      Measure.isProbabilityMeasure_map
+        (ForMathlib.MeasureTheory.measurable_shift c).aemeasurable
+    exact ForMathlib.MeasureTheory.summable_of_shift_kl_finite_of_ac c
+      (InformationTheory.klDiv_ne_top_iff.mp hfin).1 hfin
+  · intro hsum
+    exact ForMathlib.MeasureTheory.klDiv_stdSeqGaussian_map_add_ne_top_of_summable c hsum
+
+/-- **Sequence-model infinite-KL criterion.**
+For the canonical iid standard-Gaussian sequence law, nonsquare-summable translations
+have infinite relative entropy. -/
+theorem energy_identity_sequenceModel_top_iff_not_summable (c : Nat -> Real) :
+    Iff
+      (InformationTheory.klDiv
+        (ForMathlib.MeasureTheory.stdSeqGaussian.map (fun x : Nat -> Real => x + c))
+        ForMathlib.MeasureTheory.stdSeqGaussian = Top.top)
+      (Not (Summable (fun n : Nat => c n ^ 2))) := by
+  constructor
+  · intro htop hsum
+    exact (ForMathlib.MeasureTheory.klDiv_stdSeqGaussian_map_add_ne_top_of_summable c hsum) htop
+  · intro hnsum
+    by_contra hne_top
+    exact hnsum ((energy_identity_sequenceModel_finite_iff_summable c).mp hne_top)
+
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄
 Problem 4.3, via the energy identity (4.19)).**  Since the endpoint entropy

@@ -547,7 +547,7 @@ noncomputable def dyadicPathEnergy (level : ℕ) (h : RealPath) : ℝ :=
 /-- Placeholder predicate for the path-level Cameron--Martin class.  It records
 the derivative used by the continuum energy and keeps the M4 declarations honest
 about where absolute-continuity / Sobolev regularity must eventually enter. -/
-def IsCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop :=
+def IsCameronMartinPath (_h : RealPath) (hderiv : ℝ → ℝ) : Prop :=
   IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
 
 /-- Continuum Cameron--Martin energy `½ ∫₀¹ |h'(t)|² dt`. -/
@@ -566,13 +566,17 @@ structure IsStandardWiener (W : ProbabilityMeasure RealPath) : Prop where
 /-- M4.1: dyadic normalized increment maps are measurable. -/
 theorem measurable_normalizedDyadicIncrementMap (level : ℕ) :
     Measurable (normalizedDyadicIncrementMap level) := by
-  sorry
+  unfold normalizedDyadicIncrementMap normalizedDyadicIncrement dyadicIncrement dyadicMesh dyadicTime
+  fun_prop
 
 /-- M4.1: normalized increments commute with deterministic path shifts. -/
 theorem normalizedDyadicIncrementMap_add (level : ℕ) (ω h : RealPath) :
     normalizedDyadicIncrementMap level (ω + h)
       = normalizedDyadicIncrementMap level ω + normalizedDyadicIncrementMap level h := by
-  sorry
+  funext i
+  unfold normalizedDyadicIncrementMap normalizedDyadicIncrement dyadicIncrement
+  simp [Pi.add_apply]
+  ring
 
 /-- M4.2: standard Wiener measure has standard-normal normalized dyadic
 increments.  This is exposed as a theorem wrapper around `IsStandardWiener` so
@@ -593,7 +597,28 @@ theorem normalizedDyadicIncrementMap_shifted_wiener_law
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
       = (ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))).map
           (fun x : Fin (2 ^ level) → ℝ => x + normalizedDyadicIncrementMap level h) := by
-  sorry
+  let N : RealPath → (Fin (2 ^ level) → ℝ) := normalizedDyadicIncrementMap level
+  let v : Fin (2 ^ level) → ℝ := normalizedDyadicIncrementMap level h
+  have hN : Measurable N := measurable_normalizedDyadicIncrementMap level
+  have hshift : Measurable (fun ω : RealPath => ω + h) := by fun_prop
+  have hshiftFin : Measurable (fun x : Fin (2 ^ level) → ℝ => x + v) := by fun_prop
+  have hcomp : N ∘ (fun ω : RealPath => ω + h) =
+      (fun x : Fin (2 ^ level) → ℝ => x + v) ∘ N := by
+    funext ω
+    exact normalizedDyadicIncrementMap_add level ω h
+  calc
+    Measure.map N ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        = (W : Measure RealPath).map (N ∘ (fun ω : RealPath => ω + h)) := by
+            rw [Measure.map_map hN hshift]
+    _ = (W : Measure RealPath).map ((fun x : Fin (2 ^ level) → ℝ => x + v) ∘ N) := by
+            rw [hcomp]
+    _ = ((W : Measure RealPath).map N).map (fun x : Fin (2 ^ level) → ℝ => x + v) := by
+            rw [Measure.map_map hshiftFin hN]
+    _ = (ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))).map
+          (fun x : Fin (2 ^ level) → ℝ => x + normalizedDyadicIncrementMap level h) := by
+            change ((W : Measure RealPath).map (normalizedDyadicIncrementMap level)).map
+                (fun x : Fin (2 ^ level) → ℝ => x + normalizedDyadicIncrementMap level h) = _
+            rw [normalizedDyadicIncrementMap_wiener_law W hW level]
 
 /-- M4.3: finite dyadic projection of the deterministic Wiener shift has exactly
 the finite-dimensional Cameron--Martin cost. -/
@@ -605,7 +630,11 @@ theorem klDiv_normalizedDyadicIncrement_shifted_wiener
           ((W : Measure RealPath).map (fun ω : RealPath => ω + h)))
         (Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath))
       = ENNReal.ofReal (dyadicPathEnergy level h) := by
-  sorry
+  rw [normalizedDyadicIncrementMap_shifted_wiener_law W hW level h,
+    normalizedDyadicIncrementMap_wiener_law W hW level]
+  simpa [dyadicPathEnergy] using
+    (ForMathlib.MeasureTheory.klDiv_stdGaussian_map_add
+      (normalizedDyadicIncrementMap level h))
 
 /-- M4.4: dyadic finite-grid Cameron--Martin energies converge to the continuum
 energy of a Cameron--Martin path. -/
@@ -644,7 +673,18 @@ theorem klDiv_wiener_shift_eq_cameronMartinPathEnergy
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
-  sorry
+  have hkl := klDiv_normalizedDyadicIncrement_tendsto_path_kl W h hac
+  have hkl' : Filter.Tendsto (fun level : ℕ => ENNReal.ofReal (dyadicPathEnergy level h))
+      Filter.atTop
+      (nhds (InformationTheory.klDiv
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath))) := by
+    simpa [klDiv_normalizedDyadicIncrement_shifted_wiener W hW] using hkl
+  have henergy : Filter.Tendsto (fun level : ℕ => ENNReal.ofReal (dyadicPathEnergy level h))
+      Filter.atTop (nhds (ENNReal.ofReal (cameronMartinPathEnergy hderiv))) := by
+    exact (ENNReal.continuous_ofReal.tendsto (cameronMartinPathEnergy hderiv)).comp
+      (dyadicPathEnergy_tendsto_cameronMartinPathEnergy h hderiv hCM)
+  exact tendsto_nhds_unique hkl' henergy
 
 /-- M4 final real-valued form: the path-level `klReal` identity used by the CGP
 energy-identity edge. -/
@@ -655,7 +695,10 @@ theorem klReal_wiener_shift_eq_cameronMartinPathEnergy
     klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = cameronMartinPathEnergy hderiv := by
-  sorry
+  rw [klReal, klDiv_wiener_shift_eq_cameronMartinPathEnergy W h hderiv hW hCM hac]
+  exact ENNReal.toReal_ofReal (by
+    unfold cameronMartinPathEnergy
+    positivity)
 
 /-- M4-to-CGP bridge: if a CGP conditional path-kernel edge is represented as a
 standard Wiener law shifted by a Cameron--Martin path, then the abstract `hCM`
@@ -670,7 +713,8 @@ theorem hCM_from_wiener_shift_scaffold
     klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = E := by
-  sorry
+  rw [henergy]
+  exact klReal_wiener_shift_eq_cameronMartinPathEnergy W h hderiv hW hCM hac
 
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄

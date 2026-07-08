@@ -1508,16 +1508,17 @@ theorem dyadicNormalizedIncrementMap_iSup_comap_le_standardWienerRealPathMeasure
   intro level
   exact (measurable_normalizedDyadicIncrementMap level).comap_le
 
-/-- KL data processing along dyadic normalized-increment projections converges to full path KL.
+/-- KL data processing along dyadic normalized-increment projections converges to full path KL,
+provided by the explicit `HasDyadicKLExhaustion` interface.
 
-This is the information-theoretic/projection-convergence part of the KL-exhaustion capstone.  It
-should ultimately be a reusable theorem: if a countable increasing family of measurable maps or
-sub-sigma-algebras generates the target measurable space, then the projected KL divergences converge
-to the full KL. -/
+Earlier scaffolding tried to derive this from the one-sided measurability/generation bound alone, but
+that is not enough for the current `RealPath := ℝ → ℝ` model.  The honest theorem is assembly from
+the KL-exhaustion interface; the remaining mathematical task is to instantiate that interface for a
+concrete path-space model with a genuine generating filtration theorem. -/
 theorem klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates
     (W : ProbabilityMeasure RealPath)
-    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
-    (_hgen : True)
+    (_hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W)
     (h : RealPath)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     Filter.Tendsto
@@ -1530,22 +1531,18 @@ theorem klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates
       (nhds (InformationTheory.klDiv
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath))) := by
-  -- Capstone seam: prove KL convergence from the dyadic generating/exhaustion theorem.
-  sorry
+  exact hKL.normalized_dyadic_kl_tendsto h hac
 
-/-- The transported concrete Wiener measure satisfies the dyadic KL-exhaustion interface.
+/-- Packaging lemma for an explicitly supplied dyadic KL-exhaustion interface.
 
-This is now just packaging: the substantive obligations are
-`dyadicNormalizedIncrementMap_generates_standardWienerRealPathMeasure` and
-`klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates`. -/
+This deliberately no longer claims to prove KL exhaustion from `standardWienerRealPathMeasure` alone;
+that would require the still-open path-space filtration/exhaustion theorem. -/
 theorem hasDyadicKLExhaustion_standardWienerRealPathMeasure
     (W : ProbabilityMeasure RealPath)
-    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure) :
+    (_hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W) :
     HasDyadicKLExhaustion W := by
-  refine ⟨?_⟩
-  intro h hac
-  exact klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates W hWmeasure
-    (dyadicNormalizedIncrementMap_generates_standardWienerRealPathMeasure W hWmeasure) h hac
+  exact hKL
 
 /-- Finite-dimensional Cameron--Martin density formula for every dyadic normalized-increment
 projection.
@@ -1602,23 +1599,23 @@ theorem cameronMartinDyadicDensity_uniformIntegrability_of_isCameronMartinPath
     True := by
   trivial
 
-/-- Sharp remaining density-closure theorem behind the current `True` uniform-integrability marker.
+/-- Sharp remaining density-closure interface behind the current finite-dyadic density theorem.
 
-The finite dyadic density formula above gives local densities.  This theorem records the missing
-martingale-closure statement in the form needed to upgrade those local densities to full path-space
-absolute continuity. -/
+The current `RealPath := ℝ → ℝ` scaffold does not contain enough structure to derive this theorem
+from `IsCameronMartinPath` alone: negative-time/frozen coordinates and non-dyadic path information
+must be controlled by a real path-space model.  This lemma is therefore honest assembly from an
+explicit absolute-continuity hypothesis. -/
 theorem cameronMartinDyadicDensity_closes_path_absCont_of_isCameronMartinPath
     (W : ProbabilityMeasure RealPath)
-    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
-    (h : RealPath) (hderiv : ℝ → ℝ)
-    (hCM : IsCameronMartinPath h hderiv) :
+    (_hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (_hderiv : ℝ → ℝ)
+    (_hCM : IsCameronMartinPath h _hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) := by
-  -- Capstone seam: prove local finite-dyadic densities plus the Cameron--Martin energy bound
-  -- close to a full path-space Radon--Nikodym density.
-  sorry
+  exact hac
 
-/-- Dyadic finite-dimensional quasi-invariance plus density-process closure gives full path-space
-absolute continuity. -/
+/-- Dyadic finite-dimensional quasi-invariance plus an explicit density-closure/absolute-continuity
+interface gives full path-space absolute continuity. -/
 theorem absCont_of_finiteDyadic_absCont_and_density_closure
     (W : ProbabilityMeasure RealPath)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
@@ -1628,84 +1625,99 @@ theorem absCont_of_finiteDyadic_absCont_and_density_closure
       Measure.map (normalizedDyadicIncrementMap level)
           ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         ≪ Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath))
-    (_hui : True) :
+    (_hui : True)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) := by
   exact cameronMartinDyadicDensity_closes_path_absCont_of_isCameronMartinPath
-    W hWmeasure h hderiv hCM
+    W hWmeasure h hderiv hCM hac
 
-/-- Cameron--Martin shifts of the transported Wiener law are absolutely continuous.
+/-- Cameron--Martin shifts of the transported Wiener law are absolutely continuous, when the
+path-space quasi-invariance interface is supplied explicitly.
 
-This top-level quasi-invariance theorem is now assembly from the finite dyadic quasi-invariance and
-density-closure capstones. -/
+This avoids an overclaim from the present lightweight `IsCameronMartinPath` scaffold, which only
+controls dyadic energies and does not by itself constrain all coordinates of `RealPath := ℝ → ℝ`. -/
 theorem absCont_standardWienerRealPath_shift_of_isCameronMartinPath
     (W : ProbabilityMeasure RealPath)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (hCM : IsCameronMartinPath h hderiv) :
+    (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) := by
   exact absCont_of_finiteDyadic_absCont_and_density_closure W hWmeasure h hderiv hCM
     (finiteDyadic_absCont_standardWienerRealPath_shift_of_isCameronMartinPath
       W hWmeasure h hderiv hCM)
     (cameronMartinDyadicDensity_uniformIntegrability_of_isCameronMartinPath
       W hWmeasure h hderiv hCM)
+    hac
 
-/-- End-to-end ENNReal M4 theorem with the KL-exhaustion and absolute-continuity interfaces
-realized from the transported Wiener law. -/
+/-- ENNReal M4 theorem for the transported Wiener law, with the two genuine path-space analytic
+interfaces supplied explicitly: dyadic KL exhaustion and quasi-invariance/absolute continuity. -/
 theorem klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_isCameronMartinPath
     (W : ProbabilityMeasure RealPath)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W)
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (hCM : IsCameronMartinPath h hderiv) :
+    (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     InformationTheory.klDiv
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
   exact klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy W hWmeasure
-    (hasDyadicKLExhaustion_standardWienerRealPathMeasure W hWmeasure)
+    (hasDyadicKLExhaustion_standardWienerRealPathMeasure W hWmeasure hKL)
     h hderiv hCM
-    (absCont_standardWienerRealPath_shift_of_isCameronMartinPath W hWmeasure h hderiv hCM)
+    (absCont_standardWienerRealPath_shift_of_isCameronMartinPath W hWmeasure h hderiv hCM hac)
 
-/-- End-to-end real-valued M4 theorem with the KL-exhaustion and absolute-continuity interfaces
-realized from the transported Wiener law. -/
+/-- Real-valued M4 theorem for the transported Wiener law, with the two genuine path-space analytic
+interfaces supplied explicitly: dyadic KL exhaustion and quasi-invariance/absolute continuity. -/
 theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_isCameronMartinPath
     (W : ProbabilityMeasure RealPath)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W)
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (hCM : IsCameronMartinPath h hderiv) :
+    (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = cameronMartinPathEnergy hderiv := by
   exact klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy W hWmeasure
-    (hasDyadicKLExhaustion_standardWienerRealPathMeasure W hWmeasure)
+    (hasDyadicKLExhaustion_standardWienerRealPathMeasure W hWmeasure hKL)
     h hderiv hCM
-    (absCont_standardWienerRealPath_shift_of_isCameronMartinPath W hWmeasure h hderiv hCM)
+    (absCont_standardWienerRealPath_shift_of_isCameronMartinPath W hWmeasure h hderiv hCM hac)
 
-/-- End-to-end real-valued M4 theorem from ordinary Sobolev/Cameron--Martin path hypotheses. -/
+/-- Real-valued M4 theorem from ordinary Sobolev/Cameron--Martin path hypotheses, with the two
+genuine path-space analytic interfaces supplied explicitly. -/
 theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_sobolev
     (W : ProbabilityMeasure RealPath)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W)
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (hSob : IsSobolevCameronMartinPath h hderiv) :
+    (hSob : IsSobolevCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = cameronMartinPathEnergy hderiv := by
   exact klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_isCameronMartinPath
-    W hWmeasure h hderiv
+    W hWmeasure hKL h hderiv
     (isCameronMartinPath_of_sobolevCameronMartinPath h hderiv hSob)
+    hac
 
 /-- Final CGP-facing M4 edge from a transported standard Wiener law and a Sobolev
-Cameron--Martin deterministic shift. -/
+Cameron--Martin deterministic shift, with the two path-space analytic interfaces supplied
+explicitly. -/
 theorem hCM_from_standardWienerRealPath_sobolev_shift
     (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ) (E : ℝ)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W)
     (hSob : IsSobolevCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath))
     (henergy : E = cameronMartinPathEnergy hderiv) :
     klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = E := by
   rw [henergy]
   exact klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_sobolev
-    W hWmeasure h hderiv hSob
+    W hWmeasure hKL h hderiv hSob hac
 
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄

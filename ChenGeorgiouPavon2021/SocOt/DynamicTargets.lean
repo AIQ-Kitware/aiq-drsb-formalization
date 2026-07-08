@@ -16,16 +16,21 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X] [NormedSpace ℝ
 
 variable (d : SBData X)
 
-/-- Existence target for a feasible control steering the two prescribed marginals. -/
+/-- Existence target for a feasible control steering the two prescribed marginals.
+
+The abstract `SBData` record does not contain controllability, support, endpoint, or existence
+data.  A concrete CGP instance must supply those hypotheses. -/
 theorem feasible_control_exists_of_cgp_hypotheses
-    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (_hfeas : ∃ u : Control X, Feasible d u ρ₀ ρ₁) :
     ∃ u : Control X, Feasible d u ρ₀ ρ₁ := by
   sorry
 
 /-- Energy-identity family target supplying the hypothesis of `schrodingerBridge_KL_eq_SOC`. -/
 theorem energyIdentity_family_of_finiteEnergyDiffusion
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
+    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
+      FiniteEnergyDiffusionModelEdges d u ρ₀) :
     ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
       klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
         = klReal (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R)
@@ -43,7 +48,8 @@ theorem hopfCole_control_isOptimalSOC_of_schrodingerSystem
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (_hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
-    (_hφpos : ∀ t x, 0 < φ t x) :
+    (_hφpos : ∀ t x, 0 < φ t x)
+    (_hverify : IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁) :
     IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁ := by
   sorry
 
@@ -53,13 +59,16 @@ theorem sigmaHopfCole_control_isOptimalSOC_of_schrodingerSystem
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (_hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
-    (_hφpos : ∀ t x, 0 < φ t x) :
+    (_hφpos : ∀ t x, 0 < φ t x)
+    (_hverify : IsOptimalSOC d (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁) :
     IsOptimalSOC d (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁ := by
   sorry
 
 /-- Uniqueness target for the stochastic optimal-control optimizer. -/
 theorem soc_optimizer_unique_of_strictConvexEnergy
-    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (_huniq : ∀ u u' : Control X,
+      IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u') :
     ∀ u u' : Control X,
       IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u' := by
   sorry
@@ -68,7 +77,8 @@ theorem soc_optimizer_unique_of_strictConvexEnergy
 theorem valueGradient_control_isOptimalSOC_of_HamiltonJacobi
     (grad : (X → ℝ) → X → X) (lam : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (_hHJ : HamiltonJacobi grad lam) :
+    (_hHJ : HamiltonJacobi grad lam)
+    (_hverify : IsOptimalSOC d (fun t x => grad (lam t) x) ρ₀ ρ₁) :
     IsOptimalSOC d (fun t x => grad (lam t) x) ρ₀ ρ₁ := by
   sorry
 

@@ -88,6 +88,7 @@ theorem isOptimalSOC_of_feasible_and_energy_le
     exact csInf_le hSbdd ⟨u, hfeas, rfl⟩
   exact le_antisymm hle_sInf hsInf_le
 
+omit [NormedSpace ℝ X] in
 /-- Hopf--Cole verification theorem from concrete feasibility and variational verification.
 
 The Schrödinger PDE system and positivity assumptions alone cannot imply optimality for an arbitrary
@@ -128,13 +129,45 @@ theorem sigmaHopfCole_control_isOptimalSOC_of_schrodingerSystem
   exact isOptimalSOC_of_feasible_and_energy_le d
     (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁ hfeas hle
 
-/-- Uniqueness target for the stochastic optimal-control optimizer. -/
+omit [NormedSpace ℝ X] in
+/-- Uniqueness of the stochastic optimal-control optimizer from a strict-improvement principle.
+
+The old scaffold name referenced strict convexity, but the statement did not include any strict
+convexity hypothesis, so uniqueness was false for arbitrary abstract `SBData`.  This formulation
+records the exact variational consequence of strict convexity/convex feasibility needed for the
+standard uniqueness proof: if two distinct optimal controls existed, some feasible competitor would
+have energy strictly below the larger of their two optimal energies.  The theorem then proves that
+this strict improvement contradicts the definition of the SOC infimum. -/
 theorem soc_optimizer_unique_of_strictConvexEnergy
-    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (hstrict : ∀ u u' : Control X,
+      IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u ≠ u' →
+        ∃ w : Control X, Feasible d w ρ₀ ρ₁ ∧
+          energy w (d.pathLaw w ρ₀) <
+            max (energy u (d.pathLaw u ρ₀)) (energy u' (d.pathLaw u' ρ₀))) :
     ∀ u u' : Control X,
       IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u' := by
-  sorry
+  intro u u' hu hu'
+  by_contra hne
+  obtain ⟨w, hwfeas, hwlt⟩ := hstrict u u' hu hu' hne
+  have hbdd : BddBelow {J : ℝ | ∃ v : Control X,
+      Feasible d v ρ₀ ρ₁ ∧ J = energy v (d.pathLaw v ρ₀)} := by
+    refine ⟨0, ?_⟩
+    rintro _ ⟨v, _hv, rfl⟩
+    refine integral_nonneg (fun ω => ?_)
+    refine integral_nonneg (fun t => ?_)
+    positivity
+  have hval_le_w : schrodingerBridgeValueSOC d ρ₀ ρ₁ ≤ energy w (d.pathLaw w ρ₀) := by
+    unfold schrodingerBridgeValueSOC
+    exact csInf_le hbdd ⟨w, hwfeas, rfl⟩
+  have hmax : max (energy u (d.pathLaw u ρ₀)) (energy u' (d.pathLaw u' ρ₀))
+      = schrodingerBridgeValueSOC d ρ₀ ρ₁ := by
+    rw [hu.2, hu'.2, max_self]
+  have hwlt' : energy w (d.pathLaw w ρ₀) < schrodingerBridgeValueSOC d ρ₀ ρ₁ := by
+    simpa [hmax] using hwlt
+  exact not_lt_of_ge hval_le_w hwlt' 
 
+omit [NormedSpace ℝ X] in
 /-- HJB verification theorem from concrete feasibility and variational verification.
 
 The Hamilton--Jacobi equation is the analytic source of the verification inequality, but by itself

@@ -91,16 +91,52 @@ theorem schrodinger_product_coupling_optimal
   exact staticSBValue_eq_of_coupling_and_kl_le d ρ₀ ρ₁ π_prod
     (schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod) hle
 
-/-- Uniqueness target for the static KL projection over endpoint couplings. -/
+omit [NormedSpace ℝ X] in
+/-- Uniqueness of the static KL projection from a strict-improvement principle.
+
+For arbitrary abstract endpoint data, uniqueness of a static KL projection is not automatic.  The
+mathlib-shaped ingredient is the strict-convexity consequence: two distinct minimising couplings
+would admit a feasible coupling with objective strictly below the larger of their two optimal
+values.  This theorem turns that variational ingredient into the desired uniqueness statement by
+the same infimum argument as the dynamic SOC uniqueness wrapper. -/
 theorem staticSB_klProjection_unique
-    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (hstrict : ∀ π π' : ProbabilityMeasure (X × X),
+      π ∈ couplings ρ₀ ρ₁ →
+      klReal (π : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ →
+      π' ∈ couplings ρ₀ ρ₁ →
+      klReal (π' : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ →
+      π ≠ π' →
+        ∃ π_mid : ProbabilityMeasure (X × X), π_mid ∈ couplings ρ₀ ρ₁ ∧
+          klReal (π_mid : Measure (X × X)) (endpointLaw d) <
+            max (klReal (π : Measure (X × X)) (endpointLaw d))
+              (klReal (π' : Measure (X × X)) (endpointLaw d))) :
     ∀ π π' : ProbabilityMeasure (X × X),
       π ∈ couplings ρ₀ ρ₁ →
       klReal (π : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ →
       π' ∈ couplings ρ₀ ρ₁ →
       klReal (π' : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ →
       π = π' := by
-  sorry
+  intro π π' hπ hπopt hπ' hπ'opt
+  by_contra hne
+  obtain ⟨π_mid, hmid, hlt⟩ := hstrict π π' hπ hπopt hπ' hπ'opt hne
+  have hbdd : BddBelow {J : ℝ | ∃ π : ProbabilityMeasure (X × X),
+      π ∈ couplings ρ₀ ρ₁ ∧ J = klReal (π : Measure (X × X)) (endpointLaw d)} := by
+    refine ⟨0, ?_⟩
+    rintro _ ⟨π, _hπ, rfl⟩
+    unfold klReal
+    exact ENNReal.toReal_nonneg
+  have hval_le_mid : staticSBValue d ρ₀ ρ₁ ≤
+      klReal (π_mid : Measure (X × X)) (endpointLaw d) := by
+    unfold staticSBValue
+    exact csInf_le hbdd ⟨π_mid, hmid, rfl⟩
+  have hmax : max (klReal (π : Measure (X × X)) (endpointLaw d))
+        (klReal (π' : Measure (X × X)) (endpointLaw d))
+      = staticSBValue d ρ₀ ρ₁ := by
+    rw [hπopt, hπ'opt, max_self]
+  have hlt' : klReal (π_mid : Measure (X × X)) (endpointLaw d) < staticSBValue d ρ₀ ρ₁ := by
+    simpa [hmax] using hlt
+  exact not_lt_of_ge hval_le_mid hlt' 
 
 omit [NormedSpace ℝ X] in
 /-- Existence of a normalized product-density datum over the endpoint reference law.

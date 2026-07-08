@@ -16,6 +16,7 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X] [NormedSpace ℝ
 
 variable (d : SBData X)
 
+omit [NormedSpace ℝ X] in
 /-- Existence target for a feasible control steering the two prescribed marginals.
 
 For an arbitrary abstract `SBData`, feasibility is not automatic: the path-law family might not

@@ -16,14 +16,36 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X] [NormedSpace ℝ
 
 variable (d : SBData X)
 
+omit [NormedSpace ℝ X] in
 /-- Gluing/path-reconstruction target for Léonard's dynamic-to-static Schrödinger bridge theorem.
 
-This is the reverse inequality in `dynamic_eq_static_SB`: glue the reference bridges over a static
-coupling to reconstruct a path law with the same endpoint relative entropy. -/
+The old scaffold stated the reverse dynamic/static inequality for arbitrary abstract `SBData`.
+That is too strong: a generic `pathLaw` field need not realize the reference bridge obtained by
+gluing conditional reference paths over an endpoint coupling.  The repaired statement exposes the
+actual gluing theorem needed for Léonard's argument: every static coupling can be lifted to a
+feasible path law whose relative entropy is no larger than the endpoint relative entropy.
+
+From that non-circular path-reconstruction edge, the inequality is a direct infimum argument. -/
 theorem dynamic_to_static_gluing_le
-    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (hstatic_nonempty : ∃ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁)
+    (hglue : ∀ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁ →
+      ∃ u : Control X, Feasible d u ρ₀ ρ₁ ∧
+        klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
+          ≤ klReal (π : Measure (X × X)) (endpointLaw d)) :
     schrodingerBridgeValueKL d ρ₀ ρ₁ ≤ staticSBValue d ρ₀ ρ₁ := by
-  sorry
+  unfold schrodingerBridgeValueKL staticSBValue
+  refine le_csInf ?_ ?_
+  · obtain ⟨π, hπ⟩ := hstatic_nonempty
+    exact ⟨klReal (π : Measure (X × X)) (endpointLaw d), π, hπ, rfl⟩
+  · rintro J ⟨π, hπ, rfl⟩
+    obtain ⟨u, hu, hle⟩ := hglue π hπ
+    have hKL_bdd : BddBelow {J : ℝ | ∃ u : Control X, Feasible d u ρ₀ ρ₁ ∧
+        J = klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))} := by
+      refine ⟨0, ?_⟩
+      rintro _ ⟨u, _hu, rfl⟩
+      exact ENNReal.toReal_nonneg
+    exact le_trans (csInf_le hKL_bdd ⟨u, hu, rfl⟩) hle
 
 /-- Feasible path laws are absolutely continuous with respect to the reference under the
 finite-energy regime. -/

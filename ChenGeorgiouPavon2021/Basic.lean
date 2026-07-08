@@ -32,6 +32,7 @@ import Mathlib
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
 import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.MeasureTheory.GaussianCameronMartin
+import ForMathlib.MeasureTheory.WienerMeasure
 import ForMathlib.MeasureTheory.KLDataProcessing
 import ForMathlib.MeasureTheory.KLChainRule
 
@@ -585,6 +586,206 @@ structure IsStandardWiener (W : ProbabilityMeasure RealPath) : Prop where
       (nhds (InformationTheory.klDiv
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)))
+
+
+/-- Nonnegative-time real path space used by the concrete `wienerMeasure` construction.
+
+The CGP-facing M4 scaffold above keeps `RealPath := Path ℝ` so existing endpoint/path-law
+statements remain stable.  The vendored Kolmogorov construction of standard Wiener measure,
+however, naturally lives on `NNReal → ℝ`.  This parallel nonnegative-time staging namespace is the
+place where we discharge the "real Wiener measure satisfies the finite-dimensional standard-normal
+increment law" capstone before transporting it back to whatever final CGP path representation is
+chosen. -/
+abbrev WienerRealPath : Type := NNReal → ℝ
+
+/-- Dyadic time `i / 2ⁿ` as a nonnegative real. -/
+noncomputable def dyadicTimeNNReal (level i : ℕ) : NNReal :=
+  ⟨(i : ℝ) / ((2 : ℝ) ^ level), by positivity⟩
+
+/-- Raw dyadic increment on the concrete nonnegative-time Wiener path space. -/
+noncomputable def wienerDyadicIncrement (level : ℕ) (ω : WienerRealPath)
+    (i : Fin (2 ^ level)) : ℝ :=
+  ω (dyadicTimeNNReal level (i.1 + 1)) - ω (dyadicTimeNNReal level i.1)
+
+/-- Normalized dyadic increment on `NNReal → ℝ` paths. -/
+noncomputable def normalizedWienerDyadicIncrement (level : ℕ) (ω : WienerRealPath)
+    (i : Fin (2 ^ level)) : ℝ :=
+  wienerDyadicIncrement level ω i / Real.sqrt (dyadicMesh level)
+
+/-- Vector of normalized dyadic increments for the concrete nonnegative-time Wiener path space. -/
+noncomputable def normalizedWienerDyadicIncrementMap (level : ℕ) :
+    WienerRealPath → (Fin (2 ^ level) → ℝ) :=
+  fun ω i => normalizedWienerDyadicIncrement level ω i
+
+/-- Concrete standard Wiener measure on nonnegative-time real paths. -/
+noncomputable def standardWienerMeasure : Measure WienerRealPath :=
+  ForMathlib.MeasureTheory.wienerMeasure
+
+/-- The concrete Wiener measure is a probability measure. -/
+instance isProbabilityMeasure_standardWienerMeasure : IsProbabilityMeasure standardWienerMeasure := by
+  dsimp [standardWienerMeasure]
+  infer_instance
+
+/-- Concrete standard-Wiener interface for measures on `NNReal → ℝ`.
+
+This is the first real-Wiener capstone that follows directly from the vendored Kolmogorov
+extension: the canonical coordinate process on `NNReal → ℝ` has the Brownian projective-family law.
+The stronger normalized-dyadic-product law is now a downstream consequence target, not an implicit
+`sorry` hidden inside this interface. -/
+structure IsConcreteStandardWiener (W : Measure WienerRealPath) : Prop where
+  is_probability : IsProbabilityMeasure W
+  is_preBrownian : ProbabilityTheory.IsPreBrownianReal (fun t (ω : WienerRealPath) => ω t) W
+
+/-- The canonical coordinate process under the vendored Wiener measure is a pre-Brownian motion.
+
+This discharges the concrete projective-family part of the "real Wiener measure" capstone: every
+finite coordinate marginal of `standardWienerMeasure` is exactly `BrownianReal.projectiveFamily`.
+The proof is a direct wrapper around `ForMathlib.MeasureTheory.isProjectiveLimit_wienerMeasure`. -/
+theorem isPreBrownianReal_standardWienerMeasure :
+    ProbabilityTheory.IsPreBrownianReal (fun t (ω : WienerRealPath) => ω t)
+      standardWienerMeasure := by
+  refine ProbabilityTheory.IsPreBrownianReal.mk' ?_
+  intro I
+  refine ⟨?_, ?_⟩
+  · fun_prop
+  · simpa [standardWienerMeasure] using
+      (ForMathlib.MeasureTheory.isProjectiveLimit_wienerMeasure I)
+
+/-- The vendored concrete Wiener measure satisfies the focused nonnegative-time standard-Wiener
+interface. -/
+theorem isConcreteStandardWiener_standardWienerMeasure :
+    IsConcreteStandardWiener standardWienerMeasure := by
+  exact ⟨inferInstance, isPreBrownianReal_standardWienerMeasure⟩
+
+/-- Finite-dimensional coordinate law of the concrete Wiener measure.
+
+This is the direct projective-limit marginal statement: restricting a Wiener path to any finite set
+of nonnegative times has Mathlib's Brownian projective-family law on that finite coordinate set. -/
+theorem standardWienerMeasure_finite_coordinate_law (I : Finset NNReal) :
+    Measure.map (fun ω : WienerRealPath => I.restrict ω) standardWienerMeasure
+      = ProbabilityTheory.BrownianReal.projectiveFamily I := by
+  simpa [standardWienerMeasure] using
+    (ForMathlib.MeasureTheory.isProjectiveLimit_wienerMeasure I)
+
+/-- The dyadic endpoint grid `{0, 1/2ⁿ, ..., 1}` as a finite set of nonnegative times. -/
+noncomputable def wienerDyadicGrid (level : ℕ) : Finset NNReal :=
+  (Finset.range (2 ^ level + 1)).image (fun i : ℕ => dyadicTimeNNReal level i)
+
+/-- Dyadic endpoint times belong to the level grid. -/
+lemma dyadicTimeNNReal_mem_wienerDyadicGrid
+    (level i : ℕ) (hi : i ≤ 2 ^ level) :
+    dyadicTimeNNReal level i ∈ wienerDyadicGrid level := by
+  classical
+  refine Finset.mem_image.mpr ?_
+  refine ⟨i, ?_, rfl⟩
+  simpa [Nat.lt_succ_iff] using hi
+
+/-- A dyadic endpoint, bundled as an element of the dyadic grid. -/
+noncomputable def wienerDyadicGridPoint (level i : ℕ) (hi : i ≤ 2 ^ level) :
+    wienerDyadicGrid level :=
+  ⟨dyadicTimeNNReal level i, dyadicTimeNNReal_mem_wienerDyadicGrid level i hi⟩
+
+/-- Normalized dyadic increment as a linear map out of the finite dyadic endpoint vector. -/
+noncomputable def normalizedWienerDyadicIncrementFromGrid (level : ℕ) :
+    ((wienerDyadicGrid level) → ℝ) → (Fin (2 ^ level) → ℝ) :=
+  fun x i =>
+    (x (wienerDyadicGridPoint level (i.1 + 1) (Nat.succ_le_of_lt i.2))
+        - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2)))
+      / Real.sqrt (dyadicMesh level)
+
+/-- The finite-grid normalized-increment map factors through restriction to the dyadic endpoint grid. -/
+theorem normalizedWienerDyadicIncrementMap_eq_fromGrid (level : ℕ) :
+    normalizedWienerDyadicIncrementMap level
+      = normalizedWienerDyadicIncrementFromGrid level ∘
+          (fun ω : WienerRealPath => (wienerDyadicGrid level).restrict ω) := by
+  funext ω i
+  simp [normalizedWienerDyadicIncrementMap, normalizedWienerDyadicIncrementFromGrid,
+    normalizedWienerDyadicIncrement, wienerDyadicIncrement, Function.comp,
+    wienerDyadicGridPoint]
+
+/-- The normalized dyadic increment law under Wiener measure reduces to a finite-dimensional
+Brownian projective-family statement on the dyadic endpoint grid.
+
+This is the main structural reduction needed before invoking independent-increment/product-Gaussian
+lemmas for `BrownianReal.projectiveFamily`. -/
+theorem normalizedWienerDyadicIncrementMap_standardWiener_law_reduce_to_projectiveFamily
+    (level : ℕ) :
+    Measure.map (normalizedWienerDyadicIncrementMap level) standardWienerMeasure
+      = Measure.map (normalizedWienerDyadicIncrementFromGrid level)
+          (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level)) := by
+  rw [normalizedWienerDyadicIncrementMap_eq_fromGrid level]
+  let r : WienerRealPath → (wienerDyadicGrid level → ℝ) :=
+    fun ω => (wienerDyadicGrid level).restrict ω
+  let g : (wienerDyadicGrid level → ℝ) → (Fin (2 ^ level) → ℝ) :=
+    normalizedWienerDyadicIncrementFromGrid level
+  have hr : Measurable r := by
+    dsimp [r]
+    exact (wienerDyadicGrid level).measurable_restrict
+  have hg : Measurable g := by
+    dsimp [g]
+    unfold normalizedWienerDyadicIncrementFromGrid dyadicMesh
+    fun_prop
+  have hmap : Measure.map g (Measure.map r standardWienerMeasure)
+      = Measure.map (g ∘ r) standardWienerMeasure :=
+    Measure.map_map hg hr
+  change Measure.map (g ∘ r) standardWienerMeasure =
+    Measure.map g (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+  rw [← hmap]
+  rw [standardWienerMeasure_finite_coordinate_law (wienerDyadicGrid level)]
+
+/-- Remaining Brownian finite-dimensional algebra capstone: under the Brownian projective-family law
+on dyadic endpoint coordinates, normalized consecutive increments are iid standard Gaussian.
+
+This is now the single finite-dimensional theorem left between the concrete Wiener construction and
+the sequence-model Cameron--Martin theorem. -/
+def brownianProjectiveFamily_normalizedDyadicIncrement_law_target : Prop :=
+  ∀ level : ℕ,
+    Measure.map (normalizedWienerDyadicIncrementFromGrid level)
+        (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+      = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))
+
+/-- One-dimensional Brownian increment normalization target on the concrete dyadic grid.
+
+For each dyadic edge, the corresponding normalized increment should have law `N(0,1)`.
+This is the coordinate-level theorem that should follow from Mathlib's Brownian increment law
+`measurePreserving_eval_sub_eval_projectiveFamily` plus the scaling `Δt = 2⁻ˡᵉᵛᵉˡ`. -/
+def brownianProjectiveFamily_normalizedDyadicIncrement_coord_law_target : Prop :=
+  ∀ (level : ℕ) (i : Fin (2 ^ level)),
+    Measure.map (fun x : wienerDyadicGrid level → ℝ =>
+        normalizedWienerDyadicIncrementFromGrid level x i)
+      (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+      = gaussianReal 0 1
+
+/-- Finite-dimensional independence target for normalized dyadic increments.
+
+Together with the coordinate law above, this is the product-law route to
+`brownianProjectiveFamily_normalizedDyadicIncrement_law_target`.  It isolates the remaining
+Brownian covariance/independent-increment work from the already-proved projective-limit reduction. -/
+def brownianProjectiveFamily_normalizedDyadicIncrement_indepFun_target : Prop :=
+  ∀ level : ℕ,
+    ProbabilityTheory.iIndepFun
+      (fun i : Fin (2 ^ level) =>
+        fun x : wienerDyadicGrid level → ℝ =>
+          normalizedWienerDyadicIncrementFromGrid level x i)
+      (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+
+/-- Next concrete capstone, now exposed as an ordinary theorem target instead of a hidden interface
+field: derive the iid standard-normal law of normalized dyadic increments from
+`isPreBrownianReal_standardWienerMeasure`, Brownian independent increments, and the Gaussian
+product/normalization lemmas. -/
+def normalizedWienerDyadicIncrementMap_standardWiener_law_target : Prop :=
+  ∀ level : ℕ,
+    Measure.map (normalizedWienerDyadicIncrementMap level) standardWienerMeasure
+      = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))
+
+/-- Concrete normalized dyadic iid-Gaussian law for the vendored Wiener measure, assuming the finite
+Brownian projective-family increment algebra. -/
+theorem normalizedWienerDyadicIncrementMap_standardWiener_law_of_projectiveFamily
+    (hproj : brownianProjectiveFamily_normalizedDyadicIncrement_law_target) :
+    normalizedWienerDyadicIncrementMap_standardWiener_law_target := by
+  intro level
+  rw [normalizedWienerDyadicIncrementMap_standardWiener_law_reduce_to_projectiveFamily level]
+  exact hproj level
 
 /-- M4.1: dyadic normalized increment maps are measurable. -/
 theorem measurable_normalizedDyadicIncrementMap (level : ℕ) :

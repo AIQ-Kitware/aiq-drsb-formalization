@@ -517,6 +517,16 @@ abbrev RealPath : Type := Path ℝ
 /-- Dyadic mesh size `2⁻ⁿ` for level `n`. -/
 noncomputable def dyadicMesh (level : ℕ) : ℝ := ((2 : ℝ) ^ level)⁻¹
 
+/-- Dyadic mesh size as a nonnegative real, for APIs such as `gaussianReal` whose
+variance parameter is `NNReal`. -/
+noncomputable def dyadicMeshNNReal (level : ℕ) : NNReal :=
+  ⟨dyadicMesh level, by
+    unfold dyadicMesh
+    positivity⟩
+
+@[simp] lemma coe_dyadicMeshNNReal (level : ℕ) :
+    (dyadicMeshNNReal level : ℝ) = dyadicMesh level := rfl
+
 /-- Dyadic time `i / 2ⁿ` at level `n`.  The declarations below use the finite
 range `i : Fin (2^n)` for increments, so the right endpoint is `i + 1`. -/
 noncomputable def dyadicTime (level i : ℕ) : ℝ := (i : ℝ) / ((2 : ℝ) ^ level)
@@ -786,6 +796,239 @@ theorem normalizedWienerDyadicIncrementMap_standardWiener_law_of_projectiveFamil
   intro level
   rw [normalizedWienerDyadicIncrementMap_standardWiener_law_reduce_to_projectiveFamily level]
   exact hproj level
+
+
+/-! ### M4 concrete Wiener finite-dimensional theorem ladder
+
+The declarations in this block spell out the remaining concrete Wiener proof obligations that
+turn the vendored Kolmogorov/Wiener construction on `NNReal → ℝ` into the dyadic iid Gaussian
+interface used by the abstract M4 Cameron--Martin theorem.  The large Brownian independent-
+increment and path-space KL-exhaustion facts are intentionally exposed as theorem statements so
+we can fill them in one by one without changing downstream theorem names. -/
+
+/-- The length of each dyadic interval is exactly the dyadic mesh. -/
+theorem dyadicTimeNNReal_succ_sub (level : ℕ) (i : Fin (2 ^ level)) :
+    ((dyadicTimeNNReal level (i.1 + 1) : ℝ) - (dyadicTimeNNReal level i.1 : ℝ))
+      = dyadicMesh level := by
+  sorry
+
+/-- Scaling a centered one-dimensional Gaussian by its standard deviation gives `N(0,1)`.
+
+This is the scalar normalization lemma needed after Brownian increments give variance equal to
+`dyadicMesh level`. -/
+theorem gaussianReal_map_div_sqrt_self {σ2 : NNReal} (hσ2 : 0 < (σ2 : ℝ)) :
+    Measure.map (fun x : ℝ => x / Real.sqrt (σ2 : ℝ)) (gaussianReal 0 σ2) = gaussianReal 0 1 := by
+  sorry
+
+/-- Raw dyadic Brownian increment law under the finite Brownian projective family.
+
+This is the coordinate-law theorem before variance normalization. -/
+theorem brownianProjectiveFamily_dyadicIncrement_law
+    (level : ℕ) (i : Fin (2 ^ level)) :
+    Measure.map (fun x : wienerDyadicGrid level → ℝ =>
+        x (wienerDyadicGridPoint level (i.1 + 1) (Nat.succ_le_of_lt i.2))
+          - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2)))
+      (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+      = gaussianReal 0 (dyadicMeshNNReal level) := by
+  sorry
+
+/-- Normalized dyadic Brownian increments have standard normal one-dimensional law. -/
+theorem brownianProjectiveFamily_normalizedDyadicIncrement_coord_law
+    (level : ℕ) (i : Fin (2 ^ level)) :
+    Measure.map (fun x : wienerDyadicGrid level → ℝ =>
+        normalizedWienerDyadicIncrementFromGrid level x i)
+      (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+      = gaussianReal 0 1 := by
+  sorry
+
+/-- Raw dyadic Brownian increments over disjoint adjacent intervals are independent. -/
+theorem brownianProjectiveFamily_dyadicIncrement_indepFun
+    (level : ℕ) :
+    ProbabilityTheory.iIndepFun
+      (fun i : Fin (2 ^ level) =>
+        fun x : wienerDyadicGrid level → ℝ =>
+          x (wienerDyadicGridPoint level (i.1 + 1) (Nat.succ_le_of_lt i.2))
+            - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2)))
+      (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level)) := by
+  sorry
+
+/-- Normalizing independent dyadic increments preserves independence. -/
+theorem brownianProjectiveFamily_normalizedDyadicIncrement_indepFun
+    (level : ℕ) :
+    ProbabilityTheory.iIndepFun
+      (fun i : Fin (2 ^ level) =>
+        fun x : wienerDyadicGrid level → ℝ =>
+          normalizedWienerDyadicIncrementFromGrid level x i)
+      (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level)) := by
+  sorry
+
+/-- Product-law assembly: independent standard-normal coordinates form the finite standard
+Gaussian product measure. -/
+theorem map_eq_stdGaussian_of_iIndepFun_coord_gaussian
+    {ι : Type*} [Fintype ι] {Ω : Type*} [MeasurableSpace Ω]
+    {μ : Measure Ω} [IsProbabilityMeasure μ] {f : Ω → ι → ℝ}
+    (hf : Measurable f)
+    (hcoord : ∀ i : ι, Measure.map (fun x : Ω => f x i) μ = gaussianReal 0 1)
+    (hindep : ProbabilityTheory.iIndepFun (fun i : ι => fun x : Ω => f x i) μ) :
+    Measure.map f μ = ForMathlib.MeasureTheory.stdGaussian ι := by
+  sorry
+
+/-- Finite Brownian projective-family algebra: normalized dyadic increments are iid standard
+Gaussian. -/
+theorem brownianProjectiveFamily_normalizedDyadicIncrement_law
+    (level : ℕ) :
+    Measure.map (normalizedWienerDyadicIncrementFromGrid level)
+        (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+      = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level)) := by
+  have hmeas : Measurable (normalizedWienerDyadicIncrementFromGrid level) := by
+    unfold normalizedWienerDyadicIncrementFromGrid dyadicMesh
+    fun_prop
+  exact map_eq_stdGaussian_of_iIndepFun_coord_gaussian
+    (μ := ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+    (f := normalizedWienerDyadicIncrementFromGrid level)
+    hmeas
+    (brownianProjectiveFamily_normalizedDyadicIncrement_coord_law level)
+    (brownianProjectiveFamily_normalizedDyadicIncrement_indepFun level)
+
+/-- Concrete normalized dyadic iid-Gaussian law for the vendored Wiener measure. -/
+theorem normalizedWienerDyadicIncrementMap_standardWiener_law
+    (level : ℕ) :
+    Measure.map (normalizedWienerDyadicIncrementMap level) standardWienerMeasure
+      = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level)) := by
+  rw [normalizedWienerDyadicIncrementMap_standardWiener_law_reduce_to_projectiveFamily level]
+  exact brownianProjectiveFamily_normalizedDyadicIncrement_law level
+
+/-- The previous theorem discharges the target `Prop` used by earlier roadmap notes. -/
+theorem normalizedWienerDyadicIncrementMap_standardWiener_law_done :
+    normalizedWienerDyadicIncrementMap_standardWiener_law_target := by
+  intro level
+  exact normalizedWienerDyadicIncrementMap_standardWiener_law level
+
+/-- Extension map from nonnegative-time Wiener paths to the current real-time `RealPath` scaffold.
+
+The extension freezes the negative-time query by evaluating at `max t 0`.  The M4 theorem only uses
+nonnegative dyadic times, so the normalized dyadic increments commute with this extension. -/
+noncomputable def wienerToRealPath (ω : WienerRealPath) : RealPath :=
+  fun t : ℝ => ω ⟨max t 0, by exact le_max_right t 0⟩
+
+/-- Measurability of the nonnegative-time-to-real-time Wiener path extension. -/
+theorem measurable_wienerToRealPath : Measurable wienerToRealPath := by
+  sorry
+
+/-- Real-time path measure obtained by transporting the vendored concrete Wiener measure. -/
+noncomputable def standardWienerRealPathMeasure : Measure RealPath :=
+  Measure.map wienerToRealPath standardWienerMeasure
+
+/-- The transported real-time Wiener path measure is a probability measure. -/
+instance isProbabilityMeasure_standardWienerRealPathMeasure :
+    IsProbabilityMeasure standardWienerRealPathMeasure := by
+  unfold standardWienerRealPathMeasure
+  exact Measure.isProbabilityMeasure_map measurable_wienerToRealPath.aemeasurable
+
+/-- Normalized dyadic increments commute with the nonnegative-time-to-real-time extension. -/
+theorem normalizedDyadicIncrementMap_wienerToRealPath
+    (level : ℕ) (ω : WienerRealPath) :
+    normalizedDyadicIncrementMap level (wienerToRealPath ω)
+      = normalizedWienerDyadicIncrementMap level ω := by
+  sorry
+
+/-- Concrete-to-abstract transport interface for the real Wiener capstone.
+
+A map `Φ : (NNReal → ℝ) → RealPath` transports the concrete vendored Wiener measure into the
+current CGP-facing `RealPath` scaffold if it is measurable, preserves all normalized dyadic
+increment maps, and satisfies the path-space KL exhaustion theorem after transport. -/
+structure ConcreteWienerTransport (Φ : WienerRealPath → RealPath) : Prop where
+  measurable : Measurable Φ
+  normalized_dyadic_commutes : ∀ level : ℕ,
+    normalizedDyadicIncrementMap level ∘ Φ = normalizedWienerDyadicIncrementMap level
+  normalized_dyadic_kl_tendsto : ∀ (h : RealPath),
+    (Measure.map Φ standardWienerMeasure).map (fun ω : RealPath => ω + h)
+        ≪ Measure.map Φ standardWienerMeasure →
+    Filter.Tendsto
+      (fun level : ℕ =>
+        InformationTheory.klDiv
+          (Measure.map (normalizedDyadicIncrementMap level)
+            ((Measure.map Φ standardWienerMeasure).map (fun ω : RealPath => ω + h)))
+          (Measure.map (normalizedDyadicIncrementMap level)
+            (Measure.map Φ standardWienerMeasure)))
+      Filter.atTop
+      (nhds (InformationTheory.klDiv
+        ((Measure.map Φ standardWienerMeasure).map (fun ω : RealPath => ω + h))
+        (Measure.map Φ standardWienerMeasure)))
+
+/-- The canonical extension map is the intended concrete-to-abstract Wiener transport. -/
+theorem concreteWienerTransport_wienerToRealPath :
+    ConcreteWienerTransport wienerToRealPath := by
+  refine ⟨measurable_wienerToRealPath, ?_, ?_⟩
+  · intro level
+    funext ω
+    exact normalizedDyadicIncrementMap_wienerToRealPath level ω
+  · intro h hac
+    sorry
+
+/-- Transporting the concrete Wiener law through a valid concrete-to-abstract map gives the
+finite-dimensional normalized-dyadic Gaussian laws required by `IsStandardWiener`. -/
+theorem normalizedDyadicIncrementMap_concrete_transport_law
+    (Φ : WienerRealPath → RealPath) (hΦ : ConcreteWienerTransport Φ) (level : ℕ) :
+    Measure.map (normalizedDyadicIncrementMap level) (Measure.map Φ standardWienerMeasure)
+      = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level)) := by
+  have hN : Measurable (normalizedDyadicIncrementMap level) := by
+    unfold normalizedDyadicIncrementMap normalizedDyadicIncrement dyadicIncrement dyadicMesh dyadicTime
+    fun_prop
+  have hmap :
+      Measure.map (normalizedDyadicIncrementMap level) (Measure.map Φ standardWienerMeasure)
+        = Measure.map (normalizedDyadicIncrementMap level ∘ Φ) standardWienerMeasure := by
+    simpa using (Measure.map_map (μ := standardWienerMeasure) hN hΦ.measurable)
+  rw [hmap, hΦ.normalized_dyadic_commutes level]
+  exact normalizedWienerDyadicIncrementMap_standardWiener_law level
+
+/-- Any probability-measure wrapper around the transported concrete Wiener law satisfies the
+abstract `IsStandardWiener` interface used by the M4 path-level theorem. -/
+theorem isStandardWiener_of_concrete_transport
+    (Φ : WienerRealPath → RealPath) (hΦ : ConcreteWienerTransport Φ)
+    (W : ProbabilityMeasure RealPath)
+    (hW : (W : Measure RealPath) = Measure.map Φ standardWienerMeasure) :
+    IsStandardWiener W := by
+  constructor
+  · intro level
+    rw [hW]
+    exact normalizedDyadicIncrementMap_concrete_transport_law Φ hΦ level
+  · intro h hac
+    rw [hW] at hac ⊢
+    exact hΦ.normalized_dyadic_kl_tendsto h hac
+
+/-- The canonical transported real-time Wiener law satisfies `IsStandardWiener`, modulo choosing any
+`ProbabilityMeasure` wrapper whose underlying measure is `standardWienerRealPathMeasure`. -/
+theorem isStandardWiener_standardWienerRealPathMeasure
+    (W : ProbabilityMeasure RealPath)
+    (hW : (W : Measure RealPath) = standardWienerRealPathMeasure) :
+    IsStandardWiener W := by
+  unfold standardWienerRealPathMeasure at hW
+  exact isStandardWiener_of_concrete_transport wienerToRealPath
+    concreteWienerTransport_wienerToRealPath W hW
+
+/-- End-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
+theorem klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
+    (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
+    InformationTheory.klDiv
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
+  sorry
+
+/-- Real-valued end-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
+theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
+    (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
+    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = cameronMartinPathEnergy hderiv := by
+  sorry
 
 /-- M4.1: dyadic normalized increment maps are measurable. -/
 theorem measurable_normalizedDyadicIncrementMap (level : ℕ) :

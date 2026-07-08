@@ -97,12 +97,21 @@ interval/continuous path carrier where dyadic observations plausibly generate th
 algebra, then prove KL exhaustion and CM quasi-invariance there.
 
 **UPDATE (GPT-5.5 Thinking, 2026-07-08): interval-path frontier seam added.**
-`ChenGeorgiouPavon2021.Basic` now has an `IntervalPath := [0,1] → ℝ` staging interface with
+`ChenGeorgiouPavon2021.Continuum.IntervalPath` now has an `IntervalPath := [0,1] → ℝ` staging interface with
 normalized interval dyadic increments, interval dyadic energy, an anchored interval
 Cameron--Martin predicate, interval standard-Wiener and KL-exhaustion interfaces, and the finite
 shifted dyadic KL identity on this corrected carrier.  This is a modelling/projection seam only:
 full interval generation, path-space KL exhaustion, and path-space Cameron--Martin
 quasi-invariance remain explicit assumptions/interfaces, not proved continuum theorems.
+
+**UPDATE (GPT-5.5 Thinking, 2026-07-08): CGP monolith split before global theorem scaffold.**
+The public `ChenGeorgiouPavon2021.Basic` import is now an aggregate wrapper over smaller modules:
+`Core`, `EnergyIdentity`, `SequenceGaussian`, `Continuum.RealPath`, `Continuum.IntervalPath`,
+`Continuum.WienerDyadic`, `Continuum.Closure`, and `SocOt`.  Put future project-wide scaffold
+theorems in the module that owns their mathematics; keep `Basic` as a stable downstream import.
+For fresh validation, use `dev/check_cgp_module_split.sh` or run `lake build ChenGeorgiouPavon2021`
+before `lake env lean ChenGeorgiouPavon2021/Basic.lean`, because direct Lean file checks do not
+recursively compile imported local modules.
 
 **Call-site contract for M2.8** (what M2.5/M2.7 must produce to plug in):
 `absolutelyContinuous_of_localDensity μ ν ℱ hgen Z hadapted hnonneg hdens hM hL2` with

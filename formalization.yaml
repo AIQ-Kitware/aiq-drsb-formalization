@@ -129,6 +129,7 @@ status:
       note: "PROVED (axiom-clean): the DV family (ported from reference/WellKnown.lean); Normalization.isProbabilityMeasure_inv_univ_smul (finite nonzero measure → probability; consumed by WangGaoXie2023.exists_worstCase_gibbs); both weak-duality kernels (WeakDuality); and matrix_scaling_exists / sinkhorn_potentials_exist (finite Sinkhorn scaling, via log-domain convex minimization). The OT/DRO vocabulary is definitions-only. See PROOF_PIPELINE.md §3 — all queued ForMathlib items now proved."
     - name: "ChenGeorgiouPavon2021"
       role: "SB/SOC value function + optimal control u* = ∇log φ (abstract dynamics interface)."
+      note: "Module split checkpoint (GPT-5.5 Thinking, 2026-07-08): the public `ChenGeorgiouPavon2021.Basic` import is an aggregate over `Core`, `EnergyIdentity`, `SequenceGaussian`, `Continuum.RealPath`, `Continuum.IntervalPath`, `Continuum.WienerDyadic`, `Continuum.Closure`, and `SocOt`. Because Basic is now an aggregate import, fresh validation should run `lake build ChenGeorgiouPavon2021` before `lake env lean ChenGeorgiouPavon2021/Basic.lean`; `dev/check_cgp_module_split.sh` encodes this. Future theorem-scaffold progress should be placed in the owning module, not appended to a monolithic Basic file."
     - name: "BlanchetMurthy2019"
       role: "Wasserstein DRO strong duality (primary)."
       note: "wdro_strong_duality and its Lc-form wdro_strong_duality_dualFn are both PROVED (le_antisymm(weak, attainment); the strong-duality ≥ seam is isolated to one explicit OT-attainment hypothesis, not a `sorry`)."

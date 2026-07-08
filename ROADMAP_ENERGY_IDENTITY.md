@@ -145,11 +145,20 @@ the full generation theorem belongs on a canonical interval/anchored/continuous 
 4. the Sobolev-energy bridge `dyadic energy → ∫₀¹ |h'|²`.
 
 **Interval-carrier staging update (GPT-5.5 Thinking, 2026-07-08).** The first modelling step is now
-present in `ChenGeorgiouPavon2021.Basic`: `IntervalPath := [0,1] → ℝ`, interval dyadic projections,
+present in `ChenGeorgiouPavon2021.Continuum.IntervalPath`: `IntervalPath := [0,1] → ℝ`, interval dyadic projections,
 finite interval dyadic energy, `IsIntervalCameronMartinPath`, `IsStandardIntervalWiener`,
 `HasIntervalDyadicGeneration 𝓜`, and `HasIntervalDyadicKLExhaustion`.  The finite Gaussian/projection
 calculus is proved on this carrier; the generator equality, KL exhaustion, Sobolev bridge, and full
 path-space quasi-invariance remain the true continuum work.
+
+**Module-layout update (GPT-5.5 Thinking, 2026-07-08).** The CGP file has been split before the
+global theorem scaffold pass: energy-identity work now lives in `ChenGeorgiouPavon2021.EnergyIdentity`,
+sequence-model wrappers in `ChenGeorgiouPavon2021.SequenceGaussian`, finite/path continuum material
+under `ChenGeorgiouPavon2021.Continuum.*`, and later SOC/OT wrappers in `ChenGeorgiouPavon2021.SocOt`.
+The aggregate `ChenGeorgiouPavon2021.Basic` import is retained for downstream commands and tests.
+Fresh checkouts should validate it with `dev/check_cgp_module_split.sh`, which first builds the
+CGP library target and then runs the historical `lake env lean ChenGeorgiouPavon2021/Basic.lean`
+check.
 
 ### Phase 2 core (`≤` half) — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
 **Status (re-verified 2026-07-04 against latest-master Mathlib `d3716e6d`, Lean `v4.32.0-rc1` — pin

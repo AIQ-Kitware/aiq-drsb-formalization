@@ -88,12 +88,20 @@ capstones, but the cards do not depend on it.
 > for the discarded dyadic-generator equality.
 >
 > **Interval-path frontier seam (2026-07-08, GPT-5.5 Thinking).** The next carrier has been staged
-> in `ChenGeorgiouPavon2021.Basic` as `IntervalPath := [0,1] → ℝ`, with proved low-risk finite
+> in `ChenGeorgiouPavon2021.Continuum.IntervalPath` as `IntervalPath := [0,1] → ℝ`, with proved low-risk finite
 > projection lemmas: measurability of normalized interval dyadic increments, one-sided generated
 > sigma-algebra bound, additivity under deterministic shifts, shifted finite-dimensional Wiener law,
 > and the finite dyadic KL identity. The hard continuum facts are still interfaces:
 > `HasIntervalDyadicGeneration 𝓜`, `HasIntervalDyadicKLExhaustion`, and full path-space CM
 > quasi-invariance/AC for the eventual continuous anchored carrier.
+>
+> **Module split checkpoint (2026-07-08, GPT-5.5 Thinking).** Before adding the project-wide
+> theorem-skeleton progress bar, the former `ChenGeorgiouPavon2021/Basic.lean` monolith was split
+> into `Core`, `EnergyIdentity`, `SequenceGaussian`, `Continuum.*`, and `SocOt`, while keeping
+> `ChenGeorgiouPavon2021.Basic` as the stable aggregate import. Because `Basic.lean` is
+> aggregate-only, run `lake build ChenGeorgiouPavon2021` before the historical direct-file check,
+> or use `dev/check_cgp_module_split.sh`. Future proof-debt scaffolds should be placed at these
+> module frontiers rather than appended to a monolithic `Basic.lean`.
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The

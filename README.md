@@ -17,8 +17,9 @@ library per source paper, a paper-agnostic `ForMathlib` staging library, a
 > Gaussian sequence-model Cameron–Martin/Kakutani layer is now built and `lake build` green:
 > finite-prefix densities, square-summability ⇒ absolute continuity, the finite-energy KL
 > identity, and the nonsummable/infinite-KL converse are all staged in
-> `ForMathlib/MeasureTheory/GaussianCameronMartin.lean`, with honest CGP-facing wrappers in
-> `ChenGeorgiouPavon2021/Basic.lean`. The remaining research seam is still the continuum
+> `ForMathlib/MeasureTheory/GaussianCameronMartin.lean`, with honest CGP-facing wrappers under
+> `ChenGeorgiouPavon2021/`. The public `ChenGeorgiouPavon2021/Basic.lean` file is now only an
+> aggregate import over smaller CGP modules. The remaining research seam is still the continuum
 > Wiener/SDE path-law transport documented in [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md).
 
 ## What DRSB claims
@@ -51,6 +52,8 @@ number every declaration corresponds to.
 .
 ├── ForMathlib.lean / ForMathlib/     # DV + OT/DRO staging (import: Mathlib only)
 ├── <Paper>.lean / <Paper>/           # one library per source paper (import: Mathlib + ForMathlib)
+│   └── ChenGeorgiouPavon2021/        # split into Core, EnergyIdentity, SequenceGaussian,
+│       └── Continuum/                # RealPath, IntervalPath, WienerDyadic, Closure
 ├── Drsb.lean / Drsb/                 # capstone (imports the paper libraries)
 ├── prose/                            # faithful transcriptions of every source (papers/ = PDFs, git-ignored)
 ├── reference/                        # ⚠ OLD, trap-laden attempts — reference-only, NOT built
@@ -98,8 +101,16 @@ milestone:
 
 ```bash
 lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean
+# Basic.lean is now an aggregate import over split CGP modules, so build its imports first.
+lake build ChenGeorgiouPavon2021
 lake env lean ChenGeorgiouPavon2021/Basic.lean
 lake build
+```
+
+For the CGP split-module smoke test, the equivalent one-command wrapper is:
+
+```bash
+dev/check_cgp_module_split.sh
 ```
 
 The next mathematical frontier is not more sequence-model KL plumbing. A finite-dimensional

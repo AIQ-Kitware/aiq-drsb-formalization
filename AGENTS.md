@@ -155,10 +155,14 @@ The **`Drsb` capstone** composes the above:
   `droValue`. Use these so the paper libs and the capstone compose. A paper library
   imports only `Mathlib` + `ForMathlib` (keep them independent); only `Drsb` imports the
   paper libs.
-- **Syntax-check a single file with `lake env lean <Lib>/Basic.lean`** (fast, ~30–60 s
-  for the Mathlib import, no build lock). **Do NOT run `lake build` in parallel** with
-  other agents — it takes a lock. Success = exit 0 with only `warning: declaration uses
-  'sorry'`; fix every red `error:`.
+- **Syntax-check a single leaf file with `lake env lean <path>.lean`** (fast, ~30–60 s
+  for the Mathlib import, no build lock) when that file's imported local modules already
+  have `.olean`s or are unchanged. **Do NOT run `lake build` in parallel** with other
+  agents — it takes a lock. Success = exit 0 with only warnings; fix every red `error:`.
+- **Aggregate-import files need a prebuild.** `ChenGeorgiouPavon2021/Basic.lean` is now
+  intentionally an aggregate import over the split CGP modules, so a fresh checkout must run
+  `lake build ChenGeorgiouPavon2021` before `lake env lean ChenGeorgiouPavon2021/Basic.lean`.
+  Use `dev/check_cgp_module_split.sh` for the canonical CGP split smoke test.
 - **`set_option autoImplicit false`** in every file (also set globally in `lakefile.toml`).
 - **Note `λ` is a reserved keyword** in Lean 4 — the DRO multiplier is spelled `lam`.
 
@@ -230,6 +234,13 @@ The **`Drsb` capstone** composes the above:
 - Commit style: end messages with the project's `Co-Authored-By` trailer.
 
 ## 9. Current status & next steps
+
+> **2026-07-08 module-layout note (GPT-5.5 Thinking).** The public
+> `ChenGeorgiouPavon2021.Basic` import is now an aggregate file.  The former monolith is split into
+> `Core`, `EnergyIdentity`, `SequenceGaussian`, `Continuum.RealPath`, `Continuum.IntervalPath`,
+> `Continuum.WienerDyadic`, `Continuum.Closure`, and `SocOt`.  Downstream code may keep importing
+> `ChenGeorgiouPavon2021.Basic`; new proof-debt scaffolds should be placed in the module that owns
+> the relevant mathematics.
 
 - **Done:** repo scaffolded; `ForMathlib` + 5 paper libraries + `Drsb` capstone all
   `lake build` green; prose transcriptions + PDFs in place; `formalization.yaml` maps

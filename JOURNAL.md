@@ -1,8 +1,51 @@
+# Session journal — ChenGeorgiouPavon2021 module split (2026-07-08, GPT-5.5 Thinking)
+
+## Added in this overlay
+- Split the former `ChenGeorgiouPavon2021/Basic.lean` monolith into smaller importable modules,
+  leaving `ChenGeorgiouPavon2021.Basic` as the public aggregate import for downstream code:
+  - `ChenGeorgiouPavon2021.Core` — common path/control/SB-data definitions and values;
+  - `ChenGeorgiouPavon2021.EnergyIdentity` — CGP (4.19) and KL/SOC energy wrappers;
+  - `ChenGeorgiouPavon2021.SequenceGaussian` — sequence-model Cameron--Martin wrappers;
+  - `ChenGeorgiouPavon2021.Continuum.RealPath` — ambient `RealPath` dyadic scaffold;
+  - `ChenGeorgiouPavon2021.Continuum.IntervalPath` — corrected interval-path frontier seam;
+  - `ChenGeorgiouPavon2021.Continuum.WienerDyadic` — concrete finite Wiener/dyadic layer;
+  - `ChenGeorgiouPavon2021.Continuum.Closure` — remaining path-space continuum interfaces and
+    capstone wrappers;
+  - `ChenGeorgiouPavon2021.SocOt` — KL/SOC, Hopf--Cole, static SB, entropic OT, and Sinkhorn wrappers.
+- No theorem statements were intentionally strengthened or weakened in this stage.  This is a
+  structure-preserving refactor to make the upcoming all-assumptions theorem scaffold usable as a
+  project-wide proof-debt progress bar instead of burying the plan in one large file.
+
+## Scope note
+This overlay is stage 1 of the requested two-stage cleanup.  It does **not** yet add the full
+project-wide list of theorem `sorry`s needed to discharge every final DRSB assumption.  That should
+come next, after this module boundary is green, so each future `sorry` can live in the module that
+owns its mathematical frontier.
+
+## Correction after first split test
+- The first response to the aggregate-import failure was wrong: reverting the split would abandon
+  the requested architecture cleanup.  The actual issue is the validation contract, not the module
+  layout.
+- `lake env lean ChenGeorgiouPavon2021/Basic.lean` does not recursively build newly imported local
+  modules from source.  Since `Basic.lean` is now an aggregate import, a fresh checkout must first run
+  `lake build ChenGeorgiouPavon2021` to create the imported `.olean`s.
+- Added `dev/check_cgp_module_split.sh` as the canonical split-module smoke test:
+  `lake build ChenGeorgiouPavon2021`, then the historical direct-file check, then full
+  `lake build`.
+
+## Local validation note
+This sandbox still did not have `lake` or `lean` installed.  The refactor was therefore validated
+by source inspection only here; the user repository must run `lake env lean
+ChenGeorgiouPavon2021/Basic.lean` and `lake build`.
+
+---
+
 # Session journal — interval-path carrier seam (2026-07-08, GPT-5.5 Thinking)
 
 ## Added in this overlay
 - Introduced `UnitInterval` and `IntervalPath := UnitInterval → ℝ` in
-  `ChenGeorgiouPavon2021.Basic` as the corrected carrier seam for future M4 continuum work.
+  `ChenGeorgiouPavon2021.Continuum.IntervalPath` as the corrected carrier seam for future M4
+  continuum work.
 - Added interval dyadic projections: `intervalDyadicTime`, `intervalDyadicIncrement(Map)`,
   `normalizedIntervalDyadicIncrement(Map)`, and `intervalDyadicPathEnergy`.
 - Added explicit interfaces rather than overclaims:

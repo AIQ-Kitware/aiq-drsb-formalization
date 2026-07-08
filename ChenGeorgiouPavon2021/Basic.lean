@@ -153,6 +153,7 @@ def FiniteEnergyDiffusion (u : Control X) (ρ₀ : ProbabilityMeasure X) : Prop 
   Integrable (fun ω : Path X => ∫ t in Set.Icc (0 : ℝ) 1, ‖u t (ω t)‖ ^ 2 ∂volume)
     (d.pathLaw u ρ₀ : Measure (Path X))
 
+
 omit [NormedSpace ℝ X] in
 /-- **Energy identity (CGP (4.19)) — disintegrated, `sorry`-free.**  By Girsanov, for a
 finite-energy diffusion `P = P^{u,ρ₀}`,
@@ -1419,6 +1420,128 @@ theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
       = cameronMartinPathEnergy hderiv := by
   exact klReal_wiener_shift_eq_cameronMartinPathEnergy W h hderiv
     (isStandardWiener_standardWienerRealPathMeasure W hWmeasure) hKL hCM hac
+
+/-! ### Remaining M4 continuum-realization theorem ladder
+
+The finite-dimensional Wiener part is now discharged.  The remaining end-to-end
+continuum work is to realize the two analytic interfaces in ordinary path-space
+terms: Sobolev/Cameron--Martin paths should provide `IsCameronMartinPath`, and
+transported Wiener measure should provide `HasDyadicKLExhaustion` plus absolute
+continuity for Cameron--Martin shifts.  The declarations below make that final
+ladder explicit so later overlays can replace each `sorry` with a real proof.
+-/
+
+/-- A concrete Sobolev/Cameron--Martin path interface, deliberately separate from
+`IsCameronMartinPath`.
+
+The fields name the usual mathematical ingredients without baking the dyadic-energy
+limit into the definition.  The theorem `isCameronMartinPath_of_sobolevCameronMartinPath`
+below is the remaining analysis capstone: prove that these ordinary hypotheses imply the
+dyadic energy convergence required by the M4 scaffold. -/
+structure IsSobolevCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop where
+  /-- Placeholder proof field for the ordinary absolute-continuity hypothesis on `h`.
+  This stays deliberately lightweight until the repo chooses a concrete AC-path API. -/
+  absolutely_continuous_path : True
+  /-- Placeholder proof field saying `hderiv` represents the a.e. derivative of `h`.
+  This is separated from the square-integrability field so later overlays can replace
+  `True` with the concrete derivative relation. -/
+  derivative_represents_path : True
+  square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
+
+/-- Sobolev/AC Cameron--Martin paths realize the dyadic-energy interface.
+
+This is the real path-analysis capstone behind `IsCameronMartinPath`: show that if `h`
+is absolutely continuous with square-integrable derivative `hderiv`, then the dyadic finite
+energies converge to `1/2 ∫ hderiv^2`. -/
+theorem isCameronMartinPath_of_sobolevCameronMartinPath
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hSob : IsSobolevCameronMartinPath h hderiv) :
+    IsCameronMartinPath h hderiv := by
+  refine ⟨hSob.square_integrable, ?_⟩
+  -- Capstone: prove dyadic finite-difference energies converge to the Sobolev energy.
+  sorry
+
+/-- The transported concrete Wiener measure satisfies the dyadic KL-exhaustion interface.
+
+This is the remaining measure-theoretic/projective-limit capstone: finite dyadic normalized
+increment KLs should converge to the full path-space KL for Cameron--Martin shifts. -/
+theorem hasDyadicKLExhaustion_standardWienerRealPathMeasure
+    (W : ProbabilityMeasure RealPath)
+    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure) :
+    HasDyadicKLExhaustion W := by
+  -- Capstone: prove KL convergence along the dyadic normalized-increment filtration.
+  sorry
+
+/-- Cameron--Martin shifts of the transported Wiener law are absolutely continuous.
+
+This is the path-space Cameron--Martin absolute-continuity theorem, staged separately from the
+KL-exhaustion theorem so the final energy identity can be assembled without assuming `hac`. -/
+theorem absCont_standardWienerRealPath_shift_of_isCameronMartinPath
+    (W : ProbabilityMeasure RealPath)
+    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hCM : IsCameronMartinPath h hderiv) :
+    (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) := by
+  -- Capstone: path-space Cameron--Martin quasi-invariance for the transported Wiener law.
+  sorry
+
+/-- End-to-end ENNReal M4 theorem with the KL-exhaustion and absolute-continuity interfaces
+realized from the transported Wiener law. -/
+theorem klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_isCameronMartinPath
+    (W : ProbabilityMeasure RealPath)
+    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hCM : IsCameronMartinPath h hderiv) :
+    InformationTheory.klDiv
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
+  exact klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy W hWmeasure
+    (hasDyadicKLExhaustion_standardWienerRealPathMeasure W hWmeasure)
+    h hderiv hCM
+    (absCont_standardWienerRealPath_shift_of_isCameronMartinPath W hWmeasure h hderiv hCM)
+
+/-- End-to-end real-valued M4 theorem with the KL-exhaustion and absolute-continuity interfaces
+realized from the transported Wiener law. -/
+theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_isCameronMartinPath
+    (W : ProbabilityMeasure RealPath)
+    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hCM : IsCameronMartinPath h hderiv) :
+    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = cameronMartinPathEnergy hderiv := by
+  exact klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy W hWmeasure
+    (hasDyadicKLExhaustion_standardWienerRealPathMeasure W hWmeasure)
+    h hderiv hCM
+    (absCont_standardWienerRealPath_shift_of_isCameronMartinPath W hWmeasure h hderiv hCM)
+
+/-- End-to-end real-valued M4 theorem from ordinary Sobolev/Cameron--Martin path hypotheses. -/
+theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_sobolev
+    (W : ProbabilityMeasure RealPath)
+    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hSob : IsSobolevCameronMartinPath h hderiv) :
+    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = cameronMartinPathEnergy hderiv := by
+  exact klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_isCameronMartinPath
+    W hWmeasure h hderiv
+    (isCameronMartinPath_of_sobolevCameronMartinPath h hderiv hSob)
+
+/-- Final CGP-facing M4 edge from a transported standard Wiener law and a Sobolev
+Cameron--Martin deterministic shift. -/
+theorem hCM_from_standardWienerRealPath_sobolev_shift
+    (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ) (E : ℝ)
+    (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hSob : IsSobolevCameronMartinPath h hderiv)
+    (henergy : E = cameronMartinPathEnergy hderiv) :
+    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = E := by
+  rw [henergy]
+  exact klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy_of_sobolev
+    W hWmeasure h hderiv hSob
 
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄

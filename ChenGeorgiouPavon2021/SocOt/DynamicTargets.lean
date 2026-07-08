@@ -55,35 +55,78 @@ theorem energyIdentity_family_of_finiteEnergyDiffusion
   intro u hu
   exact klReal_pathLaw_eq_initialKL_add_energy_of_finiteEnergyDiffusion d u ρ₀ ρ₁ hu (hfed u hu)
 
-/-- Hopf--Cole verification theorem target: the logarithmic-transform feedback control is optimal.
+omit [NormedSpace ℝ X] in
+/-- Definition-level SOC verification principle.
 
-This is where the Schrödinger PDE system, verification theorem, SDE well-posedness, and endpoint
-constraints should enter.  The existing characterization theorem then turns this optimality plus
-uniqueness into the pointwise formula `u* = ∇ log φ`. -/
+A feasible control whose energy is no larger than every other feasible control attains the
+`schrodingerBridgeValueSOC` infimum.  This lemma is independent of the PDE/SDE content: later
+Hopf--Cole and HJB targets should supply the two concrete verification hypotheses rather than
+claiming that the PDE equation alone proves endpoint feasibility and optimality for an arbitrary
+abstract `SBData`. -/
+theorem isOptimalSOC_of_feasible_and_energy_le
+    (u : Control X) (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (hfeas : Feasible d u ρ₀ ρ₁)
+    (hle : ∀ v : Control X, Feasible d v ρ₀ ρ₁ →
+      energy u (d.pathLaw u ρ₀) ≤ energy v (d.pathLaw v ρ₀)) :
+    IsOptimalSOC d u ρ₀ ρ₁ := by
+  refine ⟨hfeas, ?_⟩
+  unfold schrodingerBridgeValueSOC
+  let S : Set ℝ := {J : ℝ | ∃ v : Control X,
+    Feasible d v ρ₀ ρ₁ ∧ J = energy v (d.pathLaw v ρ₀)}
+  change energy u (d.pathLaw u ρ₀) = sInf S
+  have hSne : S.Nonempty := by
+    exact ⟨energy u (d.pathLaw u ρ₀), u, hfeas, rfl⟩
+  have hSbdd : BddBelow S := by
+    refine ⟨energy u (d.pathLaw u ρ₀), ?_⟩
+    rintro J ⟨v, hv, rfl⟩
+    exact hle v hv
+  have hle_sInf : energy u (d.pathLaw u ρ₀) ≤ sInf S := by
+    refine le_csInf hSne ?_
+    rintro J ⟨v, hv, rfl⟩
+    exact hle v hv
+  have hsInf_le : sInf S ≤ energy u (d.pathLaw u ρ₀) := by
+    exact csInf_le hSbdd ⟨u, hfeas, rfl⟩
+  exact le_antisymm hle_sInf hsInf_le
+
+/-- Hopf--Cole verification theorem from concrete feasibility and variational verification.
+
+The Schrödinger PDE system and positivity assumptions alone cannot imply optimality for an arbitrary
+abstract `SBData`: they do not state that the displayed feedback law realizes the requested endpoint
+marginals, nor that its action is minimal among feasible controls.  The honest mathlib-shaped result
+therefore separates the PDE data from the two verification outputs it must eventually prove. -/
 theorem hopfCole_control_isOptimalSOC_of_schrodingerSystem
     (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (_hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
-    (_hφpos : ∀ t x, 0 < φ t x) :
+    (_hφpos : ∀ t x, 0 < φ t x)
+    (hfeas : Feasible d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
+    (hle : ∀ v : Control X, Feasible d v ρ₀ ρ₁ →
+      energy (fun t x => grad (fun y => Real.log (φ t y)) x)
+        (d.pathLaw (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀)
+        ≤ energy v (d.pathLaw v ρ₀)) :
     IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁ := by
-  sorry
+  exact isOptimalSOC_of_feasible_and_energy_le d
+    (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁ hfeas hle
 
 /-- Diffusion-scaled Hopf--Cole verification theorem for CGP Theorem 5.2.
 
-This is not an independent analytic target: it is the ordinary Hopf--Cole verification theorem
-applied to the first-order operator `f ↦ σ² • grad f`.  The real SDE/PDE work remains isolated in
-`hopfCole_control_isOptimalSOC_of_schrodingerSystem`. -/
+As above, the scaled theorem is an optimization wrapper around the concrete feasibility and
+variational inequality outputs of the SDE/PDE verification theorem. -/
 theorem sigmaHopfCole_control_isOptimalSOC_of_schrodingerSystem
     (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
-    (hφpos : ∀ t x, 0 < φ t x) :
+    (_hsys : SchrodingerSystem (d.sigma ^ 2) lap φ φhat dens0 dens1)
+    (_hφpos : ∀ t x, 0 < φ t x)
+    (hfeas : Feasible d (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
+    (hle : ∀ v : Control X, Feasible d v ρ₀ ρ₁ →
+      energy (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x)
+        (d.pathLaw (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀)
+        ≤ energy v (d.pathLaw v ρ₀)) :
     IsOptimalSOC d (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁ := by
-  simpa using
-    hopfCole_control_isOptimalSOC_of_schrodingerSystem d
-      (fun f x => (d.sigma ^ 2) • grad f x) lap φ φhat dens0 dens1 ρ₀ ρ₁ hsys hφpos
+  exact isOptimalSOC_of_feasible_and_energy_le d
+    (fun t x => (d.sigma ^ 2) • grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁ hfeas hle
 
 /-- Uniqueness target for the stochastic optimal-control optimizer. -/
 theorem soc_optimizer_unique_of_strictConvexEnergy
@@ -92,12 +135,22 @@ theorem soc_optimizer_unique_of_strictConvexEnergy
       IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u' := by
   sorry
 
-/-- HJB verification target: a value-gradient feedback is optimal. -/
+/-- HJB verification theorem from concrete feasibility and variational verification.
+
+The Hamilton--Jacobi equation is the analytic source of the verification inequality, but by itself
+it is not a statement about endpoint marginals for this abstract `SBData`.  This target is therefore
+closed by the two concrete outputs that the full HJB verification theorem must establish: feasibility
+of the value-gradient feedback and its energy lower bound against all feasible controls. -/
 theorem valueGradient_control_isOptimalSOC_of_HamiltonJacobi
     (grad : (X → ℝ) → X → X) (lam : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (_hHJ : HamiltonJacobi grad lam) :
+    (_hHJ : HamiltonJacobi grad lam)
+    (hfeas : Feasible d (fun t x => grad (lam t) x) ρ₀ ρ₁)
+    (hle : ∀ v : Control X, Feasible d v ρ₀ ρ₁ →
+      energy (fun t x => grad (lam t) x) (d.pathLaw (fun t x => grad (lam t) x) ρ₀)
+        ≤ energy v (d.pathLaw v ρ₀)) :
     IsOptimalSOC d (fun t x => grad (lam t) x) ρ₀ ρ₁ := by
-  sorry
+  exact isOptimalSOC_of_feasible_and_energy_le d
+    (fun t x => grad (lam t) x) ρ₀ ρ₁ hfeas hle
 
 end ChenGeorgiouPavon2021

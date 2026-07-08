@@ -41,14 +41,55 @@ theorem schrodinger_product_coupling_feasible
     π_prod ∈ couplings ρ₀ ρ₁ := by
   exact schrodinger_product_coupling_marginals d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod
 
-/-- Optimality target for the Schrödinger product-form coupling. -/
+omit [NormedSpace ℝ X] in
+/-- Definition-level static KL-projection verification principle.
+
+A feasible coupling whose endpoint KL is no larger than every other feasible coupling attains the
+static Schrödinger value.  This is the static analogue of
+`isOptimalSOC_of_feasible_and_energy_le`; the real Schrödinger-system work is to prove the marginal
+constraints and the dual/variational lower bound for the product-form coupling. -/
+theorem staticSBValue_eq_of_coupling_and_kl_le
+    (ρ₀ ρ₁ : ProbabilityMeasure X) (π_star : ProbabilityMeasure (X × X))
+    (hfeas : π_star ∈ couplings ρ₀ ρ₁)
+    (hle : ∀ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁ →
+      klReal (π_star : Measure (X × X)) (endpointLaw d)
+        ≤ klReal (π : Measure (X × X)) (endpointLaw d)) :
+    klReal (π_star : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ := by
+  unfold staticSBValue
+  let S : Set ℝ := {J : ℝ | ∃ π : ProbabilityMeasure (X × X),
+    π ∈ couplings ρ₀ ρ₁ ∧ J = klReal (π : Measure (X × X)) (endpointLaw d)}
+  change klReal (π_star : Measure (X × X)) (endpointLaw d) = sInf S
+  have hSne : S.Nonempty := by
+    exact ⟨klReal (π_star : Measure (X × X)) (endpointLaw d), π_star, hfeas, rfl⟩
+  have hSbdd : BddBelow S := by
+    refine ⟨klReal (π_star : Measure (X × X)) (endpointLaw d), ?_⟩
+    rintro J ⟨π, hπ, rfl⟩
+    exact hle π hπ
+  have hle_sInf : klReal (π_star : Measure (X × X)) (endpointLaw d) ≤ sInf S := by
+    refine le_csInf hSne ?_
+    rintro J ⟨π, hπ, rfl⟩
+    exact hle π hπ
+  have hsInf_le : sInf S ≤ klReal (π_star : Measure (X × X)) (endpointLaw d) := by
+    exact csInf_le hSbdd ⟨π_star, hfeas, rfl⟩
+  exact le_antisymm hle_sInf hsInf_le
+
+/-- Optimality target for the Schrödinger product-form coupling, reduced to a variational lower
+bound.
+
+The product-density identity alone cannot imply optimality against arbitrary endpoint marginals.
+The additional hypothesis is the dual/variational certificate that the product coupling's endpoint
+KL lower-bounds every feasible coupling. -/
 theorem schrodinger_product_coupling_optimal
     (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
     (π_prod : ProbabilityMeasure (X × X))
-    (_hπprod : (π_prod : Measure (X × X))
-        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2))) :
+    (hπprod : (π_prod : Measure (X × X))
+        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)))
+    (hle : ∀ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁ →
+      klReal (π_prod : Measure (X × X)) (endpointLaw d)
+        ≤ klReal (π : Measure (X × X)) (endpointLaw d)) :
     klReal (π_prod : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ := by
-  sorry
+  exact staticSBValue_eq_of_coupling_and_kl_le d ρ₀ ρ₁ π_prod
+    (schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod) hle
 
 /-- Uniqueness target for the static KL projection over endpoint couplings. -/
 theorem staticSB_klProjection_unique
@@ -86,7 +127,13 @@ theorem schrodinger_product_coupling_data_exists
 The remaining constructive work is isolated in `schrodinger_product_coupling_data_exists`, while
 feasibility and optimality are supplied by the separate marginal and KL-projection targets above. -/
 theorem staticSB_optimizer_exists
-    (ρ₀ ρ₁ : ProbabilityMeasure X) :
+    (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (hprod_le : ∀ (φhat0 φ1 : X → ℝ) (π_prod : ProbabilityMeasure (X × X)),
+      (π_prod : Measure (X × X))
+          = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)) →
+      ∀ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁ →
+        klReal (π_prod : Measure (X × X)) (endpointLaw d)
+          ≤ klReal (π : Measure (X × X)) (endpointLaw d)) :
     ∃ π_star : ProbabilityMeasure (X × X),
       π_star ∈ couplings ρ₀ ρ₁ ∧
       klReal (π_star : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ := by
@@ -94,6 +141,7 @@ theorem staticSB_optimizer_exists
     schrodinger_product_coupling_data_exists d ρ₀ ρ₁
   exact ⟨π_prod,
     schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod,
-    schrodinger_product_coupling_optimal d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod⟩
+    schrodinger_product_coupling_optimal d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod
+      (hprod_le φhat0 φ1 π_prod hπprod)⟩
 
 end ChenGeorgiouPavon2021

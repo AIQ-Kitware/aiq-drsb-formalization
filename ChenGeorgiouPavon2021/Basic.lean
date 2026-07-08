@@ -826,7 +826,39 @@ This is the scalar normalization lemma needed after Brownian increments give var
 `dyadicMesh level`. -/
 theorem gaussianReal_map_div_sqrt_self {σ2 : NNReal} (hσ2 : 0 < (σ2 : ℝ)) :
     Measure.map (fun x : ℝ => x / Real.sqrt (σ2 : ℝ)) (gaussianReal 0 σ2) = gaussianReal 0 1 := by
-  sorry
+  let L : ℝ →ₗ[ℝ] ℝ :=
+    { toFun := fun x : ℝ => x / Real.sqrt (σ2 : ℝ)
+      map_add' := by
+        intro x y
+        ring
+      map_smul' := by
+        intro a x
+        simp only [RingHom.id_apply]
+        ring_nf }
+  calc
+    Measure.map (fun x : ℝ => x / Real.sqrt (σ2 : ℝ)) (gaussianReal 0 σ2)
+        = Measure.map L (gaussianReal 0 σ2) := by rfl
+    _ = gaussianReal (L 0) (((L 1) ^ 2).toNNReal * σ2) := by
+        exact gaussianReal_map_linearMap (μ := 0) (v := σ2) L
+    _ = gaussianReal 0 1 := by
+        apply (gaussianReal_ext_iff).2
+        constructor
+        · simp [L]
+        · ext
+          have hsqrt_pos : 0 < Real.sqrt (σ2 : ℝ) := Real.sqrt_pos.2 hσ2
+          have hsqrt_ne : Real.sqrt (σ2 : ℝ) ≠ 0 := ne_of_gt hsqrt_pos
+          have hsqrt_sq : Real.sqrt (σ2 : ℝ) ^ 2 = (σ2 : ℝ) := by
+            rw [Real.sq_sqrt (le_of_lt hσ2)]
+          have hcalc : ((1 / Real.sqrt (σ2 : ℝ)) ^ 2) * (σ2 : ℝ) = (1 : ℝ) := by
+            calc
+              ((1 / Real.sqrt (σ2 : ℝ)) ^ 2) * (σ2 : ℝ)
+                  = ((1 / Real.sqrt (σ2 : ℝ)) ^ 2) * (Real.sqrt (σ2 : ℝ) ^ 2) := by
+                    rw [hsqrt_sq]
+              _ = 1 := by
+                    field_simp [hsqrt_ne]
+          change ((((1 / Real.sqrt (σ2 : ℝ)) ^ 2).toNNReal : ℝ) * (σ2 : ℝ)) = (1 : ℝ)
+          rw [Real.toNNReal_of_nonneg (sq_nonneg (1 / Real.sqrt (σ2 : ℝ)))]
+          exact hcalc
 
 /-- Raw dyadic Brownian increment law under the finite Brownian projective family.
 

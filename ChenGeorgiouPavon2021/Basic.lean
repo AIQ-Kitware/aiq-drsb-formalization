@@ -31,13 +31,14 @@ Each abstracted object is flagged inline at its use site.
 import Mathlib
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
 import ForMathlib.MeasureTheory.GaussianEntropy
+import ForMathlib.MeasureTheory.GaussianCameronMartin
 import ForMathlib.MeasureTheory.KLDataProcessing
 import ForMathlib.MeasureTheory.KLChainRule
 
 set_option autoImplicit false
 
 open MeasureTheory ProbabilityTheory
-open scoped ENNReal
+open scoped ENNReal BigOperators
 
 namespace ChenGeorgiouPavon2021
 
@@ -439,6 +440,23 @@ theorem energy_identity_euler_maruyama {ι : Type*} [Fintype ι] {N : ℕ} {Δt 
       = ForMathlib.MeasureTheory.emEnergy Δt u := by
   unfold klReal
   exact ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy hΔt u
+
+/-- **Deterministic Cameron--Martin energy identity — sequence model.**
+For the canonical iid standard-Gaussian sequence law, translating by a square-summable
+coordinate vector `c` has relative entropy exactly `½‖c‖²_{ℓ²}`.
+
+This is the sequence-coordinate Cameron--Martin content staged by
+`ForMathlib.MeasureTheory.GaussianCameronMartin`.  It does not by itself discharge the
+path-kernel `hCM` edge in `energy_identity`: identifying CGP/SDE path kernels with this
+sequence model is the later Wiener/path-transport step. -/
+theorem energy_identity_sequenceModel (c : ℕ → ℝ)
+    (hc : Summable (fun n : ℕ => c n ^ 2)) :
+    klReal (ForMathlib.MeasureTheory.stdSeqGaussian.map (fun x : ℕ → ℝ => x + c))
+        ForMathlib.MeasureTheory.stdSeqGaussian
+      = 2⁻¹ * ∑' n : ℕ, c n ^ 2 := by
+  unfold klReal
+  simpa [ForMathlib.MeasureTheory.cmTotalEnergy] using
+    ForMathlib.MeasureTheory.toReal_klDiv_stdSeqGaussian_map_add_of_summable c hc
 
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄

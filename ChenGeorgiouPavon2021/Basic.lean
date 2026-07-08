@@ -889,7 +889,14 @@ theorem brownianProjectiveFamily_normalizedDyadicIncrement_indepFun
         fun x : wienerDyadicGrid level → ℝ =>
           normalizedWienerDyadicIncrementFromGrid level x i)
       (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level)) := by
-  sorry
+  have hraw := brownianProjectiveFamily_dyadicIncrement_indepFun level
+  let scale : ℝ → ℝ := fun y => y / Real.sqrt (dyadicMesh level)
+  have hscale : Measurable scale := by
+    dsimp [scale]
+    fun_prop
+  have hcomp := hraw.comp (fun _ : Fin (2 ^ level) => scale) (fun _ => hscale)
+  convert hcomp using 3
+  · simp [normalizedWienerDyadicIncrementFromGrid, scale, Function.comp]
 
 /-- Product-law assembly: independent standard-normal coordinates form the finite standard
 Gaussian product measure. -/
@@ -900,7 +907,18 @@ theorem map_eq_stdGaussian_of_iIndepFun_coord_gaussian
     (hcoord : ∀ i : ι, Measure.map (fun x : Ω => f x i) μ = gaussianReal 0 1)
     (hindep : ProbabilityTheory.iIndepFun (fun i : ι => fun x : Ω => f x i) μ) :
     Measure.map f μ = ForMathlib.MeasureTheory.stdGaussian ι := by
-  sorry
+  have hprod : Measure.map f μ = Measure.pi (fun i : ι => Measure.map (fun x : Ω => f x i) μ) := by
+    simpa [Function.comp] using
+      (ProbabilityTheory.iIndepFun_iff_map_fun_eq_pi_map
+        (μ := μ) (f := fun i : ι => fun x : Ω => f x i)
+        (by
+          intro i
+          exact ((measurable_pi_apply i).comp hf).aemeasurable)).mp hindep
+  rw [hprod]
+  unfold ForMathlib.MeasureTheory.stdGaussian
+  congr
+  funext i
+  exact hcoord i
 
 /-- Finite Brownian projective-family algebra: normalized dyadic increments are iid standard
 Gaussian. -/

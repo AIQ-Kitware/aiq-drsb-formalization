@@ -584,6 +584,13 @@ structure IsStandardWiener (W : ProbabilityMeasure RealPath) : Prop where
   normalized_dyadic_law : ∀ level : ℕ,
     Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath)
       = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))
+
+/-- Dyadic normalized-increment KL exhaustion for a path-space law.
+
+This is kept as a separate interface from `IsStandardWiener`: the latter is the
+finite-dimensional Wiener law, while this field is the path-space filtration/exhaustion theorem
+needed to pass finite-grid KLs to full path-law KL. -/
+structure HasDyadicKLExhaustion (W : ProbabilityMeasure RealPath) : Prop where
   normalized_dyadic_kl_tendsto : ∀ (h : RealPath),
     (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) →
     Filter.Tendsto
@@ -860,6 +867,20 @@ theorem gaussianReal_map_div_sqrt_self {σ2 : NNReal} (hσ2 : 0 < (σ2 : ℝ)) :
           rw [Real.toNNReal_of_nonneg (sq_nonneg (1 / Real.sqrt (σ2 : ℝ)))]
           exact hcalc
 
+/-- The nonnegative distance between consecutive dyadic endpoints is the dyadic mesh. -/
+theorem nndist_dyadicTimeNNReal_succ (level : ℕ) (i : Fin (2 ^ level)) :
+    nndist (dyadicTimeNNReal level (i.1 + 1)) (dyadicTimeNNReal level i.1)
+      = dyadicMeshNNReal level := by
+  ext
+  rw [coe_nndist]
+  change dist ((dyadicTimeNNReal level (i.1 + 1) : ℝ))
+      ((dyadicTimeNNReal level i.1 : ℝ)) = dyadicMesh level
+  rw [Real.dist_eq, abs_of_nonneg]
+  · exact dyadicTimeNNReal_succ_sub level i
+  · rw [dyadicTimeNNReal_succ_sub level i]
+    unfold dyadicMesh
+    positivity
+
 /-- Raw dyadic Brownian increment law under the finite Brownian projective family.
 
 This is the coordinate-law theorem before variance normalization. -/
@@ -870,7 +891,35 @@ theorem brownianProjectiveFamily_dyadicIncrement_law
           - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2)))
       (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
       = gaussianReal 0 (dyadicMeshNNReal level) := by
-  sorry
+  let t0 : NNReal := dyadicTimeNNReal level i.1
+  let t1 : NNReal := dyadicTimeNNReal level (i.1 + 1)
+  let r : WienerRealPath → (wienerDyadicGrid level → ℝ) :=
+    fun ω => (wienerDyadicGrid level).restrict ω
+  let rawGrid : (wienerDyadicGrid level → ℝ) → ℝ := fun x =>
+    x (wienerDyadicGridPoint level (i.1 + 1) (Nat.succ_le_of_lt i.2))
+      - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2))
+  let rawPath : WienerRealPath → ℝ := fun ω => ω t1 - ω t0
+  have hr : Measurable r := by
+    dsimp [r]
+    exact (wienerDyadicGrid level).measurable_restrict
+  have hrawGrid : Measurable rawGrid := by
+    dsimp [rawGrid]
+    fun_prop
+  have hcomp : rawGrid ∘ r = rawPath := by
+    funext ω
+    simp [rawGrid, r, rawPath, t0, t1, wienerDyadicGridPoint]
+  have hmap : Measure.map rawGrid
+        (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+      = Measure.map rawPath standardWienerMeasure := by
+    rw [← standardWienerMeasure_finite_coordinate_law (wienerDyadicGrid level)]
+    rw [Measure.map_map hrawGrid hr]
+    rw [hcomp]
+  rw [hmap]
+  have hlaw := isPreBrownianReal_standardWienerMeasure.hasLaw_sub t1 t0
+  have hvar : nndist t1 t0 = dyadicMeshNNReal level := by
+    simpa [t0, t1] using nndist_dyadicTimeNNReal_succ level i
+  rw [← hvar]
+  exact hlaw.map_eq
 
 /-- Normalized dyadic Brownian increments have standard normal one-dimensional law. -/
 theorem brownianProjectiveFamily_normalizedDyadicIncrement_coord_law
@@ -902,6 +951,39 @@ theorem brownianProjectiveFamily_normalizedDyadicIncrement_coord_law
     unfold dyadicMesh
     positivity)
 
+/-- Dyadic endpoints form a monotone nonnegative-time sequence. -/
+theorem monotone_dyadicTimeNNReal (level : ℕ) :
+    Monotone (fun n : ℕ => dyadicTimeNNReal level n) := by
+  intro a b hab
+  rw [← NNReal.coe_le_coe]
+  change ((a : ℝ) / ((2 : ℝ) ^ level)) ≤ ((b : ℝ) / ((2 : ℝ) ^ level))
+  have hden_nonneg : 0 ≤ ((2 : ℝ) ^ level) := by positivity
+  exact div_le_div_of_nonneg_right (by exact_mod_cast hab) hden_nonneg
+
+/-- Dyadic Brownian increments are independent under the concrete vendored Wiener measure. -/
+theorem standardWienerMeasure_dyadicIncrement_indepFun
+    (level : ℕ) :
+    ProbabilityTheory.iIndepFun
+      (fun i : Fin (2 ^ level) =>
+        fun ω : WienerRealPath =>
+          ω (dyadicTimeNNReal level (i.1 + 1)) - ω (dyadicTimeNNReal level i.1))
+      standardWienerMeasure := by
+  have hnat : ProbabilityTheory.iIndepFun
+      (fun n : ℕ =>
+        fun ω : WienerRealPath =>
+          ω (dyadicTimeNNReal level (n + 1)) - ω (dyadicTimeNNReal level n))
+      standardWienerMeasure := by
+    exact (ProbabilityTheory.IsPreBrownianReal.hasIndepIncrements
+      isPreBrownianReal_standardWienerMeasure).nat
+        (t := fun n : ℕ => dyadicTimeNNReal level n)
+        (monotone_dyadicTimeNNReal level)
+  have hinj : Function.Injective (fun i : Fin (2 ^ level) => i.1) := by
+    intro i j hij
+    ext
+    exact hij
+  simpa [Function.comp] using
+    (hnat.precomp (g := fun i : Fin (2 ^ level) => i.1) hinj)
+
 /-- Raw dyadic Brownian increments over disjoint adjacent intervals are independent. -/
 theorem brownianProjectiveFamily_dyadicIncrement_indepFun
     (level : ℕ) :
@@ -911,7 +993,73 @@ theorem brownianProjectiveFamily_dyadicIncrement_indepFun
           x (wienerDyadicGridPoint level (i.1 + 1) (Nat.succ_le_of_lt i.2))
             - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2)))
       (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level)) := by
-  sorry
+  let r : WienerRealPath → (wienerDyadicGrid level → ℝ) :=
+    fun ω => (wienerDyadicGrid level).restrict ω
+  let rawGrid : Fin (2 ^ level) → ((wienerDyadicGrid level → ℝ) → ℝ) := fun i x =>
+    x (wienerDyadicGridPoint level (i.1 + 1) (Nat.succ_le_of_lt i.2))
+      - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2))
+  let rawPath : Fin (2 ^ level) → (WienerRealPath → ℝ) := fun i ω =>
+    ω (dyadicTimeNNReal level (i.1 + 1)) - ω (dyadicTimeNNReal level i.1)
+  have hr : Measurable r := by
+    dsimp [r]
+    fun_prop
+  have hrawGrid_meas : ∀ i : Fin (2 ^ level), Measurable (rawGrid i) := by
+    intro i
+    dsimp [rawGrid]
+    fun_prop
+  have hvecGrid_meas : Measurable (fun x : wienerDyadicGrid level → ℝ => fun i => rawGrid i x) := by
+    dsimp [rawGrid]
+    fun_prop
+  have hcomp : (fun i : Fin (2 ^ level) => rawGrid i ∘ r) = rawPath := by
+    funext i ω
+    simp [rawGrid, rawPath, r, wienerDyadicGridPoint]
+  have hindepPath := standardWienerMeasure_dyadicIncrement_indepFun level
+  have hindepComp : ProbabilityTheory.iIndepFun
+      (fun i : Fin (2 ^ level) => rawGrid i ∘ r) standardWienerMeasure := by
+    rw [hcomp]
+    exact hindepPath
+  have hprodPath :
+      Measure.map (fun ω : WienerRealPath => fun i : Fin (2 ^ level) => (rawGrid i ∘ r) ω)
+          standardWienerMeasure
+        = Measure.pi (fun i : Fin (2 ^ level) =>
+            Measure.map (rawGrid i ∘ r) standardWienerMeasure) := by
+    simpa [Function.comp] using
+      (ProbabilityTheory.iIndepFun_iff_map_fun_eq_pi_map
+        (μ := standardWienerMeasure)
+        (f := fun i : Fin (2 ^ level) => rawGrid i ∘ r)
+        (by
+          intro i
+          exact ((hrawGrid_meas i).comp hr).aemeasurable)).mp hindepComp
+  have hprojective :
+      ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level)
+        = Measure.map r standardWienerMeasure := by
+    exact (standardWienerMeasure_finite_coordinate_law (wienerDyadicGrid level)).symm
+  refine (ProbabilityTheory.iIndepFun_iff_map_fun_eq_pi_map
+      (μ := ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
+      (f := rawGrid)
+      (by
+        intro i
+        exact (hrawGrid_meas i).aemeasurable)).mpr ?_
+  rw [hprojective]
+  calc
+    Measure.map (fun x : wienerDyadicGrid level → ℝ => fun i : Fin (2 ^ level) => rawGrid i x)
+        (Measure.map r standardWienerMeasure)
+        = Measure.map (((fun x : wienerDyadicGrid level → ℝ =>
+              fun i : Fin (2 ^ level) => rawGrid i x) ∘ r))
+            standardWienerMeasure := by
+          exact (Measure.map_map (μ := standardWienerMeasure) hvecGrid_meas hr)
+    _ = Measure.map (fun ω : WienerRealPath => fun i : Fin (2 ^ level) => rawGrid i (r ω))
+            standardWienerMeasure := by
+          rfl
+    _ = Measure.pi (fun i : Fin (2 ^ level) =>
+          Measure.map (rawGrid i ∘ r) standardWienerMeasure) := by
+          simpa [Function.comp] using hprodPath
+    _ = Measure.pi (fun i : Fin (2 ^ level) =>
+          Measure.map (rawGrid i) (Measure.map r standardWienerMeasure)) := by
+          congr
+          funext i
+          simpa [Function.comp] using
+            (Measure.map_map (μ := standardWienerMeasure) (hrawGrid_meas i) hr).symm
 
 /-- Normalizing independent dyadic increments preserves independence. -/
 theorem brownianProjectiveFamily_normalizedDyadicIncrement_indepFun
@@ -1041,30 +1189,14 @@ structure ConcreteWienerTransport (Φ : WienerRealPath → RealPath) : Prop wher
   measurable : Measurable Φ
   normalized_dyadic_commutes : ∀ level : ℕ,
     normalizedDyadicIncrementMap level ∘ Φ = normalizedWienerDyadicIncrementMap level
-  normalized_dyadic_kl_tendsto : ∀ (h : RealPath),
-    (Measure.map Φ standardWienerMeasure).map (fun ω : RealPath => ω + h)
-        ≪ Measure.map Φ standardWienerMeasure →
-    Filter.Tendsto
-      (fun level : ℕ =>
-        InformationTheory.klDiv
-          (Measure.map (normalizedDyadicIncrementMap level)
-            ((Measure.map Φ standardWienerMeasure).map (fun ω : RealPath => ω + h)))
-          (Measure.map (normalizedDyadicIncrementMap level)
-            (Measure.map Φ standardWienerMeasure)))
-      Filter.atTop
-      (nhds (InformationTheory.klDiv
-        ((Measure.map Φ standardWienerMeasure).map (fun ω : RealPath => ω + h))
-        (Measure.map Φ standardWienerMeasure)))
 
 /-- The canonical extension map is the intended concrete-to-abstract Wiener transport. -/
 theorem concreteWienerTransport_wienerToRealPath :
     ConcreteWienerTransport wienerToRealPath := by
-  refine ⟨measurable_wienerToRealPath, ?_, ?_⟩
-  · intro level
-    funext ω
-    exact normalizedDyadicIncrementMap_wienerToRealPath level ω
-  · intro h hac
-    sorry
+  refine ⟨measurable_wienerToRealPath, ?_⟩
+  intro level
+  funext ω
+  exact normalizedDyadicIncrementMap_wienerToRealPath level ω
 
 /-- Transporting the concrete Wiener law through a valid concrete-to-abstract map gives the
 finite-dimensional normalized-dyadic Gaussian laws required by `IsStandardWiener`. -/
@@ -1093,9 +1225,6 @@ theorem isStandardWiener_of_concrete_transport
   · intro level
     rw [hW]
     exact normalizedDyadicIncrementMap_concrete_transport_law Φ hΦ level
-  · intro h hac
-    rw [hW] at hac ⊢
-    exact hΦ.normalized_dyadic_kl_tendsto h hac
 
 /-- The canonical transported real-time Wiener law satisfies `IsStandardWiener`, modulo choosing any
 `ProbabilityMeasure` wrapper whose underlying measure is `standardWienerRealPathMeasure`. -/
@@ -1192,7 +1321,7 @@ theorem dyadicPathEnergy_tendsto_cameronMartinPathEnergy
 This is the path-level projection/exhaustion analogue of the sequence-model
 prefix KL convergence theorem. -/
 theorem klDiv_normalizedDyadicIncrement_tendsto_path_kl
-    (W : ProbabilityMeasure RealPath) (h : RealPath) (hW : IsStandardWiener W)
+    (W : ProbabilityMeasure RealPath) (h : RealPath) (hKL : HasDyadicKLExhaustion W)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     Filter.Tendsto
       (fun level : ℕ =>
@@ -1204,20 +1333,21 @@ theorem klDiv_normalizedDyadicIncrement_tendsto_path_kl
       (nhds (InformationTheory.klDiv
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath))) := by
-  exact hW.normalized_dyadic_kl_tendsto h hac
+  exact hKL.normalized_dyadic_kl_tendsto h hac
 
 /-- M4 final ENNReal form: path-level deterministic Cameron--Martin identity for
 standard Wiener measure.  This is the continuum theorem that should eventually
 replace the abstract `hCM` edge in `energy_identity`. -/
 theorem klDiv_wiener_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ)
-    (hW : IsStandardWiener W) (hCM : IsCameronMartinPath h hderiv)
+    (hW : IsStandardWiener W) (hKL : HasDyadicKLExhaustion W)
+    (hCM : IsCameronMartinPath h hderiv)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     InformationTheory.klDiv
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
-  have hkl := klDiv_normalizedDyadicIncrement_tendsto_path_kl W h hW hac
+  have hkl := klDiv_normalizedDyadicIncrement_tendsto_path_kl W h hKL hac
   have hkl' : Filter.Tendsto (fun level : ℕ => ENNReal.ofReal (dyadicPathEnergy level h))
       Filter.atTop
       (nhds (InformationTheory.klDiv
@@ -1234,12 +1364,13 @@ theorem klDiv_wiener_shift_eq_cameronMartinPathEnergy
 energy-identity edge. -/
 theorem klReal_wiener_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ)
-    (hW : IsStandardWiener W) (hCM : IsCameronMartinPath h hderiv)
+    (hW : IsStandardWiener W) (hKL : HasDyadicKLExhaustion W)
+    (hCM : IsCameronMartinPath h hderiv)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = cameronMartinPathEnergy hderiv := by
-  rw [klReal, klDiv_wiener_shift_eq_cameronMartinPathEnergy W h hderiv hW hCM hac]
+  rw [klReal, klDiv_wiener_shift_eq_cameronMartinPathEnergy W h hderiv hW hKL hCM hac]
   exact ENNReal.toReal_ofReal (by
     unfold cameronMartinPathEnergy
     positivity)
@@ -1251,19 +1382,21 @@ The remaining future work is to instantiate these hypotheses for the actual
 SDE/feedback kernels of CGP. -/
 theorem hCM_from_wiener_shift_scaffold
     (W : ProbabilityMeasure RealPath) (h : RealPath) (hderiv : ℝ → ℝ) (E : ℝ)
-    (hW : IsStandardWiener W) (hCM : IsCameronMartinPath h hderiv)
+    (hW : IsStandardWiener W) (hKL : HasDyadicKLExhaustion W)
+    (hCM : IsCameronMartinPath h hderiv)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath))
     (henergy : E = cameronMartinPathEnergy hderiv) :
     klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = E := by
   rw [henergy]
-  exact klReal_wiener_shift_eq_cameronMartinPathEnergy W h hderiv hW hCM hac
+  exact klReal_wiener_shift_eq_cameronMartinPathEnergy W h hderiv hW hKL hCM hac
 
 
 /-- End-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
 theorem klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W)
     (h : RealPath) (hderiv : ℝ → ℝ)
     (hCM : IsCameronMartinPath h hderiv)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
@@ -1272,11 +1405,12 @@ theorem klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
         (W : Measure RealPath)
       = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
   exact klDiv_wiener_shift_eq_cameronMartinPathEnergy W h hderiv
-    (isStandardWiener_standardWienerRealPathMeasure W hWmeasure) hCM hac
+    (isStandardWiener_standardWienerRealPathMeasure W hWmeasure) hKL hCM hac
 
 /-- Real-valued end-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
 theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (hKL : HasDyadicKLExhaustion W)
     (h : RealPath) (hderiv : ℝ → ℝ)
     (hCM : IsCameronMartinPath h hderiv)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
@@ -1284,7 +1418,7 @@ theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
         (W : Measure RealPath)
       = cameronMartinPathEnergy hderiv := by
   exact klReal_wiener_shift_eq_cameronMartinPathEnergy W h hderiv
-    (isStandardWiener_standardWienerRealPathMeasure W hWmeasure) hCM hac
+    (isStandardWiener_standardWienerRealPathMeasure W hWmeasure) hKL hCM hac
 
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄

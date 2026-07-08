@@ -544,24 +544,47 @@ finite-dimensional Gaussian cost of its normalized increment vector. -/
 noncomputable def dyadicPathEnergy (level : ℕ) (h : RealPath) : ℝ :=
   2⁻¹ * ∑ i : Fin (2 ^ level), normalizedDyadicIncrementMap level h i ^ 2
 
-/-- Placeholder predicate for the path-level Cameron--Martin class.  It records
-the derivative used by the continuum energy and keeps the M4 declarations honest
-about where absolute-continuity / Sobolev regularity must eventually enter. -/
-def IsCameronMartinPath (_h : RealPath) (hderiv : ℝ → ℝ) : Prop :=
-  IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
-
 /-- Continuum Cameron--Martin energy `½ ∫₀¹ |h'(t)|² dt`. -/
 noncomputable def cameronMartinPathEnergy (hderiv : ℝ → ℝ) : ℝ :=
   ∫ t in Set.Icc (0 : ℝ) 1, 2⁻¹ * hderiv t ^ 2 ∂volume
 
-/-- Abstract standard-Wiener interface needed for M4.  The main field says that
-each normalized dyadic increment vector has the canonical finite-dimensional
-standard Gaussian law.  Later work should discharge this from Mathlib Brownian
-motion / Wiener measure APIs rather than assume it. -/
+/-- Staged path-level Cameron--Martin interface for M4.
+
+The first field records the usual square-integrability of the derivative.  The
+second field records the continuum-limit theorem needed by the dyadic scaffold:
+the finite dyadic Cameron--Martin energies converge to the continuum energy.
+Future work should replace this interface field by a proof from the chosen
+Sobolev/absolutely-continuous path representation. -/
+structure IsCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop where
+  square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
+  dyadic_energy_tendsto :
+    Filter.Tendsto (fun level : ℕ => dyadicPathEnergy level h) Filter.atTop
+      (nhds (cameronMartinPathEnergy hderiv))
+
+/-- Abstract standard-Wiener interface needed for M4.
+
+The first field says that each normalized dyadic increment vector has the
+canonical finite-dimensional standard Gaussian law.  The second field records
+the projection/exhaustion KL convergence needed to pass from dyadic finite-grid
+KLs to the full path-law KL.  Future work should discharge both fields from
+Mathlib Brownian motion / Wiener measure APIs and the path-law filtration
+exhaustion theorem, rather than assume them. -/
 structure IsStandardWiener (W : ProbabilityMeasure RealPath) : Prop where
   normalized_dyadic_law : ∀ level : ℕ,
     Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath)
       = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))
+  normalized_dyadic_kl_tendsto : ∀ (h : RealPath),
+    (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) →
+    Filter.Tendsto
+      (fun level : ℕ =>
+        InformationTheory.klDiv
+          (Measure.map (normalizedDyadicIncrementMap level)
+            ((W : Measure RealPath).map (fun ω : RealPath => ω + h)))
+          (Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath)))
+      Filter.atTop
+      (nhds (InformationTheory.klDiv
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)))
 
 /-- M4.1: dyadic normalized increment maps are measurable. -/
 theorem measurable_normalizedDyadicIncrementMap (level : ℕ) :
@@ -642,13 +665,13 @@ theorem dyadicPathEnergy_tendsto_cameronMartinPathEnergy
     (h : RealPath) (hderiv : ℝ → ℝ) (hCM : IsCameronMartinPath h hderiv) :
     Filter.Tendsto (fun level : ℕ => dyadicPathEnergy level h) Filter.atTop
       (nhds (cameronMartinPathEnergy hderiv)) := by
-  sorry
+  exact hCM.dyadic_energy_tendsto
 
 /-- M4.5: dyadic normalized-increment KLs converge to the full path-law KL.
 This is the path-level projection/exhaustion analogue of the sequence-model
 prefix KL convergence theorem. -/
 theorem klDiv_normalizedDyadicIncrement_tendsto_path_kl
-    (W : ProbabilityMeasure RealPath) (h : RealPath)
+    (W : ProbabilityMeasure RealPath) (h : RealPath) (hW : IsStandardWiener W)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     Filter.Tendsto
       (fun level : ℕ =>
@@ -660,7 +683,7 @@ theorem klDiv_normalizedDyadicIncrement_tendsto_path_kl
       (nhds (InformationTheory.klDiv
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath))) := by
-  sorry
+  exact hW.normalized_dyadic_kl_tendsto h hac
 
 /-- M4 final ENNReal form: path-level deterministic Cameron--Martin identity for
 standard Wiener measure.  This is the continuum theorem that should eventually
@@ -673,7 +696,7 @@ theorem klDiv_wiener_shift_eq_cameronMartinPathEnergy
         ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         (W : Measure RealPath)
       = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
-  have hkl := klDiv_normalizedDyadicIncrement_tendsto_path_kl W h hac
+  have hkl := klDiv_normalizedDyadicIncrement_tendsto_path_kl W h hW hac
   have hkl' : Filter.Tendsto (fun level : ℕ => ENNReal.ofReal (dyadicPathEnergy level h))
       Filter.atTop
       (nhds (InformationTheory.klDiv

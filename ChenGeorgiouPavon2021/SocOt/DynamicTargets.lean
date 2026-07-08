@@ -44,16 +44,24 @@ theorem feasible_control_exists_of_cgp_hypotheses
   · rw [hPu]
     exact hP1
 
-/-- Energy-identity family target supplying the hypothesis of `schrodingerBridge_KL_eq_SOC`. -/
+omit [NormedSpace ℝ X] in
+/-- Energy-identity family target supplying the hypothesis of `schrodingerBridge_KL_eq_SOC`.
+
+The family theorem now asks for the concrete disintegration/Cameron--Martin data for each feasible
+finite-energy control, rather than pretending the integrability predicate alone proves Girsanov's
+path-law identity. -/
 theorem energyIdentity_family_of_finiteEnergyDiffusion
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
+    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀)
+    (hdata : ∀ u : Control X, (hu : Feasible d u ρ₀ ρ₁) →
+      FiniteEnergyDiffusionEnergyIdentityData d u ρ₀) :
     ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
       klReal (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X))
         = klReal (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R)
           + energy u (d.pathLaw u ρ₀) := by
   intro u hu
-  exact klReal_pathLaw_eq_initialKL_add_energy_of_finiteEnergyDiffusion d u ρ₀ ρ₁ hu (hfed u hu)
+  exact klReal_pathLaw_eq_initialKL_add_energy_of_finiteEnergyDiffusion d u ρ₀ ρ₁ hu
+    (hfed u hu) (hdata u hu)
 
 omit [NormedSpace ℝ X] in
 /-- Definition-level SOC verification principle.

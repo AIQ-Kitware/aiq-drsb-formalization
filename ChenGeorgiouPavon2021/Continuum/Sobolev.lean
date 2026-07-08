@@ -89,6 +89,48 @@ structure IsAnalyticIntervalCameronMartinPath (h : IntervalPath) (hderiv : ℝ �
     h t = ∫ s in Set.Ioc (0 : ℝ) (t : ℝ), hderiv s ∂volume
   square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
 
+/-- Extend an interval path to the ambient real-time scaffold by clamping times to `[0,1]`. -/
+noncomputable def extendIntervalPathToRealPath (h : IntervalPath) : RealPath :=
+  fun t : ℝ => h (clampUnitInterval t)
+
+/-- Interval and ambient normalized dyadic increments agree after clamped extension. -/
+theorem normalizedIntervalDyadicIncrementMap_eq_normalizedDyadicIncrementMap_extend
+    (level : ℕ) (h : IntervalPath) :
+    normalizedIntervalDyadicIncrementMap level h
+      = normalizedDyadicIncrementMap level (extendIntervalPathToRealPath h) := by
+  funext i
+  unfold normalizedIntervalDyadicIncrementMap normalizedIntervalDyadicIncrement
+    intervalDyadicIncrement normalizedDyadicIncrementMap normalizedDyadicIncrement dyadicIncrement
+    extendIntervalPathToRealPath intervalDyadicTime
+  rfl
+
+/-- Interval and ambient dyadic Cameron--Martin energies agree after clamped extension. -/
+theorem intervalDyadicPathEnergy_eq_dyadicPathEnergy_extend
+    (level : ℕ) (h : IntervalPath) :
+    intervalDyadicPathEnergy level h
+      = dyadicPathEnergy level (extendIntervalPathToRealPath h) := by
+  unfold intervalDyadicPathEnergy dyadicPathEnergy
+  rw [normalizedIntervalDyadicIncrementMap_eq_normalizedDyadicIncrementMap_extend]
+
+/-- Analytic interval Cameron--Martin data extend to analytic data on the ambient real-time scaffold. -/
+theorem isAnalyticCameronMartinPath_extend_of_analyticIntervalCameronMartinPath
+    (h : IntervalPath) (hderiv : ℝ → ℝ)
+    (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
+    IsAnalyticCameronMartinPath (extendIntervalPathToRealPath h) hderiv := by
+  refine ⟨?_, ?_, hA.square_integrable⟩
+  · unfold extendIntervalPathToRealPath
+    rw [show clampUnitInterval (0 : ℝ) = unitIntervalZero by
+      apply Subtype.ext
+      simp [unitIntervalZero, coe_clampUnitInterval]]
+    exact hA.anchored
+  · intro t ht
+    unfold extendIntervalPathToRealPath
+    rw [show clampUnitInterval t = (⟨t, ht⟩ : UnitInterval) by
+      apply Subtype.ext
+      rw [coe_clampUnitInterval]
+      rw [min_eq_right ht.2, max_eq_right ht.1]]
+    exact hA.interval_reconstruction ⟨t, ht⟩
+
 /-- Sobolev/Riemann-sum capstone on the corrected interval carrier.
 
 This is the interval-carrier analogue of
@@ -96,10 +138,13 @@ This is the interval-carrier analogue of
 to package an analytic interval path as an `IsIntervalCameronMartinPath`. -/
 theorem intervalDyadicPathEnergy_tendsto_of_analyticIntervalCameronMartinPath
     (h : IntervalPath) (hderiv : ℝ → ℝ)
-    (_hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
+    (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
     Filter.Tendsto (fun level : ℕ => intervalDyadicPathEnergy level h) Filter.atTop
       (nhds (cameronMartinPathEnergy hderiv)) := by
-  sorry
+  have hreal := dyadicPathEnergy_tendsto_of_analyticCameronMartinPath
+    (extendIntervalPathToRealPath h) hderiv
+    (isAnalyticCameronMartinPath_extend_of_analyticIntervalCameronMartinPath h hderiv hA)
+  simpa [intervalDyadicPathEnergy_eq_dyadicPathEnergy_extend] using hreal
 
 /-- Analytically defined interval Cameron--Martin paths realize the dyadic interval interface once
 the interval Riemann-sum capstone is available. -/

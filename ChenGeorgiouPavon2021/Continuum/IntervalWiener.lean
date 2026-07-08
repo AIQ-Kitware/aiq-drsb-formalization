@@ -99,18 +99,75 @@ structural generation edge is supplied, this wrapper delegates to the general KL
 theorem hasIntervalDyadicKLExhaustion_standardIntervalWienerMeasure
     (W : ProbabilityMeasure IntervalPath)
     (_hW : (W : Measure IntervalPath) = standardIntervalWienerMeasure)
-    (hgen : HasIntervalDyadicGeneration (inferInstance : MeasurableSpace IntervalPath)) :
+    (ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace IntervalPath))
+    (hℱ : ∀ level : ℕ,
+      ℱ level = MeasurableSpace.comap (normalizedIntervalDyadicIncrementMap level)
+        (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ)))
+    (hgen : ⨆ level : ℕ, ℱ level = (inferInstance : MeasurableSpace IntervalPath)) :
     HasIntervalDyadicKLExhaustion W := by
-  exact hasIntervalDyadicKLExhaustion_of_dyadicGeneration W hgen
+  exact hasIntervalDyadicKLExhaustion_of_dyadicGeneration W ℱ hℱ hgen
 
-/-- Path-space Cameron--Martin quasi-invariance target on the corrected interval carrier. -/
+/-- Restricting an ambient shifted path is the same as shifting the restricted interval path by
+the clamped interval shift. -/
+theorem restrictRealPathToInterval_add_extendIntervalPathToRealPath
+    (ω : RealPath) (h : IntervalPath) :
+    restrictRealPathToInterval (ω + extendIntervalPathToRealPath h)
+      = restrictRealPathToInterval ω + h := by
+  funext t
+  unfold restrictRealPathToInterval extendIntervalPathToRealPath
+  have ht : clampUnitInterval (t : ℝ) = t := by
+    apply Subtype.ext
+    rw [coe_clampUnitInterval]
+    rw [min_eq_right t.2.2, max_eq_right t.2.1]
+  simp [Pi.add_apply, ht]
+
+/-- Absolute continuity descends from an ambient real-path shift to the restricted interval law.
+
+This is a genuine transport lemma: it does not assume interval quasi-invariance.  It only says that
+if a deterministic shift is absolutely continuous before restriction, then its restriction is also
+absolutely continuous. -/
+theorem intervalShift_absCont_of_realPathShift_absCont
+    (μ : Measure RealPath) (h : IntervalPath)
+    (hac : Measure.map (fun ω : RealPath => ω + extendIntervalPathToRealPath h) μ ≪ μ) :
+    Measure.map (fun ω : IntervalPath => ω + h)
+        (Measure.map restrictRealPathToInterval μ)
+      ≪ Measure.map restrictRealPathToInterval μ := by
+  have hrestrict : Measurable restrictRealPathToInterval := by
+    unfold restrictRealPathToInterval
+    fun_prop
+  have hshiftI : Measurable (fun ω : IntervalPath => ω + h) := by
+    fun_prop
+  have hshiftR : Measurable (fun ω : RealPath => ω + extendIntervalPathToRealPath h) := by
+    fun_prop
+  have hcomp : (fun ω : IntervalPath => ω + h) ∘ restrictRealPathToInterval
+      = restrictRealPathToInterval ∘
+          (fun ω : RealPath => ω + extendIntervalPathToRealPath h) := by
+    funext ω
+    exact (restrictRealPathToInterval_add_extendIntervalPathToRealPath ω h).symm
+  have hacRestrict :
+      Measure.map restrictRealPathToInterval
+          (Measure.map (fun ω : RealPath => ω + extendIntervalPathToRealPath h) μ)
+        ≪ Measure.map restrictRealPathToInterval μ :=
+    hac.map hrestrict
+  rw [Measure.map_map hshiftI hrestrict]
+  rw [Measure.map_map hrestrict hshiftR] at hacRestrict
+  rw [hcomp]
+  exact hacRestrict
+
+/-- Path-space Cameron--Martin quasi-invariance on the corrected interval carrier, descended from the
+corresponding ambient real-path quasi-invariance for the clamped extension. -/
 theorem absCont_standardIntervalWienerMeasure_shift_of_analyticIntervalCameronMartinPath
     (W : ProbabilityMeasure IntervalPath)
-    (_hW : (W : Measure IntervalPath) = standardIntervalWienerMeasure)
+    (hW : (W : Measure IntervalPath) = standardIntervalWienerMeasure)
     (h : IntervalPath) (hderiv : ℝ → ℝ)
-    (_hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
+    (_hA : IsAnalyticIntervalCameronMartinPath h hderiv)
+    (hacReal :
+      Measure.map (fun ω : RealPath => ω + extendIntervalPathToRealPath h)
+          standardWienerRealPathMeasure
+        ≪ standardWienerRealPathMeasure) :
     (W : Measure IntervalPath).map (fun ω : IntervalPath => ω + h) ≪ (W : Measure IntervalPath) := by
-  sorry
+  rw [hW, standardIntervalWienerMeasure]
+  exact intervalShift_absCont_of_realPathShift_absCont standardWienerRealPathMeasure h hacReal
 
 /-- Interval-carrier M4 ENNReal theorem from explicit finite-law, KL-exhaustion, dyadic-energy, and
 absolute-continuity inputs.  This is assembly only; it should stay complete. -/
@@ -158,17 +215,25 @@ contains no remaining mathematical work. -/
 theorem klReal_standardIntervalWienerMeasure_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure IntervalPath)
     (hWmeasure : (W : Measure IntervalPath) = standardIntervalWienerMeasure)
-    (hgen : HasIntervalDyadicGeneration (inferInstance : MeasurableSpace IntervalPath))
+    (ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace IntervalPath))
+    (hℱ : ∀ level : ℕ,
+      ℱ level = MeasurableSpace.comap (normalizedIntervalDyadicIncrementMap level)
+        (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ)))
+    (hgen : ⨆ level : ℕ, ℱ level = (inferInstance : MeasurableSpace IntervalPath))
     (h : IntervalPath) (hderiv : ℝ → ℝ)
-    (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
+    (hA : IsAnalyticIntervalCameronMartinPath h hderiv)
+    (hacReal :
+      Measure.map (fun ω : RealPath => ω + extendIntervalPathToRealPath h)
+          standardWienerRealPathMeasure
+        ≪ standardWienerRealPathMeasure) :
     klReal ((W : Measure IntervalPath).map (fun ω : IntervalPath => ω + h))
         (W : Measure IntervalPath)
       = cameronMartinPathEnergy hderiv := by
   exact klReal_intervalWiener_shift_eq_cameronMartinPathEnergy W h hderiv
     (isStandardIntervalWiener_standardIntervalWienerMeasure W hWmeasure)
-    (hasIntervalDyadicKLExhaustion_standardIntervalWienerMeasure W hWmeasure hgen)
+    (hasIntervalDyadicKLExhaustion_standardIntervalWienerMeasure W hWmeasure ℱ hℱ hgen)
     (isIntervalCameronMartinPath_of_analyticIntervalCameronMartinPath h hderiv hA)
     (absCont_standardIntervalWienerMeasure_shift_of_analyticIntervalCameronMartinPath
-      W hWmeasure h hderiv hA)
+      W hWmeasure h hderiv hA hacReal)
 
 end ChenGeorgiouPavon2021

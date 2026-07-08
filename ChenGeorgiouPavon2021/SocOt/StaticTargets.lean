@@ -48,22 +48,27 @@ theorem dynamic_to_static_gluing_le
     exact le_trans (csInf_le hKL_bdd ⟨u, hu, rfl⟩) hle
 
 /-- Feasible path laws are absolutely continuous with respect to the reference under the
-finite-energy regime. -/
+finite-energy model-data regime. -/
 theorem feasible_pathLaw_absCont_reference
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
+    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀)
+    (hdata : ∀ u : Control X, (hu : Feasible d u ρ₀ ρ₁) →
+      FiniteEnergyDiffusionEnergyIdentityData d u ρ₀) :
     ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
       (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)) := by
   intro u hu
-  exact pathLaw_absCont_reference_of_finiteEnergyDiffusion d u ρ₀ (hfed u hu)
+  exact pathLaw_absCont_reference_of_finiteEnergyDiffusion d u ρ₀ (hfed u hu) (hdata u hu)
 
-/-- Feasible path laws have finite relative entropy under the finite-energy regime. -/
+omit [NormedSpace ℝ X] in
+/-- Feasible path laws have finite relative entropy under the finite-energy model-data regime. -/
 theorem feasible_pathLaw_klDiv_ne_top
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
+    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀)
+    (hdata : ∀ u : Control X, (hu : Feasible d u ρ₀ ρ₁) →
+      FiniteEnergyDiffusionEnergyIdentityData d u ρ₀) :
     ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
       InformationTheory.klDiv (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) ≠ ⊤ := by
   intro u hu
-  exact pathLaw_klDiv_ne_top_of_finiteEnergyDiffusion d u ρ₀ (hfed u hu)
+  exact pathLaw_klDiv_ne_top_of_finiteEnergyDiffusion d u ρ₀ (hfed u hu) (hdata u hu)
 
 end ChenGeorgiouPavon2021

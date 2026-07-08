@@ -15,31 +15,46 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X] [NormedSpace ℝ
 
 variable (d : SBData X)
 
-/-- Marginal computation target for the Schrödinger product-form coupling.
+/-- Product-form Schrödinger coupling data with the marginal equations exposed explicitly.
 
-The density identity alone does not imply feasibility against arbitrary endpoint marginals.  The
-missing content is the Schrödinger-system marginal calculation: the product-form endpoint law has
-first marginal `ρ₀` and second marginal `ρ₁`. -/
+For an arbitrary endpoint reference law, a density identity of the form
+`dπ = φ̂₀(x) φ₁(y) dR₀₁` does not determine arbitrary prescribed marginals.  The actual
+Schrödinger-system theorem must construct potentials for which the two marginal equations hold;
+this predicate records that non-circular data package. -/
+structure IsSchrodingerProductCoupling
+    (d : SBData X) (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (π_prod : ProbabilityMeasure (X × X)) : Prop where
+  density_eq : (π_prod : Measure (X × X))
+    = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2))
+  fst_marginal : Measure.map Prod.fst (π_prod : Measure (X × X)) = (ρ₀ : Measure X)
+  snd_marginal : Measure.map Prod.snd (π_prod : Measure (X × X)) = (ρ₁ : Measure X)
+
+omit [NormedSpace ℝ X] in
+/-- Marginal extraction for a Schrödinger product-form coupling.
+
+The previous scaffold tried to derive arbitrary marginals from the density identity alone, which is
+false.  The corrected statement extracts the two marginal identities from the actual product-coupling
+data package; proving existence of such data is the separate static Schrödinger-system construction
+edge. -/
 theorem schrodinger_product_coupling_marginals
     (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
     (π_prod : ProbabilityMeasure (X × X))
-    (_hπprod : (π_prod : Measure (X × X))
-        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2))) :
+    (hprod : IsSchrodingerProductCoupling d φhat0 φ1 ρ₀ ρ₁ π_prod) :
     Measure.map Prod.fst (π_prod : Measure (X × X)) = (ρ₀ : Measure X) ∧
       Measure.map Prod.snd (π_prod : Measure (X × X)) = (ρ₁ : Measure X) := by
-  sorry
+  exact ⟨hprod.fst_marginal, hprod.snd_marginal⟩
 
+omit [NormedSpace ℝ X] in
 /-- Feasibility wrapper for the Schrödinger product-form coupling.
 
-This theorem is now just the definition of `couplings` after the separate marginal-computation
-target above has supplied the two endpoint marginal identities. -/
+This theorem is now just the definition of `couplings` after the product-coupling data package has
+supplied the two endpoint marginal identities. -/
 theorem schrodinger_product_coupling_feasible
     (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
     (π_prod : ProbabilityMeasure (X × X))
-    (hπprod : (π_prod : Measure (X × X))
-        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2))) :
+    (hprod : IsSchrodingerProductCoupling d φhat0 φ1 ρ₀ ρ₁ π_prod) :
     π_prod ∈ couplings ρ₀ ρ₁ := by
-  exact schrodinger_product_coupling_marginals d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod
+  exact schrodinger_product_coupling_marginals d φhat0 φ1 ρ₀ ρ₁ π_prod hprod
 
 omit [NormedSpace ℝ X] in
 /-- Definition-level static KL-projection verification principle.
@@ -73,6 +88,7 @@ theorem staticSBValue_eq_of_coupling_and_kl_le
     exact csInf_le hSbdd ⟨π_star, hfeas, rfl⟩
   exact le_antisymm hle_sInf hsInf_le
 
+omit [NormedSpace ℝ X] in
 /-- Optimality target for the Schrödinger product-form coupling, reduced to a variational lower
 bound.
 
@@ -82,14 +98,13 @@ KL lower-bounds every feasible coupling. -/
 theorem schrodinger_product_coupling_optimal
     (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
     (π_prod : ProbabilityMeasure (X × X))
-    (hπprod : (π_prod : Measure (X × X))
-        = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)))
+    (hprod : IsSchrodingerProductCoupling d φhat0 φ1 ρ₀ ρ₁ π_prod)
     (hle : ∀ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁ →
       klReal (π_prod : Measure (X × X)) (endpointLaw d)
         ≤ klReal (π : Measure (X × X)) (endpointLaw d)) :
     klReal (π_prod : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ := by
   exact staticSBValue_eq_of_coupling_and_kl_le d ρ₀ ρ₁ π_prod
-    (schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod) hle
+    (schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hprod) hle
 
 omit [NormedSpace ℝ X] in
 /-- Uniqueness of the static KL projection from a strict-improvement principle.
@@ -143,8 +158,8 @@ omit [NormedSpace ℝ X] in
 
 At this abstraction level the endpoint reference law itself gives the trivial product-density tilt
 with both potentials equal to `1`.  This does **not** solve the Schrödinger system marginal or
-optimality problems for prescribed `(ρ₀, ρ₁)`; those remain the visible targets
-`schrodinger_product_coupling_marginals` and `schrodinger_product_coupling_optimal`. -/
+optimality problems for prescribed `(ρ₀, ρ₁)`; actual optimizer existence is routed through
+`IsSchrodingerProductCoupling`, which includes the marginal equations. -/
 theorem schrodinger_product_coupling_data_exists
     (_ρ₀ _ρ₁ : ProbabilityMeasure X) :
     ∃ (φhat0 φ1 : X → ℝ) (π_prod : ProbabilityMeasure (X × X)),
@@ -158,26 +173,28 @@ theorem schrodinger_product_coupling_data_exists
   refine ⟨fun _ => 1, fun _ => 1, ⟨endpointLaw d, hprob⟩, ?_⟩
   simp
 
+omit [NormedSpace ℝ X] in
 /-- Existence/attainment wrapper for the static Schrödinger bridge optimizer.
 
-The remaining constructive work is isolated in `schrodinger_product_coupling_data_exists`, while
-feasibility and optimality are supplied by the separate marginal and KL-projection targets above. -/
+The constructive static Schrödinger-system work is now exposed as `hprod_exists`: construction of a
+product-form endpoint coupling satisfying both marginal equations.  Given that data and the dual
+variational lower bound, optimizer existence is a definition-level consequence. -/
 theorem staticSB_optimizer_exists
     (ρ₀ ρ₁ : ProbabilityMeasure X)
+    (hprod_exists : ∃ (φhat0 φ1 : X → ℝ) (π_prod : ProbabilityMeasure (X × X)),
+      IsSchrodingerProductCoupling d φhat0 φ1 ρ₀ ρ₁ π_prod)
     (hprod_le : ∀ (φhat0 φ1 : X → ℝ) (π_prod : ProbabilityMeasure (X × X)),
-      (π_prod : Measure (X × X))
-          = (endpointLaw d).withDensity (fun z => ENNReal.ofReal (φhat0 z.1 * φ1 z.2)) →
+      IsSchrodingerProductCoupling d φhat0 φ1 ρ₀ ρ₁ π_prod →
       ∀ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁ →
         klReal (π_prod : Measure (X × X)) (endpointLaw d)
           ≤ klReal (π : Measure (X × X)) (endpointLaw d)) :
     ∃ π_star : ProbabilityMeasure (X × X),
       π_star ∈ couplings ρ₀ ρ₁ ∧
       klReal (π_star : Measure (X × X)) (endpointLaw d) = staticSBValue d ρ₀ ρ₁ := by
-  obtain ⟨φhat0, φ1, π_prod, hπprod⟩ :=
-    schrodinger_product_coupling_data_exists d ρ₀ ρ₁
+  obtain ⟨φhat0, φ1, π_prod, hprod⟩ := hprod_exists
   exact ⟨π_prod,
-    schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod,
-    schrodinger_product_coupling_optimal d φhat0 φ1 ρ₀ ρ₁ π_prod hπprod
-      (hprod_le φhat0 φ1 π_prod hπprod)⟩
+    schrodinger_product_coupling_feasible d φhat0 φ1 ρ₀ ρ₁ π_prod hprod,
+    schrodinger_product_coupling_optimal d φhat0 φ1 ρ₀ ρ₁ π_prod hprod
+      (hprod_le φhat0 φ1 π_prod hprod)⟩
 
 end ChenGeorgiouPavon2021

@@ -810,7 +810,15 @@ we can fill them in one by one without changing downstream theorem names. -/
 theorem dyadicTimeNNReal_succ_sub (level : ℕ) (i : Fin (2 ^ level)) :
     ((dyadicTimeNNReal level (i.1 + 1) : ℝ) - (dyadicTimeNNReal level i.1 : ℝ))
       = dyadicMesh level := by
-  sorry
+  rw [show (dyadicTimeNNReal level (i.1 + 1) : ℝ)
+      = (((i.1 + 1 : ℕ) : ℝ) / ((2 : ℝ) ^ level)) by rfl]
+  rw [show (dyadicTimeNNReal level i.1 : ℝ)
+      = (((i.1 : ℕ) : ℝ) / ((2 : ℝ) ^ level)) by rfl]
+  unfold dyadicMesh
+  have hpow : ((2 : ℝ) ^ level) ≠ 0 := pow_ne_zero _ (by norm_num)
+  field_simp [hpow]
+  rw [Nat.cast_add, Nat.cast_one]
+  ring
 
 /-- Scaling a centered one-dimensional Gaussian by its standard deviation gives `N(0,1)`.
 
@@ -839,7 +847,28 @@ theorem brownianProjectiveFamily_normalizedDyadicIncrement_coord_law
         normalizedWienerDyadicIncrementFromGrid level x i)
       (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
       = gaussianReal 0 1 := by
-  sorry
+  let raw : (wienerDyadicGrid level → ℝ) → ℝ := fun x =>
+    x (wienerDyadicGridPoint level (i.1 + 1) (Nat.succ_le_of_lt i.2))
+      - x (wienerDyadicGridPoint level i.1 (le_of_lt i.2))
+  let scale : ℝ → ℝ := fun y => y / Real.sqrt (dyadicMesh level)
+  have hraw : Measurable raw := by
+    dsimp [raw]
+    fun_prop
+  have hscale : Measurable scale := by
+    dsimp [scale]
+    fun_prop
+  have hfun : (fun x : wienerDyadicGrid level → ℝ =>
+        normalizedWienerDyadicIncrementFromGrid level x i) = scale ∘ raw := by
+    funext x
+    simp [raw, scale, normalizedWienerDyadicIncrementFromGrid]
+  rw [hfun]
+  rw [← Measure.map_map (μ := ProbabilityTheory.BrownianReal.projectiveFamily
+    (wienerDyadicGrid level)) hscale hraw]
+  rw [brownianProjectiveFamily_dyadicIncrement_law level i]
+  exact gaussianReal_map_div_sqrt_self (σ2 := dyadicMeshNNReal level) (by
+    change 0 < dyadicMesh level
+    unfold dyadicMesh
+    positivity)
 
 /-- Raw dyadic Brownian increments over disjoint adjacent intervals are independent. -/
 theorem brownianProjectiveFamily_dyadicIncrement_indepFun
@@ -913,7 +942,8 @@ noncomputable def wienerToRealPath (ω : WienerRealPath) : RealPath :=
 
 /-- Measurability of the nonnegative-time-to-real-time Wiener path extension. -/
 theorem measurable_wienerToRealPath : Measurable wienerToRealPath := by
-  sorry
+  unfold wienerToRealPath
+  fun_prop
 
 /-- Real-time path measure obtained by transporting the vendored concrete Wiener measure. -/
 noncomputable def standardWienerRealPathMeasure : Measure RealPath :=
@@ -930,7 +960,27 @@ theorem normalizedDyadicIncrementMap_wienerToRealPath
     (level : ℕ) (ω : WienerRealPath) :
     normalizedDyadicIncrementMap level (wienerToRealPath ω)
       = normalizedWienerDyadicIncrementMap level ω := by
-  sorry
+  funext i
+  unfold normalizedDyadicIncrementMap normalizedDyadicIncrement dyadicIncrement
+    normalizedWienerDyadicIncrementMap normalizedWienerDyadicIncrement wienerDyadicIncrement
+    wienerToRealPath
+  have hsucc_nn :
+      (⟨max (dyadicTime level (i.1 + 1)) 0,
+          by exact le_max_right (dyadicTime level (i.1 + 1)) 0⟩ : NNReal)
+        = dyadicTimeNNReal level (i.1 + 1) := by
+    ext
+    change max ((((i.1 + 1 : ℕ) : ℝ) / ((2 : ℝ) ^ level))) (0 : ℝ)
+      = (((i.1 + 1 : ℕ) : ℝ) / ((2 : ℝ) ^ level))
+    exact max_eq_left (by positivity)
+  have hi_nn :
+      (⟨max (dyadicTime level i.1) 0,
+          by exact le_max_right (dyadicTime level i.1) 0⟩ : NNReal)
+        = dyadicTimeNNReal level i.1 := by
+    ext
+    change max ((((i.1 : ℕ) : ℝ) / ((2 : ℝ) ^ level))) (0 : ℝ)
+      = (((i.1 : ℕ) : ℝ) / ((2 : ℝ) ^ level))
+    exact max_eq_left (by positivity)
+  rw [hsucc_nn, hi_nn]
 
 /-- Concrete-to-abstract transport interface for the real Wiener capstone.
 
@@ -1006,29 +1056,6 @@ theorem isStandardWiener_standardWienerRealPathMeasure
   unfold standardWienerRealPathMeasure at hW
   exact isStandardWiener_of_concrete_transport wienerToRealPath
     concreteWienerTransport_wienerToRealPath W hW
-
-/-- End-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
-theorem klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
-    (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
-    (h : RealPath) (hderiv : ℝ → ℝ)
-    (hCM : IsCameronMartinPath h hderiv)
-    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
-    InformationTheory.klDiv
-        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
-        (W : Measure RealPath)
-      = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
-  sorry
-
-/-- Real-valued end-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
-theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
-    (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
-    (h : RealPath) (hderiv : ℝ → ℝ)
-    (hCM : IsCameronMartinPath h hderiv)
-    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
-    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
-        (W : Measure RealPath)
-      = cameronMartinPathEnergy hderiv := by
-  sorry
 
 /-- M4.1: dyadic normalized increment maps are measurable. -/
 theorem measurable_normalizedDyadicIncrementMap (level : ℕ) :
@@ -1182,6 +1209,32 @@ theorem hCM_from_wiener_shift_scaffold
       = E := by
   rw [henergy]
   exact klReal_wiener_shift_eq_cameronMartinPathEnergy W h hderiv hW hCM hac
+
+
+/-- End-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
+theorem klDiv_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
+    (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
+    InformationTheory.klDiv
+        ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = ENNReal.ofReal (cameronMartinPathEnergy hderiv) := by
+  exact klDiv_wiener_shift_eq_cameronMartinPathEnergy W h hderiv
+    (isStandardWiener_standardWienerRealPathMeasure W hWmeasure) hCM hac
+
+/-- Real-valued end-to-end M4 Wiener-shift theorem for the transported concrete Wiener measure. -/
+theorem klReal_standardWienerRealPath_shift_eq_cameronMartinPathEnergy
+    (W : ProbabilityMeasure RealPath) (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hCM : IsCameronMartinPath h hderiv)
+    (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
+    klReal ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
+        (W : Measure RealPath)
+      = cameronMartinPathEnergy hderiv := by
+  exact klReal_wiener_shift_eq_cameronMartinPathEnergy W h hderiv
+    (isStandardWiener_standardWienerRealPathMeasure W hWmeasure) hCM hac
 
 omit [NormedSpace ℝ X] in
 /-- **SB as KL minimization ⇄ SB as control-energy minimization (CGP Problem 4.1 ⇄

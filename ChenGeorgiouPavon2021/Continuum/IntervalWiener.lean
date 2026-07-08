@@ -8,6 +8,7 @@ the placeholders are only the missing mathematical capstones.
 
 import ChenGeorgiouPavon2021.Continuum.PathSpace
 import ChenGeorgiouPavon2021.Continuum.Sobolev
+import ChenGeorgiouPavon2021.Continuum.KLExhaustion
 import ChenGeorgiouPavon2021.Continuum.Wiener.RealPathTransport
 
 set_option autoImplicit false
@@ -88,15 +89,19 @@ theorem isStandardIntervalWiener_standardIntervalWienerMeasure
   exact normalizedDyadicIncrementMap_concrete_transport_law wienerToRealPath
     concreteWienerTransport_wienerToRealPath level
 
-/-- KL exhaustion target on the corrected interval carrier.
+/-- KL exhaustion wrapper on the corrected interval carrier.
 
-This is the information-theoretic capstone: finite dyadic projected KLs converge upward to full
-path-space KL for Cameron--Martin shifts of the interval Wiener law. -/
+The missing mathematical work is not specific to the transported interval Wiener law; it is the
+filtration theorem saying that normalized dyadic increments generate the chosen interval path
+measurable space strongly enough for projected KLs to exhaust the full path-space KL.  Once that
+structural generation edge is supplied, this wrapper delegates to the general KL-exhaustion target
+`hasIntervalDyadicKLExhaustion_of_dyadicGeneration`. -/
 theorem hasIntervalDyadicKLExhaustion_standardIntervalWienerMeasure
     (W : ProbabilityMeasure IntervalPath)
-    (_hW : (W : Measure IntervalPath) = standardIntervalWienerMeasure) :
+    (_hW : (W : Measure IntervalPath) = standardIntervalWienerMeasure)
+    (hgen : HasIntervalDyadicGeneration (inferInstance : MeasurableSpace IntervalPath)) :
     HasIntervalDyadicKLExhaustion W := by
-  sorry
+  exact hasIntervalDyadicKLExhaustion_of_dyadicGeneration W hgen
 
 /-- Path-space Cameron--Martin quasi-invariance target on the corrected interval carrier. -/
 theorem absCont_standardIntervalWienerMeasure_shift_of_analyticIntervalCameronMartinPath
@@ -153,6 +158,7 @@ contains no remaining mathematical work. -/
 theorem klReal_standardIntervalWienerMeasure_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure IntervalPath)
     (hWmeasure : (W : Measure IntervalPath) = standardIntervalWienerMeasure)
+    (hgen : HasIntervalDyadicGeneration (inferInstance : MeasurableSpace IntervalPath))
     (h : IntervalPath) (hderiv : ℝ → ℝ)
     (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
     klReal ((W : Measure IntervalPath).map (fun ω : IntervalPath => ω + h))
@@ -160,7 +166,7 @@ theorem klReal_standardIntervalWienerMeasure_shift_eq_cameronMartinPathEnergy
       = cameronMartinPathEnergy hderiv := by
   exact klReal_intervalWiener_shift_eq_cameronMartinPathEnergy W h hderiv
     (isStandardIntervalWiener_standardIntervalWienerMeasure W hWmeasure)
-    (hasIntervalDyadicKLExhaustion_standardIntervalWienerMeasure W hWmeasure)
+    (hasIntervalDyadicKLExhaustion_standardIntervalWienerMeasure W hWmeasure hgen)
     (isIntervalCameronMartinPath_of_analyticIntervalCameronMartinPath h hderiv hA)
     (absCont_standardIntervalWienerMeasure_shift_of_analyticIntervalCameronMartinPath
       W hWmeasure h hderiv hA)

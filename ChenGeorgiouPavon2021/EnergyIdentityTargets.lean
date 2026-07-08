@@ -47,18 +47,26 @@ theorem klReal_pathLaw_eq_initialKL_add_energy_of_finiteEnergyDiffusion
         + energy u (d.pathLaw u ρ₀) := by
   sorry
 
-/-- Absolute continuity of finite-energy controlled path laws with respect to the reference law. -/
-theorem pathLaw_absCont_reference_of_finiteEnergyDiffusion
-    (u : Control X) (ρ₀ : ProbabilityMeasure X)
-    (_hfed : FiniteEnergyDiffusion d u ρ₀) :
-    (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)) := by
-  sorry
+/-- Finite relative entropy of finite-energy controlled path laws.
 
-/-- Finite relative entropy of finite-energy controlled path laws. -/
+This remains the genuine probabilistic target.  Once it is proved, absolute continuity follows by
+the standard finite-KL consequence below. -/
 theorem pathLaw_klDiv_ne_top_of_finiteEnergyDiffusion
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (_hfed : FiniteEnergyDiffusion d u ρ₀) :
     InformationTheory.klDiv (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) ≠ ⊤ := by
   sorry
+
+/-- Absolute continuity of finite-energy controlled path laws with respect to the reference law.
+
+This is derived from the still-visible finite-relative-entropy target above.  The remaining
+probabilistic content is to prove that finite-energy controlled diffusions have finite KL against the
+reference path law; absolute continuity is then the standard `klDiv_ne_top` consequence. -/
+theorem pathLaw_absCont_reference_of_finiteEnergyDiffusion
+    (u : Control X) (ρ₀ : ProbabilityMeasure X)
+    (hfed : FiniteEnergyDiffusion d u ρ₀) :
+    (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)) := by
+  exact (InformationTheory.klDiv_ne_top_iff.mp
+    (pathLaw_klDiv_ne_top_of_finiteEnergyDiffusion d u ρ₀ hfed)).1
 
 end ChenGeorgiouPavon2021

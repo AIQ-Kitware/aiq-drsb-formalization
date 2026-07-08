@@ -32,18 +32,64 @@ noncomputable def normalizedContinuousAnchoredIntervalDyadicIncrementMap (level 
     ContinuousAnchoredIntervalPath → (Fin (2 ^ level) → ℝ) :=
   fun ω => normalizedIntervalDyadicIncrementMap level ω.1
 
-/-- Point-separation target: anchored continuous paths are determined by all normalized dyadic
-increment vectors.
+@[simp] theorem normalizedContinuousAnchoredIntervalDyadicIncrementMap_apply
+    (level : ℕ) (ω : ContinuousAnchoredIntervalPath) (i : Fin (2 ^ level)) :
+    normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω i
+      = normalizedIntervalDyadicIncrementMap level ω.1 i := rfl
+
+/-- Equality on the lightweight interval-path projection is enough to identify two elements of the
+anchored-continuous subtype. -/
+theorem continuousAnchoredIntervalPath_ext_of_intervalPath_eq
+    {ω η : ContinuousAnchoredIntervalPath}
+    (h : continuousAnchoredIntervalPathToIntervalPath ω
+      = continuousAnchoredIntervalPathToIntervalPath η) :
+    ω = η := by
+  exact Subtype.ext h
+
+/-- Pointwise equality on interval times is enough to identify two anchored-continuous paths. -/
+theorem continuousAnchoredIntervalPath_ext_of_pointwise_eq
+    {ω η : ContinuousAnchoredIntervalPath}
+    (h : ∀ t : UnitInterval, ω.1 t = η.1 t) :
+    ω = η := by
+  apply continuousAnchoredIntervalPath_ext_of_intervalPath_eq
+  funext t
+  exact h t
+
+/-- A levelwise equality of normalized dyadic vectors gives equality of every normalized dyadic
+coordinate.  This is the finite-grid extraction step used before the remaining density/continuity
+argument. -/
+theorem normalizedContinuousAnchoredIntervalDyadicIncrement_eq_of_maps_eq
+    {ω η : ContinuousAnchoredIntervalPath}
+    (hN : ∀ level : ℕ,
+      normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
+        = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η)
+    (level : ℕ) (i : Fin (2 ^ level)) :
+    normalizedIntervalDyadicIncrementMap level ω.1 i
+      = normalizedIntervalDyadicIncrementMap level η.1 i := by
+  simpa using congrFun (hN level) i
+
+/-- Pointwise equality target behind dyadic point separation.
 
 Mathematically, the Brownian anchor recovers the dyadic values from increments, dyadic points are
-dense in `[0,1]`, and continuity extends equality from dyadic points to the whole interval. -/
+dense in `[0,1]`, and continuity extends equality from dyadic points to every interval time. -/
+theorem continuousAnchoredIntervalPath_pointwise_eq_of_normalizedDyadicIncrements_eq
+    (ω η : ContinuousAnchoredIntervalPath)
+    (hN : ∀ level : ℕ,
+      normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
+        = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
+    ∀ t : UnitInterval, ω.1 t = η.1 t := by
+  sorry
+
+/-- Point-separation target: anchored continuous paths are determined by all normalized dyadic
+increment vectors. -/
 theorem continuousAnchoredIntervalPath_ext_of_normalizedDyadicIncrements_eq
     (ω η : ContinuousAnchoredIntervalPath)
     (hN : ∀ level : ℕ,
       normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
         = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
     ω = η := by
-  sorry
+  exact continuousAnchoredIntervalPath_ext_of_pointwise_eq
+    (continuousAnchoredIntervalPath_pointwise_eq_of_normalizedDyadicIncrements_eq ω η hN)
 
 /-- Generation target for the canonical anchored continuous interval path space.
 

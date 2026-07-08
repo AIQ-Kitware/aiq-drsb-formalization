@@ -19,32 +19,26 @@ variable (d : SBData X)
 /-- Gluing/path-reconstruction target for Léonard's dynamic-to-static Schrödinger bridge theorem.
 
 This is the reverse inequality in `dynamic_eq_static_SB`: glue the reference bridges over a static
-coupling to reconstruct a path law with the same endpoint relative entropy.  The abstract `SBData`
-record does not contain this bridge reconstruction theorem, so the statement exposes it as a
-concrete gluing edge. -/
+coupling to reconstruct a path law with the same endpoint relative entropy. -/
 theorem dynamic_to_static_gluing_le
-    (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (_hglue : schrodingerBridgeValueKL d ρ₀ ρ₁ ≤ staticSBValue d ρ₀ ρ₁) :
+    (ρ₀ ρ₁ : ProbabilityMeasure X) :
     schrodingerBridgeValueKL d ρ₀ ρ₁ ≤ staticSBValue d ρ₀ ρ₁ := by
   sorry
 
 /-- Feasible path laws are absolutely continuous with respect to the reference under the
-finite-energy SDE/Girsanov edge bundle. -/
+finite-energy regime. -/
 theorem feasible_pathLaw_absCont_reference
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
-      FiniteEnergyDiffusionModelEdges d u ρ₀) :
+    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
     ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
       (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)) := by
   intro u hu
   exact pathLaw_absCont_reference_of_finiteEnergyDiffusion d u ρ₀ (hfed u hu)
 
-/-- Feasible path laws have finite relative entropy under the finite-energy SDE/Girsanov edge
-bundle. -/
+/-- Feasible path laws have finite relative entropy under the finite-energy regime. -/
 theorem feasible_pathLaw_klDiv_ne_top
     (ρ₀ ρ₁ : ProbabilityMeasure X)
-    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
-      FiniteEnergyDiffusionModelEdges d u ρ₀) :
+    (hfed : ∀ u : Control X, Feasible d u ρ₀ ρ₁ → FiniteEnergyDiffusion d u ρ₀) :
     ∀ u : Control X, Feasible d u ρ₀ ρ₁ →
       InformationTheory.klDiv (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) ≠ ⊤ := by
   intro u hu

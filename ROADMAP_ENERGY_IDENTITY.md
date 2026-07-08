@@ -119,6 +119,31 @@ not identify `stdSeqGaussian` with CGP's SDE path kernels `Kᵘ_x`/`Kᵂ_x`, and
 still does not close the continuum `hCM` edge by itself. That identification is the M4b
 Wiener/path-transport bridge below.
 
+### Phase 2b — finite-dimensional Wiener/dyadic bridge checkpoint — ✅ FINITE LAYER GREEN
+**Done by GPT-5.5 Thinking, coordinated by Jon Crall, local green build reported (2026-07-08).**
+The M4b effort made real finite-dimensional path-law progress in `ChenGeorgiouPavon2021.Basic`:
+
+- concrete Brownian/Wiener path-law interface over the existing `RealPath` scaffold;
+- dyadic time grid and normalized dyadic increment maps;
+- raw Brownian dyadic increment law and Gaussian scaling to standard normals;
+- independence/product-law assembly for dyadic increments;
+- finite-grid shifted Gaussian with-density formula and finite dyadic absolute continuity;
+- final CGP-facing assembly now takes the two remaining continuum facts as explicit inputs:
+  `HasDyadicKLExhaustion W` and `(W : Measure RealPath).map (fun ω => ω + h) ≪ W`.
+
+**Important correction.** The attempted theorem that dyadic normalized increments generate all of
+`RealPath := ℝ → ℝ` was intentionally removed. Dyadic increments on `[0,1]` do not determine
+negative-time coordinates, outside-interval coordinates, or the absolute anchor of an arbitrary
+function `ℝ → ℝ`. The proved replacement is a one-sided measurability/generation-bound lemma;
+the full generation theorem belongs on a canonical interval/anchored/continuous path carrier.
+
+**Remaining continuum work.** Pick the right path-space model first, then prove:
+
+1. dyadic/projected sigma-algebras generate that path space;
+2. KL exhaustion / continuity-from-below along the dyadic filtration;
+3. Cameron--Martin path-space quasi-invariance from the finite-grid densities;
+4. the Sobolev-energy bridge `dyadic energy → ∫₀¹ |h'|²`.
+
 ### Phase 2 core (`≤` half) — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
 **Status (re-verified 2026-07-04 against latest-master Mathlib `d3716e6d`, Lean `v4.32.0-rc1` — pin
 upgraded this day from `476fb97b62`):** genuinely blocked — Mathlib ships **no stochastic integral,

@@ -102,7 +102,15 @@ lake env lean ChenGeorgiouPavon2021/Basic.lean
 lake build
 ```
 
-The next mathematical frontier is not more sequence-model KL plumbing; it is M4b, the
-path-level Wiener/SDE transport that identifies the canonical sequence model with the
-actual continuous-path kernels used by CGP. Keep that bridge explicitly separate from the
-proved `energy_identity_sequenceModel` wrappers.
+The next mathematical frontier is not more sequence-model KL plumbing. A finite-dimensional
+Wiener/dyadic layer is now green: Brownian dyadic increment laws, normalization to iid
+standard Gaussians, finite product-law assembly, shifted finite-grid density formulas, and
+finite dyadic absolute continuity are all available at the CGP-facing layer.
+
+The remaining bridge is the **continuum path-space closure**: choose a canonical interval
+path carrier, prove that the dyadic/projected filtration generates that carrier's path
+sigma-algebra, prove KL exhaustion along those projections, and prove Cameron--Martin
+path-space quasi-invariance / density closure. Do not revive the overstrong claim that dyadic
+increments on `[0,1]` generate all of `RealPath := ℝ → ℝ`; in the current green code those
+continuum facts are explicit interfaces (`HasDyadicKLExhaustion` and path-space absolute
+continuity), not hidden `sorry`s.

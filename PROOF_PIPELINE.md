@@ -47,7 +47,7 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining `sorry`s (1)
+## 2. Ranked remaining `sorry`s (0)
 
 > **Soundness fix (2026-07 audit — see `JOURNAL.md`).** Four of the five former sorries were
 > **false as stated** (they equated `u*`/`dens*` to *free* operator/function arguments with no
@@ -79,6 +79,13 @@ capstones, but the cards do not depend on it.
 > `ChenGeorgiouPavon2021.energy_identity_sequenceModel` is a thin, honest wrapper for the
 > sequence model. The remaining frontier is path-level Wiener/SDE transport (M4b), not more
 > sequence-model KL plumbing.
+>
+> **Finite M4b/Wiener-dyadic checkpoint (2026-07-08, GPT-5.5 Thinking).** The finite-dimensional
+> Wiener bridge is now green: dyadic increment laws, normalization/scaling, independence/product
+> assembly, finite shifted-grid densities, and finite dyadic absolute continuity. The continuum
+> closure is intentionally represented by explicit interfaces (`HasDyadicKLExhaustion` and
+> path-space AC for the CM shift), because the current ambient `RealPath := ℝ → ℝ` is too broad
+> for the discarded dyadic-generator equality.
 
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The

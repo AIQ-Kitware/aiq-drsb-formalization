@@ -523,3 +523,38 @@ Cameron–Martin/Kakutani theorem, including the finite/infinite dichotomy. It d
 full CGP path-kernel `hCM` edge: identifying this sequence theorem with Wiener/SDE path laws is the
 remaining M4b path-transport bridge. Feedback drift remains the Itô/Girsanov wall; no provenance or
 scope claim should imply otherwise.
+
+
+## Session 8 (2026-07-08) — finite M4b/Wiener dyadic layer green; continuum capstones explicit
+
+**Author:** GPT-5.5 Thinking, coordinated by Jon Crall. The user reported the final repair overlay
+as a green build.
+
+After the sequence-model Cameron--Martin/Kakutani milestone, we pushed into the M4b path-law bridge
+and landed the finite-dimensional Wiener/dyadic layer in `ChenGeorgiouPavon2021/Basic.lean`:
+
+- dyadic time grids and normalized dyadic increment maps;
+- concrete standard-Wiener path-law interface over the existing `RealPath` scaffold;
+- raw Brownian dyadic increment law;
+- Gaussian scaling from variance `Δt` increments to standard normals;
+- independence transport and finite product-law assembly for dyadic increments;
+- finite shifted-grid with-density formulas;
+- finite dyadic absolute continuity for Cameron--Martin shifts.
+
+The important soundness correction was at the continuum edge. A proposed theorem asserting that
+normalized dyadic increments generate the whole measurable structure of `RealPath := ℝ → ℝ` was
+rejected as overstrong: dyadic increments on `[0,1]` do not determine negative-time coordinates,
+outside-interval coordinates, or the absolute anchor of arbitrary real-time functions. The green
+code keeps the justified finite-dimensional results and exposes the genuine continuum work as
+interfaces:
+
+```lean
+HasDyadicKLExhaustion W
+(W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)
+```
+
+This is a net improvement over hidden `sorry`s: the finite Brownian/Gaussian calculations are now
+proved, while the still-open analytic facts are visible at the call site. The next proof-bearing
+step should not be another attempt to prove generation on `ℝ → ℝ`; it should first choose or build
+a canonical anchored interval path carrier, then prove dyadic generation, KL exhaustion, path-space
+Cameron--Martin quasi-invariance, and finally the Sobolev-energy bridge.

@@ -82,6 +82,20 @@ Remaining after this update:
 - **Feedback-drift Girsanov**: unchanged, still blocked on missing Itô/stochastic-integral
   infrastructure. Do not fake it through the sequence wrapper.
 
+**UPDATE (GPT-5.5 Thinking, 2026-07-08): finite-dimensional M4b/Wiener layer green; continuum
+capstones are explicit interfaces.** The later M4b overlays added and repaired the dyadic Wiener
+bridge through the finite-dimensional level: normalized dyadic increments, Brownian increment laws,
+Gaussian scaling, independence/product-law assembly, finite shifted-grid density formulas, and
+finite dyadic absolute continuity. The final wrapper section now has no executable `sorry`s for
+those finite pieces. The two remaining continuum facts are deliberately exposed as assumptions:
+`HasDyadicKLExhaustion W` and path-space absolute continuity of the Cameron--Martin shift.
+
+Do **not** restore the discarded generator equality on the current broad carrier
+`RealPath := ℝ → ℝ`. Dyadic increments on `[0,1]` cannot generate arbitrary real-time functions.
+The next proof-bearing path step is a modelling step first: introduce or select an anchored
+interval/continuous path carrier where dyadic observations plausibly generate the Borel sigma
+algebra, then prove KL exhaustion and CM quasi-invariance there.
+
 **Call-site contract for M2.8** (what M2.5/M2.7 must produce to plug in):
 `absolutelyContinuous_of_localDensity μ ν ℱ hgen Z hadapted hnonneg hdens hM hL2` with
 `hdens : ∀ n s, MeasurableSet[ℱ n] s → μ s = ∫⁻ x in s, ENNReal.ofReal (Z n x) ∂ν` and
@@ -553,9 +567,20 @@ machinery; do NOT promise `∑' c² = ∫v²` for a fixed `c` unless `c` is lite
 as the increments, in which case it is `tendsto`-phrased, not an equality — keep the
 statement honest and `tendsto`-shaped).
 
-### M4b — path-level (Wiener) transport (STRETCH — attempt only if M1–M4a land early)
+### M4b — path-level (Wiener) transport (STRETCH — finite layer landed; continuum closure remains)
 
-The survey found real pin support: `iIndepFun_of_covariance_eq_zero`
+**Current status (2026-07-08):** the finite dyadic part of this stretch is no longer speculative.
+The repo now has a green finite-dimensional Wiener/dyadic bridge: raw dyadic increment laws,
+normalization/scaling to standard Gaussians, independence/product assembly, finite shifted-grid
+with-density formulas, and finite dyadic absolute continuity. The remaining part of M4b is the
+continuum closure, not another finite Gaussian calculation.
+
+**Model correction before further proof work:** the old ambient `RealPath := ℝ → ℝ` is too broad
+for a full dyadic-generator theorem. Future continuum theorems should move to an anchored interval
+path space (eventually continuous paths, e.g. a `C₀([0,1], ℝ)`-style carrier) or explicitly add the
+support/anchor assumptions needed to make dyadic observations generating.
+
+The original survey found real pin support: `iIndepFun_of_covariance_eq_zero`
 (`Gaussian/IsGaussianProcess/Independence.lean`) + `iIndepFun_iff_map_fun_eq_infinitePi_map`
 (`Independence/InfinitePi.lean`). Route: fixed dyadic level `k` — the `2^k` increments of
 `BrownianReal.projectiveFamily` are a Gaussian family (pin:
@@ -585,8 +610,10 @@ stop — M4a already discharges the deterministic `hCM` honestly.
    `energy_identity_deterministic_continuum` — all `[propext, Classical.choice, Quot.sound]`.
 3. **Docs**: Session-7 documentation update landed by GPT-5.5 Thinking (2026-07-08):
    JOURNAL.md, ROADMAP_ENERGY_IDENTITY.md, PLAN_CONTINUUM_CLOSURE.md, README.md, and
-   formalization.yaml now mark the sequence-model theorem complete and keep M4b/feedback
-   Girsanov separate.
+   formalization.yaml mark the sequence-model theorem complete and keep M4b/feedback
+   Girsanov separate. Session-8 documentation update additionally records that the finite
+   M4b/Wiener dyadic layer is green, while KL exhaustion and CM path-space quasi-invariance
+   remain explicit continuum interfaces pending a corrected interval path carrier.
 4. **Commits**: milestone-per-commit (M1+M2, M3, M4, M5-docs), tally reconcile+rollup at
    session end, then bump the submodule pointer in the parent repo (only this submodule).
 

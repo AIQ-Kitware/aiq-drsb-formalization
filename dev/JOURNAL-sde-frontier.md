@@ -107,3 +107,17 @@ data processing) is filled and staged in ForMathlib. Remaining 5 CGP sorries are
 (Girsanov, continuous), and the 4 HJB/factorization ones which are UNDER-SPECIFIED as stated
 (equate to arbitrary passed-in operators) — those need statement work (add verification
 hypotheses) or the real SDE machinery, not a proof against the current statements.
+
+
+## 2026-07-08 addendum — finite dyadic Wiener layer landed; remaining gap is continuum closure
+
+A later GPT-5.5 Thinking session pushed the deterministic Cameron--Martin frontier beyond the iid
+sequence model into finite-dimensional Wiener dyadic projections. The finite layer is now green:
+dyadic Brownian increment laws, Gaussian normalization, increment independence/product assembly,
+finite shifted-grid densities, and finite dyadic absolute continuity.
+
+The attempted full dyadic-generator theorem on the ambient `RealPath := ℝ → ℝ` was identified as
+false/overstrong and removed from the proof debt. The current code instead takes the true continuum
+capstones as explicit interfaces: `HasDyadicKLExhaustion W` and path-space absolute continuity of a
+Cameron--Martin shift. Future work should first change the theorem carrier to an anchored interval
+path space before proving generation/closure statements.

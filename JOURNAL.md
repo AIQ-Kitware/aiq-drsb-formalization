@@ -486,3 +486,40 @@ bizarre `LE Type` failures at the `set` line).
 (Gaussian specifics; all consumers of the above), M3 (Theorem A assembly), M4a (honest
 sequence-model statement), M5 (docs). M4b (Wiener path transport) stretch; feedback/Itô
 unchanged, forbidden to fake.
+
+## Session 7 (2026-07-08) — sequence-model Cameron–Martin/Kakutani theorem closed
+
+**Author:** GPT-5.5 Thinking, coordinated by Jon Crall. Local overlays were iteratively tested
+by the user; the final state is reported `lake build` green.
+
+The Session-6 plan's former M2→M4a queue is now implemented in
+`ForMathlib/MeasureTheory/GaussianCameronMartin.lean` and wired honestly into
+`ChenGeorgiouPavon2021/Basic.lean`:
+
+- `stdSeqGaussian` finite-prefix and shifted-prefix marginals;
+- `gaussianReal_shift_eq_withDensity` and `stdGaussian_map_add_eq_withDensity`;
+- `cmDensityProcess`, `prefixFiltration`, and the prefix local-density theorem
+  `map_add_eq_lintegral_cmDensityProcess`;
+- the L² density-process bound `lintegral_sq_cmDensityProcess_le`;
+- square-summability implies absolute continuity:
+  `absolutelyContinuous_stdSeqGaussian_map_add_of_summable`;
+- finite-energy KL identity:
+  `klDiv_stdSeqGaussian_map_add_of_summable` and the `toReal` wrapper;
+- converse/infinite branch:
+  `summable_iff_klDiv_stdSeqGaussian_map_add_ne_top` and
+  `klDiv_stdSeqGaussian_map_add_eq_top_iff_not_summable`;
+- CGP-facing sequence wrappers:
+  `energy_identity_sequenceModel`, `energy_identity_sequenceModel_finite_iff_summable`, and
+  `energy_identity_sequenceModel_top_iff_not_summable`.
+
+The proof route used the local-density martingale interface from Session 6, then avoided a
+separate Gaussian-MGF proof for the L² moment by observing pointwise that the square of the
+`c`-density is `exp(∑ c_i^2)` times the `2c` finite-dimensional density. The converse branch is
+pure series/order theory plus the already-staged KL lower-bound wrappers: bounded partial energies
+force square summability, hence nonsummability forces unbounded partial energies and KL `⊤`.
+
+**Honest scope.** This closes the canonical iid Gaussian **sequence-coordinate**
+Cameron–Martin/Kakutani theorem, including the finite/infinite dichotomy. It does **not** close the
+full CGP path-kernel `hCM` edge: identifying this sequence theorem with Wiener/SDE path laws is the
+remaining M4b path-transport bridge. Feedback drift remains the Itô/Girsanov wall; no provenance or
+scope claim should imply otherwise.

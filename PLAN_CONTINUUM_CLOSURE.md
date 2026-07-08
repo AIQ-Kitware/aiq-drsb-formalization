@@ -40,7 +40,7 @@ optional stretch milestone (M4b).
 
 The review flags below are **all addressed** (statements retyped to `Finset.Iic`, M2.2
 re-routed and implemented, M4a re-scoped honestly). Per the coordinator's split — the
-hardest bricks were implemented by Fable; the remaining tickets are Opus's queue.
+hardest bricks were implemented by Fable; the then-remaining tickets were queued for the next agent and are updated below.
 
 **DONE (Fable, axiom-clean, `lake build` green):**
 - **M2.2** — `ForMathlib/MeasureTheory/PiWithDensity.lean`:
@@ -57,13 +57,30 @@ hardest bricks were implemented by Fable; the remaining tickets are Opus's queue
   `absolutelyContinuous_of_localDensity` (local densities + one `L²` moment bound ⇒ `μ ≪ ν`;
   no martingale/UI verification needed at the call site).
 
-**REMAINING (Opus queue, in dependency order):** M2.1 (1-D `withDensity` rep) → M2.3
-(finite-dim CM density; consumes `pi_withDensity`) → M2.4 (prefix marginal; near-direct
-from `infinitePi_map_restrict`) → M2.5 (local-density property) → M2.7 (L² bound; use
-`lintegral_pi_prod` + `mgf_id_gaussianReal`) → M2.8 (apply
-`absolutelyContinuous_of_localDensity` — its exact interface) → M3 (Theorem A) → M4a
-(`energy_identity_sequenceModel`, honest scope) → M5 (verify/docs/commits). M4b stays
-stretch.
+**FORMER REMAINING QUEUE (closed by GPT-5.5 Thinking, 2026-07-08, local `lake build` green):**
+M2.1, M2.3, M2.4, M2.5, M2.7, M2.8, M3, M4a, and the converse/infinite branch are now
+implemented. The remaining proof frontier is M4b path-level Wiener/SDE transport; the remaining
+process work is M5 audit/docs/commit hygiene.
+
+**UPDATE (GPT-5.5 Thinking, 2026-07-08): former Opus queue CLOSED through M4a.**
+Local `lake build` is green after the overlays implementing M2.1/M2.3/M2.4/M2.5/M2.7/M2.8,
+M3, M4a, and the converse/infinite branch. The now-proved public surface includes:
+`gaussianReal_shift_eq_withDensity`, `stdGaussian_map_add_eq_withDensity`,
+`map_add_eq_lintegral_cmDensityProcess`, `lintegral_sq_cmDensityProcess_le`,
+`absolutelyContinuous_stdSeqGaussian_map_add_of_summable`,
+`klDiv_stdSeqGaussian_map_add_of_summable`,
+`summable_iff_klDiv_stdSeqGaussian_map_add_ne_top`,
+`klDiv_stdSeqGaussian_map_add_eq_top_iff_not_summable`, and
+`ChenGeorgiouPavon2021.energy_identity_sequenceModel` with finite/top wrappers.
+
+Remaining after this update:
+- **M5 audit/doc commit hygiene**: `#print axioms` on the new public declarations, update
+  proof-pipeline inventory if desired, then commit.
+- **M4b path-level transport**: identify the canonical sequence-coordinate law with the
+  actual Wiener/SDE path kernels. This remains the honest continuum bridge and is not implied
+  by the sequence-model theorem.
+- **Feedback-drift Girsanov**: unchanged, still blocked on missing Itô/stochastic-integral
+  infrastructure. Do not fake it through the sequence wrapper.
 
 **Call-site contract for M2.8** (what M2.5/M2.7 must produce to plug in):
 `absolutelyContinuous_of_localDensity μ ν ℱ hgen Z hadapted hnonneg hdens hM hL2` with
@@ -566,13 +583,10 @@ stop — M4a already discharges the deterministic `hCM` honestly.
    `map_add_eq_lintegral_cmDensityProcess`, `lintegral_sq_cmDensityProcess_le`,
    `absolutelyContinuous_stdSeqGaussian_map_add`, `klDiv_stdSeqGaussian_map_add`,
    `energy_identity_deterministic_continuum` — all `[propext, Classical.choice, Quot.sound]`.
-3. **Docs**: JOURNAL.md "Session 6" entry (what landed, what remains — feedback/Itô
-   unchanged); ROADMAP Phase-2 table rows flipped; PROOF_PIPELINE §3 ForMathlib table
-   (+`PiWithDensity`, +`GaussianCameronMartin`, upstream-PR-candidate flags);
-   AGENTS.md §9 status paragraph; `formalization.yaml` per-declaration source rows
-   (source: CGP (4.19) deterministic case / classical Cameron–Martin–Kakutani);
-   README inventory. Update `dev/journals/2026-07-07-continuum-energy-closure-survey.md`
-   with a one-line "executed by PLAN_CONTINUUM_CLOSURE.md" pointer.
+3. **Docs**: Session-7 documentation update landed by GPT-5.5 Thinking (2026-07-08):
+   JOURNAL.md, ROADMAP_ENERGY_IDENTITY.md, PLAN_CONTINUUM_CLOSURE.md, README.md, and
+   formalization.yaml now mark the sequence-model theorem complete and keep M4b/feedback
+   Girsanov separate.
 4. **Commits**: milestone-per-commit (M1+M2, M3, M4, M5-docs), tally reconcile+rollup at
    session end, then bump the submodule pointer in the parent repo (only this submodule).
 

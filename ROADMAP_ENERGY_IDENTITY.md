@@ -100,6 +100,25 @@ equally hard:
   that recovers the full density), i.e. the genuine stochastic-exponential / Itô content. That is the
   irreducible Phase-2 core below.
 
+### Phase 2a — iid sequence-model Cameron–Martin/Kakutani theorem — ✅ DONE
+**Done by GPT-5.5 Thinking, coordinated by Jon Crall, local `lake build` green (2026-07-08).**
+The canonical iid Gaussian sequence-coordinate staging layer is now proved in
+`ForMathlib/MeasureTheory/GaussianCameronMartin.lean`:
+
+- finite-prefix marginals of `stdSeqGaussian` and shifted prefixes;
+- 1-D and finite-dimensional shifted-Gaussian with-density representations;
+- prefix local-density theorem for `cmDensityProcess`;
+- L² density-process bound and `Summable (fun n => c n ^ 2) →` absolute continuity;
+- finite-energy KL identity `klDiv_stdSeqGaussian_map_add_of_summable`;
+- converse/infinite branch: finite KL iff square-summability, and nonsummable shifts have KL `⊤`;
+- CGP-facing wrappers in `ChenGeorgiouPavon2021.Basic`, especially
+  `energy_identity_sequenceModel` and the finite/top criteria.
+
+**Honest scope.** This is the sequence-coordinate Cameron–Martin/Kakutani theorem. It does
+not identify `stdSeqGaussian` with CGP's SDE path kernels `Kᵘ_x`/`Kᵂ_x`, and therefore it
+still does not close the continuum `hCM` edge by itself. That identification is the M4b
+Wiener/path-transport bridge below.
+
 ### Phase 2 core (`≤` half) — discharge (CM): the `Δt→0` limit (BLOCKED on Mathlib infrastructure)
 **Status (re-verified 2026-07-04 against latest-master Mathlib `d3716e6d`, Lean `v4.32.0-rc1` — pin
 upgraded this day from `476fb97b62`):** genuinely blocked — Mathlib ships **no stochastic integral,

@@ -12,11 +12,14 @@ library per source paper, a paper-agnostic `ForMathlib` staging library, a
 > is **not a source** — ~0 weight, §2), the published-theorem chain, the working
 > conventions, and the known traps. This README is just the build + library map.
 
-> **Status: proof-pass active.** The card-level DRSB inequalities and most paper-library
-> links are proved axiom-clean; the remaining research seam is the continuum Cameron–Martin /
-> Girsanov path-law edge documented in [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md).
-> This branch includes a new candidate source pass for the iid Gaussian sequence-model staging layer;
-> compile it locally before marking that milestone complete.
+> **Status: proof-pass active; sequence-model Cameron–Martin milestone complete.** The
+> card-level DRSB inequalities and most paper-library links are proved axiom-clean. The iid
+> Gaussian sequence-model Cameron–Martin/Kakutani layer is now built and `lake build` green:
+> finite-prefix densities, square-summability ⇒ absolute continuity, the finite-energy KL
+> identity, and the nonsummable/infinite-KL converse are all staged in
+> `ForMathlib/MeasureTheory/GaussianCameronMartin.lean`, with honest CGP-facing wrappers in
+> `ChenGeorgiouPavon2021/Basic.lean`. The remaining research seam is still the continuum
+> Wiener/SDE path-law transport documented in [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md).
 
 ## What DRSB claims
 
@@ -31,8 +34,8 @@ Wasserstein-2 ball (`wdrsb_cost_bound.yaml`) or a Sinkhorn-divergence ball
 
 | Library | Role | Key declarations |
 |---|---|---|
-| `ForMathlib` | Paper-agnostic staging: Donsker–Varadhan, shared OT/DRO vocabulary, Gaussian/Sinkhorn/KL infrastructure, and the continuum-closure sequence-model staging layer | `integral_le_klDiv_add_log_integral_exp`, `log_integral_exp_eq_sSup`; `OT.droValue`, `OT.wassersteinBall`, `OT.sinkhornBall`; `stdGaussian`, `stdSeqGaussian`, `prefixFiltration`, `cmDensityProcess` |
-| `ChenGeorgiouPavon2021` | SB ⇄ SOC ⇄ entropic-OT; value function + optimal control | `SBData`, `schrodingerBridge_KL_eq_SOC`, `optimal_control_eq_grad_log`, `optimal_control_eq_neg_grad_value`, `staticSB_eq_entropicOT` |
+| `ForMathlib` | Paper-agnostic staging: Donsker–Varadhan, shared OT/DRO vocabulary, Gaussian/Sinkhorn/KL infrastructure, and the continuum-closure sequence-model Cameron–Martin/Kakutani layer | `integral_le_klDiv_add_log_integral_exp`, `log_integral_exp_eq_sSup`; `OT.droValue`, `OT.wassersteinBall`, `OT.sinkhornBall`; `stdGaussian`, `stdSeqGaussian`, `prefixFiltration`, `cmDensityProcess`, `klDiv_stdSeqGaussian_map_add_of_summable`, `klDiv_stdSeqGaussian_map_add_eq_top_iff_not_summable` |
+| `ChenGeorgiouPavon2021` | SB ⇄ SOC ⇄ entropic-OT; value function + optimal control; CGP-facing sequence-model energy wrappers | `SBData`, `schrodingerBridge_KL_eq_SOC`, `energy_identity_sequenceModel`, `energy_identity_sequenceModel_top_iff_not_summable`, `optimal_control_eq_grad_log`, `optimal_control_eq_neg_grad_value`, `staticSB_eq_entropicOT` |
 | `BlanchetMurthy2019` | Wasserstein-DRO strong duality (primary) | `wdro_strong_duality`, `Lc` |
 | `GaoKleywegt2023` | Wasserstein-DRO strong duality + worst-case distribution | `weak_duality_prop1`, `strong_duality_thm1`, `worstCase_structure_cor1`, `dataDriven_worstCase_cor2ii` |
 | `MohajerinEsfahaniKuhn2018` | Data-driven Wasserstein-DRO reformulation | `worstCaseExpectation_eq_dual`, `worstCase_program`, `worstCase_exists` |
@@ -89,13 +92,17 @@ lake build              # full project check
 
 ## Next steps
 
-Follow [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md). The immediate local check for this
-overlay is:
+Follow [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md). The sequence-coordinate
+Cameron–Martin/Kakutani theorem is now complete and should be treated as a checkpointed
+milestone:
 
 ```bash
 lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean
+lake env lean ChenGeorgiouPavon2021/Basic.lean
+lake build
 ```
 
-If that succeeds, continue the sequence-model Cameron–Martin queue: M2.1/M2.3
-(one-dimensional and finite-dimensional Gaussian shift densities), then M2.5/M2.7/M2.8
-(local density + L² bound + absolute continuity), then M3 Theorem A.
+The next mathematical frontier is not more sequence-model KL plumbing; it is M4b, the
+path-level Wiener/SDE transport that identifies the canonical sequence model with the
+actual continuous-path kernels used by CGP. Keep that bridge explicitly separate from the
+proved `energy_identity_sequenceModel` wrappers.

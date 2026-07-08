@@ -71,6 +71,15 @@ capstones, but the cards do not depend on it.
 > absent; both the density and discrete-limit routes need it) — the honest residual, an explicit
 > edge, not a `sorry`. Every library is sorry-free.
 
+> **Sequence-model Cameron–Martin/Kakutani milestone (2026-07-08, GPT-5.5 Thinking).**
+> The iid Gaussian sequence-coordinate staging theorem is now proved and `lake build` green:
+> `stdSeqGaussian` prefix marginals, shifted Gaussian density representations, prefix
+> local-density and L² density-process bounds, `ℓ²` absolute continuity,
+> `klDiv_stdSeqGaussian_map_add_of_summable`, and the nonsummable/infinite-KL converse.
+> `ChenGeorgiouPavon2021.energy_identity_sequenceModel` is a thin, honest wrapper for the
+> sequence model. The remaining frontier is path-level Wiener/SDE transport (M4b), not more
+> sequence-model KL plumbing.
+
 > **Status refresh (2026-07).** All four DRSB capstones (`Drsb.{wdrsb,sdrsb}_cost_bound`
 > and `Drsb.{wdrsb,sdrsb}_strong_duality`) are **proved** — `Drsb` is sorry-free. The
 > paper-level strong-duality *equalities* (`BlanchetMurthy2019.wdro_strong_duality`,

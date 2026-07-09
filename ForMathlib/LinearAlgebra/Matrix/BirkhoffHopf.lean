@@ -352,28 +352,62 @@ theorem positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bou
   intro i i'
   exact positive_kernel_apply_log_crossratio_le_of_apply_crossratio_bound G hG hbound x y hx hy i i'
 
+/-- Weighted-average form of the finite Birkhoff--Hopf scalar core.
+
+This is the irreducible two-measure/finite-simplex inequality behind the positive-matrix theorem,
+and is the Lean target closest to the elementary two-dimensional reduction in
+Eveson--Nussbaum/Carroll.  The positive weights `a` and `b` are two rows of the positive kernel;
+the hypothesis `hweight` says their projective diameter is bounded by `B`.  The conclusion says
+that averaging two positive vectors against those two comparable weights contracts the Hilbert
+log-spread by the coarse Birkhoff coefficient `(B - 1) / B`.
+
+Once this scalar weighted-average inequality is proved, the matrix pointwise theorem below is just
+substitution with `a j = G i j` and `b j = G i' j`. -/
+theorem finite_weighted_average_log_crossratio_contraction_of_crossratio_bound {κ : Type*}
+    [Fintype κ] [Nonempty κ]
+    (a b x y : κ → ℝ) (B : ℝ)
+    (_ha : ∀ j, 0 < a j) (_hb : ∀ j, 0 < b j)
+    (_hx : ∀ j, 0 < x j) (_hy : ∀ j, 0 < y j)
+    (_hB : 1 ≤ B)
+    (_hweight : ∀ j j' : κ, a j * b j' ≤ B * (b j * a j')) :
+    Real.log (((∑ j : κ, a j * x j) * (∑ j : κ, b j * y j)) /
+        ((∑ j : κ, b j * x j) * (∑ j : κ, a j * y j))) ≤
+      ((B - 1) / B) * finiteHilbertProjectiveLogSpread x y := by
+  sorry
+
 /-- Pointwise four-coordinate form of Birkhoff's oscillation estimate.
 
-This is the remaining analytic core in its most local form.  For every output-coordinate pair
-`i, i'`, the image cross-ratio logarithm is controlled by the input Hilbert spread times the
-Birkhoff coefficient.  A standard proof introduces the extremal input ratios, applies the finite
-image-diameter bound to the two positive parts of the oscillation decomposition, and then uses the
-scalar Birkhoff inequality (equivalently the `tanh (Δ / 4)` estimate).
-
-Keeping this pointwise version separate makes the surrounding finite-`sSup` wrapper below routine. -/
+This is now only the matrix instantiation of the weighted-average scalar core above.  The remaining
+nontrivial proof debt is no longer matrix bookkeeping: it is the finite weighted-average
+Birkhoff--Hopf inequality
+`finite_weighted_average_log_crossratio_contraction_of_crossratio_bound`. -/
 theorem positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_apply_hilbert_log_diameter_bound
     {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
+    (hG : ∀ i j, 0 < G i j)
     (_hdiam : PositiveKernelApplyHilbertLogDiameterBounded G
       (Real.log (positiveKernelCrossRatioBound G)))
     (x y : κ → ℝ)
-    (_hx : ∀ j, 0 < x j) (_hy : ∀ j, 0 < y j)
+    (hx : ∀ j, 0 < x j) (hy : ∀ j, 0 < y j)
     (i i' : ι) :
     Real.log (((positiveKernelApply G x i) * (positiveKernelApply G y i')) /
         ((positiveKernelApply G x i') * (positiveKernelApply G y i))) ≤
       positiveKernelBirkhoffCoefficient G * finiteHilbertProjectiveLogSpread x y := by
-  sorry
+  classical
+  have hcore :=
+    finite_weighted_average_log_crossratio_contraction_of_crossratio_bound
+      (a := fun j : κ => G i j)
+      (b := fun j : κ => G i' j)
+      (x := x)
+      (y := y)
+      (B := positiveKernelCrossRatioBound G)
+      (fun j => hG i j)
+      (fun j => hG i' j)
+      hx
+      hy
+      (positiveKernelCrossRatioBound_one_le G hG)
+      (positive_kernel_pointwise_crossRatioBounded G hG i i')
+  simpa [positiveKernelApply, positiveKernelBirkhoffCoefficient] using hcore
 
 /-- Birkhoff's oscillation estimate from finite image diameter.
 

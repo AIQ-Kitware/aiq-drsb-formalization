@@ -66,6 +66,24 @@ theorem finite_sinkhorn_hatted1_ratio_eq_inv_at_right_max {ι : Type*} [Fintype 
   exact finite_sinkhorn_hatted1_ratio_eq_inv p q G
     φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys jstar
 
+/-- On positive reals, inversion reverses order.
+
+This local algebra lemma avoids depending on the exact name of the corresponding mathlib theorem. -/
+theorem inv_le_inv_of_le_pos {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (hab : a ≤ b) :
+    b⁻¹ ≤ a⁻¹ := by
+  have ha_ne : a ≠ 0 := ne_of_gt ha
+  have hb_ne : b ≠ 0 := ne_of_gt hb
+  have hab_ne : a * b ≠ 0 := mul_ne_zero ha_ne hb_ne
+  have hinv_nonneg : 0 ≤ (a * b)⁻¹ := inv_nonneg.mpr (le_of_lt (mul_pos ha hb))
+  have hmul : a * (a * b)⁻¹ ≤ b * (a * b)⁻¹ :=
+    mul_le_mul_of_nonneg_right hab hinv_nonneg
+  calc
+    b⁻¹ = a * (a * b)⁻¹ := by
+      field_simp [ha_ne, hb_ne, hab_ne]
+    _ ≤ b * (a * b)⁻¹ := hmul
+    _ = a⁻¹ := by
+      field_simp [ha_ne, hb_ne, hab_ne]
+
 /-- The marginal identities invert common-ratio upper bounds into hatted-ratio lower bounds.
 
 This is the algebraic bridge from the forward upper bound to the hatted-left side.  It is
@@ -74,12 +92,19 @@ of the ordinary ratio. -/
 theorem finite_sinkhorn_hatted_ratio_lower_from_forward_upper {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
     (M : ℝ)
-    (_hleft_upper : ∀ i, sinkhornRatio ψ0 φ0 i ≤ M) :
+    (hleft_upper : ∀ i, sinkhornRatio ψ0 φ0 i ≤ M) :
     (∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i) := by
-  sorry
+  intro i
+  have hratio_pos : 0 < sinkhornRatio ψ0 φ0 i := by
+    dsimp [sinkhornRatio]
+    exact div_pos (hψsys.φ0_pos i) (hφsys.φ0_pos i)
+  have hM_pos : 0 < M := lt_of_lt_of_le hratio_pos (hleft_upper i)
+  rw [finite_sinkhorn_hatted0_ratio_eq_inv p q G
+    φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys i]
+  exact inv_le_inv_of_le_pos hratio_pos hM_pos (hleft_upper i)
 
 
 end ChenGeorgiouPavon2021

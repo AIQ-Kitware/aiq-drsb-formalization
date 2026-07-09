@@ -22,10 +22,17 @@ bad-subsequence compactness argument: a bad outer subsequence remains bad after 
 cofinal further subsequence. -/
 theorem sinkhorn_subsub_tendsto_atTop_of_strictMono_comp
     (subseq subsub : ℕ → ℕ)
-    (_hsubseq : StrictMono subseq)
-    (_hcomp : StrictMono (fun n => subseq (subsub n))) :
+    (hsubseq : StrictMono subseq)
+    (hcomp : StrictMono (fun n => subseq (subsub n))) :
     Filter.Tendsto subsub Filter.atTop Filter.atTop := by
-  sorry
+  have hsubsub_strict : StrictMono subsub := by
+    intro a b hab
+    by_contra hnot
+    have hle : subsub b ≤ subsub a := Nat.le_of_not_gt hnot
+    have hseq_le : subseq (subsub b) ≤ subseq (subsub a) := hsubseq.monotone hle
+    have hseq_lt : subseq (subsub a) < subseq (subsub b) := hcomp hab
+    exact (not_lt_of_ge hseq_le) hseq_lt
+  exact hsubsub_strict.tendsto_atTop
 
 /-- Coordinatewise convergence implies convergence in the finite function space.
 
@@ -72,14 +79,26 @@ theorem finite_function_not_tendsto_has_frequently_bad_coordinate {ι : Type*} [
     exact hnone ⟨i, ε, hε, hfreq⟩
   exact hnot (finite_function_tendsto_of_coordinate_tendsto x xLim hcoord)
 
+/-- A purely arithmetic extraction lemma: a property that occurs arbitrarily far out admits
+an increasing subsequence along which it holds.
+
+This is now the only remaining topology-file seam.  It contains no Sinkhorn-specific data and no
+metric/topological structure; it is just the standard recursive choice of `n₀`, then `nₖ₊₁ ≥ nₖ+1`. -/
+theorem nat_strictMono_subsequence_of_frequently
+    (P : ℕ → Prop)
+    (_hfreq : ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ P n) :
+    ∃ subseq : ℕ → ℕ, StrictMono subseq ∧ ∀ k : ℕ, P (subseq k) := by
+  sorry
+
 /-- A scalar coordinate that is frequently bad admits a strictly increasing bad subsequence. -/
 theorem finite_function_frequently_bad_coordinate_subsequence {ι : Type*}
     (x : ℕ → ι → ℝ) (xLim : ι → ℝ) (i : ι) (ε : ℝ)
     (_hε : 0 < ε)
-    (_hfreq : ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n i - xLim i|) :
+    (hfreq : ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n i - xLim i|) :
     ∃ subseq : ℕ → ℕ, StrictMono subseq ∧
       ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i| := by
-  sorry
+  exact nat_strictMono_subsequence_of_frequently
+    (fun n => ε ≤ |x n i - xLim i|) hfreq
 
 /-- A scalar sequence that stays outside a fixed epsilon-neighborhood cannot converge to its target.
 
@@ -88,10 +107,15 @@ separated from the finite-function wrapper so the remaining proof is just the me
 convergence on `ℝ`. -/
 theorem scalar_bad_epsilon_blocks_tendsto
     (x : ℕ → ℝ) (xLim : ℝ) (ε : ℝ)
-    (_hε : 0 < ε)
-    (_hbad : ∀ k : ℕ, ε ≤ |x k - xLim|) :
+    (hε : 0 < ε)
+    (hbad : ∀ k : ℕ, ε ≤ |x k - xLim|) :
     ¬ Filter.Tendsto x Filter.atTop (nhds xLim) := by
-  sorry
+  intro hconv
+  rw [Metric.tendsto_atTop] at hconv
+  obtain ⟨N, hN⟩ := hconv ε hε
+  have hnear : |x N - xLim| < ε := by
+    simpa [Real.dist_eq] using hN N le_rfl
+  exact (not_le_of_gt hnear) (hbad N)
 
 /-- A bad coordinate subsequence stays nonconvergent after every cofinal further subsequence.
 

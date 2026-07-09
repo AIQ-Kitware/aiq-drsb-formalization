@@ -45,23 +45,51 @@ theorem sinkhorn_cluster_point_of_along {ι : Type*} [Fintype ι]
     positive := halong.positive
   }
 
+/-- Projective-diameter bound for the forward left potentials.
+
+Mathematical content: the positive finite kernel has a global lower and upper coefficient bound.
+Since `φ0Iter n i = ∑ j, G i j * φ1Iter n j` and the summands `φ1Iter n j` are positive, every
+coordinate of `φ0Iter n` is bounded above by a single constant multiple of every other coordinate.
+This is the kernel-comparison part of the fixed-gauge estimate, independent of the gauge. -/
+theorem sinkhorn_left_forward_projective_bound {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (_hp : ∀ i, 0 < p i) (_hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < G i j)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    ∃ R : ℝ, 0 < R ∧ ∀ n i k, φ0Iter n i ≤ R * φ0Iter n k := by
+  sorry
+
+/-- Turn a fixed total mass and a projective-diameter bound into a common finite box.
+
+Mathematical content: positivity and `∑ i, u n i = S` give the upper bound.  The projective bound
+`u n k ≤ R * u n i`, summed over `k`, gives `S ≤ card ι * R * u n i`, hence a positive lower
+bound when the type is nonempty.  The empty finite type is vacuous. -/
+theorem sinkhorn_phase_bounds_from_total_and_projective_bound {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) (S : ℝ)
+    (_hpos : ∀ n i, 0 < u n i)
+    (_htotal : ∀ n, ∑ i, u n i = S)
+    (_hprojective : ∃ R : ℝ, 0 < R ∧ ∀ n i k, u n i ≤ R * u n k) :
+    ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox u ε B := by
+  sorry
+
 /-- Fixed-gauge bounds for the forward left potentials.
 
-Mathematical content: positivity of `G` and the forward equations give a uniform projective-diameter
-bound on each vector `φ0Iter n`; the gauge `∑ i, φ0Iter n i = ∑ i, φ0 i` then turns that ratio bound
-and positivity into a single positive lower and upper bound for all coordinates of `φ0Iter`.
-
-This is the only part of the uniform-bounds argument that uses the gauge in an essential way. -/
+This wrapper separates the two mathematical ingredients: first prove a projective-diameter bound
+from the positive kernel and forward equation, then use the gauge-fixed total mass to convert that
+projective bound into an absolute finite box. -/
 theorem sinkhorn_gauge_normalized_left_forward_bounds {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
-    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hp : ∀ i, 0 < p i) (_hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
-      φ0 φhat0 φ1 φhat1) :
+    (φ0 _φhat0 _φ1 _φhat1 : ι → ℝ)
+    (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j) (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 _φhat0 _φ1 _φhat1) :
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φ0Iter ε B := by
-  sorry
+  exact sinkhorn_phase_bounds_from_total_and_projective_bound φ0Iter (∑ i, φ0 i)
+    hiter.φ0_pos hgauge.left_total
+    (sinkhorn_left_forward_projective_bound p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter hp hq hG hiter)
 
 /-- Generic successor-quotient bound for one Sinkhorn phase.
 

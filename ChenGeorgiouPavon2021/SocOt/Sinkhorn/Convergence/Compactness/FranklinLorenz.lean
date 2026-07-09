@@ -93,12 +93,47 @@ theorem sinkhorn_currentColumnMarginal_eq_franklinLorenzCurrentColumnMarginal
   unfold sinkhornCurrentColumnMarginal franklinLorenzCurrentColumnMarginal
   rw [← hiter.backward k j]
 
-/-- Pure two-sequence Franklin--Lorenz right-column correction geometric bound.
+/-- The current column marginal of a positive Franklin--Lorenz orbit is strictly positive. -/
+theorem franklinLorenzCurrentColumnMarginal_pos {ι : Type*} [Fintype ι]
+    (G : ι → ι → ℝ) (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (ha_pos : ∀ k i, 0 < a k i)
+    (hb_pos : ∀ k j, 0 < b k j)
+    (k : ℕ) (j : ι) :
+    0 < franklinLorenzCurrentColumnMarginal G a b k j := by
+  classical
+  unfold franklinLorenzCurrentColumnMarginal
+  apply mul_pos
+  · apply Finset.sum_pos
+    · intro i _hi
+      exact mul_pos (hG i j) (ha_pos k i)
+    · exact ⟨j, Finset.mem_univ j⟩
+  · exact hb_pos k j
 
-This is now the real right-side theorem for agent 2.  It has no four-phase Sinkhorn bookkeeping:
-only the two scaling sequences `a`, `b`, their row/column update equations, and a chosen Birkhoff
-coefficient `γ`.  A proof should follow Franklin--Lorenz Section 3 directly. -/
-theorem franklinLorenz_right_column_correction_spread_geometric_bound_of_birkhoff_coefficient
+/-- The target column marginal `q` is strictly positive along a positive Franklin--Lorenz orbit. -/
+theorem franklinLorenz_targetColumn_pos {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (k : ℕ) (j : ι) :
+    0 < q j := by
+  classical
+  rw [← horbit.column_update k j]
+  apply mul_pos
+  · exact horbit.right_pos (k + 1) j
+  · apply Finset.sum_pos
+    · intro i _hi
+      exact mul_pos (hG i j) (horbit.left_pos k i)
+    · exact ⟨j, Finset.mem_univ j⟩
+
+/-- Pointwise right-column correction decay for a two-sequence Franklin--Lorenz orbit.
+
+This is the most local right-side Franklin--Lorenz target: each current column marginal correction
+`q j / c_k j` converges geometrically to `1`.  It is the natural form of the column-error estimate
+one expects from Franklin--Lorenz Lemma 2 / Theorem 4 after choosing a Birkhoff contraction
+coefficient and using the finite box bounds. -/
+theorem franklinLorenz_right_column_correction_pointwise_geometric_bound_of_birkhoff_coefficient
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
@@ -108,9 +143,112 @@ theorem franklinLorenz_right_column_correction_spread_geometric_bound_of_birkhof
     (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1) :
     ∃ C : ℝ,
       0 ≤ C ∧
+        ∀ k j,
+          |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
+  sorry
+
+/-- Pairwise right-column correction oscillation bound for a two-sequence Franklin--Lorenz orbit.
+
+This is the hard right-side theorem for agent 2 after stripping away both the four-phase Sinkhorn
+bookkeeping and the finite-sum bookkeeping.  It asks for a uniform geometric bound on each pairwise
+quotient-correction displacement
+
+`|q i / c_k i - q j / c_k j|`,
+
+where `c_k` is the current column marginal of the scaled matrix `diag(a k) * G * diag(b k)`.
+Franklin--Lorenz Section 3 should provide this from the Birkhoff--Hopf contraction coefficient and
+the finite box bounds. -/
+theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ k (ij : ι × ι),
+          |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 -
+            q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2| ≤ C * γ ^ k := by
+  obtain ⟨C, hC_nonneg, hpoint⟩ :=
+    franklinLorenz_right_column_correction_pointwise_geometric_bound_of_birkhoff_coefficient
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
+  refine ⟨(2 : ℝ) * C, mul_nonneg (by norm_num) hC_nonneg, ?_⟩
+  intro k ij
+  have hrewrite :
+      q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 -
+          q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 =
+        (q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1) -
+          (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1) := by
+    ring
+  rw [hrewrite]
+  calc
+    |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1 -
+        (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1)|
+        ≤ |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1| +
+          |q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1| := by
+            set x := q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1
+            set y := q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1
+            change |x - y| ≤ |x| + |y|
+            have hx_upper : x ≤ |x| := le_abs_self x
+            have hy_upper : -y ≤ |y| := by
+              simpa [abs_neg] using (le_abs_self (-y))
+            have hupper : x - y ≤ |x| + |y| := by
+              linarith
+            have hx_lower : -|x| ≤ x := by
+              by_cases hx : x < 0
+              · rw [abs_of_neg hx]
+                linarith
+              · have hx_nonneg : 0 ≤ x := le_of_not_gt hx
+                rw [abs_of_nonneg hx_nonneg]
+                linarith
+            have hy_lower : -|y| ≤ -y := by
+              have hy_upper : y ≤ |y| := le_abs_self y
+              linarith
+            have hlower : -(|x| + |y|) ≤ x - y := by
+              linarith
+            exact abs_le.mpr ⟨hlower, hupper⟩
+    _ ≤ C * γ ^ k + C * γ ^ k := by
+          exact add_le_add (hpoint k ij.1) (hpoint k ij.2)
+    _ = ((2 : ℝ) * C) * γ ^ k := by
+          ring
+
+/-- Pure two-sequence Franklin--Lorenz right-column correction geometric bound.
+
+This theorem now performs only the finite-sum bookkeeping: the genuine contraction estimate is the
+pairwise theorem
+`franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient` above.
+It has no four-phase Sinkhorn bookkeeping. -/
+theorem franklinLorenz_right_column_correction_spread_geometric_bound_of_birkhoff_coefficient
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
         ∀ k, ForMathlib.Matrix.finitePairwiseRatioSpread q
             (franklinLorenzCurrentColumnMarginal G a b k) ≤ C * γ ^ k := by
-  sorry
+  obtain ⟨C, hC_nonneg, hpair⟩ :=
+    franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
+  refine ⟨(Fintype.card (ι × ι) : ℝ) * C,
+    mul_nonneg (Nat.cast_nonneg _) hC_nonneg, ?_⟩
+  intro k
+  unfold ForMathlib.Matrix.finitePairwiseRatioSpread
+  calc
+    (∑ ij : ι × ι,
+        |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 -
+          q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2|)
+        ≤ ∑ _ij : ι × ι, C * γ ^ k := by
+          exact Finset.sum_le_sum (fun ij _hij => hpair k ij)
+    _ = (Fintype.card (ι × ι) : ℝ) * (C * γ ^ k) := by
+          simp
+    _ = ((Fintype.card (ι × ι) : ℝ) * C) * γ ^ k := by
+          ring
 
 /-- Algebraic identification of the right forward correction spread with the spread of the column
 marginal correction `q / currentColumnMarginal`.

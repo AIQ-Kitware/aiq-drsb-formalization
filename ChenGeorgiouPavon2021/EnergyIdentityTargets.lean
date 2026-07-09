@@ -160,6 +160,7 @@ theorem conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
     exact hlimit.finite_grid_girsanov n
   simpa [hseq] using hlimit.gridEnergy_tendsto
 
+omit [NormedSpace ℝ X] in
 /-- Conditional Cameron--Martin/Girsanov target for a controlled diffusion kernel.
 
 The monolithic identity is now reduced to two smaller approximation theorems: finite-grid

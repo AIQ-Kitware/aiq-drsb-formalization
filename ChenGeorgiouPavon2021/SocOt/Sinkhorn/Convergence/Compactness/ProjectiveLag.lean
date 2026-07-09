@@ -473,43 +473,115 @@ theorem sinkhorn_mixed_successor_projective_alignment_of_projective_drift {ι : 
       simpa using hcoord
     exact tendsto_nhds_unique hcluster hzero
 
+
+/-- Ratio-form projective drift for the left hatted mixed phase.
+
+This is the Hilbert/projective displacement written before clearing denominators.  Under a uniform
+positive box it implies the cross-product drift predicate above, but it is the more natural output
+of a Birkhoff/Hilbert contraction proof. -/
+abbrev SinkhornHattedLeftProjectiveRatioDriftZeroAlong {ι : Type*} [Fintype ι]
+    (φhat0Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+    (fun n => fun ij : ι × ι =>
+      φhat0Iter (subseq n + 1) ij.1 / φhat0Iter (subseq n) ij.1 -
+        φhat0Iter (subseq n + 1) ij.2 / φhat0Iter (subseq n) ij.2)
+    Filter.atTop (nhds (0 : ι × ι → ℝ))
+
+/-- Ratio-form projective drift for the right mixed phase. -/
+abbrev SinkhornRightProjectiveRatioDriftZeroAlong {ι : Type*} [Fintype ι]
+    (φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+    (fun n => fun ij : ι × ι =>
+      φ1Iter (subseq n + 1) ij.1 / φ1Iter (subseq n) ij.1 -
+        φ1Iter (subseq n + 1) ij.2 / φ1Iter (subseq n) ij.2)
+    Filter.atTop (nhds (0 : ι × ι → ℝ))
+
+/-- Mixed ratio-form projective drift, split into the two mixed phases. -/
+abbrev SinkhornMixedProjectiveRatioDriftZeroAlong {ι : Type*} [Fintype ι]
+    (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  SinkhornHattedLeftProjectiveRatioDriftZeroAlong φhat0Iter subseq ∧
+    SinkhornRightProjectiveRatioDriftZeroAlong φ1Iter subseq
+
+/-- Pure finite positive-box conversion from ratio-form projective drift to cross-product
+projective drift.
+
+This is the finite algebra seam below Hilbert contraction.  For positive bounded vectors,
+vanishing coordinate differences of the ratios
+`u (k + 1) i / u k i` imply vanishing cleared-denominator cross-products
+`u (k + 1) i * u k j - u (k + 1) j * u k i`.  It contains no Sinkhorn-specific dynamics. -/
+theorem finite_mixed_projective_cross_drift_zero_of_ratio_drift_and_bounds {ι : Type*}
+    [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hratio : SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq) :
+    SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  sorry
+
+/-- Ratio-form mixed projective drift from the positive-kernel Sinkhorn dynamics.
+
+This is the remaining genuinely dynamical Hilbert/Birkhoff contraction seam.  It should be proved by
+using strict positivity of `G`, the two Fortet/Sinkhorn update equations, and the uniform positive
+box bounds to show that the projective ratio displacement of the two mixed phases tends to zero. -/
+theorem sinkhorn_mixed_projective_ratio_drift_tendsto_zero_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  sorry
+
 /-- Left mixed-phase projective drift from the Sinkhorn dynamics.
 
-This is the left half of the remaining C2-projective contraction problem.  A proof should use the
-positive finite kernel, the two update equations, and the uniform positive box bounds to show that
-one step of the Fortet/Sinkhorn map has asymptotically zero Hilbert-projective displacement on the
-`φhat0` side. -/
+The Sinkhorn-specific proof now factors through the ratio-form Hilbert displacement and the pure
+finite positive-box conversion from ratio drift to cleared cross-products. -/
 theorem sinkhorn_hatted_left_projective_drift_tendsto_zero_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     SinkhornHattedLeftProjectiveDriftZeroAlong φhat0Iter subseq := by
-  sorry
+  have hratio : SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq :=
+    sinkhorn_mixed_projective_ratio_drift_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      hG hiter hgauge hbounds
+  exact (finite_mixed_projective_cross_drift_zero_of_ratio_drift_and_bounds
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq hbounds hratio).1
 
 /-- Right mixed-phase projective drift from the Sinkhorn dynamics.
 
-This is the right half of the remaining C2-projective contraction problem.  A proof should use the
-same positive-kernel Hilbert/oscillation mechanism, but on the `φ1` side of the alternating update. -/
+This is the right projection of the same ratio-form Hilbert displacement plus the finite
+positive-box clearing-denominators conversion. -/
 theorem sinkhorn_right_projective_drift_tendsto_zero_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     SinkhornRightProjectiveDriftZeroAlong φ1Iter subseq := by
-  sorry
+  have hratio : SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq :=
+    sinkhorn_mixed_projective_ratio_drift_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      hG hiter hgauge hbounds
+  exact (finite_mixed_projective_cross_drift_zero_of_ratio_drift_and_bounds
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq hbounds hratio).2
 
 /-- Remaining C2-projective dynamical seam, now factored into the two one-sided mixed-phase
 subproblems above. -/

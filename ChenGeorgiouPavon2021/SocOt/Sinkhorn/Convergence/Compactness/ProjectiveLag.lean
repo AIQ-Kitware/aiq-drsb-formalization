@@ -359,22 +359,41 @@ theorem sinkhorn_denominator_predecessor_quotient_limits_from_precluster {ι : T
       ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre⟩
 
 
+/-- Sequence-level projective drift for the left hatted mixed phase along the selected
+absolute subsequence.
+
+This is the first of the two clean Hilbert-contraction/asymptotic-regularity subproblems: the
+successor vector `φhat0Iter (subseq n + 1)` should become projectively parallel to the current
+vector `φhat0Iter (subseq n)`. -/
+abbrev SinkhornHattedLeftProjectiveDriftZeroAlong {ι : Type*} [Fintype ι]
+    (φhat0Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+    (fun n => fun ij : ι × ι =>
+      φhat0Iter (subseq n + 1) ij.1 * φhat0Iter (subseq n) ij.2 -
+        φhat0Iter (subseq n + 1) ij.2 * φhat0Iter (subseq n) ij.1)
+    Filter.atTop (nhds (0 : ι × ι → ℝ))
+
+/-- Sequence-level projective drift for the right mixed phase along the selected absolute
+subsequence.
+
+This is the second Hilbert-contraction/asymptotic-regularity subproblem: the successor vector
+`φ1Iter (subseq n + 1)` should become projectively parallel to the current vector
+`φ1Iter (subseq n)`. -/
+abbrev SinkhornRightProjectiveDriftZeroAlong {ι : Type*} [Fintype ι]
+    (φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+    (fun n => fun ij : ι × ι =>
+      φ1Iter (subseq n + 1) ij.1 * φ1Iter (subseq n) ij.2 -
+        φ1Iter (subseq n + 1) ij.2 * φ1Iter (subseq n) ij.1)
+    Filter.atTop (nhds (0 : ι × ι → ℝ))
+
 /-- Sequence-level mixed-phase projective drift along the selected absolute subsequence.
 
-This is the clean Hilbert-contraction/asymptotic-regularity target before any cluster-limit
-packaging: each mixed phase should become projectively parallel to its absolute successor. -/
+This is now explicitly the conjunction of the two one-sided mixed-phase subproblems. -/
 abbrev SinkhornMixedProjectiveDriftZeroAlong {ι : Type*} [Fintype ι]
     (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
-  Filter.Tendsto
-      (fun n => fun ij : ι × ι =>
-        φhat0Iter (subseq n + 1) ij.1 * φhat0Iter (subseq n) ij.2 -
-          φhat0Iter (subseq n + 1) ij.2 * φhat0Iter (subseq n) ij.1)
-      Filter.atTop (nhds (0 : ι × ι → ℝ)) ∧
-    Filter.Tendsto
-      (fun n => fun ij : ι × ι =>
-        φ1Iter (subseq n + 1) ij.1 * φ1Iter (subseq n) ij.2 -
-          φ1Iter (subseq n + 1) ij.2 * φ1Iter (subseq n) ij.1)
-      Filter.atTop (nhds (0 : ι × ι → ℝ))
+  SinkhornHattedLeftProjectiveDriftZeroAlong φhat0Iter subseq ∧
+    SinkhornRightProjectiveDriftZeroAlong φ1Iter subseq
 
 /-- Pass sequence-level mixed projective drift through a raw precluster.
 
@@ -454,13 +473,13 @@ theorem sinkhorn_mixed_successor_projective_alignment_of_projective_drift {ι : 
       simpa using hcoord
     exact tendsto_nhds_unique hcluster hzero
 
-/-- Remaining C2-projective dynamical seam, now moved before cluster-limit packaging.
+/-- Left mixed-phase projective drift from the Sinkhorn dynamics.
 
-This is the true projective/Hilbert-contraction residue after the elementary normalization algebra
-has been extracted.  It is stated directly as asymptotic projective regularity of the mixed phases
-along the selected absolute subsequence; the following wrapper passes it to the raw-precluster
-successor/current limit alignment. -/
-theorem sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterates
+This is the left half of the remaining C2-projective contraction problem.  A proof should use the
+positive finite kernel, the two update equations, and the uniform positive box bounds to show that
+one step of the Fortet/Sinkhorn map has asymptotically zero Hilbert-projective displacement on the
+`φhat0` side. -/
+theorem sinkhorn_hatted_left_projective_drift_tendsto_zero_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -470,8 +489,46 @@ theorem sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterat
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
-    SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq := by
+    SinkhornHattedLeftProjectiveDriftZeroAlong φhat0Iter subseq := by
   sorry
+
+/-- Right mixed-phase projective drift from the Sinkhorn dynamics.
+
+This is the right half of the remaining C2-projective contraction problem.  A proof should use the
+same positive-kernel Hilbert/oscillation mechanism, but on the `φ1` side of the alternating update. -/
+theorem sinkhorn_right_projective_drift_tendsto_zero_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornRightProjectiveDriftZeroAlong φ1Iter subseq := by
+  sorry
+
+/-- Remaining C2-projective dynamical seam, now factored into the two one-sided mixed-phase
+subproblems above. -/
+theorem sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  exact ⟨
+    sinkhorn_hatted_left_projective_drift_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      hiter hgauge hbounds,
+    sinkhorn_right_projective_drift_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      hiter hgauge hbounds⟩
 
 /-- Limit-level mixed successor/current projective alignment, obtained from the sequence-level
 projective-drift seam and the raw precluster. -/

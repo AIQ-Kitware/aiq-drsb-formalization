@@ -167,7 +167,15 @@ structure IsFiniteSinkhornGaugeNormalized {ι : Type*} [Fintype ι]
     (φ0 φhat0 φ1 φhat1 : ι → ℝ) : Prop where
   left_total : ∀ n, ∑ i, φ0Iter n i = ∑ i, φ0 i
 
-/-- Subsequence cluster-point assertion for the four finite-dimensional Sinkhorn iterate vectors.
+/-- Phase-compatible subsequence cluster-point assertion for finite Sinkhorn iterates.
+
+The Sinkhorn normalizations couple the `n`th forward/hatted-right vectors to the successor
+`(n+1)`st hatted-left/right-forward vectors.  A cluster point that is useful for passing the
+update equations to the limit therefore needs more than convergence of the four vectors along the
+same raw subsequence: it also needs the successor phases that occur in the normalization equations
+to converge to the same limiting hatted/forward potentials.  Positivity is included as a separate
+nondegeneracy datum because pointwise-positive iterates can converge to zero without a uniform lower
+bound.
 
 This remains `Prop`-valued: the subsequence itself is carried under an existential proof field rather
 than as structure data, since Lean does not allow computational fields in a `Prop` structure. -/
@@ -177,8 +185,15 @@ structure IsFiniteSinkhornClusterPoint {ι : Type*} [Fintype ι]
   exists_subseq : ∃ subseq : ℕ → ℕ, StrictMono subseq ∧
     Filter.Tendsto (fun n => φ0Iter (subseq n)) Filter.atTop (nhds ψ0) ∧
     Filter.Tendsto (fun n => φhat0Iter (subseq n)) Filter.atTop (nhds ψhat0) ∧
+    Filter.Tendsto (fun n => φhat0Iter (subseq n + 1)) Filter.atTop (nhds ψhat0) ∧
     Filter.Tendsto (fun n => φ1Iter (subseq n)) Filter.atTop (nhds ψ1) ∧
+    Filter.Tendsto (fun n => φ1Iter (subseq n + 1)) Filter.atTop (nhds ψ1) ∧
     Filter.Tendsto (fun n => φhat1Iter (subseq n)) Filter.atTop (nhds ψhat1)
+  positive :
+    (∀ i, 0 < ψ0 i) ∧
+    (∀ i, 0 < ψhat0 i) ∧
+    (∀ j, 0 < ψ1 j) ∧
+    (∀ j, 0 < ψhat1 j)
 
 /-- Positivity seam for the finite Sinkhorn iteration.
 
@@ -213,11 +228,13 @@ theorem sinkhorn_gauge_normalized_subsequence_exists {ι : Type*} [Fintype ι]
         ψ0 ψhat0 ψ1 ψhat1 := by
   sorry
 
-/-- Cluster-point fixed-point seam for finite Sinkhorn iterates.
+/-- Limit-passage seam for the equations satisfied by a phase-compatible cluster point.
 
-Passing the update equations through a convergent subsequence should show that every positive
-cluster point solves the finite Schrödinger/Sinkhorn potential equations. -/
-theorem sinkhorn_cluster_point_is_potential {ι : Type*} [Fintype ι]
+The remaining analytic/topological content is continuity of finite sums and products along the
+subsequence phases recorded in `IsFiniteSinkhornClusterPoint`: forward/backward equations pass along
+`subseq n`, while marginal normalizations pass along the mixed phases `subseq n` and `subseq n + 1`.
+-/
+theorem sinkhorn_cluster_point_equations {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
@@ -225,8 +242,41 @@ theorem sinkhorn_cluster_point_is_potential {ι : Type*} [Fintype ι]
     (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
       ψ0 ψhat0 ψ1 ψhat1) :
-    IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1 := by
+    (∀ i, ψ0 i = ∑ j, G i j * ψ1 j) ∧
+    (∀ j, ψhat1 j = ∑ i, G i j * ψhat0 i) ∧
+    (∀ i, ψ0 i * ψhat0 i = p i) ∧
+    (∀ j, ψ1 j * ψhat1 j = q j) := by
   sorry
+
+/-- Cluster-point fixed-point theorem for finite Sinkhorn iterates.
+
+With phase compatibility and strict positivity recorded in the cluster predicate, the fixed-point
+wrapper is now purely packaging: positivity is projected from the cluster datum and the four equations
+come from the finite-dimensional limit-passage seam. -/
+theorem sinkhorn_cluster_point_is_potential {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j) (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+      ψ0 ψhat0 ψ1 ψhat1) :
+    IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1 := by
+  obtain ⟨hψ0_pos, hψhat0_pos, hψ1_pos, hψhat1_pos⟩ := hcluster.positive
+  obtain ⟨hforward, hbackward, hnormalize_left, hnormalize_right⟩ :=
+    sinkhorn_cluster_point_equations p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter ψ0 ψhat0 ψ1 ψhat1
+      hp hq hG hiter hcluster
+  exact {
+    φ0_pos := hψ0_pos
+    φhat0_pos := hψhat0_pos
+    φ1_pos := hψ1_pos
+    φhat1_pos := hψhat1_pos
+    forward := hforward
+    backward := hbackward
+    normalize_left := hnormalize_left
+    normalize_right := hnormalize_right
+  }
 
 /-- Gauge uniqueness seam for cluster points.
 

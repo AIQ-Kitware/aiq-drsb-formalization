@@ -6,6 +6,7 @@ gauge inheritance, gauge-fixed uniqueness, and the final unique-cluster converge
 -/
 
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.LimitPassage
+import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Compactness
 
 set_option autoImplicit false
 

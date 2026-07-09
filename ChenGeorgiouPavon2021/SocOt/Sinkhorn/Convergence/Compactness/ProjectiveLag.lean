@@ -1050,17 +1050,31 @@ theorem sinkhorn_columnNormalizedMatrix_column_sum {ι : Type*} [Fintype ι]
           simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm, mul_comm, mul_left_comm, mul_assoc]
             using hiter.normalize_right (n + 1) j
 
-/-- A nonnegative scalar sequence with a geometric envelope tends to zero.
+/-- A nonnegative scalar sequence bounded by a vanishing nonnegative envelope tends to zero.
 
-This is the pure real-analysis tail of the Franklin--Lorenz port.  It should be discharged without
-any Sinkhorn-specific facts, using `ρ ^ k → 0` for `0 ≤ ρ < 1` and squeeze/order arguments. -/
-theorem tendsto_nonnegative_atTop_zero_of_geometric_envelope
-    (s : ℕ → ℝ) (ρ C : ℝ)
-    (hρ_nonneg : 0 ≤ ρ) (hρ_lt_one : ρ < 1) (hC_nonneg : 0 ≤ C)
+This is the pure real-analysis tail of the Franklin--Lorenz port.  The paper-level
+Franklin--Lorenz seams below are responsible for producing the actual geometric envelope; this
+lemma only performs the order/topology squeeze once such an envelope is available. -/
+theorem tendsto_nonnegative_atTop_zero_of_vanishing_envelope
+    (s envelope : ℕ → ℝ)
+    (henvelope : Filter.Tendsto envelope Filter.atTop (nhds (0 : ℝ)))
     (hs_nonneg : ∀ k, 0 ≤ s k)
-    (hbound : ∀ k, s k ≤ C * ρ ^ k) :
+    (henvelope_nonneg : ∀ k, 0 ≤ envelope k)
+    (hbound : ∀ k, s k ≤ envelope k) :
     Filter.Tendsto s Filter.atTop (nhds (0 : ℝ)) := by
-  sorry
+  rw [Metric.tendsto_atTop]
+  intro δ hδ
+  rw [Metric.tendsto_atTop] at henvelope
+  obtain ⟨N, hN⟩ := henvelope δ hδ
+  refine ⟨N, fun k hk => ?_⟩
+  have henvelope_dist_eq : dist (envelope k) (0 : ℝ) = envelope k := by
+    rw [Real.dist_eq, sub_zero, abs_of_nonneg (henvelope_nonneg k)]
+  have henvelope_small : envelope k < δ := by
+    simpa [henvelope_dist_eq] using hN k hk
+  have hs_small : s k < δ := lt_of_le_of_lt (hbound k) henvelope_small
+  have hs_dist_eq : dist (s k) (0 : ℝ) = s k := by
+    rw [Real.dist_eq, sub_zero, abs_of_nonneg (hs_nonneg k)]
+  simpa [hs_dist_eq] using hs_small
 
 /-- Left-denominator geometric spread envelope from the Franklin--Lorenz/Birkhoff-Hopf engine.
 
@@ -1085,9 +1099,10 @@ theorem sinkhorn_phi0_backward_ratio_spread_geometric_envelope_from_franklin_lor
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
-    ∃ ρ C : ℝ,
-      0 ≤ ρ ∧ ρ < 1 ∧ 0 ≤ C ∧
-        ∀ k, finiteBackwardRatioSpread φ0Iter k ≤ C * ρ ^ k := by
+    ∃ envelope : ℕ → ℝ,
+      Filter.Tendsto envelope Filter.atTop (nhds (0 : ℝ)) ∧
+        (∀ k, 0 ≤ envelope k) ∧
+          ∀ k, finiteBackwardRatioSpread φ0Iter k ≤ envelope k := by
   sorry
 
 /-- Right-denominator geometric spread envelope from the Franklin--Lorenz/Birkhoff-Hopf engine.
@@ -1106,9 +1121,10 @@ theorem sinkhorn_phihat1_backward_ratio_spread_geometric_envelope_from_franklin_
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
-    ∃ ρ C : ℝ,
-      0 ≤ ρ ∧ ρ < 1 ∧ 0 ≤ C ∧
-        ∀ k, finiteBackwardRatioSpread φhat1Iter k ≤ C * ρ ^ k := by
+    ∃ envelope : ℕ → ℝ,
+      Filter.Tendsto envelope Filter.atTop (nhds (0 : ℝ)) ∧
+        (∀ k, 0 ≤ envelope k) ∧
+          ∀ k, finiteBackwardRatioSpread φhat1Iter k ≤ envelope k := by
   sorry
 
 /-- Franklin--Lorenz/Birkhoff-Hopf projective engine for the coupled backward denominator spreads.
@@ -1137,11 +1153,11 @@ theorem sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from
         Filter.atTop (nhds (0 : ℝ)) ∧
       Filter.Tendsto (fun k => finiteBackwardRatioSpread φhat1Iter k)
         Filter.atTop (nhds (0 : ℝ)) := by
-  obtain ⟨ρ0, C0, hρ0_nonneg, hρ0_lt_one, hC0_nonneg, hφ0_bound⟩ :=
+  obtain ⟨η0, hη0_tendsto, hη0_nonneg, hφ0_bound⟩ :=
     sinkhorn_phi0_backward_ratio_spread_geometric_envelope_from_franklin_lorenz
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       hG hiter hgauge hbounds
-  obtain ⟨ρ1, C1, hρ1_nonneg, hρ1_lt_one, hC1_nonneg, hφhat1_bound⟩ :=
+  obtain ⟨η1, hη1_tendsto, hη1_nonneg, hφhat1_bound⟩ :=
     sinkhorn_phihat1_backward_ratio_spread_geometric_envelope_from_franklin_lorenz
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       hG hiter hgauge hbounds
@@ -1157,12 +1173,12 @@ theorem sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from
       (φhat1Iter k.pred ij.1 / φhat1Iter k ij.1 -
         φhat1Iter k.pred ij.2 / φhat1Iter k ij.2))
   exact ⟨
-    tendsto_nonnegative_atTop_zero_of_geometric_envelope
-      (fun k => finiteBackwardRatioSpread φ0Iter k) ρ0 C0
-      hρ0_nonneg hρ0_lt_one hC0_nonneg hφ0_nonneg hφ0_bound,
-    tendsto_nonnegative_atTop_zero_of_geometric_envelope
-      (fun k => finiteBackwardRatioSpread φhat1Iter k) ρ1 C1
-      hρ1_nonneg hρ1_lt_one hC1_nonneg hφhat1_nonneg hφhat1_bound⟩
+    tendsto_nonnegative_atTop_zero_of_vanishing_envelope
+      (fun k => finiteBackwardRatioSpread φ0Iter k) η0
+      hη0_tendsto hφ0_nonneg hη0_nonneg hφ0_bound,
+    tendsto_nonnegative_atTop_zero_of_vanishing_envelope
+      (fun k => finiteBackwardRatioSpread φhat1Iter k) η1
+      hη1_tendsto hφhat1_nonneg hη1_nonneg hφhat1_bound⟩
 
 private theorem eventually_lt_of_tendsto_zero
     (s : ℕ → ℝ) (hs : Filter.Tendsto s Filter.atTop (nhds (0 : ℝ)))

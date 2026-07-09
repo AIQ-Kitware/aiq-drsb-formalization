@@ -278,31 +278,119 @@ theorem sinkhorn_phihat1_lagged_tendsto_from_current_right_normalization {ι : T
       _ = q j / φ1Iter (subseq n) j := by rw [hnorm]
   simpa [hq_div] using hdiv.congr' hratio_eventually.symm
 
-/-- Remaining finite scalar spine after all easy limit passages have been discharged.
 
-At this point the available facts are:
-* the current and successor right phases have the same forward/gauge weighted total;
-* successor right normalization gives `ψ1Succ j * ψhat1 j = q j`;
-* projective lag for `φhat1` relates the current hatted-right denominator to its absolute
-  predecessor, while the lagged right normalization rewrites that predecessor against `φ1`.
+/-- Projective lag for `φhat1`, after quotient-limit passage for the absolute predecessor.
 
-The remaining algebra is to turn those facts into equality of the current and successor right-phase
-limits, hence the current right-normalization identity. -/
+The sequence-level projective-lag hypothesis compares `φhat1Iter (subseq n)` with the absolute
+predecessor `φhat1Iter ((subseq n).pred)`.  The right normalization equation identifies that
+predecessor limit as `q / ψ1`; this helper turns the sequence-level lag into the finite quotient
+projective identity needed by the remaining scalar algebra. -/
+theorem sinkhorn_precluster_phihat1_quotient_projective_from_lag {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
+    (hprojective_hat1_lag : SinkhornPhaseProjectiveLagZeroAlong φhat1Iter subseq) :
+    ∀ i j, ψhat1 i * (q j / ψ1 j) - ψhat1 j * (q i / ψ1 i) = 0 := by
+  have hpred : Filter.Tendsto (fun n => φhat1Iter ((subseq n).pred))
+      Filter.atTop (nhds (fun j => q j / ψ1 j)) :=
+    sinkhorn_phihat1_predecessor_tendsto_quotient_from_precluster p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre
+  intro i j
+  have hlag_coord :
+      Filter.Tendsto
+        (fun n => φhat1Iter (subseq n) i * φhat1Iter ((subseq n).pred) j -
+          φhat1Iter (subseq n) j * φhat1Iter ((subseq n).pred) i)
+        Filter.atTop (nhds (0 : ℝ)) := by
+    have hcoord := ((continuous_apply (i, j)).tendsto (0 : ι × ι → ℝ)).comp
+      hprojective_hat1_lag
+    change Filter.Tendsto
+        (fun n => (fun ij : ι × ι =>
+          φhat1Iter (subseq n) ij.1 * φhat1Iter ((subseq n).pred) ij.2 -
+            φhat1Iter (subseq n) ij.2 * φhat1Iter ((subseq n).pred) ij.1) (i, j))
+        Filter.atTop (nhds (0 : ℝ)) at hcoord
+    simpa using hcoord
+  have hcur_i : Filter.Tendsto (fun n => φhat1Iter (subseq n) i)
+      Filter.atTop (nhds (ψhat1 i)) :=
+    ((continuous_apply i).tendsto ψhat1).comp hpre.tendsto_φhat1
+  have hcur_j : Filter.Tendsto (fun n => φhat1Iter (subseq n) j)
+      Filter.atTop (nhds (ψhat1 j)) :=
+    ((continuous_apply j).tendsto ψhat1).comp hpre.tendsto_φhat1
+  have hpred_i : Filter.Tendsto (fun n => φhat1Iter ((subseq n).pred) i)
+      Filter.atTop (nhds (q i / ψ1 i)) :=
+    ((continuous_apply i).tendsto (fun j => q j / ψ1 j)).comp hpred
+  have hpred_j : Filter.Tendsto (fun n => φhat1Iter ((subseq n).pred) j)
+      Filter.atTop (nhds (q j / ψ1 j)) :=
+    ((continuous_apply j).tendsto (fun j => q j / ψ1 j)).comp hpred
+  have hlimit :
+      Filter.Tendsto
+        (fun n => φhat1Iter (subseq n) i * φhat1Iter ((subseq n).pred) j -
+          φhat1Iter (subseq n) j * φhat1Iter ((subseq n).pred) i)
+        Filter.atTop (nhds (ψhat1 i * (q j / ψ1 j) - ψhat1 j * (q i / ψ1 i))) := by
+    exact (hcur_i.mul hpred_j).sub (hcur_j.mul hpred_i)
+  exact tendsto_nhds_unique hlimit hlag_coord
+
+/-- Pure finite scalar spine for right-normalization of the current phase.
+
+This is the remaining non-topological algebraic core of C2-scale.  The quotient-projective identity
+says `q / ψ1` is projectively parallel to `ψhat1`; successor normalization identifies the same
+quotient using `ψ1Succ`; and the equal forward/gauge weighted totals should force the projective
+scalar between `ψ1` and `ψ1Succ` to be one. -/
+theorem finite_right_normalize_current_of_quotient_projective_gauge_sum {ι : Type*} [Fintype ι]
+    (q : ι → ℝ) (G : ι → ι → ℝ)
+    (ψ0 ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (_hψ0_pos : ∀ i, 0 < ψ0 i)
+    (_hψ1_pos : ∀ j, 0 < ψ1 j)
+    (_hψ1Succ_pos : ∀ j, 0 < ψ1Succ j)
+    (_hψhat1_pos : ∀ j, 0 < ψhat1 j)
+    (_hforward_current : ∀ i, ψ0 i = ∑ j, G i j * ψ1 j)
+    (_hweighted_totals : (∑ i, ∑ j, G i j * ψ1Succ j) =
+      (∑ i, ∑ j, G i j * ψ1 j))
+    (_hright_successor : ∀ j, ψ1Succ j * ψhat1 j = q j)
+    (_hquot_projective : ∀ i j,
+      ψhat1 i * (q j / ψ1 j) - ψhat1 j * (q i / ψ1 i) = 0) :
+    ∀ j, ψ1 j * ψhat1 j = q j := by
+  sorry
+
+
+/-- Assemble the finite scalar spine from the already-proved limit-passage helpers.
+
+All topology has now been discharged before the final finite algebra call: projective lag has been
+converted to quotient-projective alignment, the current forward equation has been passed to the
+precluster, and the current/successor forward-gauge totals are known equal. -/
 theorem sinkhorn_precluster_normalize_right_current_from_successor_projective_gauge_sum
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
-    (_hcurrent_gauge_sum : (∑ i, ∑ j, G i j * ψ1 j) = ∑ i, φ0 i)
-    (_hsuccessor_gauge_sum : (∑ i, ∑ j, G i j * ψ1Succ j) = ∑ i, φ0 i)
-    (_hright_successor : ∀ j, ψ1Succ j * ψhat1 j = q j)
-    (_hprojective_hat1_lag : SinkhornPhaseProjectiveLagZeroAlong φhat1Iter subseq) :
+    (hcurrent_gauge_sum : (∑ i, ∑ j, G i j * ψ1 j) = ∑ i, φ0 i)
+    (hsuccessor_gauge_sum : (∑ i, ∑ j, G i j * ψ1Succ j) = ∑ i, φ0 i)
+    (hright_successor : ∀ j, ψ1Succ j * ψhat1 j = q j)
+    (hprojective_hat1_lag : SinkhornPhaseProjectiveLagZeroAlong φhat1Iter subseq) :
     ∀ j, ψ1 j * ψhat1 j = q j := by
-  sorry
+  have hforward_current : ∀ i, ψ0 i = ∑ j, G i j * ψ1 j :=
+    sinkhorn_precluster_forward_current p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre
+  have hweighted_totals : (∑ i, ∑ j, G i j * ψ1Succ j) =
+      (∑ i, ∑ j, G i j * ψ1 j) := by
+    rw [hsuccessor_gauge_sum, hcurrent_gauge_sum]
+  have hquot_projective : ∀ i j,
+      ψhat1 i * (q j / ψ1 j) - ψhat1 j * (q i / ψ1 i) = 0 :=
+    sinkhorn_precluster_phihat1_quotient_projective_from_lag p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre hprojective_hat1_lag
+  exact finite_right_normalize_current_of_quotient_projective_gauge_sum q G
+    ψ0 ψ1 ψ1Succ ψhat1 hpre.positive.1 hpre.positive.2.2.2.1
+    hpre.positive.2.2.2.2.1 hpre.positive.2.2.2.2.2
+    hforward_current hweighted_totals hright_successor hquot_projective
 
 /-- The remaining scalar-normalization seam for `φhat1`.
 

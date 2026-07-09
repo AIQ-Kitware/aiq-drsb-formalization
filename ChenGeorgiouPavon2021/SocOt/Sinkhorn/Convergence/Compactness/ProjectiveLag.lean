@@ -502,6 +502,47 @@ abbrev SinkhornMixedProjectiveRatioDriftZeroAlong {ι : Type*} [Fintype ι]
   SinkhornHattedLeftProjectiveRatioDriftZeroAlong φhat0Iter subseq ∧
     SinkhornRightProjectiveRatioDriftZeroAlong φ1Iter subseq
 
+/-- Multiplying a real sequence that tends to zero by an eventually bounded real sequence still
+tends to zero.  This local at-top form is enough for the finite ratio-to-cross-product conversion
+below, and avoids importing asymptotic notation just for this elementary estimate. -/
+theorem real_tendsto_zero_mul_of_eventually_abs_le_atTop
+    (f g : ℕ → ℝ) (C : ℝ)
+    (hC : 0 ≤ C)
+    (hg : ∀ᶠ n in Filter.atTop, |g n| ≤ C)
+    (hf : Filter.Tendsto f Filter.atTop (nhds (0 : ℝ))) :
+    Filter.Tendsto (fun n => f n * g n) Filter.atTop (nhds (0 : ℝ)) := by
+  rw [Metric.tendsto_atTop]
+  rw [Metric.tendsto_atTop] at hf
+  intro δ hδ
+  have hC1_pos : 0 < C + 1 := by linarith
+  have hδ_scaled : 0 < δ / (C + 1) := div_pos hδ hC1_pos
+  obtain ⟨Nf, hNf⟩ := hf (δ / (C + 1)) hδ_scaled
+  rw [Filter.eventually_atTop] at hg
+  obtain ⟨Ng, hNg⟩ := hg
+  refine ⟨max Nf Ng, fun n hn => ?_⟩
+  have hn_f : Nf ≤ n := le_trans (Nat.le_max_left Nf Ng) hn
+  have hn_g : Ng ≤ n := le_trans (Nat.le_max_right Nf Ng) hn
+  have hf_small : |f n| < δ / (C + 1) := by
+    simpa [Real.dist_eq] using hNf n hn_f
+  have hg_bound : |g n| ≤ C := hNg n hn_g
+  have hf_nonneg : 0 ≤ |f n| := abs_nonneg (f n)
+  have hmul_le_C : |f n| * |g n| ≤ |f n| * C :=
+    mul_le_mul_of_nonneg_left hg_bound hf_nonneg
+  have hC_le_C1 : C ≤ C + 1 := by linarith
+  have hmul_le_C1 : |f n| * C ≤ |f n| * (C + 1) :=
+    mul_le_mul_of_nonneg_left hC_le_C1 hf_nonneg
+  have hmul_lt : |f n| * (C + 1) < δ := by
+    have htmp := mul_lt_mul_of_pos_right hf_small hC1_pos
+    have hcancel : δ / (C + 1) * (C + 1) = δ := by
+      field_simp [ne_of_gt hC1_pos]
+    simpa [hcancel] using htmp
+  have habs : |f n * g n - 0| = |f n| * |g n| := by
+    rw [sub_zero, abs_mul]
+  have hlt : |f n * g n - 0| < δ := by
+    rw [habs]
+    exact lt_of_le_of_lt (le_trans hmul_le_C hmul_le_C1) hmul_lt
+  simpa [Real.dist_eq] using hlt
+
 /-- Pure finite positive-box conversion from ratio-form projective drift to cross-product
 projective drift.
 
@@ -513,10 +554,100 @@ theorem finite_mixed_projective_cross_drift_zero_of_ratio_drift_and_bounds {ι :
     [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hratio : SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hratio : SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq) :
     SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq := by
-  sorry
+  rcases hbounds with ⟨ε, B, hε, hB, _hφ0, hφhat0, hφ1, _hφhat1⟩
+  have hB2_nonneg : 0 ≤ B * B := mul_nonneg (le_of_lt hB) (le_of_lt hB)
+  constructor
+  · apply finite_function_tendsto_of_coordinate_tendsto
+    intro ij
+    rcases ij with ⟨i, j⟩
+    let ratio : ℕ → ℝ := fun n =>
+      φhat0Iter (subseq n + 1) i / φhat0Iter (subseq n) i -
+        φhat0Iter (subseq n + 1) j / φhat0Iter (subseq n) j
+    let denom : ℕ → ℝ := fun n =>
+      φhat0Iter (subseq n) i * φhat0Iter (subseq n) j
+    have hratio_coord : Filter.Tendsto ratio Filter.atTop (nhds (0 : ℝ)) := by
+      have hcoord := (tendsto_pi_nhds.mp hratio.1) (i, j)
+      simpa [ratio] using hcoord
+    have hdenom_bound_all : ∀ n, |denom n| ≤ B * B := by
+      intro n
+      have hi_box := hφhat0 (subseq n) i
+      have hj_box := hφhat0 (subseq n) j
+      have hi_nonneg : 0 ≤ φhat0Iter (subseq n) i :=
+        le_trans (le_of_lt hε) hi_box.1
+      have hj_nonneg : 0 ≤ φhat0Iter (subseq n) j :=
+        le_trans (le_of_lt hε) hj_box.1
+      have hprod_nonneg : 0 ≤ φhat0Iter (subseq n) i * φhat0Iter (subseq n) j :=
+        mul_nonneg hi_nonneg hj_nonneg
+      have hprod_le : φhat0Iter (subseq n) i * φhat0Iter (subseq n) j ≤ B * B :=
+        mul_le_mul hi_box.2 hj_box.2 hj_nonneg (le_of_lt hB)
+      simpa [denom, abs_of_nonneg hprod_nonneg] using hprod_le
+    have hdenom_bound : ∀ᶠ n in Filter.atTop, |denom n| ≤ B * B := by
+      filter_upwards [] with n
+      exact hdenom_bound_all n
+    have hmul : Filter.Tendsto (fun n => ratio n * denom n) Filter.atTop (nhds (0 : ℝ)) :=
+      real_tendsto_zero_mul_of_eventually_abs_le_atTop ratio denom (B * B)
+        hB2_nonneg hdenom_bound hratio_coord
+    have heq :
+        (fun n =>
+          φhat0Iter (subseq n + 1) i * φhat0Iter (subseq n) j -
+            φhat0Iter (subseq n + 1) j * φhat0Iter (subseq n) i) =
+          (fun n => ratio n * denom n) := by
+      funext n
+      have hi_pos : 0 < φhat0Iter (subseq n) i :=
+        lt_of_lt_of_le hε (hφhat0 (subseq n) i).1
+      have hj_pos : 0 < φhat0Iter (subseq n) j :=
+        lt_of_lt_of_le hε (hφhat0 (subseq n) j).1
+      dsimp [ratio, denom]
+      field_simp [ne_of_gt hi_pos, ne_of_gt hj_pos]
+    rw [heq]
+    exact hmul
+  · apply finite_function_tendsto_of_coordinate_tendsto
+    intro ij
+    rcases ij with ⟨i, j⟩
+    let ratio : ℕ → ℝ := fun n =>
+      φ1Iter (subseq n + 1) i / φ1Iter (subseq n) i -
+        φ1Iter (subseq n + 1) j / φ1Iter (subseq n) j
+    let denom : ℕ → ℝ := fun n =>
+      φ1Iter (subseq n) i * φ1Iter (subseq n) j
+    have hratio_coord : Filter.Tendsto ratio Filter.atTop (nhds (0 : ℝ)) := by
+      have hcoord := (tendsto_pi_nhds.mp hratio.2) (i, j)
+      simpa [ratio] using hcoord
+    have hdenom_bound_all : ∀ n, |denom n| ≤ B * B := by
+      intro n
+      have hi_box := hφ1 (subseq n) i
+      have hj_box := hφ1 (subseq n) j
+      have hi_nonneg : 0 ≤ φ1Iter (subseq n) i :=
+        le_trans (le_of_lt hε) hi_box.1
+      have hj_nonneg : 0 ≤ φ1Iter (subseq n) j :=
+        le_trans (le_of_lt hε) hj_box.1
+      have hprod_nonneg : 0 ≤ φ1Iter (subseq n) i * φ1Iter (subseq n) j :=
+        mul_nonneg hi_nonneg hj_nonneg
+      have hprod_le : φ1Iter (subseq n) i * φ1Iter (subseq n) j ≤ B * B :=
+        mul_le_mul hi_box.2 hj_box.2 hj_nonneg (le_of_lt hB)
+      simpa [denom, abs_of_nonneg hprod_nonneg] using hprod_le
+    have hdenom_bound : ∀ᶠ n in Filter.atTop, |denom n| ≤ B * B := by
+      filter_upwards [] with n
+      exact hdenom_bound_all n
+    have hmul : Filter.Tendsto (fun n => ratio n * denom n) Filter.atTop (nhds (0 : ℝ)) :=
+      real_tendsto_zero_mul_of_eventually_abs_le_atTop ratio denom (B * B)
+        hB2_nonneg hdenom_bound hratio_coord
+    have heq :
+        (fun n =>
+          φ1Iter (subseq n + 1) i * φ1Iter (subseq n) j -
+            φ1Iter (subseq n + 1) j * φ1Iter (subseq n) i) =
+          (fun n => ratio n * denom n) := by
+      funext n
+      have hi_pos : 0 < φ1Iter (subseq n) i :=
+        lt_of_lt_of_le hε (hφ1 (subseq n) i).1
+      have hj_pos : 0 < φ1Iter (subseq n) j :=
+        lt_of_lt_of_le hε (hφ1 (subseq n) j).1
+      dsimp [ratio, denom]
+      field_simp [ne_of_gt hi_pos, ne_of_gt hj_pos]
+    rw [heq]
+    exact hmul
 
 /-- Ratio-form mixed projective drift from the positive-kernel Sinkhorn dynamics.
 

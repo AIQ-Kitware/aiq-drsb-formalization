@@ -39,7 +39,7 @@ scale residual.  The uniform lower bound `ε` lets us divide by `∑ b`, and the
 controls the coefficient `b i`. -/
 private theorem finite_phase_lag_coord_abs_bound_of_projective_scale {ι : Type*} [Fintype ι]
     (u : ℕ → ι → ℝ) (subseq : ℕ → ℕ)
-    {ε B : ℝ} (hε : 0 < ε) (hB : 0 < B)
+    {ε B : ℝ} (hε : 0 < ε)
     (hbox : ∀ n i, ε ≤ u n i ∧ u n i ≤ B)
     (n : ℕ) (i : ι) :
     |u (subseq n) i - u ((subseq n).pred) i| ≤
@@ -174,7 +174,7 @@ theorem finite_phase_lag_drift_zero_of_projective_scale_lag {ι : Type*} [Fintyp
   refine ⟨N, fun n hn => ?_⟩
   have hle_abs : |u (subseq n) i - u ((subseq n).pred) i| ≤ bound n := by
     simpa [cross, scale, bound] using
-      finite_phase_lag_coord_abs_bound_of_projective_scale u subseq hε hB hbox n i
+      finite_phase_lag_coord_abs_bound_of_projective_scale u subseq hε hbox n i
   have hbound_nonneg : 0 ≤ bound n := by
     have hεinv_nonneg : 0 ≤ ε⁻¹ := inv_nonneg.mpr (le_of_lt hε)
     have hsum_nonneg : 0 ≤ ∑ j, |cross n j| := by

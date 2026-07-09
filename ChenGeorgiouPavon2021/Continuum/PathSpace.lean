@@ -85,8 +85,7 @@ theorem intervalDyadicTime_right_endpoint (level : ℕ) :
     intervalDyadicTime level (2 ^ level) = unitIntervalOne := by
   apply Subtype.ext
   rw [coe_intervalDyadicTime_of_le level (2 ^ level) le_rfl]
-  simpa [dyadicTime, unitIntervalOne, Nat.cast_pow] using
-    (div_self (show (2 : ℝ) ^ level ≠ 0 by positivity))
+  simp [dyadicTime, unitIntervalOne, Nat.cast_pow]
 
 /-- The first bounded dyadic grid point is the left endpoint. -/
 theorem boundedIntervalDyadicGridPoint_left_endpoint (level : ℕ) :

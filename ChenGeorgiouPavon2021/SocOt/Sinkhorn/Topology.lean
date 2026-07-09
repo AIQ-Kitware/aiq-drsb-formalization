@@ -53,7 +53,7 @@ theorem scalar_not_tendsto_has_frequently_bad_epsilon
     (hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
     ∃ ε : ℝ, 0 < ε ∧ ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n - xLim| := by
   rw [Metric.tendsto_atTop] at hnot
-  push_neg at hnot
+  push Not at hnot
   obtain ⟨ε, hε, hbad⟩ := hnot
   refine ⟨ε, hε, ?_⟩
   intro N

@@ -6,7 +6,8 @@ below the old capstone seam: the remaining work is not convergence theory, but a
 matrix maximum principle.
 -/
 
-import ChenGeorgiouPavon2021.SocOt.Sinkhorn.FiniteSystem
+import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Ratio.WeightedAverage
+import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Ratio.MarginalInversion
 
 set_option autoImplicit false
 
@@ -29,49 +30,6 @@ theorem finite_sinkhorn_ratio_right_max_exists {ι : Type*} [Fintype ι] [Nonemp
   obtain ⟨jstar, _hjstar_mem, hmax⟩ :=
     Finset.exists_max_image (Finset.univ : Finset ι) (sinkhornRatio ψ1 φ1) huniv_nonempty
   exact ⟨jstar, fun j => hmax j (by simp)⟩
-
-/-- Generic finite weighted-average inequality needed by the forward ratio bound.
-
-This is pure ordered-ring algebra over a finite type: if all sample values are bounded by `M` and
-the weights are nonnegative with positive total `denom`, then the weighted average is bounded by
-`M`.  It should be reusable outside Sinkhorn. -/
-theorem finite_weighted_average_le_of_nonneg {ι : Type*} [Fintype ι]
-    (w r : ι → ℝ) (M denom : ℝ)
-    (hw_nonneg : ∀ j, 0 ≤ w j)
-    (hdenom_pos : 0 < denom)
-    (hdenom : denom = ∑ j, w j)
-    (hr_le : ∀ j, r j ≤ M) :
-    (∑ j, w j * r j) / denom ≤ M := by
-  classical
-  have hsum_le : (∑ j, w j * r j) ≤ ∑ j, w j * M := by
-    refine Finset.sum_le_sum ?_
-    intro j _hj
-    exact mul_le_mul_of_nonneg_left (hr_le j) (hw_nonneg j)
-  have hsum_le' : (∑ j, w j * r j) ≤ denom * M := by
-    simpa [hdenom, Finset.sum_mul] using hsum_le
-  rw [div_le_iff₀ hdenom_pos]
-  nlinarith [hsum_le']
-
-/-- Generic lower-bound version of the finite weighted-average inequality.
-
-If all sample values are bounded below by `m`, and the weights are nonnegative with positive total
-`denom`, then the finite weighted average is also bounded below by `m`. -/
-theorem finite_weighted_average_ge_of_nonneg {ι : Type*} [Fintype ι]
-    (w r : ι → ℝ) (m denom : ℝ)
-    (hw_nonneg : ∀ j, 0 ≤ w j)
-    (hdenom_pos : 0 < denom)
-    (hdenom : denom = ∑ j, w j)
-    (hr_ge : ∀ j, m ≤ r j) :
-    m ≤ (∑ j, w j * r j) / denom := by
-  classical
-  have hsum_ge : (∑ j, w j * m) ≤ ∑ j, w j * r j := by
-    refine Finset.sum_le_sum ?_
-    intro j _hj
-    exact mul_le_mul_of_nonneg_left (hr_ge j) (hw_nonneg j)
-  have hsum_ge' : denom * m ≤ ∑ j, w j * r j := by
-    simpa [hdenom, Finset.sum_mul] using hsum_ge
-  rw [le_div_iff₀ hdenom_pos]
-  nlinarith [hsum_ge']
 
 /-- Forward equations rewrite the left ratio as a weighted average of right ratios.
 
@@ -139,21 +97,6 @@ theorem finite_sinkhorn_ratio_left_le_right_max {ι : Type*} [Fintype ι]
   exact finite_sinkhorn_forward_weighted_average_le_right_max p q G
     φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys jstar hright_max i
 
-/-- The marginal identities invert common-ratio upper bounds into hatted-ratio lower bounds.
-
-This is the algebraic bridge from the forward upper bound to the hatted-left side.  It is
-true pointwise because `ψ0 * ψhat0 = p = φ0 * φhat0`, so the hatted ratio is the inverse
-of the ordinary ratio. -/
-theorem finite_sinkhorn_hatted_ratio_lower_from_forward_upper {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
-    (M : ℝ)
-    (_hleft_upper : ∀ i, sinkhornRatio ψ0 φ0 i ≤ M) :
-    (∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i) := by
-  sorry
-
 /-- Backward equations rewrite a hatted-right ratio as a weighted average of hatted-left
 ratios.
 
@@ -200,72 +143,6 @@ theorem finite_sinkhorn_backward_hatted_ratio_lower {ι : Type*} [Fintype ι]
     (hφsys.φhat1_pos j)
     (hφsys.backward j)
     hhat0_lower
-
-/-- Right marginal identities say that hatted right ratios are inverse right ratios. -/
-theorem finite_sinkhorn_hatted1_ratio_eq_inv {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
-    (j : ι) :
-    sinkhornRatio ψhat1 φhat1 j = (sinkhornRatio ψ1 φ1 j)⁻¹ := by
-  unfold sinkhornRatio
-  have hψ1_ne : ψ1 j ≠ 0 := ne_of_gt (hψsys.φ1_pos j)
-  have hφ1_ne : φ1 j ≠ 0 := ne_of_gt (hφsys.φ1_pos j)
-  have hφhat1_ne : φhat1 j ≠ 0 := ne_of_gt (hφsys.φhat1_pos j)
-  field_simp [hψ1_ne, hφ1_ne, hφhat1_ne]
-  calc
-    ψhat1 j * ψ1 j = ψ1 j * ψhat1 j := by ring
-    _ = q j := hψsys.normalize_right j
-    _ = φ1 j * φhat1 j := by rw [← hφsys.normalize_right j]
-    _ = φhat1 j * φ1 j := by ring
-
-/-- Left marginal identities say that hatted left ratios are inverse left ratios. -/
-theorem finite_sinkhorn_hatted0_ratio_eq_inv {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
-    (i : ι) :
-    sinkhornRatio ψhat0 φhat0 i = (sinkhornRatio ψ0 φ0 i)⁻¹ := by
-  unfold sinkhornRatio
-  have hψ0_ne : ψ0 i ≠ 0 := ne_of_gt (hψsys.φ0_pos i)
-  have hφ0_ne : φ0 i ≠ 0 := ne_of_gt (hφsys.φ0_pos i)
-  have hφhat0_ne : φhat0 i ≠ 0 := ne_of_gt (hφsys.φhat0_pos i)
-  field_simp [hψ0_ne, hφ0_ne, hφhat0_ne]
-  calc
-    ψhat0 i * ψ0 i = ψ0 i * ψhat0 i := by ring
-    _ = p i := hψsys.normalize_left i
-    _ = φ0 i * φhat0 i := by rw [← hφsys.normalize_left i]
-    _ = φhat0 i * φ0 i := by ring
-
-/-- At the right-ratio maximizer, the hatted-right ratio is exactly the inverse maximum.
-
-This is the pointwise marginal-inversion equality for the distinguished index `jstar`. -/
-theorem finite_sinkhorn_hatted1_ratio_eq_inv_at_right_max {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
-    (jstar : ι) :
-    sinkhornRatio ψhat1 φhat1 jstar = (sinkhornRatio ψ1 φ1 jstar)⁻¹ := by
-  exact finite_sinkhorn_hatted1_ratio_eq_inv p q G
-    φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys jstar
-
-/-- Equality in a strictly positive finite weighted average at a lower bound.
-
-If every sample value is at least `m`, every weight is strictly positive, and the weighted average
-is exactly `m`, then every sample value must be exactly `m`.  This is the pure ordered-algebra
-maximum-principle seam behind finite Sinkhorn uniqueness. -/
-theorem finite_weighted_average_eq_lower_forces_pointwise {ι : Type*} [Fintype ι]
-    (w r : ι → ℝ) (m denom : ℝ)
-    (hw_pos : ∀ i, 0 < w i)
-    (hdenom_pos : 0 < denom)
-    (hdenom : denom = ∑ i, w i)
-    (hr_ge : ∀ i, m ≤ r i)
-    (havg_eq : (∑ i, w i * r i) / denom = m) :
-    ∀ i, r i = m := by
-  sorry
 
 /-- Strict positivity turns the single extremal equality into equality of all hatted-left ratios.
 

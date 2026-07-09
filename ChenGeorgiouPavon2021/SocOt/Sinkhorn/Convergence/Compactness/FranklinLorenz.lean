@@ -127,13 +127,19 @@ theorem franklinLorenz_targetColumn_pos {ι : Type*} [Fintype ι]
       exact mul_pos (hG i j) (horbit.left_pos k i)
     · exact ⟨j, Finset.mem_univ j⟩
 
-/-- Pointwise right-column correction decay for a two-sequence Franklin--Lorenz orbit.
+/-- Projective/Hilbert right-column relative-error decay for a two-sequence
+Franklin--Lorenz orbit.
 
-This is the most local right-side Franklin--Lorenz target: each current column marginal correction
-`q j / c_k j` converges geometrically to `1`.  It is the natural form of the column-error estimate
-one expects from Franklin--Lorenz Lemma 2 / Theorem 4 after choosing a Birkhoff contraction
-coefficient and using the finite box bounds. -/
-theorem franklinLorenz_right_column_correction_pointwise_geometric_bound_of_birkhoff_coefficient
+This is now the right-side agent-2 contraction seam: after choosing a Birkhoff coefficient `γ`,
+Franklin--Lorenz Lemma 2 / Theorem 4 should give a uniform geometric bound on each normalized
+column-marginal correction
+
+`q j / c_k j - 1`,
+
+where `c_k` is `franklinLorenzCurrentColumnMarginal G a b k`.  This is the last right-side theorem
+that should require the actual Hilbert/projective contraction argument; the theorems below only
+convert this pointwise error estimate into pairwise oscillation and finite-spread bounds. -/
+theorem franklinLorenz_right_column_relative_error_geometric_bound_of_birkhoff_coefficient
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
@@ -146,6 +152,25 @@ theorem franklinLorenz_right_column_correction_pointwise_geometric_bound_of_birk
         ∀ k j,
           |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
   sorry
+
+/-- Pointwise right-column correction decay for a two-sequence Franklin--Lorenz orbit.
+
+This theorem is now a named projection of the projective/Hilbert relative-error seam above.  It is
+kept as a stable downstream interface for the pairwise and finite-spread bookkeeping lemmas. -/
+theorem franklinLorenz_right_column_correction_pointwise_geometric_bound_of_birkhoff_coefficient
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ k j,
+          |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
+  exact franklinLorenz_right_column_relative_error_geometric_bound_of_birkhoff_coefficient
+    p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
 
 /-- Pairwise right-column correction oscillation bound for a two-sequence Franklin--Lorenz orbit.
 
@@ -190,7 +215,6 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
           |q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1| := by
             set x := q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1
             set y := q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1
-            change |x - y| ≤ |x| + |y|
             have hx_upper : x ≤ |x| := le_abs_self x
             have hy_upper : -y ≤ |y| := by
               simpa [abs_neg] using (le_abs_self (-y))

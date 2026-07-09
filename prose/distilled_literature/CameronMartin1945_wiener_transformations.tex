@@ -1,32 +1,251 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Cameron--Martin (1945)}
-\author{Generated proof-target note}
+\title{Modernized Proof Notes for Cameron--Martin (1945): Linear Transformations of Wiener Integrals}
+\author{Generated proof-target note for the AIQ DRSB formalization corpus}
 \date{Source PDF: \texttt{S0002-9947-1945-0013240-1.pdf}}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Cameron and Martin, \emph{Transformations of Wiener Integrals under a General Class of Linear Transformations}, Transactions of the American Mathematical Society 58(2), 184--219, 1945 \cite{CameronMartin1945}.
+\section*{Reference and purpose}
+This note expands R. H. Cameron and W. T. Martin, ``Transformations of Wiener Integrals under a General Class of Linear Transformations,'' \emph{Transactions of the American Mathematical Society}, 58(2):184--219, 1945 \cite{CameronMartin1945}.  The paper is not an arXiv source.  It is a primary source for quasi-invariance/transformation formulae on classical Wiener space.
 
-\section*{Role in the formalization}
-This is a primary Wiener-integral transformation source.  The uploaded paper is about a broad class of linear transformations of Wiener space, with translation results used as background.  It supports continuum Gaussian-measure/quasi-invariance arguments adjacent to Schr\"odinger bridge path-space proofs.
-
-\begin{distillation}
-\item \textbf{Wiener space.}  Work on continuous paths $x:[0,1]\to\R$ with $x(0)=0$ under Wiener measure.
-\item \textbf{Linear transformation.}  Consider transformations of the form
+\paragraph{Scope warning.}
+This paper is not only the familiar Cameron--Martin translation theorem.  It treats homogeneous linear transformations
 \[
-  y(t)=x(t)+\int_0^1 K(t,s)x(s)\,ds
+  (Tx)(t)=x(t)+\int_0^1K(t,s)x(s)\,ds
 \]
-under analytic conditions on the kernel $K$ ensuring invertibility and measurability.
-\item \textbf{Jacobian/Radon--Nikodym correction.}  The Wiener integral of a functional after transformation equals an integral over the original path with a determinant factor and an exponential quadratic correction.
-\item \textbf{Connection to Cameron--Martin.}  Translation by an absolutely continuous path with square-integrable derivative is the simpler, now-standard quasi-invariance theorem: the translated measure is absolutely continuous and has exponential linear/quadratic density.
-\end{distillation}
+and then combines that result with the translation theorem from Cameron--Martin's earlier paper.  The proof is long because the authors first prove the formula for polygonal kernels, then approximate general kernels, then pass from bounded continuous functionals to measurable sets and integrable functionals.
 
-\section*{Lean comparison targets}
-This source should only be cited if the formalization includes Wiener-space quasi-invariance or Gaussian path-space transformations.  For finite Sinkhorn and static DRO files it is background.
+\section{Classical Wiener space and notation}
+Let $C$ be the space of real continuous paths $x:[0,1]\to\R$ with $x(0)=0$, equipped with Wiener measure $w$.  The paper writes Wiener integrals as
+\[
+  \int_C F[x] \; d_wx.
+\]
+A set $S\subset C$ is Wiener measurable if it belongs to the completion of the cylinder sigma-algebra under Wiener measure.
 
-\section*{Distillation gaps}
-\TODO{If using the translation theorem specifically, add the original Cameron--Martin translation paper or a modern reference with an exact theorem statement.  The uploaded file is a general linear-transformation sequel rather than solely the translation theorem.}
+\section{The kernel and transformation}
+The main homogeneous transformation is
+\begin{equation}
+  y(t)=x(t)+\int_0^1K(t,s)x(s)\,ds. \tag{T}\label{eq:cm-T}
+\end{equation}
+The kernel is built from two continuous triangular pieces:
+\[
+  K(t,s)=
+  \begin{cases}
+  K_1(t,s),&0\le t<s\le1,\\
+  K_2(t,s),&0\le s<t\le1,\\
+  \frac12K_1(s,s)+\frac12K_2(s,s),&t=s.
+  \end{cases}
+\]
+The diagonal jump is encoded by
+\begin{equation}
+  J(s)=K_1(s,s)-K_2(s,s). \tag{J}\label{eq:cm-J}
+\end{equation}
+The hypotheses require, in modern terms:
+\begin{enumerate}[leftmargin=2em]
+\item $K_1$ and $K_2$ are continuous on their closed triangles, and $K_1(0,s)=0$.
+\item For a.e. $s$, $t\mapsto K(t,s)$ is absolutely continuous after removing the jump at $t=s$.
+\item A representative $H(t,s)$ of $\partial K(t,s)/\partial t$ can be chosen with bounded variation in $t$ and with integrable uniform bounds:
+\[
+  \int_0^1 \sup_{0\le t\le1}|H(t,s)|\,ds<\infty,
+  \qquad
+  \int_0^1 \operatorname{var}_{0\le t\le1}(H(\cdot,s))\,ds<\infty.
+\]
+\item $J$ has bounded variation on $[0,1]$.
+\item The Fredholm determinant $D$ defined below is nonzero.
+\end{enumerate}
+The determinant is
+\begin{equation}
+  D=1+\sum_{m=1}^{\infty}\frac{1}{m!}
+     \int_0^1\cdots\int_0^1
+     \det\big(K(s_i,s_j)\big)_{i,j=1}^m\,ds_1\cdots ds_m. \tag{D}\label{eq:cm-D}
+\end{equation}
+This is the Fredholm determinant of $I+K$ in the integral-operator sense used by the paper.
+
+\section{The main homogeneous transformation formula}
+For a Wiener measurable set $S$, let $TS$ denote the image of $S$ under \eqref{eq:cm-T}.  Theorem I states that
+\begin{equation}
+  \int_{TS}d_wy=|D|\int_S \exp(-\Phi[x])\,d_wx, \tag{I-set}\label{eq:cm-I-set}
+\end{equation}
+and, more generally, for measurable $F$ for which either side exists,
+\begin{equation}
+  \int_{TS}F[y]d_wy
+  =|D|\int_S F\!\bigg[x+\int_0^1K(\cdot,s)x(s)\,ds\bigg]\exp(-\Phi[x])\,d_wx. \tag{I-fun}\label{eq:cm-I-fun}
+\end{equation}
+The exponent is a quadratic/Stieltjes functional:
+\begin{align}
+  \Phi[x]
+  &=\int_0^1\left[-\int_0^1 \frac{\partial K}{\partial t}(t,s)x(s)\,ds\right]^2dt  \notag\\
+  &\quad +2\int_0^1\left[-\int_0^1 \frac{\partial K}{\partial t}(t,s)x(s)\,ds\right]dx(t)
+    +\int_0^1J(s)\,d\{x(s)^2\}. \tag{Phi}\label{eq:cm-Phi}
+\end{align}
+The second and third terms are Riemann--Stieltjes type terms under the bounded-variation hypotheses.  The paper explicitly warns that the two Stieltjes terms cannot simply be merged into one informal stochastic integral; the diagonal values of $K$ matter through the determinant and through $J$.
+
+\section{Theorem Ia: the proof target}
+The authors first prove a narrower functional version.
+
+\begin{distilled}[Theorem Ia]
+If $F$ is bounded, uniformly continuous on $C$ with respect to the sup norm, and vanishes outside a sup-norm bounded set, then
+\[
+  \int_C F[y]d_wy
+  =|D|\int_C F\!\bigg[x+\int_0^1K(\cdot,s)x(s)\,ds\bigg]e^{-\Phi[x]}d_wx.
+\]
+\end{distilled}
+
+Theorem I for sets and general measurable functionals is obtained from Theorem Ia by approximating characteristic functions of quasi-intervals by continuous trapezoidal functionals and then using monotone convergence and the standard generation of Wiener measurable sets.
+
+\section{Polygonal kernels and the finite-dimensional reduction}
+The proof starts with a polygonal kernel $K_n(t,s)$ that is linear in $t$ on each interval $[j/n,(j+1)/n]$, vanishes at $t=0$, and is continuous in the square.  The transformation is
+\[
+  y(t)=x(t)+\int_0^1K_n(t,s)x(s)\,ds.
+\]
+At the grid points $t_j=j/n$, the increments of $y$ are affine linear functions of the increments of $x$.  Thus the Wiener density of the vector
+\[
+  (x(t_1),\ldots,x(t_n))
+\]
+can be transformed by an ordinary finite-dimensional determinant calculation.
+The matrix is
+\[
+  (\delta_{jp}+a_{jp})_{j,p=1}^n,
+\]
+where the coefficients $a_{jp}$ come from integrating the polygonal slopes of $K_n$ over the $p$th subinterval.  The nonzero determinant hypothesis is the finite-dimensional invertibility condition.
+
+\begin{distilled}[Lemma 1, modern role]
+For polygonal $K_n$, the Wiener integral transformation formula holds exactly, with the determinant of the finite-dimensional matrix and an explicit quadratic exponent obtained by completing the square in the joint Gaussian density of path increments.
+\end{distilled}
+
+This is the finite-dimensional heart of the paper: all later analysis is approximation and passage to limits.
+
+\section{Fredholm determinant approximation}
+The next lemmas prove that the finite determinants converge to the Fredholm determinant \eqref{eq:cm-D}.
+Let $K_n$ be the polygonal approximation of $K$.  Lemma 2 and its corollaries establish:
+\begin{enumerate}[leftmargin=2em]
+\item $K_n\to K$ uniformly on the square, except for the controlled diagonal/jump convention.
+\item The corresponding Fredholm determinants $D_n$ converge to $D$.
+\item If $D\ne0$, then $D_n\ne0$ for all sufficiently large $n$.
+\end{enumerate}
+The proof uses an explicit expansion of determinants into sums over permutations.  Lemma 3 associates to each point a pair of grid indices and controls the error made by replacing $K$ by its polygonalized form.  Lemma 4 reorganizes the determinant expansion by permutations.  The key analytic step is dominated convergence with a uniform determinant bound derived from the continuity and boundedness of $K$.
+
+\section{Convergence of the quadratic exponent}
+The functional $\Phi_n[x]$ associated to $K_n$ must converge to $\Phi[x]$.  This is the most technical part of the proof.
+The ingredients are:
+\begin{enumerate}[leftmargin=2em]
+\item $\partial_t K_n$ is an averaged/polygonalized approximation to $\partial_tK$.
+\item The deterministic $L^2$ term
+\[
+  \int_0^1\left(\int_0^1\partial_tK_n(t,s)x(s)ds\right)^2dt
+\]
+converges uniformly on bounded subsets of $C$.
+\item The Stieltjes term against $dx(t)$ is handled through bounded-variation approximations and integration by parts estimates.
+\item The diagonal jump term $\int J_n(s)d\{x(s)^2\}$ converges to $\int J(s)d\{x(s)^2\}$.
+\end{enumerate}
+Lemmas 5--7 supply the required estimates.  Lemma 6 controls integrals of the form
+\[
+  \int_0^1 H(t,s)x(s)\,ds
+\]
+and their variation in $t$.  Lemma 7 is the bounded-variation/Stieltjes lemma needed to pass from approximating functions to limits in expressions involving $d\{x(t)^2\}$.
+
+\section{Proof of Theorem Ia}
+For $F$ bounded, continuous, and supported on a sup-norm bounded subset of $C$, the polygonal formula gives
+\[
+  \int F[y]d_wy=|D_n|\int F[T_nx]e^{-\Phi_n[x]}d_wx.
+\]
+The authors pass $n\to\infty$.
+The convergence proof has three moving parts:
+\begin{enumerate}[leftmargin=2em]
+\item $D_n\to D$.
+\item $T_nx\to Tx$ uniformly in $t$ for each $x$, and uniformly enough on the support controlled by $F$.
+\item $\Phi_n[x]\to\Phi[x]$ in the sense needed for dominated convergence over the set where $F[T_nx]$ is nonzero.
+\end{enumerate}
+The support assumption on $F$ is used to avoid tail issues in Wiener space.  Outside a large sup-norm bounded region, $F[T_nx]$ is zero for all large $n$, so the limit can be justified with ordinary dominated convergence on the relevant bounded region.  This proves Theorem Ia.
+
+\section{From Theorem Ia to Theorem I}
+Theorem I requires measurable sets and arbitrary measurable functionals.  The authors first treat a quasi-interval
+\[
+  I=\{y\in C: \lambda_j<y(t_j)<\mu_j,
+  \quad j=1,\ldots,r\}.
+\]
+They approximate its indicator by continuous functionals
+\[
+  p_{I,\epsilon}(y)
+  =\psi_\epsilon(\max_{0\le t\le1}|y(t)|)
+   \prod_{j=1}^r\phi_{j,\epsilon}(y(t_j)),
+\]
+where the $\phi_{j,\epsilon}$ are trapezoidal cutoffs for the intervals $(\lambda_j,\mu_j)$ and $\psi_\epsilon$ is a bounded-support cutoff.  As $\epsilon\downarrow0$,
+\[
+  p_{I,\epsilon}(y)\uparrow \mathbf 1_I(y)
+\]
+pointwise up to boundary null sets.  Monotone convergence carries Theorem Ia to quasi-interval indicators.  Since quasi-intervals generate the Wiener sigma-algebra, a monotone-class argument yields \eqref{eq:cm-I-set}.  Applying the same argument to positive and signed parts of measurable functionals yields \eqref{eq:cm-I-fun}.
+
+\section{Adding a Cameron--Martin translation}
+Theorem II treats
+\begin{equation}
+  y(t)=x(t)+x_0(t)+\int_0^1K(t,s)x(s)\,ds, \tag{L}\label{eq:cm-L}
+\end{equation}
+where $x_0$ is absolutely continuous and $x_0'$ is essentially of bounded variation.
+The map \eqref{eq:cm-L} is factored as
+\[
+  x \xmapsto{T} z=x+Kx,
+  \qquad
+  z \xmapsto{V} y=z+x_0.
+\]
+The homogeneous formula applies to $T$, and the earlier Cameron--Martin translation theorem applies to $V$:
+\[
+  \int F[z+x_0]d_wz
+  =\exp\!\bigg(-\int_0^1(x_0'(t))^2dt\bigg)
+   \int F[z+x_0]\exp\!\bigg(-2\int_0^1x_0'(t)dz(t)\bigg)d_wz,
+\]
+with the normalization convention used in the 1945 paper.  Substituting $z=Tx$ and combining exponents gives
+\[
+  \int_{LS}F[y]d_wy
+  =|D|\int_S F\!\bigg[x+x_0+\int K(\cdot,s)x(s)ds\bigg]e^{-\Psi[x]}d_wx,
+\]
+where $\Psi$ is the sum of the homogeneous $\Phi$ and the translation terms.  This is Theorem II.
+
+\section{Example: characteristic function of $\int_0^1x(t)^2dt$}
+The final section applies Theorem I to
+\[
+  y(t)=x(t)+\lambda\int_0^1\tan(\lambda(s-1))x(s)\,ds,
+  \qquad -\pi/2<\lambda<\pi/2.
+\]
+For this kernel,
+\[
+  D=(\cos\lambda)^{1/2}
+\]
+and the quadratic exponent simplifies to
+\[
+  \Phi[x]=-\lambda^2\int_0^1x(s)^2ds.
+\]
+Taking $F\equiv1$ in the transformation formula gives
+\[
+  \int_C\exp\!\bigg(\lambda^2\int_0^1x(s)^2ds\bigg)d_wx
+  =(\cos\lambda)^{-1/2}.
+\]
+Analytic continuation then yields the characteristic function formula
+\[
+  \int_C\exp\!\bigg(ip\int_0^1x(s)^2ds\bigg)d_wx
+  =\left(\sec\sqrt{ip}\right)^{1/2},
+\]
+with the branch convention specified in the paper.
+
+\section{Formalization relevance}
+\begin{formalizationnotes}
+\item This source supports continuum quasi-invariance under linear transformations of Wiener measure, not finite Sinkhorn compactness.
+\item The proof decomposes into finite-dimensional Gaussian change-of-variables plus approximation.  That is the important formalization moral: a path-space theorem can be reduced to cylinder approximations, determinant convergence, and dominated/monotone convergence.
+\item The notation in the paper differs from the now-standard stochastic-calculus normalization.  Do not mix the exponent constants from this paper with modern $\frac12\|h'\|_2^2$ Cameron--Martin conventions without checking the Wiener-measure normalization.
+\item If only translations are required, cite the translation theorem directly or a modern Cameron--Martin theorem.  Use this paper when a linear integral transformation or the historical determinant formula is relevant.
+\end{formalizationnotes}
+
+\section*{Checklist of details retained}
+\begin{itemize}[leftmargin=2em]
+\item The triangular kernel hypotheses and diagonal convention.
+\item The Fredholm determinant $D$.
+\item The three-term quadratic exponent with two Stieltjes terms.
+\item Theorem I, Theorem Ia, and Theorem II.
+\item The polygonal-kernel finite-dimensional reduction.
+\item Determinant convergence and exponent convergence roles of Lemmas 2--7.
+\item The quasi-interval approximation used to pass from continuous bounded $F$ to measurable sets.
+\item The final example evaluating the transform of $\int x^2$.
+\end{itemize}
 
 \input{references_manual}
 \end{document}

@@ -1,36 +1,262 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments for Kakutani Product-Measure Equivalence}
-\author{Generated proof-target note}
-\date{Local source: \texttt{Undergrad.2023S - Kakutani measure equivalence.pdf} plus original citation}
+\title{Modernized Proof Notes for Kakutani Product-Measure Equivalence}
+\author{Generated proof-target note for the AIQ DRSB formalization corpus}
+\date{Local source: \texttt{Undergrad.2023S - Kakutani measure equivalence.pdf}; primary citation: Kakutani 1948}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-The uploaded source is an undergraduate exposition of Kakutani's product-measure equivalence theorem.  The primary reference to cite for formalization provenance is Kakutani, \emph{On Equivalence of Infinite Product Measures}, Annals of Mathematics 49(1), 214--224, 1948 \cite{Kakutani1948}.
+\section*{Reference and purpose}
+The local source is a modern exposition of Kakutani's criterion for equivalence of product measures, based on Shizuo Kakutani, ``On Equivalence of Infinite Product Measures,'' \emph{Annals of Mathematics}, 49(1):214--224, 1948 \cite{Kakutani1948}.  The uploaded exposition is not an arXiv paper and is useful because it supplies details omitted in the original article.  This note expands the terse project distillation into a proof-level map.
 
-\section*{Role in the formalization}
-This is relevant if the project formalizes equivalence/singularity of infinite product measures, especially Gaussian sequence measures.  It is background for path-space measure equivalence, not a finite Sinkhorn source.
-
-\begin{distillation}
-\item \textbf{Finite Hellinger affinity.}  For probability measures $\mu,\nu$ with densities relative to a common dominating measure, define
+\section{Hellinger affinity}
+Let $\mu$ and $\nu$ be probability measures on the same measurable space.  Choose a dominating measure $\lambda$ with $\mu,\nu\ll\lambda$ and define the Hellinger affinity
+\begin{equation}
+  \rho(\mu,\nu)=\int \sqrt{\frac{d\mu}{d\lambda}\frac{d\nu}{d\lambda}}\,d\lambda. \tag{rho}\label{eq:kak-rho}
+\end{equation}
+This is independent of the choice of $\lambda$, by the Radon--Nikodym chain rule.  If $\mu\sim\nu$, then with $R=d\nu/d\mu$,
+\begin{equation}
+  \rho(\mu,\nu)=\int\sqrt{R}\,d\mu. \tag{rhoRN}\label{eq:kak-rhoRN}
+\end{equation}
+By Cauchy--Schwarz,
 \[
-  \rho(\mu,
-u)=\int \sqrt{\frac{d\mu}{d\lambda}\frac{d\nu}{d\lambda}}\,d\lambda.
+  0<\rho(\mu,\nu)\le1,
 \]
-\item \textbf{Product factorization.}  For finite products, Hellinger affinity multiplies:
+with equality $\rho=1$ iff $\mu=\nu$.
+
+The squared Hellinger distance is
+\begin{equation}
+  d^2(\mu,\nu)=2(1-\rho(\mu,\nu)). \tag{hell}\label{eq:kak-hell}
+\end{equation}
+The product criterion can be stated either with $\prod\rho_n>0$, $\sum -\log\rho_n<\infty$, or $\sum d^2(\mu_n,\nu_n)<\infty$.
+
+\section{Setup for infinite products}
+Let $(X_n,\mathcal B_n)_{n\in\mathbb N}$ be measurable spaces and let $\mu_n$ and $\nu_n$ be equivalent probability measures on $X_n$.  Define
 \[
-  \rho\left(\bigotimes_{k=1}^n\mu_k,\bigotimes_{k=1}^n\nu_k\right)=\prod_{k=1}^n\rho(\mu_k,
-u_k).
+  X=\prod_{n\in\mathbb N}X_n,
+  \qquad
+  \mu=\bigotimes_{n\in\mathbb N}\mu_n,
+  \qquad
+  \nu=\bigotimes_{n\in\mathbb N}\nu_n.
 \]
-\item \textbf{Infinite dichotomy.}  Infinite product measures $\bigotimes_k\mu_k$ and $\bigotimes_k\nu_k$ are either equivalent or mutually singular.  Equivalence is characterized by positivity of the infinite product of affinities, equivalently summability of the Hellinger deficits in common cases.
-\item \textbf{Gaussian specialization.}  For Gaussian product measures, the affinity can be computed coordinatewise, yielding explicit square-summability conditions for shifts/scales.
-\end{distillation}
+Let
+\begin{equation}
+  R_n=\frac{d\nu_n}{d\mu_n}. \tag{Rn}\label{eq:kak-Rn}
+\end{equation}
+Viewed on $X$, $R_n(x)$ depends only on the $n$th coordinate.  Therefore the family $(R_n)$ is independent under $\mu$.
 
-\section*{Lean comparison targets}
-This theorem is a useful reference for any long-term continuum/Gaussian path-measure equivalence work.  It should not be cited for finite-dimensional phase compactness or projective Sinkhorn convergence.
+\section{The theorem}
+\begin{distilled}[Kakutani product-measure theorem]
+With the setup above, the following are equivalent:
+\begin{enumerate}[leftmargin=2em]
+\item $\mu$ and $\nu$ are not mutually singular;
+\item $\mu\sim\nu$;
+\item $\prod_{n=1}^{\infty}\rho(\mu_n,\nu_n)>0$;
+\item $\sum_{n=1}^{\infty}-\log\rho(\mu_n,\nu_n)<\infty$;
+\item $\sum_{n=1}^{\infty}d^2(\mu_n,\nu_n)<\infty$.
+\end{enumerate}
+Consequently, infinite product measures are either equivalent or mutually singular.
+\end{distilled}
 
-\section*{Distillation gaps}
-\TODO{Replace the undergraduate exposition with the original Kakutani PDF if available, or add page/section anchors from the original paper.}
+The easy equivalences are:
+\begin{itemize}[leftmargin=2em]
+\item equivalence implies non-orthogonality;
+\item $\prod\rho_n>0$ iff $\sum -\log\rho_n<\infty$;
+\item $\sum -\log\rho_n<\infty$ iff $\sum(1-\rho_n)<\infty$, hence iff $\sum d^2(\mu_n,\nu_n)<\infty$, by limit comparison near $1$.
+\end{itemize}
+The hard directions are
+\[
+  \prod\rho_n>0\Rightarrow \mu\sim\nu,
+  \qquad
+  \mu\not\perp\nu\Rightarrow \prod\rho_n>0.
+\]
+
+\section{Finite product factorization}
+For $k<\infty$, write
+\[
+  \mu_{\le k}=\bigotimes_{n\le k}\mu_n,
+  \qquad
+  \nu_{\le k}=\bigotimes_{n\le k}\nu_n.
+\]
+Then
+\begin{equation}
+  \frac{d\nu_{\le k}}{d\mu_{\le k}}=\prod_{n\le k}R_n. \tag{finiteRN}\label{eq:kak-finiteRN}
+\end{equation}
+Proof: on elementary rectangles $E=\prod_{n\le k}E_n$,
+\begin{align*}
+  \nu_{\le k}(E)&=\prod_{n\le k}\nu_n(E_n)
+  =\prod_{n\le k}\int_{E_n}R_n\,d\mu_n \\
+  &=\int_E\prod_{n\le k}R_n\,d\mu_{\le k},
+\end{align*}
+using independence/Tonelli.  The two measures agree on elementary rectangles, hence on the product sigma-algebra by uniqueness/extension.
+
+Taking square roots and integrating yields multiplicativity of affinity:
+\begin{equation}
+  \rho(\mu_{\le k},\nu_{\le k})=\prod_{n\le k}\rho(\mu_n,\nu_n). \tag{finiteRho}\label{eq:kak-finiteRho}
+\end{equation}
+
+\section{The $L^2$ martingale-like sequence}
+Define
+\begin{equation}
+  \psi_k=\prod_{n\le k}\sqrt{R_n}. \tag{psi}\label{eq:kak-psi}
+\end{equation}
+Then $\psi_k\in L^2(X,\mu)$ and
+\[
+  \|\psi_k\|_{L^2(\mu)}^2=\
+  \int\prod_{n\le k}R_n\,d\mu=1.
+\]
+For $l>k$,
+\begin{align}
+  \|\psi_l-\psi_k\|_2^2
+  &=\|\psi_l\|_2^2+\|\psi_k\|_2^2-2\int\psi_l\psi_k\,d\mu \notag\\
+  &=2\left(1-\prod_{n=k+1}^l\rho(\mu_n,\nu_n)\right). \tag{cauchy}\label{eq:kak-cauchy}
+\end{align}
+If $\prod_n\rho(\mu_n,\nu_n)>0$, then the tail products tend to $1$, so $(\psi_k)$ is Cauchy in $L^2(\mu)$.  Let
+\begin{equation}
+  \psi_k\to\psi\quad\hbox{in }L^2(\mu). \tag{limit}\label{eq:kak-limit}
+\end{equation}
+
+\section{Positive product implies equivalence}
+Assume
+\[
+  \prod_n\rho(\mu_n,\nu_n)>0.
+\]
+For a cylinder set $E$ depending only on the first $m$ coordinates, if $k\ge m$ then
+\[
+  \nu(E)=\int_E\psi_k^2\,d\mu.
+\]
+Since $\psi_k\to\psi$ in $L^2$, also $\psi_k^2\to\psi^2$ in $L^1$ because
+\[
+  \|\psi_k^2-\psi^2\|_1
+  \le \|\psi_k-\psi\|_2\,\|\psi_k+
+\psi\|_2.
+\]
+Thus
+\begin{equation}
+  \nu(E)=\int_E\psi^2\,d\mu \tag{RNprod}\label{eq:kak-RNprod}
+\end{equation}
+for all cylinder sets $E$.  The measure
+\[
+  \lambda(B)=\int_B\psi^2\,d\mu
+\]
+agrees with $\nu$ on the cylinder ring, hence on the product sigma-algebra.  Therefore
+\[
+  \nu\ll\mu,
+  \qquad
+  \frac{d\nu}{d\mu}=\psi^2.
+\]
+By symmetry, using $d\mu_n/d\nu_n$, we also get $\mu\ll\nu$.  Hence $\mu\sim\nu$.
+
+\section{Zero product implies orthogonality}
+The contrapositive of ``not orthogonal implies positive product'' is easier.  Assume
+\[
+  \prod_n\rho(\mu_n,\nu_n)=0.
+\]
+Fix $\varepsilon>0$.  Choose $k$ such that
+\[
+  \prod_{n\le k}\rho(\mu_n,\nu_n)<\varepsilon.
+\]
+Let
+\begin{equation}
+  B_{\le k}=\left\{x_{\le k}:\prod_{n\le k}R_n(x_n)>1\right\}. \tag{B}\label{eq:kak-B}
+\end{equation}
+On $B_{\le k}$, $1\le\sqrt{\prod R_n}$, hence
+\begin{align*}
+  \mu_{\le k}(B_{\le k})
+  &\le\int_{B_{\le k}}\sqrt{\prod_{n\le k}R_n}\,d\mu_{\le k}
+  \le\rho(\mu_{\le k},\nu_{\le k})<\varepsilon.
+\end{align*}
+On the complement, $\prod R_n\le\sqrt{\prod R_n}$, so
+\begin{align*}
+  \nu_{\le k}(X_{\le k}\setminus B_{\le k})
+  &=\int_{X_{\le k}\setminus B_{\le k}}\prod_{n\le k}R_n\,d\mu_{\le k}\\
+  &\le\int_{X_{\le k}\setminus B_{\le k}}\sqrt{\prod_{n\le k}R_n}\,d\mu_{\le k}
+  \le\rho(\mu_{\le k},\nu_{\le k})<\varepsilon.
+\end{align*}
+Extend $B_{\le k}$ to the full product by
+\[
+  B=B_{\le k}\times\prod_{n>k}X_n.
+\]
+Then
+\[
+  \mu(B)<\varepsilon,
+  \qquad
+  \nu(X\setminus B)<\varepsilon.
+\]
+Since this holds for every $\varepsilon>0$, $\mu\perp\nu$.
+
+\section{Radon--Nikodym derivative as an infinite product}
+When $\mu\sim\nu$, the limit above identifies
+\[
+  \frac{d\nu}{d\mu}=\lim_{k\to\infty}\prod_{n\le k}R_n
+\]
+in $L^1(\mu)$ and, after taking subsequences/using the independent-series argument cited in the exposition, almost everywhere.  This is the rigorous version of the formal identity
+\begin{equation}
+  \frac{d\nu}{d\mu}(x)=\prod_{n=1}^{\infty}\frac{d\nu_n}{d\mu_n}(x_n). \tag{infRN}\label{eq:kak-infRN}
+\end{equation}
+The product may fail to converge in the orthogonal case; the theorem says precisely that the positive Hellinger product is the condition under which this derivative exists as an equivalence density.
+
+\section{Cantor/Bernoulli specialization}
+For $X_n=\{0,1\}$, set
+\[
+  \mu_n(0)=\alpha_n,
+  \qquad
+  \nu_n(0)=\beta_n.
+\]
+Then
+\begin{align}
+  \rho(\mu_n,\nu_n)
+  &=\sqrt{\alpha_n\beta_n}+\sqrt{(1-\alpha_n)(1-\beta_n)},\\
+  d^2(\mu_n,\nu_n)
+  &=(\sqrt{\alpha_n}-\sqrt{\beta_n})^2
+    +(\sqrt{1-\alpha_n}-\sqrt{1-\beta_n})^2. \tag{bern}\label{eq:kak-bern}
+\end{align}
+If there is a uniform $\gamma\in(0,1)$ such that
+\[
+  \gamma\le\alpha_n,\beta_n\le1-\gamma,
+\]
+then the summands in \eqref{eq:kak-bern} are comparable to $(\alpha_n-\beta_n)^2$.  Hence
+\[
+  \bigotimes_n\mu_n\sim\bigotimes_n\nu_n
+  \quad\Longleftrightarrow\quad
+  \sum_n(\alpha_n-\beta_n)^2<\infty.
+\]
+If the sum diverges, the products are mutually singular.
+
+\section{Gaussian-product specialization}
+For one-dimensional Gaussian coordinates with equal variance and shifted means,
+\[
+  \mu_n=N(0,\sigma_n^2),
+  \qquad
+  \nu_n=N(m_n,\sigma_n^2),
+\]
+the affinity is
+\[
+  \rho(\mu_n,\nu_n)=\exp\left(-\frac{m_n^2}{8\sigma_n^2}\right).
+\]
+Thus the product measures are equivalent iff
+\[
+  \sum_n\frac{m_n^2}{\sigma_n^2}<\infty.
+\]
+This is the sequence-space shadow of the Cameron--Martin theorem: the shift belongs to the reproducing-kernel/Cameron--Martin Hilbert space exactly when the Gaussian product measures are equivalent.
+
+\section{Formalization relevance}
+\begin{formalizationnotes}
+\item This theorem is relevant for infinite product and Gaussian sequence measure equivalence, not finite Sinkhorn convergence.
+\item The proof uses only measure theory, Radon--Nikodym derivatives, product measures, independence, Tonelli, $L^2$ convergence, and a measure-extension argument.  It is more plausible to formalize than full Wiener-space Girsanov.
+\item The core reusable lemma is \eqref{eq:kak-cauchy}: the $L^2$ distance between finite square-root density products is controlled by the tail Hellinger product.
+\item For continuum Gaussian path measures, use Kakutani as a bridge between finite-dimensional Gaussian product approximations and Cameron--Martin-type equivalence.
+\end{formalizationnotes}
+
+\section*{Checklist of details retained}
+\begin{itemize}[leftmargin=2em]
+\item Hellinger affinity and independence from the dominating measure.
+\item Finite product Radon--Nikodym derivative and affinity factorization.
+\item The $\psi_k=\prod_{n\le k}\sqrt{R_n}$ construction.
+\item The $L^2$ Cauchy estimate from tail Hellinger products.
+\item Construction of $d\nu/d\mu=\psi^2$ when the product is positive.
+\item The small-set proof of orthogonality when the product is zero.
+\item Bernoulli/Cantor and Gaussian specializations.
+\end{itemize}
 
 \input{references_manual}
 \end{document}

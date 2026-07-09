@@ -902,6 +902,57 @@ To prove two nonnegative scalar spreads tend to zero, it is enough to rule out e
 monotone subsequence on which at least one of the spreads stays above a fixed positive threshold.
 This is the compactness/limsup bookkeeping layer, separated from the Sinkhorn-specific
 Hilbert/Fortet argument below. -/
+private theorem eventually_lt_left_of_no_positive_subsequence
+    (s₀ s₁ : ℕ → ℝ)
+    (hno_pos_subseq : ∀ ε : ℝ, 0 < ε →
+      ¬ ∃ subseq : ℕ → ℕ,
+        StrictMono subseq ∧
+          ∀ n, ε ≤ s₀ (subseq n) ∨ ε ≤ s₁ (subseq n))
+    {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ k in Filter.atTop, s₀ k < ε := by
+  rw [Filter.eventually_atTop]
+  by_contra hbad
+  push Not at hbad
+  have hfreq : ∃ᶠ k in Filter.atTop, ε ≤ s₀ k := by
+    rw [Filter.frequently_atTop]
+    intro N
+    obtain ⟨k, hNk, hkbad⟩ := hbad N
+    exact ⟨k, hNk, hkbad⟩
+  obtain ⟨subseq, hsubseq, hsubseq_prop⟩ :=
+    Filter.extraction_of_frequently_atTop hfreq
+  exact hno_pos_subseq ε hε ⟨subseq, hsubseq, fun n => Or.inl (hsubseq_prop n)⟩
+
+private theorem eventually_lt_right_of_no_positive_subsequence
+    (s₀ s₁ : ℕ → ℝ)
+    (hno_pos_subseq : ∀ ε : ℝ, 0 < ε →
+      ¬ ∃ subseq : ℕ → ℕ,
+        StrictMono subseq ∧
+          ∀ n, ε ≤ s₀ (subseq n) ∨ ε ≤ s₁ (subseq n))
+    {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ k in Filter.atTop, s₁ k < ε := by
+  rw [Filter.eventually_atTop]
+  by_contra hbad
+  push Not at hbad
+  have hfreq : ∃ᶠ k in Filter.atTop, ε ≤ s₁ k := by
+    rw [Filter.frequently_atTop]
+    intro N
+    obtain ⟨k, hNk, hkbad⟩ := hbad N
+    exact ⟨k, hNk, hkbad⟩
+  obtain ⟨subseq, hsubseq, hsubseq_prop⟩ :=
+    Filter.extraction_of_frequently_atTop hfreq
+  exact hno_pos_subseq ε hε ⟨subseq, hsubseq, fun n => Or.inr (hsubseq_prop n)⟩
+
+private theorem tendsto_nonnegative_atTop_zero_of_eventually_lt
+    (s : ℕ → ℝ)
+    (hs_nonneg : ∀ k, 0 ≤ s k)
+    (hsmall : ∀ ε : ℝ, 0 < ε → ∀ᶠ k in Filter.atTop, s k < ε) :
+    Filter.Tendsto s Filter.atTop (nhds (0 : ℝ)) := by
+  rw [Metric.tendsto_nhds]
+  intro ε hε
+  filter_upwards [hsmall ε hε] with k hk
+  have hsabs : |s k| = s k := abs_of_nonneg (hs_nonneg k)
+  simpa [dist_eq_norm, Real.norm_eq_abs, sub_zero, hsabs] using hk
+
 theorem tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence
     (s₀ s₁ : ℕ → ℝ)
     (hs₀_nonneg : ∀ k, 0 ≤ s₀ k)
@@ -912,15 +963,17 @@ theorem tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence
           ∀ n, ε ≤ s₀ (subseq n) ∨ ε ≤ s₁ (subseq n)) :
     Filter.Tendsto s₀ Filter.atTop (nhds (0 : ℝ)) ∧
       Filter.Tendsto s₁ Filter.atTop (nhds (0 : ℝ)) := by
-  -- Pure order/topology lemma.  Prove by contraposition: if one nonnegative sequence does not
-  -- tend to zero, extract a strictly increasing subsequence above some positive threshold.
-  -- This is independent of Sinkhorn dynamics.
-  sorry
+  refine ⟨?_, ?_⟩
+  · exact tendsto_nonnegative_atTop_zero_of_eventually_lt s₀ hs₀_nonneg
+      (fun ε hε => eventually_lt_left_of_no_positive_subsequence s₀ s₁ hno_pos_subseq hε)
+  · exact tendsto_nonnegative_atTop_zero_of_eventually_lt s₁ hs₁_nonneg
+      (fun ε hε => eventually_lt_right_of_no_positive_subsequence s₀ s₁ hno_pos_subseq hε)
 
 /-- No positive-limsup subsequence for the coupled backward denominator spread.
 
-This is now the single Sinkhorn-specific hard theorem.  It should be proved by the original
-Fortet/Hilbert/Birkhoff argument: assume a bad subsequence with spread bounded below, extract a
+This is now the single Sinkhorn-specific hard theorem.  The uploaded distillations identify the
+intended route as Franklin--Lorenz matrix-scaling convergence plus the Carroll / Birkhoff--Hopf
+positive-matrix contraction principle: assume a bad subsequence with spread bounded below, extract a
 phase-compatible finite cluster using the uniform box bounds, pass the alternating positive-kernel
 update equations to the limit, and use strict positivity of `G` to force the two backward-ratio
 vectors to be projectively constant, contradicting the positive spread. -/

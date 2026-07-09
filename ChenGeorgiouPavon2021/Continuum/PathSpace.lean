@@ -146,10 +146,22 @@ theorem continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncremen
     (fun k => intervalDyadicIncrement_eq_of_normalizedContinuousAnchoredIntervalDyadicIncrement_eq
       ω η level k (hN level))
 
+/-- General interval-path density seam for dyadic-grid equality.
+
+This is the topological/density part of path separation, stated without the anchored subtype:
+bounded dyadic grid points are dense in `[0,1]`, and two continuous interval paths agreeing on that
+dense grid agree everywhere. -/
+theorem intervalPath_eq_of_continuous_of_dyadicGrid_eq
+    (ω η : IntervalPath) (hω : Continuous ω) (hη : Continuous η)
+    (hgrid : ∀ level i, i ≤ 2 ^ level →
+      ω (intervalDyadicTime level i) = η (intervalDyadicTime level i)) :
+    ω = η := by
+  sorry
+
 /-- Equality on all true dyadic grid points extends to equality of anchored continuous interval paths.
 
-This is the topological/density part of path separation: bounded dyadic grid points are dense in
-`[0,1]`, and two continuous functions agreeing on that dense set agree everywhere. -/
+This wrapper now contains only subtype bookkeeping; the analytic density statement is isolated in
+`intervalPath_eq_of_continuous_of_dyadicGrid_eq`. -/
 theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq
     (ω η : ContinuousAnchoredIntervalPath)
     (hgrid : ∀ level i, i ≤ 2 ^ level →
@@ -157,7 +169,13 @@ theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq
         = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i)) :
     continuousAnchoredIntervalPathToIntervalPath ω
       = continuousAnchoredIntervalPathToIntervalPath η := by
-  sorry
+  have hωcont : Continuous (continuousAnchoredIntervalPathToIntervalPath ω) := by
+    simpa [continuousAnchoredIntervalPathToIntervalPath] using ω.2.2
+  have hηcont : Continuous (continuousAnchoredIntervalPathToIntervalPath η) := by
+    simpa [continuousAnchoredIntervalPathToIntervalPath] using η.2.2
+  exact intervalPath_eq_of_continuous_of_dyadicGrid_eq
+    (continuousAnchoredIntervalPathToIntervalPath ω)
+    (continuousAnchoredIntervalPathToIntervalPath η) hωcont hηcont hgrid
 
 /-- Point-separation target reduced to finite-grid recovery plus dyadic-density continuity. -/
 theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_normalizedDyadicIncrements_eq
@@ -181,16 +199,43 @@ theorem continuousAnchoredIntervalPath_ext_of_normalizedDyadicIncrements_eq
   exact continuousAnchoredIntervalPath_ext_of_intervalPath_eq ω η
     (continuousAnchoredIntervalPath_toIntervalPath_eq_of_normalizedDyadicIncrements_eq ω η hN)
 
-/-- Generation target for the canonical anchored continuous interval path space.
+/-- Normalized dyadic increment maps on the anchored-continuous carrier are measurable. -/
+theorem measurable_normalizedContinuousAnchoredIntervalDyadicIncrementMap (level : ℕ) :
+    Measurable (normalizedContinuousAnchoredIntervalDyadicIncrementMap level) := by
+  change Measurable (fun ω : ContinuousAnchoredIntervalPath =>
+    normalizedIntervalDyadicIncrementMap level ω.1)
+  exact (measurable_normalizedIntervalDyadicIncrementMap level).comp measurable_subtype_coe
+
+/-- The dyadic-increment sigma-algebra is bounded above by the subtype measurable space. -/
+theorem normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_le :
+    (⨆ level : ℕ,
+        MeasurableSpace.comap (normalizedContinuousAnchoredIntervalDyadicIncrementMap level)
+          (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ)))
+      ≤ (inferInstance : MeasurableSpace ContinuousAnchoredIntervalPath) := by
+  refine iSup_le ?_
+  intro level
+  exact (measurable_normalizedContinuousAnchoredIntervalDyadicIncrementMap level).comap_le
+
+/-- Reverse generation seam for the canonical anchored continuous interval path space.
 
 This is the corrected replacement for the discarded overstrong theorem that dyadic increments on
 `[0,1]` generate all of `RealPath := ℝ → ℝ`.  On the anchored continuous interval carrier, dyadic
 increments should generate the Borel/subtype measurable space. -/
+theorem continuousAnchoredIntervalPath_measurableSpace_le_iSup_comap_normalizedDyadicIncrementMap :
+    (inferInstance : MeasurableSpace ContinuousAnchoredIntervalPath)
+      ≤ (⨆ level : ℕ,
+        MeasurableSpace.comap (normalizedContinuousAnchoredIntervalDyadicIncrementMap level)
+          (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ))) := by
+  sorry
+
+/-- Generation target for the canonical anchored continuous interval path space. -/
 theorem normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_eq :
     (⨆ level : ℕ,
         MeasurableSpace.comap (normalizedContinuousAnchoredIntervalDyadicIncrementMap level)
           (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ)))
       = (inferInstance : MeasurableSpace ContinuousAnchoredIntervalPath) := by
-  sorry
+  apply le_antisymm
+  · exact normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_le
+  · exact continuousAnchoredIntervalPath_measurableSpace_le_iSup_comap_normalizedDyadicIncrementMap
 
 end ChenGeorgiouPavon2021

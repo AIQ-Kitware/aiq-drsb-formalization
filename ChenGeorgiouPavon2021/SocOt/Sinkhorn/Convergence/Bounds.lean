@@ -115,11 +115,58 @@ summand; the upper bound comes from the finite sum of kernel coefficients times 
 bound. -/
 theorem sinkhorn_weighted_sum_phase_bounds {ι : Type*} [Fintype ι]
     (G : ι → ι → ℝ) (source target : ℕ → ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hsource_bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox source ε B)
-    (_hupdate : ∀ n j, target n j = ∑ i, G i j * source n i) :
+    (hG : ∀ i j, 0 < G i j)
+    (hsource_bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox source ε B)
+    (hupdate : ∀ n j, target n j = ∑ i, G i j * source n i) :
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox target ε B := by
-  sorry
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hne
+  · refine ⟨1, 1, by norm_num, by norm_num, ?_⟩
+    intro n j
+    exact isEmptyElim j
+  · letI : Nonempty ι := hne
+    obtain ⟨ε, B, hε, hB, hbox⟩ := hsource_bounds
+    obtain ⟨i0⟩ := hne
+    obtain ⟨jmin, _hjmin_mem, hjmin⟩ :=
+      Finset.exists_min_image (Finset.univ : Finset ι) (fun j => G i0 j) Finset.univ_nonempty
+    let εtarget : ℝ := G i0 jmin * ε
+    let C : ℝ := ∑ i, ∑ k, G i k
+    have hεtarget_pos : 0 < εtarget := by
+      dsimp [εtarget]
+      exact mul_pos (hG i0 jmin) hε
+    have hC_pos : 0 < C := by
+      dsimp [C]
+      exact Finset.sum_pos
+        (fun i _hi => Finset.sum_pos (fun k _hk => hG i k) Finset.univ_nonempty)
+        Finset.univ_nonempty
+    refine ⟨εtarget, C * B, hεtarget_pos, mul_pos hC_pos hB, ?_⟩
+    intro n j
+    have hcoeff_j_le_C : (∑ i, G i j) ≤ C := by
+      dsimp [C]
+      exact Finset.sum_le_sum (fun i _hi =>
+        Finset.single_le_sum (fun k _hk => le_of_lt (hG i k)) (Finset.mem_univ j))
+    have htarget_lower_term : εtarget ≤ G i0 j * source n i0 := by
+      dsimp [εtarget]
+      exact mul_le_mul (hjmin j (Finset.mem_univ j)) (hbox n i0).1
+        (le_of_lt hε) (le_of_lt (hG i0 j))
+    have htarget_term_le_sum : G i0 j * source n i0 ≤ ∑ i, G i j * source n i := by
+      exact Finset.single_le_sum
+        (fun i _hi => mul_nonneg (le_of_lt (hG i j)) (le_trans (le_of_lt hε) (hbox n i).1))
+        (Finset.mem_univ i0)
+    have htarget_lower : εtarget ≤ target n j := by
+      rw [hupdate n j]
+      exact le_trans htarget_lower_term htarget_term_le_sum
+    have htarget_upper : target n j ≤ C * B := by
+      calc
+        target n j = ∑ i, G i j * source n i := hupdate n j
+        _ ≤ ∑ i, G i j * B := by
+          exact Finset.sum_le_sum (fun i _hi =>
+            mul_le_mul_of_nonneg_left (hbox n i).2 (le_of_lt (hG i j)))
+        _ = (∑ i, G i j) * B := by
+          rw [Finset.sum_mul]
+        _ ≤ C * B := by
+          exact mul_le_mul_of_nonneg_right hcoeff_j_le_C (le_of_lt hB)
+    exact ⟨htarget_lower, htarget_upper⟩
 
 /-- Hatted-left bounds from left-forward bounds and the left marginal normalization.
 

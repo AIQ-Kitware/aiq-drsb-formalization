@@ -120,7 +120,9 @@ theorem finite_sinkhorn_ratio_left_le_right_max {ι : Type*} [Fintype ι]
 
 /-- The marginal identities invert common-ratio upper bounds into hatted-ratio lower bounds.
 
-This is the algebraic bridge between the forward bound and the backward maximum principle. -/
+This is the algebraic bridge from the forward upper bound to the hatted-left side.  It is
+true pointwise because `ψ0 * ψhat0 = p = φ0 * φhat0`, so the hatted ratio is the inverse
+of the ordinary ratio. -/
 theorem finite_sinkhorn_hatted_ratio_lower_from_forward_upper {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
@@ -134,7 +136,8 @@ theorem finite_sinkhorn_hatted_ratio_lower_from_forward_upper {ι : Type*} [Fint
 /-- Backward weighted-average propagation for hatted ratios.
 
 Using the backward equations, a lower bound on all hatted-left ratios propagates to a lower bound on
-all hatted-right ratios. -/
+all hatted-right ratios.  This is useful but not by itself enough to prove ratio collapse: a lower
+bound on inverse ratios only recovers an upper bound on ordinary ratios. -/
 theorem finite_sinkhorn_backward_hatted_ratio_lower {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
@@ -146,35 +149,78 @@ theorem finite_sinkhorn_backward_hatted_ratio_lower {ι : Type*} [Fintype ι]
     ∀ j, M⁻¹ ≤ sinkhornRatio ψhat1 φhat1 j := by
   sorry
 
-/-- Marginal identities convert hatted-right lower bounds back to right-ratio lower bounds. -/
-theorem finite_sinkhorn_right_ratio_lower_from_hatted_lower {ι : Type*} [Fintype ι]
+/-- At the right-ratio maximizer, the hatted-right ratio is exactly the inverse maximum.
+
+This is the pointwise marginal-inversion equality for the distinguished index `jstar`. -/
+theorem finite_sinkhorn_hatted1_ratio_eq_inv_at_right_max {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
     (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
     (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
-    (M : ℝ)
-    (_hM_pos : 0 < M)
-    (_hhat1_lower : ∀ j, M⁻¹ ≤ sinkhornRatio ψhat1 φhat1 j) :
-    ∀ j, M ≤ sinkhornRatio ψ1 φ1 j := by
+    (jstar : ι) :
+    sinkhornRatio ψhat1 φhat1 jstar = (sinkhornRatio ψ1 φ1 jstar)⁻¹ := by
   sorry
 
-/-- Marginal identities also convert hatted-left lower bounds back to left-ratio lower bounds. -/
-theorem finite_sinkhorn_left_ratio_lower_from_hatted_lower {ι : Type*} [Fintype ι]
+/-- Strict positivity turns the single extremal equality into equality of all hatted-left ratios.
+
+The hard maximum-principle step is here: the backward equation writes the hatted-right ratio at
+`jstar` as a strictly-positive weighted average of the hatted-left ratios.  If every hatted-left
+ratio is at least `M⁻¹` and that weighted average is exactly `M⁻¹`, strict positivity forces every
+hatted-left ratio to equal `M⁻¹`. -/
+theorem finite_sinkhorn_backward_extreme_forces_hatted0_eq {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (M : ℝ) (jstar : ι)
+    (_hhat0_lower : ∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i)
+    (_hhat1_star : sinkhornRatio ψhat1 φhat1 jstar = M⁻¹) :
+    ∀ i, sinkhornRatio ψhat0 φhat0 i = M⁻¹ := by
+  sorry
+
+/-- Once all hatted-left ratios are extremal, the backward equation makes all hatted-right ratios
+extremal as well. -/
+theorem finite_sinkhorn_backward_hatted_ratio_eq_of_hatted0_eq {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (M : ℝ)
+    (_hhat0_eq : ∀ i, sinkhornRatio ψhat0 φhat0 i = M⁻¹) :
+    ∀ j, sinkhornRatio ψhat1 φhat1 j = M⁻¹ := by
+  sorry
+
+/-- Marginal identities convert exact hatted-right ratios back to exact right ratios. -/
+theorem finite_sinkhorn_right_ratio_eq_from_hatted_eq {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
     (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
     (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
     (M : ℝ)
     (_hM_pos : 0 < M)
-    (_hhat0_lower : ∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i) :
-    ∀ i, M ≤ sinkhornRatio ψ0 φ0 i := by
+    (_hhat1_eq : ∀ j, sinkhornRatio ψhat1 φhat1 j = M⁻¹) :
+    ∀ j, sinkhornRatio ψ1 φ1 j = M := by
+  sorry
+
+/-- Marginal identities convert exact hatted-left ratios back to exact left ratios. -/
+theorem finite_sinkhorn_left_ratio_eq_from_hatted_eq {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (M : ℝ)
+    (_hM_pos : 0 < M)
+    (_hhat0_eq : ∀ i, sinkhornRatio ψhat0 φhat0 i = M⁻¹) :
+    ∀ i, sinkhornRatio ψ0 φ0 i = M := by
   sorry
 
 /-- Reverse bounds from the hatted/backward equations and marginal normalizations.
 
 After the forward equations show all left ratios are bounded above by the right maximum, the
-backward equations for the hatted potentials and the identities `φ0 * φhat0 = p`, `φ1 * φhat1 = q`
-force the same maximum to be a lower bound for every left and right ratio. -/
+backward equation at the maximizing index forces equality throughout the strictly-positive finite
+kernel.  The lower-bound conclusion is packaged from exact left/right ratio equalities. -/
 theorem finite_sinkhorn_ratio_right_max_le_all {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
@@ -182,29 +228,41 @@ theorem finite_sinkhorn_ratio_right_max_le_all {ι : Type*} [Fintype ι]
     (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
     (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
     (jstar : ι)
-    (hright_max : ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar)
+    (_hright_max : ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar)
     (hleft_upper : ∀ i, sinkhornRatio ψ0 φ0 i ≤ sinkhornRatio ψ1 φ1 jstar) :
     (∀ i, sinkhornRatio ψ1 φ1 jstar ≤ sinkhornRatio ψ0 φ0 i) ∧
     (∀ j, sinkhornRatio ψ1 φ1 jstar ≤ sinkhornRatio ψ1 φ1 j) := by
-  have hM_pos : 0 < sinkhornRatio ψ1 φ1 jstar :=
-    div_pos (hψsys.φ1_pos jstar) (hφsys.φ1_pos jstar)
-  have hhat0_lower : ∀ i,
-      (sinkhornRatio ψ1 φ1 jstar)⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i :=
-    finite_sinkhorn_hatted_ratio_lower_from_forward_upper p q G
+  let M : ℝ := sinkhornRatio ψ1 φ1 jstar
+  have hM_pos : 0 < M := by
+    dsimp [M, sinkhornRatio]
+    exact div_pos (hψsys.φ1_pos jstar) (hφsys.φ1_pos jstar)
+  have hhat0_lower : ∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i := by
+    dsimp [M]
+    exact finite_sinkhorn_hatted_ratio_lower_from_forward_upper p q G
       φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys
       (sinkhornRatio ψ1 φ1 jstar) hleft_upper
-  have hhat1_lower : ∀ j,
-      (sinkhornRatio ψ1 φ1 jstar)⁻¹ ≤ sinkhornRatio ψhat1 φhat1 j :=
-    finite_sinkhorn_backward_hatted_ratio_lower p q G
+  have hhat1_star : sinkhornRatio ψhat1 φhat1 jstar = M⁻¹ := by
+    dsimp [M]
+    exact finite_sinkhorn_hatted1_ratio_eq_inv_at_right_max p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys jstar
+  have hhat0_eq : ∀ i, sinkhornRatio ψhat0 φhat0 i = M⁻¹ :=
+    finite_sinkhorn_backward_extreme_forces_hatted0_eq p q G
       φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys
-      (sinkhornRatio ψ1 φ1 jstar) hhat0_lower
+      M jstar hhat0_lower hhat1_star
+  have hhat1_eq : ∀ j, sinkhornRatio ψhat1 φhat1 j = M⁻¹ :=
+    finite_sinkhorn_backward_hatted_ratio_eq_of_hatted0_eq p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys M hhat0_eq
+  have hleft_eq : ∀ i, sinkhornRatio ψ0 φ0 i = M :=
+    finite_sinkhorn_left_ratio_eq_from_hatted_eq p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys M hM_pos hhat0_eq
+  have hright_eq : ∀ j, sinkhornRatio ψ1 φ1 j = M :=
+    finite_sinkhorn_right_ratio_eq_from_hatted_eq p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys M hM_pos hhat1_eq
   refine ⟨?_, ?_⟩
-  · exact finite_sinkhorn_left_ratio_lower_from_hatted_lower p q G
-      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys
-      (sinkhornRatio ψ1 φ1 jstar) hM_pos hhat0_lower
-  · exact finite_sinkhorn_right_ratio_lower_from_hatted_lower p q G
-      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys
-      (sinkhornRatio ψ1 φ1 jstar) hM_pos hhat1_lower
+  · intro i
+    exact le_of_eq (hleft_eq i).symm
+  · intro j
+    exact le_of_eq (hright_eq j).symm
 
 /-- The local maximum-principle bridge for finite Sinkhorn uniqueness.
 

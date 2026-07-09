@@ -80,13 +80,20 @@ theorem coe_boundedIntervalDyadicGridPoint
     ((boundedIntervalDyadicGridPoint p : UnitInterval) : ℝ) = dyadicTime p.1.1 p.1.2 := by
   exact coe_intervalDyadicTime_of_le p.1.1 p.1.2 p.2
 
-/-- The true bounded dyadic grid points are dense in the interval carrier.
+/-- Closure form of bounded dyadic-grid density.
 
-This is the remaining real-analysis seam for path separation: every `t ∈ [0,1]` is a limit of
-vertices `i / 2^level` with `0 ≤ i ≤ 2^level`. -/
+This is the remaining real-analysis seam for path separation: every `t ∈ [0,1]` lies in the
+closure of true vertices `i / 2^level` with `0 ≤ i ≤ 2^level`.  Keeping the seam in this
+pointwise closure form makes the eventual proof independent of the path-extensionality wrapper. -/
+theorem unitInterval_mem_closure_range_boundedIntervalDyadicGridPoint
+    (t : UnitInterval) :
+    t ∈ closure (Set.range boundedIntervalDyadicGridPoint) := by
+  sorry
+
+/-- The true bounded dyadic grid points are dense in the interval carrier. -/
 theorem denseRange_boundedIntervalDyadicGridPoint :
     DenseRange boundedIntervalDyadicGridPoint := by
-  sorry
+  exact unitInterval_mem_closure_range_boundedIntervalDyadicGridPoint
 
 /-- Anchored continuous interval paths agree at the zeroth dyadic grid point. -/
 theorem continuousAnchoredIntervalPath_dyadicGrid_zero_eq

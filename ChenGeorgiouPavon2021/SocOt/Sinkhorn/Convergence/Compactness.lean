@@ -1,8 +1,10 @@
 /-
 # Phase-compatible compactness seams for finite Sinkhorn convergence
 
-This file isolates bounded finite-dimensional subsequence extraction.  Follow-on compactness agents
-can work here without touching the Sinkhorn limit-passage or uniqueness assembly.
+This file isolates bounded finite-dimensional subsequence extraction.  The pure compactness theorem
+only produces six possibly distinct phase limits: current `φhat0`, successor `φhat0`, current `φ1`,
+and successor `φ1` need not agree for an arbitrary bounded sequence.  The remaining compatibility
+seam is therefore stated separately and explicitly uses the Sinkhorn iterate structure.
 -/
 
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Bounds
@@ -23,143 +25,197 @@ def SinkhornPhaseBoxBounds {ι : Type*}
     (∀ n j, ε ≤ φ1Iter n j ∧ φ1Iter n j ≤ B) ∧
     (∀ n j, ε ≤ φhat1Iter n j ∧ φhat1Iter n j ≤ B)
 
-/-- Tuple-valued finite-dimensional compactness for the six phase streams needed by the update
-relations.
+/-- Raw six-phase cluster point along a concrete absolute subsequence.
 
-This is the true topology/diagonal-extraction input for the one-cluster theorem.  The conclusion is
-kept as raw tendsto fields rather than `IsFiniteSinkhornClusterPointAlong` so future compactness work
-can focus on extraction without also opening the Sinkhorn cluster-point structure. -/
-theorem sinkhorn_phase_limit_tuple_subsequence_of_bounds {ι : Type*} [Fintype ι]
+This is the honest output of bounded finite-dimensional compactness.  The successor phases have
+separate limit names because boundedness alone cannot force
+`φhat0Iter (subseq n)` and `φhat0Iter (subseq n + 1)` to converge to the same function, and likewise
+for `φ1Iter`. -/
+structure IsFiniteSinkhornPhasePreclusterAlong {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ) : Prop where
+  strict_mono : StrictMono subseq
+  tendsto_φ0 : Filter.Tendsto (fun n => φ0Iter (subseq n)) Filter.atTop (nhds ψ0)
+  tendsto_φhat0 : Filter.Tendsto (fun n => φhat0Iter (subseq n)) Filter.atTop (nhds ψhat0)
+  tendsto_φhat0_succ :
+    Filter.Tendsto (fun n => φhat0Iter (subseq n + 1)) Filter.atTop (nhds ψhat0Succ)
+  tendsto_φ1 : Filter.Tendsto (fun n => φ1Iter (subseq n)) Filter.atTop (nhds ψ1)
+  tendsto_φ1_succ :
+    Filter.Tendsto (fun n => φ1Iter (subseq n + 1)) Filter.atTop (nhds ψ1Succ)
+  tendsto_φhat1 : Filter.Tendsto (fun n => φhat1Iter (subseq n)) Filter.atTop (nhds ψhat1)
+  positive :
+    (∀ i, 0 < ψ0 i) ∧
+    (∀ i, 0 < ψhat0 i) ∧
+    (∀ i, 0 < ψhat0Succ i) ∧
+    (∀ j, 0 < ψ1 j) ∧
+    (∀ j, 0 < ψ1Succ j) ∧
+    (∀ j, 0 < ψhat1 j)
+
+/-- Pure bounded finite-dimensional extraction for every outer subsequence.
+
+This is the true C2 compactness theorem.  It is pure topology/diagonal extraction: after choosing
+any outer subsequence, one can pass to a further subsequence where all six bounded phase streams have
+limits.  It deliberately does **not** assert phase compatibility of successor limits. -/
+theorem sinkhorn_outer_phase_precluster_subsequence_from_bounds {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
-    ∃ (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
-      StrictMono subseq ∧
-      Filter.Tendsto (fun n => φ0Iter (subseq n)) Filter.atTop (nhds ψ0) ∧
-      Filter.Tendsto (fun n => φhat0Iter (subseq n)) Filter.atTop (nhds ψhat0) ∧
-      Filter.Tendsto (fun n => φhat0Iter (subseq n + 1)) Filter.atTop (nhds ψhat0) ∧
-      Filter.Tendsto (fun n => φ1Iter (subseq n)) Filter.atTop (nhds ψ1) ∧
-      Filter.Tendsto (fun n => φ1Iter (subseq n + 1)) Filter.atTop (nhds ψ1) ∧
-      Filter.Tendsto (fun n => φhat1Iter (subseq n)) Filter.atTop (nhds ψhat1) ∧
-      ((∀ i, 0 < ψ0 i) ∧
-       (∀ i, 0 < ψhat0 i) ∧
-       (∀ j, 0 < ψ1 j) ∧
-       (∀ j, 0 < ψhat1 j)) := by
+    ∀ subseq : ℕ → ℕ, StrictMono subseq →
+      ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ),
+        IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+          (fun n => subseq (subsub n)) ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 := by
   sorry
 
-/-- Package the raw six-phase limit tuple as a phase-compatible Sinkhorn cluster point. -/
-theorem sinkhorn_cluster_along_of_phase_limit_tuple {ι : Type*} [Fintype ι]
+/-- One-cluster corollary of the outer-subsequence raw compactness theorem. -/
+theorem sinkhorn_phase_precluster_subsequence_of_bounds {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
-    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (hmono : StrictMono subseq)
-    (hφ0 : Filter.Tendsto (fun n => φ0Iter (subseq n)) Filter.atTop (nhds ψ0))
-    (hφhat0 : Filter.Tendsto (fun n => φhat0Iter (subseq n)) Filter.atTop (nhds ψhat0))
-    (hφhat0_succ : Filter.Tendsto (fun n => φhat0Iter (subseq n + 1)) Filter.atTop (nhds ψhat0))
-    (hφ1 : Filter.Tendsto (fun n => φ1Iter (subseq n)) Filter.atTop (nhds ψ1))
-    (hφ1_succ : Filter.Tendsto (fun n => φ1Iter (subseq n + 1)) Filter.atTop (nhds ψ1))
-    (hφhat1 : Filter.Tendsto (fun n => φhat1Iter (subseq n)) Filter.atTop (nhds ψhat1))
-    (hpos : (∀ i, 0 < ψ0 i) ∧
-       (∀ i, 0 < ψhat0 i) ∧
-       (∀ j, 0 < ψ1 j) ∧
-       (∀ j, 0 < ψhat1 j)) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    ∃ (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ),
+      IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+        subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 := by
+  have hid : StrictMono (fun n : ℕ => n) := by
+    intro a b hab
+    exact hab
+  obtain ⟨subseq, ψ0, ψhat0, ψhat0Succ, ψ1, ψ1Succ, ψhat1, hpre⟩ :=
+    sinkhorn_outer_phase_precluster_subsequence_from_bounds
+      φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds (fun n : ℕ => n) hid
+  exact ⟨subseq, ψ0, ψhat0, ψhat0Succ, ψ1, ψ1Succ, ψhat1, hpre⟩
+
+/-- Convert a raw six-phase precluster into the phase-compatible cluster predicate once the two
+successor limits are known to agree with their current-phase limits. -/
+theorem sinkhorn_cluster_along_of_precluster_successor_eq {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
+    (hψhat0 : ψhat0Succ = ψhat0) (hψ1 : ψ1Succ = ψ1) :
     IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψ1 ψhat1 := by
   exact {
-    strict_mono := hmono
-    tendsto_φ0 := hφ0
-    tendsto_φhat0 := hφhat0
-    tendsto_φhat0_succ := hφhat0_succ
-    tendsto_φ1 := hφ1
-    tendsto_φ1_succ := hφ1_succ
-    tendsto_φhat1 := hφhat1
-    positive := hpos }
+    strict_mono := hpre.strict_mono
+    tendsto_φ0 := hpre.tendsto_φ0
+    tendsto_φhat0 := hpre.tendsto_φhat0
+    tendsto_φhat0_succ := by
+      simpa [hψhat0] using hpre.tendsto_φhat0_succ
+    tendsto_φ1 := hpre.tendsto_φ1
+    tendsto_φ1_succ := by
+      simpa [hψ1] using hpre.tendsto_φ1_succ
+    tendsto_φhat1 := hpre.tendsto_φhat1
+    positive := ⟨hpre.positive.1, hpre.positive.2.1,
+      hpre.positive.2.2.2.1, hpre.positive.2.2.2.2.2⟩ }
 
-/-- Explicit subsequence form of bounded finite-dimensional compactness.
+/-- Sinkhorn-specific compatibility seam for raw six-phase preclusters.
 
-This target-facing wrapper should stay stable for downstream agents.  Its hard extraction work is
-isolated in `sinkhorn_phase_limit_tuple_subsequence_of_bounds`. -/
-theorem sinkhorn_phase_compatible_subsequence_along_of_bounds {ι : Type*} [Fintype ι]
+This is the non-compactness part that was previously hidden in the bounded-subsequence theorem.  A
+follow-on agent should prove that the Sinkhorn update equations rule out different current and
+successor limits for the hatted-left and right-forward phases. -/
+theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    ψhat0Succ = ψhat0 ∧ ψ1Succ = ψ1 := by
+  sorry
+
+/-- Upgrade a raw precluster to a phase-compatible cluster using gauge-normalized Sinkhorn iterate
+structure. -/
+theorem sinkhorn_cluster_along_of_precluster_from_gauge_iterates {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψ1 ψhat1 := by
+  obtain ⟨hψhat0, hψ1⟩ :=
+    sinkhorn_precluster_successor_limits_eq_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hpre
+  exact sinkhorn_cluster_along_of_precluster_successor_eq
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+    ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hψhat0 hψ1
+
+/-- Explicit subsequence form of bounded finite-dimensional compactness, upgraded to the
+phase-compatible Sinkhorn cluster predicate using gauge-normalized iterate structure. -/
+theorem sinkhorn_phase_compatible_subsequence_along_of_gauge_iterates_and_bounds {ι : Type*}
+    [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     ∃ (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
       IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
         subseq ψ0 ψhat0 ψ1 ψhat1 := by
-  obtain ⟨subseq, ψ0, ψhat0, ψ1, ψhat1,
-      hmono, hφ0, hφhat0, hφhat0_succ, hφ1, hφ1_succ, hφhat1, hpos⟩ :=
-    sinkhorn_phase_limit_tuple_subsequence_of_bounds
+  obtain ⟨subseq, ψ0, ψhat0, ψhat0Succ, ψ1, ψ1Succ, ψhat1, hpre⟩ :=
+    sinkhorn_phase_precluster_subsequence_of_bounds
       φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds
   exact ⟨subseq, ψ0, ψhat0, ψ1, ψhat1,
-    sinkhorn_cluster_along_of_phase_limit_tuple
-      φ0Iter φhat0Iter φ1Iter φhat1Iter subseq ψ0 ψhat0 ψ1 ψhat1
-      hmono hφ0 hφhat0 hφhat0_succ hφ1 hφ1_succ hφhat1 hpos⟩
+    sinkhorn_cluster_along_of_precluster_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hpre⟩
 
-/-- Bounded finite-dimensional sequences admit phase-compatible cluster subsequences.
-
-This target-facing wrapper hides the explicit subsequence only after the compactness theorem has
-produced it. -/
-theorem sinkhorn_phase_compatible_subsequence_of_bounds {ι : Type*} [Fintype ι]
+/-- Bounded finite-dimensional sequences admit phase-compatible cluster subsequences after using the
+gauge-normalized Sinkhorn iterate structure to identify current and successor limits. -/
+theorem sinkhorn_phase_compatible_subsequence_of_gauge_iterates_and_bounds {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     ∃ ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ,
       IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
         ψ0 ψhat0 ψ1 ψhat1 := by
   obtain ⟨subseq, ψ0, ψhat0, ψ1, ψhat1, halong⟩ :=
-    sinkhorn_phase_compatible_subsequence_along_of_bounds
-      φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds
+    sinkhorn_phase_compatible_subsequence_along_of_gauge_iterates_and_bounds p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hiter hgauge hbounds
   exact ⟨ψ0, ψhat0, ψ1, ψhat1,
     sinkhorn_cluster_point_of_along
       φ0Iter φhat0Iter φ1Iter φhat1Iter subseq ψ0 ψhat0 ψ1 ψhat1 halong⟩
 
-/-- Outer-subsequence version of the raw six-phase limit tuple.
-
-The important distinction from simply applying the one-cluster theorem to reindexed streams is the
-successor phase: the needed terms are `φhat0Iter (subseq (subsub n) + 1)` and
-`φ1Iter (subseq (subsub n) + 1)`, not the next value of the outer subsequence.  This theorem is
-therefore the genuine C2 diagonal surface for the final convergence proof. -/
-theorem sinkhorn_outer_phase_limit_tuple_subsequence_from_bounds {ι : Type*} [Fintype ι]
+/-- Bounded phase-compatible compactness for every outer subsequence, upgraded from a raw precluster
+by the Sinkhorn iterate equations. -/
+theorem sinkhorn_outer_subsequence_cluster_from_gauge_iterates_and_bounds {ι : Type*}
+    [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
-    ∀ subseq : ℕ → ℕ, StrictMono subseq →
-      ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
-        StrictMono (fun n => subseq (subsub n)) ∧
-        Filter.Tendsto (fun n => φ0Iter (subseq (subsub n))) Filter.atTop (nhds ψ0) ∧
-        Filter.Tendsto (fun n => φhat0Iter (subseq (subsub n))) Filter.atTop (nhds ψhat0) ∧
-        Filter.Tendsto (fun n => φhat0Iter (subseq (subsub n) + 1)) Filter.atTop (nhds ψhat0) ∧
-        Filter.Tendsto (fun n => φ1Iter (subseq (subsub n))) Filter.atTop (nhds ψ1) ∧
-        Filter.Tendsto (fun n => φ1Iter (subseq (subsub n) + 1)) Filter.atTop (nhds ψ1) ∧
-        Filter.Tendsto (fun n => φhat1Iter (subseq (subsub n))) Filter.atTop (nhds ψhat1) ∧
-        ((∀ i, 0 < ψ0 i) ∧
-         (∀ i, 0 < ψhat0 i) ∧
-         (∀ j, 0 < ψ1 j) ∧
-         (∀ j, 0 < ψhat1 j)) := by
-  sorry
-
-/-- Bounded phase-compatible compactness for every outer subsequence.
-
-This is the hard diagonal compactness theorem in the form used by the final convergence argument:
-first choose any outer subsequence, then extract a further subsequence whose absolute indices are
-`subseq (subsub n)` and whose successor phases also converge. -/
-theorem sinkhorn_outer_subsequence_cluster_from_bounds {ι : Type*} [Fintype ι]
-    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     ∀ subseq : ℕ → ℕ, StrictMono subseq →
       ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
         IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
           (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1 := by
   intro subseq hsubseq
-  obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1,
-      hmono, hφ0, hφhat0, hφhat0_succ, hφ1, hφ1_succ, hφhat1, hpos⟩ :=
-    sinkhorn_outer_phase_limit_tuple_subsequence_from_bounds
+  obtain ⟨subsub, ψ0, ψhat0, ψhat0Succ, ψ1, ψ1Succ, ψhat1, hpre⟩ :=
+    sinkhorn_outer_phase_precluster_subsequence_from_bounds
       φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds subseq hsubseq
   exact ⟨subsub, ψ0, ψhat0, ψ1, ψhat1,
-    sinkhorn_cluster_along_of_phase_limit_tuple
-      φ0Iter φhat0Iter φ1Iter φhat1Iter (fun n => subseq (subsub n))
-      ψ0 ψhat0 ψ1 ψhat1 hmono hφ0 hφhat0 hφhat0_succ hφ1 hφ1_succ hφhat1 hpos⟩
+    sinkhorn_cluster_along_of_precluster_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      (fun n => subseq (subsub n)) ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1
+      hiter hgauge hpre⟩
 
 /-- Every outer subsequence has a further phase-compatible cluster subsequence.
 
-This is the sequential-compactness form needed for the final convergence theorem, not merely for
-existence of one cluster point of the original sequence.  The remaining work is now split between
-uniform gauge bounds and the pure bounded-subsequence compactness theorem above. -/
+This is the sequential-compactness form needed for the final convergence theorem.  The compactness
+part now produces only a raw six-phase precluster; gauge-normalized Sinkhorn iterate structure supplies the separate
+successor-limit compatibility seam. -/
 theorem sinkhorn_gauge_normalized_every_subsequence_has_cluster {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -176,14 +232,13 @@ theorem sinkhorn_gauge_normalized_every_subsequence_has_cluster {ι : Type*} [Fi
     sinkhorn_gauge_normalized_uniform_bounds p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       hp hq hG hiter hgauge
-  exact sinkhorn_outer_subsequence_cluster_from_bounds
-    φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds
+  exact sinkhorn_outer_subsequence_cluster_from_gauge_iterates_and_bounds p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hiter hgauge hbounds
 
 /-- Compactness/subsequence seam for gauge-normalized finite Sinkhorn iterates.
 
-This target-facing theorem is the one-cluster corollary of the uniform-bounds and phase-compatible
-subsequence-extraction seams.  The harder every-outer-subsequence form remains available as
-`sinkhorn_gauge_normalized_every_subsequence_has_cluster` for the final convergence proof. -/
+This target-facing theorem is the one-cluster corollary of the uniform-bounds, raw compactness, and
+successor-limit compatibility seams. -/
 theorem sinkhorn_gauge_normalized_subsequence_exists {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -199,7 +254,7 @@ theorem sinkhorn_gauge_normalized_subsequence_exists {ι : Type*} [Fintype ι]
     sinkhorn_gauge_normalized_uniform_bounds p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       hp hq hG hiter hgauge
-  exact sinkhorn_phase_compatible_subsequence_of_bounds
-    φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds
+  exact sinkhorn_phase_compatible_subsequence_of_gauge_iterates_and_bounds p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hiter hgauge hbounds
 
 end ChenGeorgiouPavon2021

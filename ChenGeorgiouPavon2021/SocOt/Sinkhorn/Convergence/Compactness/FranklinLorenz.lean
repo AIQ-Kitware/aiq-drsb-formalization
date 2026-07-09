@@ -6,6 +6,7 @@ by the finite Sinkhorn compactness proof.  It is intentionally separate from `Pr
 future agents can work on the contraction port without touching the downstream compactness assembly.
 -/
 
+import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Compactness.MatrixBridge
 
@@ -240,11 +241,11 @@ theorem hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
-    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
-    (_hratio_pos : ∀ k j, 0 < q j / franklinLorenzCurrentColumnMarginal G a b k j)
-    (_hratio_box : ∃ R : ℝ,
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hratio_pos : ∀ k j, 0 < q j / franklinLorenzCurrentColumnMarginal G a b k j)
+    (hratio_box : ∃ R : ℝ,
       0 ≤ R ∧ ∀ k j, |q j / franklinLorenzCurrentColumnMarginal G a b k j| ≤ R)
-    (_hlog : ∃ C : ℝ,
+    (hlog : ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k (ij : ι × ι),
           |Real.log
@@ -255,7 +256,10 @@ theorem hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound
         ∀ k (ij : ι × ι),
           |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 -
             q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2| ≤ C * γ ^ k := by
-  sorry
+  classical
+  let r : ℕ → ι → ℝ := fun k j => q j / franklinLorenzCurrentColumnMarginal G a b k j
+  exact ForMathlib.Analysis.pairwise_error_geometric_bound_of_pairwise_log_ratio_bound_and_box
+    r γ hγ_nonneg hγ_lt_one hratio_pos hratio_box hlog
 
 /-- Pairwise right-column correction oscillation bound for a two-sequence Franklin--Lorenz orbit.
 

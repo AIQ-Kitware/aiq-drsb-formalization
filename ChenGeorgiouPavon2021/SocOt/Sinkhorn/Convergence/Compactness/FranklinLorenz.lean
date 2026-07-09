@@ -127,19 +127,17 @@ theorem franklinLorenz_targetColumn_pos {ι : Type*} [Fintype ι]
       exact mul_pos (hG i j) (horbit.left_pos k i)
     · exact ⟨j, Finset.mem_univ j⟩
 
-/-- Projective/Hilbert right-column relative-error decay for a two-sequence
+/-- Projective/Hilbert right-column log-relative-error decay for a two-sequence
 Franklin--Lorenz orbit.
 
-This is now the right-side agent-2 contraction seam: after choosing a Birkhoff coefficient `γ`,
-Franklin--Lorenz Lemma 2 / Theorem 4 should give a uniform geometric bound on each normalized
-column-marginal correction
+This is the actual Hilbert/projective contraction-shaped right-side seam.  In Hilbert metric one
+controls logarithmic ratio oscillations, so the natural pointwise output is a geometric bound on
 
-`q j / c_k j - 1`,
+`|log (q j / c_k j)|`,
 
-where `c_k` is `franklinLorenzCurrentColumnMarginal G a b k`.  This is the last right-side theorem
-that should require the actual Hilbert/projective contraction argument; the theorems below only
-convert this pointwise error estimate into pairwise oscillation and finite-spread bounds. -/
-theorem franklinLorenz_right_column_relative_error_geometric_bound_of_birkhoff_coefficient
+where `c_k` is `franklinLorenzCurrentColumnMarginal G a b k`.  Proving this should use the finite
+Birkhoff--Hopf coefficient for `G` together with Franklin--Lorenz Lemma 2 / Theorem 4. -/
+theorem franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkhoff_coefficient
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
@@ -150,8 +148,55 @@ theorem franklinLorenz_right_column_relative_error_geometric_bound_of_birkhoff_c
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k j,
+          |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k := by
+  sorry
+
+/-- Convert a logarithmic right-column relative-error bound into the concrete multiplicative
+correction bound used by the finite-spread bookkeeping.
+
+This is the finite-box/positivity conversion layer below the Hilbert metric theorem.  The expected
+proof uses positivity of `q` and `c_k`, the uniform box bounds on the scaling sequences, and a finite
+compactness/Lipschitz estimate comparing `|log r|` and `|r - 1|` on the resulting bounded positive
+range of ratios. -/
+theorem franklinLorenz_right_column_relative_error_geometric_bound_of_log_relative_error_bound
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (_hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (hlog : ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ k j,
+          |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ k j,
           |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
   sorry
+
+/-- Projective/Hilbert right-column relative-error decay for a two-sequence
+Franklin--Lorenz orbit.
+
+This is now a composition of two smaller right-side seams: the Hilbert/projective logarithmic error
+bound and the finite-box conversion from log-relative error to concrete relative error. -/
+theorem franklinLorenz_right_column_relative_error_geometric_bound_of_birkhoff_coefficient
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ k j,
+          |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
+  exact franklinLorenz_right_column_relative_error_geometric_bound_of_log_relative_error_bound
+    p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
+    (franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkhoff_coefficient
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one)
 
 /-- Pointwise right-column correction decay for a two-sequence Franklin--Lorenz orbit.
 

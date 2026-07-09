@@ -235,12 +235,42 @@ the chosen gauge should identify it with the selected representative. -/
 theorem sinkhorn_gauge_fixed_point_unique {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
-    (_hgauge : ∑ i, ψ0 i = ∑ i, φ0 i) :
+    (hG : ∀ i j, 0 < G i j)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (hgauge : ∑ i, ψ0 i = ∑ i, φ0 i) :
     ψ0 = φ0 ∧ ψhat0 = φhat0 ∧ ψ1 = φ1 ∧ ψhat1 = φhat1 := by
-  sorry
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hne
+  · refine ⟨?_, ?_, ?_, ?_⟩ <;> funext i <;> exact isEmptyElim i
+  · obtain ⟨c, hc, hψ0, hψhat0, hψ1, hψhat1⟩ :=
+      sinkhorn_potentials_unique_up_to_scaling p q G
+        φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys
+    have hsumφ0_pos : 0 < ∑ i, φ0 i := by
+      exact Finset.sum_pos (fun i _ => hφsys.φ0_pos i) (by
+        rcases hne with ⟨i⟩
+        exact ⟨i, Finset.mem_univ i⟩)
+    have hsumφ0_ne : (∑ i, φ0 i) ≠ 0 := ne_of_gt hsumφ0_pos
+    have hsumψ0 : ∑ i, ψ0 i = c * ∑ i, φ0 i := by
+      calc
+        ∑ i, ψ0 i = ∑ i, c * φ0 i := by
+          exact Finset.sum_congr rfl (fun i _ => hψ0 i)
+        _ = c * ∑ i, φ0 i := by rw [Finset.mul_sum]
+    have hc_eq_one : c = 1 := by
+      apply mul_right_cancel₀ hsumφ0_ne
+      calc
+        c * (∑ i, φ0 i) = ∑ i, ψ0 i := hsumψ0.symm
+        _ = ∑ i, φ0 i := hgauge
+        _ = 1 * (∑ i, φ0 i) := by ring
+    refine ⟨?_, ?_, ?_, ?_⟩
+    · funext i
+      simpa [hc_eq_one] using hψ0 i
+    · funext i
+      simpa [hc_eq_one] using hψhat0 i
+    · funext j
+      simpa [hc_eq_one] using hψ1 j
+    · funext j
+      simpa [hc_eq_one] using hψhat1 j
 
 /-- Finite-dimensional convergence seam after gauge normalization.
 

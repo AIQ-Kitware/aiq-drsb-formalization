@@ -99,7 +99,10 @@ This is the generic mesh-control fact needed before the analytic finite-differen
 arguments can be connected to the dyadic scaffold. -/
 theorem dyadicMesh_tendsto_zero :
     Filter.Tendsto dyadicMesh Filter.atTop (nhds (0 : ℝ)) := by
-  sorry
+  unfold dyadicMesh
+  have htwo : (1 : ℝ) < 2 := by norm_num
+  exact tendsto_inv_atTop_zero.comp
+    (tendsto_pow_atTop_atTop_of_one_lt htwo)
 
 /-- Analytic seam: dyadic finite-difference quotients approximate the derivative in squared
 left-endpoint Riemann-sum norm.
@@ -130,18 +133,40 @@ theorem dyadicDerivativeSquareRiemannEnergy_tendsto_cameronMartinPathEnergy
       Filter.atTop (nhds (cameronMartinPathEnergy hderiv)) := by
   sorry
 
-/-- Analytic seam: squared dyadic difference-quotient energies converge to the continuum
-Cameron--Martin energy.
+/-- Analytic seam: the pure difference-quotient energy has the same asymptotic value as the
+derivative-square Riemann-sum energy.
 
-Mathematically this combines the slope-to-derivative approximation with the derivative-square
-Riemann-sum convergence above.  It is the pure Sobolev/Riemann-sum target before translating back to
-the repository's normalized-increment Gaussian-cost definition. -/
-theorem dyadicDifferenceQuotientRiemannEnergy_tendsto_cameronMartinPathEnergy
+This is the quantitative energy-comparison form of the finite-difference approximation.  It is weaker
+than a full pointwise derivative theorem and exactly strong enough to combine with the derivative-square
+Riemann-sum convergence seam below. -/
+theorem dyadicDifferenceQuotientRiemannEnergy_sub_derivativeSquareRiemannEnergy_tendsto_zero
     (h : RealPath) (hderiv : ℝ → ℝ)
     (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    Filter.Tendsto
+      (fun level : ℕ =>
+        dyadicDifferenceQuotientRiemannEnergy level h
+          - dyadicDerivativeSquareRiemannEnergy level hderiv)
+      Filter.atTop (nhds (0 : ℝ)) := by
+  sorry
+
+/-- Squared dyadic difference-quotient energies converge to the continuum
+Cameron--Martin energy.
+
+Mathematically this now only assembles two analytic seams: energy comparison against the
+derivative-square dyadic Riemann sums, and convergence of those Riemann sums to the continuum energy.
+It is the pure Sobolev/Riemann-sum target before translating back to the repository's
+normalized-increment Gaussian-cost definition. -/
+theorem dyadicDifferenceQuotientRiemannEnergy_tendsto_cameronMartinPathEnergy
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (hA : IsAnalyticCameronMartinPath h hderiv) :
     Filter.Tendsto (fun level : ℕ => dyadicDifferenceQuotientRiemannEnergy level h)
       Filter.atTop (nhds (cameronMartinPathEnergy hderiv)) := by
-  sorry
+  have hclose :=
+    dyadicDifferenceQuotientRiemannEnergy_sub_derivativeSquareRiemannEnergy_tendsto_zero
+      h hderiv hA
+  have hderivEnergy :=
+    dyadicDerivativeSquareRiemannEnergy_tendsto_cameronMartinPathEnergy h hderiv hA
+  simpa [sub_add_cancel] using hclose.add hderivEnergy
 
 /-- Squaring the normalized dyadic increment converts the Gaussian normalization into
 the mesh-weighted squared finite-difference quotient. -/

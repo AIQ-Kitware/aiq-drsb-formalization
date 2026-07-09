@@ -130,6 +130,25 @@ abbrev SinkhornDenominatorLagDriftZeroAlong {ι : Type*}
       (fun n => fun j => φhat1Iter (subseq n) j - φhat1Iter ((subseq n).pred) j)
       Filter.atTop (nhds 0)
 
+/-- Projective lag collapse for one positive finite phase.
+
+The cross-product component says consecutive denominator vectors are becoming projectively parallel.
+It deliberately does not fix the scalar degree of freedom. -/
+abbrev SinkhornPhaseProjectiveLagZeroAlong {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+    (fun n => fun ij : ι × ι =>
+      u (subseq n) ij.1 * u ((subseq n).pred) ij.2 -
+        u (subseq n) ij.2 * u ((subseq n).pred) ij.1)
+    Filter.atTop (nhds (0 : ι × ι → ℝ))
+
+/-- Scale lag collapse for one finite phase, stated as total-mass drift. -/
+abbrev SinkhornPhaseScaleLagZeroAlong {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+    (fun n => (∑ i, u (subseq n) i) - ∑ i, u ((subseq n).pred) i)
+    Filter.atTop (nhds (0 : ℝ))
+
 /-- Projective-and-scale lag collapse for one positive finite phase.
 
 The cross-product component says consecutive denominator vectors are becoming projectively parallel;
@@ -137,14 +156,13 @@ the total-mass component fixes the remaining scalar degree of freedom.  Together
 positive finite box, these should imply ordinary coordinate lag drift. -/
 abbrev SinkhornPhaseProjectiveScaleLagZeroAlong {ι : Type*} [Fintype ι]
     (u : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
-  Filter.Tendsto
-      (fun n => fun ij : ι × ι =>
-        u (subseq n) ij.1 * u ((subseq n).pred) ij.2 -
-          u (subseq n) ij.2 * u ((subseq n).pred) ij.1)
-      Filter.atTop (nhds (0 : ι × ι → ℝ)) ∧
-    Filter.Tendsto
-      (fun n => (∑ i, u (subseq n) i) - ∑ i, u ((subseq n).pred) i)
-      Filter.atTop (nhds (0 : ℝ))
+  SinkhornPhaseProjectiveLagZeroAlong u subseq ∧ SinkhornPhaseScaleLagZeroAlong u subseq
+
+/-- Projective lag collapse for the two denominator phases. -/
+abbrev SinkhornDenominatorProjectiveLagZeroAlong {ι : Type*} [Fintype ι]
+    (φ0Iter φhat1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  SinkhornPhaseProjectiveLagZeroAlong φ0Iter subseq ∧
+    SinkhornPhaseProjectiveLagZeroAlong φhat1Iter subseq
 
 /-- Projective-and-scale lag collapse for the two denominator phases. -/
 abbrev SinkhornDenominatorProjectiveScaleLagZeroAlong {ι : Type*} [Fintype ι]
@@ -154,12 +172,11 @@ abbrev SinkhornDenominatorProjectiveScaleLagZeroAlong {ι : Type*} [Fintype ι]
 
 /-- Projective/asymptotic-regularity core for the denominator phases.
 
-This is the genuinely hard Sinkhorn-dynamical seam.  It should be proved using the positive kernel,
-the fixed gauge, and the finite box bounds, for example via Hilbert-projective contraction,
-monotone-diameter decay, or an equivalent energy argument.  The theorem only asks for projective
-parallelism plus scale control between consecutive denominator phases; the conversion to ordinary
-coordinate drift is separated below. -/
-theorem sinkhorn_denominator_projective_scale_lag_tendsto_zero_from_gauge_iterates {ι : Type*}
+This is the first genuinely hard Sinkhorn-dynamical seam.  It should be proved using the positive
+kernel, the finite box bounds, and the two alternating positive linear maps, for example via
+Hilbert-projective contraction, monotone-diameter decay, or an equivalent energy argument.  It only
+controls projective shape; scale control is separated below. -/
+theorem sinkhorn_denominator_projective_lag_tendsto_zero_from_gauge_iterates {ι : Type*}
     [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -171,21 +188,116 @@ theorem sinkhorn_denominator_projective_scale_lag_tendsto_zero_from_gauge_iterat
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    SinkhornDenominatorProjectiveLagZeroAlong φ0Iter φhat1Iter subseq := by
+  sorry
+
+/-- The `φ0` denominator scale lag is fixed exactly by the gauge normalization. -/
+theorem sinkhorn_phi0_scale_lag_zero_from_gauge {ι : Type*} [Fintype ι]
+    (φ0Iter _φhat0Iter _φ1Iter _φhat1Iter : ℕ → ι → ℝ)
+    (φ0 _φhat0 _φ1 _φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter _φhat0Iter _φ1Iter _φhat1Iter
+      φ0 _φhat0 _φ1 _φhat1) :
+    SinkhornPhaseScaleLagZeroAlong φ0Iter subseq := by
+  change Filter.Tendsto
+    (fun n => (∑ i, φ0Iter (subseq n) i) - ∑ i, φ0Iter ((subseq n).pred) i)
+    Filter.atTop (nhds (0 : ℝ))
+  have hzero :
+      (fun n => (∑ i, φ0Iter (subseq n) i) - ∑ i, φ0Iter ((subseq n).pred) i) =
+        fun _ : ℕ => (0 : ℝ) := by
+    funext n
+    rw [hgauge.left_total (subseq n), hgauge.left_total ((subseq n).pred), sub_self]
+  rw [hzero]
+  exact (tendsto_const_nhds :
+    Filter.Tendsto (fun _ : ℕ => (0 : ℝ)) Filter.atTop (nhds 0))
+
+/-- Scale/asymptotic-regularity core for the `φhat1` denominator phase.
+
+The `φ0` scale drift is exactly zero by the gauge.  The remaining scale work is the total-mass drift
+for `φhat1`; this should follow from the Sinkhorn equations, projective lag collapse, and the fixed
+left gauge. -/
+theorem sinkhorn_phihat1_scale_lag_tendsto_zero_from_gauge_iterates {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
+    (_hproj : SinkhornDenominatorProjectiveLagZeroAlong φ0Iter φhat1Iter subseq) :
+    SinkhornPhaseScaleLagZeroAlong φhat1Iter subseq := by
+  sorry
+
+/-- Projective/asymptotic-regularity plus scale control for the denominator phases.
+
+This wrapper preserves the earlier projective-scale theorem name while exposing the two real
+subproblems: projective shape collapse for both denominator phases, and scale control for the
+non-gauge-fixed `φhat1` denominator.  The `φ0` scale component is discharged directly by the gauge. -/
+theorem sinkhorn_denominator_projective_scale_lag_tendsto_zero_from_gauge_iterates {ι : Type*}
+    [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
     SinkhornDenominatorProjectiveScaleLagZeroAlong φ0Iter φhat1Iter subseq := by
+  have hproj : SinkhornDenominatorProjectiveLagZeroAlong φ0Iter φhat1Iter subseq :=
+    sinkhorn_denominator_projective_lag_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+  have hφ0scale : SinkhornPhaseScaleLagZeroAlong φ0Iter subseq :=
+    sinkhorn_phi0_scale_lag_zero_from_gauge
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq hgauge
+  have hφhat1scale : SinkhornPhaseScaleLagZeroAlong φhat1Iter subseq :=
+    sinkhorn_phihat1_scale_lag_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre hproj
+  exact ⟨⟨hproj.1, hφ0scale⟩, ⟨hproj.2, hφhat1scale⟩⟩
+
+/-- One-phase finite positive-box conversion from projective-and-scale lag collapse to
+coordinate lag drift.
+
+This is the finite-dimensional algebra core: if two consecutive uniformly positive vectors have all
+cross-products asymptotically flat and their totals asymptotically agree, then each coordinate
+asymptotically agrees.  It is independent of the Sinkhorn equations. -/
+theorem finite_phase_lag_drift_zero_of_projective_scale_lag {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) (subseq : ℕ → ℕ)
+    (_hbox : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧
+      ∀ n i, ε ≤ u n i ∧ u n i ≤ B)
+    (_hprojscale : SinkhornPhaseProjectiveScaleLagZeroAlong u subseq) :
+    Filter.Tendsto
+      (fun n => fun i => u (subseq n) i - u ((subseq n).pred) i)
+      Filter.atTop (nhds (0 : ι → ℝ)) := by
   sorry
 
 /-- Finite positive-box conversion from projective-and-scale lag collapse to coordinate lag drift.
 
-This is no longer Sinkhorn-specific.  In finite dimension, if two uniformly positive vectors have all
-cross-products asymptotically flat and their totals asymptotically agree, then each coordinate
-asymptotically agrees.  Applying this to `φ0` and `φhat1` gives denominator lag drift. -/
+This Sinkhorn-denominator wrapper is now just two applications of the one-phase finite-dimensional
+conversion above, one for `φ0` and one for `φhat1`. -/
 theorem sinkhorn_denominator_lag_drift_zero_of_projective_scale_lag {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hprojscale : SinkhornDenominatorProjectiveScaleLagZeroAlong φ0Iter φhat1Iter subseq) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hprojscale : SinkhornDenominatorProjectiveScaleLagZeroAlong φ0Iter φhat1Iter subseq) :
     SinkhornDenominatorLagDriftZeroAlong φ0Iter φhat1Iter subseq := by
-  sorry
+  rcases hbounds with ⟨ε, B, hε, hB, hφ0, _hφhat0, _hφ1, hφhat1⟩
+  have hφ0box : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧
+      ∀ n i, ε ≤ φ0Iter n i ∧ φ0Iter n i ≤ B :=
+    ⟨ε, B, hε, hB, hφ0⟩
+  have hφhat1box : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧
+      ∀ n i, ε ≤ φhat1Iter n i ∧ φhat1Iter n i ≤ B :=
+    ⟨ε, B, hε, hB, hφhat1⟩
+  exact ⟨
+    finite_phase_lag_drift_zero_of_projective_scale_lag φ0Iter subseq hφ0box hprojscale.1,
+    finite_phase_lag_drift_zero_of_projective_scale_lag φhat1Iter subseq hφhat1box hprojscale.2⟩
 
 /-- Denominator lag drift follows from the projective/scale collapse plus finite positive-box
 conversion.  This wrapper preserves the earlier public C2 seam while exposing the two real subproblems

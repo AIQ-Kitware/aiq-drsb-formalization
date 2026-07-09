@@ -349,7 +349,7 @@ theorem normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_le :
 /-- Explicit measurable-generation interface for the canonical anchored continuous interval path
 space.
 
-This records the remaining path-space theorem without hiding it behind `sorry`: on the anchored
+This records the remaining path-space theorem: on the anchored
 continuous interval carrier, normalized dyadic increments should generate the default
 Borel/subtype measurable space.  The statement is intentionally about this narrow carrier only and
 does not revive the discarded overstrong theorem for arbitrary `RealPath := ℝ → ℝ`. -/

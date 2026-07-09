@@ -3,7 +3,6 @@
 
 This file contains only data shapes and target predicates shared by the compactness fanout files:
 box bounds, raw six-phase preclusters, phase drift, denominator lag drift, and projective/scale lag.
-It has no `sorry`s and should remain a stable dependency for all compactness subagents.
 -/
 
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Bounds

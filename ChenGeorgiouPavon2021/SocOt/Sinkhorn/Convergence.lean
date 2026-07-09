@@ -337,69 +337,172 @@ theorem sinkhorn_gauge_normalized_cluster_point_unique {ι : Type*} [Fintype ι]
   exact sinkhorn_gauge_fixed_point_unique p q G
     φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hpotentials hψsys hψgauge
 
-/-- Unique-along topology seam for the forward-left iterate family.
 
-This is now pure topology: every bad outer subsequence has a further explicit cluster subsequence,
-and every explicit cluster subsequence has forward-left limit `φ0`.  The proof should be the usual
-bad-subsequence contradiction, with no Sinkhorn algebra left inside it. -/
+/-- If the absolute composed subsequence `subseq (subsub n)` is strictly increasing, then the
+inner index selector `subsub` is cofinal.  This is the small order-theoretic bridge needed by the
+bad-subsequence compactness argument: a bad outer subsequence remains bad after passing to a
+cofinal further subsequence. -/
+theorem sinkhorn_subsub_tendsto_atTop_of_strictMono_comp
+    (subseq subsub : ℕ → ℕ)
+    (_hsubseq : StrictMono subseq)
+    (_hcomp : StrictMono (fun n => subseq (subsub n))) :
+    Filter.Tendsto subsub Filter.atTop Filter.atTop := by
+  sorry
+
+/-- If a finite-function sequence does not converge, then some coordinate is frequently
+separated from the candidate limit.
+
+This is the first hard pure-topology step in the unique-cluster convergence argument.  It converts
+failure of convergence in the finite product `ι → ℝ` into a scalar bad-coordinate statement. -/
+theorem finite_function_not_tendsto_has_frequently_bad_coordinate {ι : Type*} [Fintype ι]
+    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
+    (_hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
+    ∃ i : ι, ∃ ε : ℝ, 0 < ε ∧ ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n i - xLim i| := by
+  sorry
+
+/-- A scalar coordinate that is frequently bad admits a strictly increasing bad subsequence. -/
+theorem finite_function_frequently_bad_coordinate_subsequence {ι : Type*}
+    (x : ℕ → ι → ℝ) (xLim : ι → ℝ) (i : ι) (ε : ℝ)
+    (_hε : 0 < ε)
+    (_hfreq : ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n i - xLim i|) :
+    ∃ subseq : ℕ → ℕ, StrictMono subseq ∧
+      ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i| := by
+  sorry
+
+/-- A bad coordinate subsequence stays nonconvergent after every cofinal further subsequence. -/
+theorem finite_function_bad_coordinate_blocks_cofinal_convergence {ι : Type*} [Fintype ι]
+    (x : ℕ → ι → ℝ) (xLim : ι → ℝ) (i : ι) (ε : ℝ)
+    (_hε : 0 < ε) (subseq : ℕ → ℕ)
+    (_hbad : ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i|)
+    (subsub : ℕ → ℕ) (_hsubsub : Filter.Tendsto subsub Filter.atTop Filter.atTop) :
+    ¬ Filter.Tendsto (fun n => x (subseq (subsub n))) Filter.atTop (nhds xLim) := by
+  sorry
+
+/-- A nonconvergent finite-function sequence has a bad subsequence that no cofinal further
+subsequence can make converge to the candidate limit.
+
+This packages the standard contradiction setup used by the unique-cluster convergence theorem. -/
+theorem finite_function_not_tendsto_produces_bad_subsequence {ι : Type*} [Fintype ι]
+    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
+    (hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
+    ∃ subseq : ℕ → ℕ, StrictMono subseq ∧
+      ∀ subsub : ℕ → ℕ, Filter.Tendsto subsub Filter.atTop Filter.atTop →
+        ¬ Filter.Tendsto (fun n => x (subseq (subsub n))) Filter.atTop (nhds xLim) := by
+  obtain ⟨i, ε, hε, hfreq⟩ := finite_function_not_tendsto_has_frequently_bad_coordinate x xLim hnot
+  obtain ⟨subseq, hsubseq_mono, hbad⟩ :=
+    finite_function_frequently_bad_coordinate_subsequence x xLim i ε hε hfreq
+  refine ⟨subseq, hsubseq_mono, ?_⟩
+  intro subsub hsubsub
+  exact finite_function_bad_coordinate_blocks_cofinal_convergence
+    x xLim i ε hε subseq hbad subsub hsubsub
+
+/-- Generic finite-function topology seam: if every subsequence has a cofinal further subsequence
+converging to the same candidate limit, then the original finite-dimensional sequence converges.
+
+This theorem is now only the final contradiction wrapper.  The genuinely hard topology has been split
+into the bad-coordinate extraction, bad-subsequence construction, and cofinal-obstruction lemmas above. -/
+theorem finite_function_tendsto_of_unique_subseq_cluster {ι : Type*} [Fintype ι]
+    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
+    (hsubseq_cluster : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+      ∃ subsub : ℕ → ℕ,
+        Filter.Tendsto subsub Filter.atTop Filter.atTop ∧
+        Filter.Tendsto (fun n => x (subseq (subsub n))) Filter.atTop (nhds xLim)) :
+    Filter.Tendsto x Filter.atTop (nhds xLim) := by
+  by_contra hnot
+  obtain ⟨subseq, hsubseq_mono, hbad⟩ :=
+    finite_function_not_tendsto_produces_bad_subsequence x xLim hnot
+  obtain ⟨subsub, hsubsub, hconv⟩ := hsubseq_cluster subseq hsubseq_mono
+  exact hbad subsub hsubsub hconv
+
+/-- Unique-along topology wrapper for the forward-left iterate family.
+
+All Sinkhorn-specific content has now been pushed into the production of phase-compatible cluster
+subsequences and the proof that every such cluster has the selected `φ0` component. -/
 theorem sinkhorn_unique_along_cluster_points_imply_φ0_convergence {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+    (hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
       ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
         IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
           (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
-    (_halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
+    (halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
       IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψ0 = φ0) :
     Filter.Tendsto φ0Iter Filter.atTop (nhds φ0) := by
-  sorry
+  refine finite_function_tendsto_of_unique_subseq_cluster φ0Iter φ0 ?_
+  intro subseq hsubseq
+  obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
+  refine ⟨subsub, ?_, ?_⟩
+  · exact sinkhorn_subsub_tendsto_atTop_of_strictMono_comp subseq subsub hsubseq halong.strict_mono
+  · have hψ0 : ψ0 = φ0 := halong_unique (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1 halong
+    simpa [hψ0] using halong.tendsto_φ0
 
-/-- Unique-along topology seam for the hatted-left iterate family. -/
+/-- Unique-along topology wrapper for the hatted-left iterate family. -/
 theorem sinkhorn_unique_along_cluster_points_imply_φhat0_convergence {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+    (hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
       ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
         IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
           (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
-    (_halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
+    (halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
       IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψhat0 = φhat0) :
     Filter.Tendsto φhat0Iter Filter.atTop (nhds φhat0) := by
-  sorry
+  refine finite_function_tendsto_of_unique_subseq_cluster φhat0Iter φhat0 ?_
+  intro subseq hsubseq
+  obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
+  refine ⟨subsub, ?_, ?_⟩
+  · exact sinkhorn_subsub_tendsto_atTop_of_strictMono_comp subseq subsub hsubseq halong.strict_mono
+  · have hψhat0 : ψhat0 = φhat0 :=
+      halong_unique (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1 halong
+    simpa [hψhat0] using halong.tendsto_φhat0
 
-/-- Unique-along topology seam for the forward-right iterate family. -/
+/-- Unique-along topology wrapper for the forward-right iterate family. -/
 theorem sinkhorn_unique_along_cluster_points_imply_φ1_convergence {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+    (hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
       ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
         IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
           (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
-    (_halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
+    (halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
       IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψ1 = φ1) :
     Filter.Tendsto φ1Iter Filter.atTop (nhds φ1) := by
-  sorry
+  refine finite_function_tendsto_of_unique_subseq_cluster φ1Iter φ1 ?_
+  intro subseq hsubseq
+  obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
+  refine ⟨subsub, ?_, ?_⟩
+  · exact sinkhorn_subsub_tendsto_atTop_of_strictMono_comp subseq subsub hsubseq halong.strict_mono
+  · have hψ1 : ψ1 = φ1 :=
+      halong_unique (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1 halong
+    simpa [hψ1] using halong.tendsto_φ1
 
-/-- Unique-along topology seam for the hatted-right iterate family. -/
+/-- Unique-along topology wrapper for the hatted-right iterate family. -/
 theorem sinkhorn_unique_along_cluster_points_imply_φhat1_convergence {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+    (hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
       ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
         IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
           (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
-    (_halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
+    (halong_unique : ∀ subseq ψ0 ψhat0 ψ1 ψhat1,
       IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψhat1 = φhat1) :
     Filter.Tendsto φhat1Iter Filter.atTop (nhds φhat1) := by
-  sorry
+  refine finite_function_tendsto_of_unique_subseq_cluster φhat1Iter φhat1 ?_
+  intro subseq hsubseq
+  obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
+  refine ⟨subsub, ?_, ?_⟩
+  · exact sinkhorn_subsub_tendsto_atTop_of_strictMono_comp subseq subsub hsubseq halong.strict_mono
+  · have hψhat1 : ψhat1 = φhat1 :=
+      halong_unique (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1 halong
+    simpa [hψhat1] using halong.tendsto_φhat1
 
 /-- Unique-cluster topology seam for the forward-left iterate family.
 

@@ -37,12 +37,20 @@ the weights are nonnegative with positive total `denom`, then the weighted avera
 `M`.  It should be reusable outside Sinkhorn. -/
 theorem finite_weighted_average_le_of_nonneg {ι : Type*} [Fintype ι]
     (w r : ι → ℝ) (M denom : ℝ)
-    (_hw_nonneg : ∀ j, 0 ≤ w j)
-    (_hdenom_pos : 0 < denom)
-    (_hdenom : denom = ∑ j, w j)
-    (_hr_le : ∀ j, r j ≤ M) :
+    (hw_nonneg : ∀ j, 0 ≤ w j)
+    (hdenom_pos : 0 < denom)
+    (hdenom : denom = ∑ j, w j)
+    (hr_le : ∀ j, r j ≤ M) :
     (∑ j, w j * r j) / denom ≤ M := by
-  sorry
+  classical
+  have hsum_le : (∑ j, w j * r j) ≤ ∑ j, w j * M := by
+    refine Finset.sum_le_sum ?_
+    intro j _hj
+    exact mul_le_mul_of_nonneg_left (hr_le j) (hw_nonneg j)
+  have hsum_le' : (∑ j, w j * r j) ≤ denom * M := by
+    simpa [hdenom, Finset.sum_mul] using hsum_le
+  rw [div_le_iff₀ hdenom_pos]
+  nlinarith [hsum_le']
 
 /-- Forward equations rewrite the left ratio as a weighted average of right ratios.
 
@@ -51,11 +59,22 @@ This is the algebraic heart of the forward half of the maximum principle.  The w
 theorem finite_sinkhorn_forward_ratio_identity {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
     ∀ i, sinkhornRatio ψ0 φ0 i =
       (∑ j, (G i j * φ1 j) * sinkhornRatio ψ1 φ1 j) / φ0 i := by
-  sorry
+  intro i
+  have hsum :
+      (∑ j, (G i j * φ1 j) * sinkhornRatio ψ1 φ1 j) =
+        ∑ j, G i j * ψ1 j := by
+    refine Finset.sum_congr rfl ?_
+    intro j _hj
+    unfold sinkhornRatio
+    field_simp [ne_of_gt (hφsys.φ1_pos j)]
+  calc
+    sinkhornRatio ψ0 φ0 i = ψ0 i / φ0 i := rfl
+    _ = (∑ j, G i j * ψ1 j) / φ0 i := by rw [hψsys.forward i]
+    _ = (∑ j, (G i j * φ1 j) * sinkhornRatio ψ1 φ1 j) / φ0 i := by rw [hsum]
 
 /-- The forward weighted-average bound after the ratio identity has been established.
 
@@ -63,14 +82,21 @@ This packages the generic weighted-average inequality with the Sinkhorn positivi
 theorem finite_sinkhorn_forward_weighted_average_le_right_max {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hG : ∀ i j, 0 < G i j)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
     (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
     (jstar : ι)
-    (_hright_max : ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar) :
+    (hright_max : ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar) :
     ∀ i, (∑ j, (G i j * φ1 j) * sinkhornRatio ψ1 φ1 j) / φ0 i
       ≤ sinkhornRatio ψ1 φ1 jstar := by
-  sorry
+  intro i
+  exact finite_weighted_average_le_of_nonneg
+    (fun j => G i j * φ1 j) (sinkhornRatio ψ1 φ1)
+    (sinkhornRatio ψ1 φ1 jstar) (φ0 i)
+    (fun j => mul_nonneg (le_of_lt (hG i j)) (le_of_lt (hφsys.φ1_pos j)))
+    (hφsys.φ0_pos i)
+    (hφsys.forward i)
+    hright_max
 
 /-- Forward weighted-average inequality for the finite Sinkhorn ratio proof.
 

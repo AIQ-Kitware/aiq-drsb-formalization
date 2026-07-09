@@ -52,6 +52,27 @@ theorem finite_weighted_average_le_of_nonneg {ι : Type*} [Fintype ι]
   rw [div_le_iff₀ hdenom_pos]
   nlinarith [hsum_le']
 
+/-- Generic lower-bound version of the finite weighted-average inequality.
+
+If all sample values are bounded below by `m`, and the weights are nonnegative with positive total
+`denom`, then the finite weighted average is also bounded below by `m`. -/
+theorem finite_weighted_average_ge_of_nonneg {ι : Type*} [Fintype ι]
+    (w r : ι → ℝ) (m denom : ℝ)
+    (hw_nonneg : ∀ j, 0 ≤ w j)
+    (hdenom_pos : 0 < denom)
+    (hdenom : denom = ∑ j, w j)
+    (hr_ge : ∀ j, m ≤ r j) :
+    m ≤ (∑ j, w j * r j) / denom := by
+  classical
+  have hsum_ge : (∑ j, w j * m) ≤ ∑ j, w j * r j := by
+    refine Finset.sum_le_sum ?_
+    intro j _hj
+    exact mul_le_mul_of_nonneg_left (hr_ge j) (hw_nonneg j)
+  have hsum_ge' : denom * m ≤ ∑ j, w j * r j := by
+    simpa [hdenom, Finset.sum_mul] using hsum_ge
+  rw [le_div_iff₀ hdenom_pos]
+  nlinarith [hsum_ge']
+
 /-- Forward equations rewrite the left ratio as a weighted average of right ratios.
 
 This is the algebraic heart of the forward half of the maximum principle.  The weights are
@@ -133,21 +154,52 @@ theorem finite_sinkhorn_hatted_ratio_lower_from_forward_upper {ι : Type*} [Fint
     (∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i) := by
   sorry
 
-/-- Backward weighted-average propagation for hatted ratios.
+/-- Backward equations rewrite a hatted-right ratio as a weighted average of hatted-left
+ratios.
 
-Using the backward equations, a lower bound on all hatted-left ratios propagates to a lower bound on
-all hatted-right ratios.  This is useful but not by itself enough to prove ratio collapse: a lower
-bound on inverse ratios only recovers an upper bound on ordinary ratios. -/
+This is the exact analogue of `finite_sinkhorn_forward_ratio_identity` for the backward Sinkhorn
+equations. -/
+theorem finite_sinkhorn_backward_hatted_ratio_identity {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
+    ∀ j, sinkhornRatio ψhat1 φhat1 j =
+      (∑ i, (G i j * φhat0 i) * sinkhornRatio ψhat0 φhat0 i) / φhat1 j := by
+  intro j
+  have hsum :
+      (∑ i, (G i j * φhat0 i) * sinkhornRatio ψhat0 φhat0 i) =
+        ∑ i, G i j * ψhat0 i := by
+    refine Finset.sum_congr rfl ?_
+    intro i _hi
+    unfold sinkhornRatio
+    field_simp [ne_of_gt (hφsys.φhat0_pos i)]
+  calc
+    sinkhornRatio ψhat1 φhat1 j = ψhat1 j / φhat1 j := rfl
+    _ = (∑ i, G i j * ψhat0 i) / φhat1 j := by rw [hψsys.backward j]
+    _ = (∑ i, (G i j * φhat0 i) * sinkhornRatio ψhat0 φhat0 i) / φhat1 j := by
+      rw [hsum]
+
+/-- Lower bounds propagate through the backward hatted weighted average. -/
 theorem finite_sinkhorn_backward_hatted_ratio_lower {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (hG : ∀ i j, 0 < G i j)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
     (M : ℝ)
-    (_hhat0_lower : ∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i) :
+    (hhat0_lower : ∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i) :
     ∀ j, M⁻¹ ≤ sinkhornRatio ψhat1 φhat1 j := by
-  sorry
+  intro j
+  rw [finite_sinkhorn_backward_hatted_ratio_identity p q G
+    φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys j]
+  exact finite_weighted_average_ge_of_nonneg
+    (fun i => G i j * φhat0 i) (sinkhornRatio ψhat0 φhat0)
+    M⁻¹ (φhat1 j)
+    (fun i => mul_nonneg (le_of_lt (hG i j)) (le_of_lt (hφsys.φhat0_pos i)))
+    (hφsys.φhat1_pos j)
+    (hφsys.backward j)
+    hhat0_lower
 
 /-- Right marginal identities say that hatted right ratios are inverse right ratios. -/
 theorem finite_sinkhorn_hatted1_ratio_eq_inv {ι : Type*} [Fintype ι]
@@ -224,12 +276,29 @@ theorem finite_sinkhorn_backward_hatted_ratio_eq_of_hatted0_eq {ι : Type*} [Fin
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
     (_hG : ∀ i j, 0 < G i j)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
     (M : ℝ)
-    (_hhat0_eq : ∀ i, sinkhornRatio ψhat0 φhat0 i = M⁻¹) :
+    (hhat0_eq : ∀ i, sinkhornRatio ψhat0 φhat0 i = M⁻¹) :
     ∀ j, sinkhornRatio ψhat1 φhat1 j = M⁻¹ := by
-  sorry
+  intro j
+  rw [finite_sinkhorn_backward_hatted_ratio_identity p q G
+    φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys j]
+  have hsum :
+      (∑ i, (G i j * φhat0 i) * sinkhornRatio ψhat0 φhat0 i) =
+        φhat1 j * M⁻¹ := by
+    calc
+      (∑ i, (G i j * φhat0 i) * sinkhornRatio ψhat0 φhat0 i)
+          = ∑ i, (G i j * φhat0 i) * M⁻¹ := by
+            refine Finset.sum_congr rfl ?_
+            intro i _hi
+            rw [hhat0_eq i]
+      _ = (∑ i, G i j * φhat0 i) * M⁻¹ := by
+            rw [Finset.sum_mul]
+      _ = φhat1 j * M⁻¹ := by
+            rw [← hφsys.backward j]
+  rw [hsum]
+  field_simp [ne_of_gt (hφsys.φhat1_pos j)]
 
 /-- Marginal identities convert exact hatted-right ratios back to exact right ratios. -/
 theorem finite_sinkhorn_right_ratio_eq_from_hatted_eq {ι : Type*} [Fintype ι]

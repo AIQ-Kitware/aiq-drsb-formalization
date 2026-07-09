@@ -61,17 +61,102 @@ structure IsAnalyticCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Pr
     h t = ∫ s in Set.Ioc (0 : ℝ) t, hderiv s ∂volume
   square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
 
+/-- Dyadic finite-difference quotient on the ambient real-time scaffold.
+
+This is the unnormalized slope `(h(t_{i+1}) - h(t_i)) / (t_{i+1} - t_i)`, written against
+the repository's existing `dyadicMesh` and `dyadicIncrement` primitives. -/
+noncomputable def dyadicDifferenceQuotient (level : ℕ) (h : RealPath)
+    (i : Fin (2 ^ level)) : ℝ :=
+  dyadicIncrement level h i / dyadicMesh level
+
+/-- Pure Riemann-sum expression for the dyadic Cameron--Martin energy.
+
+This is intentionally separated from `dyadicPathEnergy`: that definition is phrased as the
+finite-dimensional Gaussian cost of normalized increments, whereas this expression is the usual
+`∑ ½ |difference quotient|² Δt` Sobolev energy sum. -/
+noncomputable def dyadicDifferenceQuotientRiemannEnergy (level : ℕ) (h : RealPath) : ℝ :=
+  ∑ i : Fin (2 ^ level),
+    dyadicMesh level * (2⁻¹ * dyadicDifferenceQuotient level h i ^ 2)
+
+/-- Left-endpoint Riemann sums for the derivative-square Cameron--Martin energy. -/
+noncomputable def dyadicDerivativeSquareRiemannEnergy (level : ℕ)
+    (hderiv : ℝ → ℝ) : ℝ :=
+  ∑ i : Fin (2 ^ level),
+    dyadicMesh level * (2⁻¹ * hderiv (dyadicTime level i.1) ^ 2)
+
+/-- The dyadic mesh tends to zero.
+
+This is the generic mesh-control seam needed before the analytic finite-difference and Riemann-sum
+arguments can be connected to the dyadic scaffold. -/
+theorem dyadicMesh_tendsto_zero :
+    Filter.Tendsto dyadicMesh Filter.atTop (nhds (0 : ℝ)) := by
+  sorry
+
+/-- Analytic seam: dyadic finite-difference quotients approximate the derivative in squared
+left-endpoint Riemann-sum norm.
+
+For a future concrete AC/Sobolev API this should follow from absolute continuity plus the chosen
+regular representative of the derivative.  It is deliberately not the final energy statement: it only
+records the local slope-to-derivative approximation. -/
+theorem dyadicDifferenceQuotient_l2_tendsto_derivative_of_analyticCameronMartinPath
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    Filter.Tendsto
+      (fun level : ℕ =>
+        ∑ i : Fin (2 ^ level),
+          dyadicMesh level *
+            ((dyadicDifferenceQuotient level h i - hderiv (dyadicTime level i.1)) ^ 2))
+      Filter.atTop (nhds (0 : ℝ)) := by
+  sorry
+
+/-- Analytic seam: derivative-square dyadic Riemann sums converge to the continuum
+Cameron--Martin energy.
+
+This is the ordinary Riemann/Lebesgue-sum convergence side of the Sobolev capstone, independent of
+the path finite differences. -/
+theorem dyadicDerivativeSquareRiemannEnergy_tendsto_cameronMartinPathEnergy
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    Filter.Tendsto (fun level : ℕ => dyadicDerivativeSquareRiemannEnergy level hderiv)
+      Filter.atTop (nhds (cameronMartinPathEnergy hderiv)) := by
+  sorry
+
+/-- Analytic seam: squared dyadic difference-quotient energies converge to the continuum
+Cameron--Martin energy.
+
+Mathematically this combines the slope-to-derivative approximation with the derivative-square
+Riemann-sum convergence above.  It is the pure Sobolev/Riemann-sum target before translating back to
+the repository's normalized-increment Gaussian-cost definition. -/
+theorem dyadicDifferenceQuotientRiemannEnergy_tendsto_cameronMartinPathEnergy
+    (h : RealPath) (hderiv : ℝ → ℝ)
+    (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    Filter.Tendsto (fun level : ℕ => dyadicDifferenceQuotientRiemannEnergy level h)
+      Filter.atTop (nhds (cameronMartinPathEnergy hderiv)) := by
+  sorry
+
+/-- The CGP normalized-increment dyadic energy is the pure finite-difference Riemann-sum energy.
+
+This is a finite algebra seam using positivity of the dyadic mesh and `Real.sq_sqrt`; it contains no
+continuum analysis. -/
+theorem dyadicPathEnergy_eq_dyadicDifferenceQuotientRiemannEnergy
+    (level : ℕ) (h : RealPath) :
+    dyadicPathEnergy level h = dyadicDifferenceQuotientRiemannEnergy level h := by
+  sorry
+
 /-- Sobolev/Riemann-sum capstone on the ambient scaffold.
 
 This is the real-analysis theorem target behind the ambient `IsCameronMartinPath` wrapper: finite
 dyadic difference energies for an analytically defined Cameron--Martin path converge to
-`½ ∫₀¹ |h'|²`. -/
+`½ ∫₀¹ |h'|²`.  The proof is now reduced to named seams for mesh convergence, finite-difference
+approximation, Riemann-sum convergence, and the finite algebra bridge from CGP normalized increments
+to pure Sobolev sums. -/
 theorem dyadicPathEnergy_tendsto_of_analyticCameronMartinPath
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    (hA : IsAnalyticCameronMartinPath h hderiv) :
     Filter.Tendsto (fun level : ℕ => dyadicPathEnergy level h) Filter.atTop
       (nhds (cameronMartinPathEnergy hderiv)) := by
-  sorry
+  simpa [dyadicPathEnergy_eq_dyadicDifferenceQuotientRiemannEnergy] using
+    dyadicDifferenceQuotientRiemannEnergy_tendsto_cameronMartinPathEnergy h hderiv hA
 
 /-- Analytically defined Cameron--Martin paths realize the dyadic `IsCameronMartinPath` interface
 once the Riemann-sum capstone is available. -/

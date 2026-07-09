@@ -252,23 +252,50 @@ theorem finite_sinkhorn_hatted1_ratio_eq_inv_at_right_max {ι : Type*} [Fintype 
   exact finite_sinkhorn_hatted1_ratio_eq_inv p q G
     φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys jstar
 
+/-- Equality in a strictly positive finite weighted average at a lower bound.
+
+If every sample value is at least `m`, every weight is strictly positive, and the weighted average
+is exactly `m`, then every sample value must be exactly `m`.  This is the pure ordered-algebra
+maximum-principle seam behind finite Sinkhorn uniqueness. -/
+theorem finite_weighted_average_eq_lower_forces_pointwise {ι : Type*} [Fintype ι]
+    (w r : ι → ℝ) (m denom : ℝ)
+    (hw_pos : ∀ i, 0 < w i)
+    (hdenom_pos : 0 < denom)
+    (hdenom : denom = ∑ i, w i)
+    (hr_ge : ∀ i, m ≤ r i)
+    (havg_eq : (∑ i, w i * r i) / denom = m) :
+    ∀ i, r i = m := by
+  sorry
+
 /-- Strict positivity turns the single extremal equality into equality of all hatted-left ratios.
 
-The hard maximum-principle step is here: the backward equation writes the hatted-right ratio at
-`jstar` as a strictly-positive weighted average of the hatted-left ratios.  If every hatted-left
-ratio is at least `M⁻¹` and that weighted average is exactly `M⁻¹`, strict positivity forces every
-hatted-left ratio to equal `M⁻¹`. -/
+The Sinkhorn-specific part is now only packaging: the backward equation identifies the hatted-right
+ratio at `jstar` with a strictly-positive weighted average of hatted-left ratios, and the generic
+weighted-average equality lemma forces every hatted-left ratio to hit the lower bound. -/
 theorem finite_sinkhorn_backward_extreme_forces_hatted0_eq {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (hG : ∀ i j, 0 < G i j)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
     (M : ℝ) (jstar : ι)
-    (_hhat0_lower : ∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i)
-    (_hhat1_star : sinkhornRatio ψhat1 φhat1 jstar = M⁻¹) :
+    (hhat0_lower : ∀ i, M⁻¹ ≤ sinkhornRatio ψhat0 φhat0 i)
+    (hhat1_star : sinkhornRatio ψhat1 φhat1 jstar = M⁻¹) :
     ∀ i, sinkhornRatio ψhat0 φhat0 i = M⁻¹ := by
-  sorry
+  have havg_eq :
+      (∑ i, (G i jstar * φhat0 i) * sinkhornRatio ψhat0 φhat0 i) / φhat1 jstar =
+        M⁻¹ := by
+    rw [← finite_sinkhorn_backward_hatted_ratio_identity p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hφsys hψsys jstar]
+    exact hhat1_star
+  exact finite_weighted_average_eq_lower_forces_pointwise
+    (fun i => G i jstar * φhat0 i) (sinkhornRatio ψhat0 φhat0)
+    M⁻¹ (φhat1 jstar)
+    (fun i => mul_pos (hG i jstar) (hφsys.φhat0_pos i))
+    (hφsys.φhat1_pos jstar)
+    (hφsys.backward jstar)
+    hhat0_lower
+    havg_eq
 
 /-- Once all hatted-left ratios are extremal, the backward equation makes all hatted-right ratios
 extremal as well. -/

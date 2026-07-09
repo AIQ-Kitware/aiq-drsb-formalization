@@ -1,0 +1,40 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Carroll (2004)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{BirkhoffHilbert-Carroll2005-carroll-birkoff.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Carroll, \emph{Birkhoff's Contraction Coefficient}, Linear Algebra and its Applications 389, 227--234, 2004 \cite{Carroll2004}.
+
+\section*{Role in the formalization}
+This paper is a compact finite-dimensional proof source for the theorem that multiplication by a positive square matrix contracts Hilbert projective distance.  It is a useful proof-target source for any Lean helper lemmas converting positivity of $G$ into projective asymptotic regularity.
+
+\begin{distillation}
+\item \textbf{Projective seminorm.}  For $x\in\R^n_{++}$ define the projective spread
+\[
+  \|x\|_{\rm proj}=\frac{\max_i x_i}{\min_i x_i},
+\]
+or equivalently $\log\|x\|_{\rm proj}$.  The induced distance between rays is $d_H(x,y)=\log\|xy^{-1}\|_{\rm proj}$.
+\item \textbf{Diameter of a positive matrix.}  A positive matrix $A$ has finite projective diameter
+\[
+  \Delta(A)=\sup_{x,y>0} d_H(Ax,Ay)<\infty.
+\]
+Coordinatewise positivity is the essential hypothesis.
+\item \textbf{Contraction coefficient.}  Birkhoff's theorem gives
+\[
+  d_H(Ax,Ay)\le \tanh(\Delta(A)/4)d_H(x,y).
+\]
+If $\Delta(A)<\infty$, the coefficient is strictly less than one.
+\item \textbf{Proof idea.}  The proof reduces the worst case to a two-dimensional face and verifies the contraction bound using elementary inequalities/linear programming.  This is substantially easier to distill into finite Lean inequalities than the full cone-theoretic Birkhoff-Hopf theorem.
+\end{distillation}
+
+\section*{Lean comparison targets}
+For \texttt{ProjectiveLag.lean}, a useful helper theorem would be: if $G_{ij}>0$, then the positive linear maps $x\mapsto Gx$ and $y\mapsto G^Ty$ are strict contractions on positive projective space.  The remaining work is to connect the alternating quotient/Sinkhorn updates to iterates of these positive maps in a form where the contraction can be applied.
+
+\section*{Distillation gaps}
+\TODO{Decide whether the formalization needs the exact Birkhoff coefficient or only existence of some $\tau<1$.  If only existence is needed, the Lean theorem can be much weaker than Carroll's full coefficient formula.}
+
+\input{references_manual}
+\end{document}

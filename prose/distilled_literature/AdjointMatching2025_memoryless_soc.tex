@@ -1,0 +1,28 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Adjoint Matching}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{domingoenrich-etal-2025\_adjoint-matching-soc-finetuning\_\_arXiv-2409.08861.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Domingo-Enrich, Drozdzal, Karrer, and Chen, \emph{Adjoint Matching: Fine-Tuning Flow and Diffusion Generative Models with Memoryless Stochastic Optimal Control}, arXiv:2409.08861, 2025 \cite{DomingoEnrichDrozdzalKarrerChen2025}.
+
+\section*{Role in the formalization}
+This is a modern algorithmic stochastic-control source for fine-tuning generative dynamics.  It is relevant to applied/generative-model claims but not to the current finite Sinkhorn proof core.
+
+\begin{distillation}
+\item \textbf{Reward fine-tuning as SOC.}  The paper casts reward fine-tuning of flow/diffusion generative models as a stochastic optimal-control problem.
+\item \textbf{Memoryless noise condition.}  A central mathematical point is that the noise schedule must be chosen so that the control problem accounts correctly for dependence between noise and generated samples.
+\item \textbf{Adjoint regression.}  The SOC optimality system is converted into an adjoint/matching regression objective, avoiding direct dynamic-programming over full histories.
+\item \textbf{Formalization relevance.}  The core proof themes are controlled diffusion, adjoint equations, and change-of-measure/SOC identities, which connect more to Girsanov-style path measures than to finite matrix scaling.
+\end{distillation}
+
+\section*{Lean comparison targets}
+Cite only for algorithmic fine-tuning claims.  Foundational path-measure claims should cite Girsanov/Cameron--Martin/L\'eonard/CGP instead.
+
+\section*{Distillation gaps}
+\TODO{If used in formal statements, extract the exact theorem proving the memoryless SOC condition.}
+
+\input{references_manual}
+\end{document}

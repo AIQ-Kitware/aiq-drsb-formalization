@@ -1,0 +1,32 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Mohajerin Esfahani--Kuhn (2018)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{MohajerinEsfahaniKuhn2018-1505.05116.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Mohajerin Esfahani and Kuhn, \emph{Data-Driven Distributionally Robust Optimization Using the Wasserstein Metric: Performance Guarantees and Tractable Reformulations}, Mathematical Programming 171(1--2), 115--166, 2018 \cite{MohajerinEsfahaniKuhn2018}.
+
+\section*{Role in the formalization}
+This is the source for data-driven Wasserstein ambiguity balls, finite-sample performance guarantees, and tractable reformulations under convexity/concavity structure.
+
+\begin{distillation}
+\item \textbf{Data-driven ambiguity set.}  From samples $\widehat\xi_1,\dots,\widehat\xi_N$, form the empirical measure $\widehat P_N$ and Wasserstein ball
+\[
+  \mathcal B_\epsilon(\widehat P_N)=\{Q:W(Q,\widehat P_N)\le \epsilon\}.
+\]
+\item \textbf{Out-of-sample guarantee.}  Concentration inequalities imply that, with high probability, the unknown true distribution $P$ lies in the ball for a radius calibrated by $N$, dimension, and tail parameters.  Therefore the robust value upper bounds the true out-of-sample risk.
+\item \textbf{Asymptotic consistency.}  If the confidence level/radius is driven to zero at a suitable rate, the robust optimizer and robust value converge to their true stochastic counterparts.
+\item \textbf{Convex reformulation.}  For losses expressible as maxima of concave functions and convex feasible sets, the worst-case expectation over the Wasserstein ball has a finite convex reformulation.  The core proof combines Kantorovich duality with conjugate/perspective transformations.
+\item \textbf{Worst-case distributions.}  When the robust value is finite and certain compactness/attainment conditions hold, a worst-case distribution can be represented by perturbing empirical samples toward optimizer points of local adversarial subproblems.
+\end{distillation}
+
+\section*{Lean comparison targets}
+This source is not needed for the current Sinkhorn compactness frontier.  It should be cited for formal claims about statistical calibration of Wasserstein DRO and tractable finite convex programs.
+
+\section*{Distillation gaps}
+\TODO{If the Lean project formalizes finite-sample guarantees, extract the exact concentration theorem and tail assumptions.  These are more probabilistic than the algebraic duality parts.}
+
+\input{references_manual}
+\end{document}

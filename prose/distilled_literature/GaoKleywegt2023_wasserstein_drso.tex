@@ -1,0 +1,39 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Gao--Kleywegt (2023)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{GaoKleywegt2023-1604.02199.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Gao and Kleywegt, \emph{Distributionally Robust Stochastic Optimization with Wasserstein Distance}, Mathematics of Operations Research 48(2), 603--655, 2023 \cite{GaoKleywegt2023}.
+
+\section*{Role in the formalization}
+This is a primary source for strong duality and worst-case-distribution structure in Wasserstein distributionally robust stochastic optimization.  It is especially relevant to formal wrappers that turn a worst-case expectation over a Wasserstein ball into a scalar minimization over a regularization parameter.
+
+\begin{distillation}
+\item \textbf{Worst-case expectation.}  Given nominal $\nu$, loss $\Psi$, and radius $\theta$, study
+\[
+  \sup_{\mu: W_p(\mu,\nu)\le \theta}\int \Psi(\xi)\,\mu(d\xi).
+\]
+\item \textbf{Dual envelope.}  The Lagrange multiplier $\lambda\ge 0$ yields the pointwise regularization operator
+\[
+  \Phi(\lambda,\zeta)=\sup_{\xi}\{\Psi(\xi)-\lambda d(\xi,\zeta)^p\}.
+\]
+The candidate dual objective is
+\[
+  h(\lambda)=\lambda\theta^p+\int \Phi(\lambda,\zeta)\,\nu(d\zeta).
+\]
+\item \textbf{Growth threshold.}  A central technical object is the growth rate $\kappa$ of $\Psi$ relative to $d^p$.  If $\lambda>\kappa$, the envelope is finite under the stated hypotheses; if $\lambda<\kappa$, the dual may be infinite.
+\item \textbf{Strong duality.}  Under the paper's regularity conditions, the worst-case expectation equals $\inf_{\lambda\ge 0}h(\lambda)$, with finite/infinite cases separated by the growth threshold.
+\item \textbf{Worst-case distributions.}  Approximate or exact worst-case distributions are built by transporting each nominal atom or infinitesimal mass to near maximizers of $\Psi(\xi)-\lambda d(\xi,\zeta)^p$.
+\end{distillation}
+
+\section*{Lean comparison targets}
+Use this note for the Wasserstein-DRO duality branch, especially statements involving growth-rate conditions, regularization envelopes, and construction of worst-case measures.  The proof is measure-theoretic and requires measurable-selection/tightness infrastructure if formalized at full generality.
+
+\section*{Distillation gaps}
+\TODO{Extract the exact hypotheses of Theorem 1 and Corollary 1 before formalizing strong duality.  The current note is a proof skeleton, not a fully faithful theorem statement.}
+
+\input{references_manual}
+\end{document}

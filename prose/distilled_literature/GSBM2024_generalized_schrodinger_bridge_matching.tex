@@ -1,0 +1,28 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Generalized Schr\"odinger Bridge Matching}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{liu-etal-2024\_generalized-schrodinger-bridge-matching-GSBM\_\_arXiv-2310.02233.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Liu, Lipman, Nickel, Karrer, Theodorou, and Chen, \emph{Generalized Schr\"odinger Bridge Matching}, ICLR 2024 \cite{LiuLipmanNickelKarrerTheodorouChen2024}.
+
+\section*{Role in the formalization}
+This is an algorithmic source for generalized bridge matching with task-specific state costs.  It is relevant to high-level evaluation-card claims but not to finite Sinkhorn compactness proofs.
+
+\begin{distillation}
+\item \textbf{Generalized bridge problem.}  Instead of prescribing the entire marginal path, prescribe boundary distributions and a task-specific stochastic optimal-control objective.
+\item \textbf{Conditional SOC formulation.}  The bridge dynamics are cast as a conditional stochastic optimal-control problem whose optimal drift can be approximated variationally.
+\item \textbf{Matching algorithm.}  GSBM generalizes matching methods by fitting drifts compatible with both boundary transport and state-cost optimality.
+\item \textbf{Path-integral correction.}  The paper uses path-integral/debiasing ideas to correct variational approximations of the generalized bridge objective.
+\end{distillation}
+
+\section*{Lean comparison targets}
+This paper is not a primary source for classical Schr\"odinger bridge theorem statements.  It should be cited for modern generalized matching algorithm claims only.
+
+\section*{Distillation gaps}
+\TODO{Extract the exact conditional SOC theorem if formalizing the algorithmic reduction.}
+
+\input{references_manual}
+\end{document}

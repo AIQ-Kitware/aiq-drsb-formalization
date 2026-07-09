@@ -1,0 +1,116 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\title{Distillation: Leonard 2019, Revisiting Fortet's proof}
+\author{Generated for the AIQ DRSB formalization reference corpus}
+\date{2026-07-09}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+Christian Leonard. ``Revisiting Fortet's proof of existence of a solution to the Schrodinger system.'' arXiv:1904.13211v1, 2019.
+Source PDF expected in the repo as
+\texttt{prose/papers/Leonard2019\_revisiting\_fortet.pdf}.
+
+\section*{Why this paper matters for the formalization}
+Leonard gives a modern, readable reconstruction of Fortet's existence and uniqueness proof for the Schrodinger system.  It is the best proof target for continuum Schrodinger-system existence.  It is also useful for interpreting the finite Sinkhorn equations and avoiding circularity in scale-normalization arguments.
+
+\section*{Problem and Schrodinger system}
+Given a reference density \(p(x,y)\) and prescribed marginals \(\mu,\nu\), the entropy problem is
+\[
+  H(\pi\mid p)\to\min,
+  \qquad \pi_X=\mu,
+  \quad \pi_Y=\nu.
+\]
+The expected solution has product scaling form
+\[
+  \pi(dxdy)=p(x,y)a(dx)b(dy),
+\]
+where \((a,b)\) solves the Schrodinger system
+\[
+  a(dx)\int p(x,y)b(dy)=\mu(dx),
+  \qquad
+  b(dy)\int p(x,y)a(dx)=\nu(dy).
+\]
+The solution is unique up to reciprocal scaling of \(a\) and \(b\), while the product measure \(pab\) is unique.
+
+\section*{Fortet equation}
+Set \(u=d\mu/da\).  Then the system is equivalent to
+\[
+  a=u^{-1}\mu,
+  \qquad
+  b=\left(\int p(x,\cdot)u(x)^{-1}\,\mu(dx)\right)^{-1}\nu,
+\]
+and \(u\) solves
+\[
+  u=\Phi[u],
+\]
+where
+\[
+  \Phi[u](x)
+  =\int p(x,y)
+   \left[\int p(x',y)u(x')^{-1}\,\mu(dx')\right]^{-1}\nu(dy).
+\]
+This is the modern version of Fortet's one-equation reduction.
+
+\section*{Main results distilled}
+Leonard states two principal existence/uniqueness paths.
+
+\paragraph{Theorem 1.1 path.}
+Assume \(p>0\), \(p\) bounded, and one of two reciprocal integrability estimates holds.  Then the Schrodinger system admits a unique solution.  The proof is reduced to:
+\begin{itemize}[leftmargin=2em]
+\item uniqueness of positive finite solutions to \(u=\Phi[u]\), stated as Proposition 5.1;
+\item existence of a positive fixed point, stated as Theorem 5.6.
+\end{itemize}
+
+\paragraph{Theorem 1.9 path.}
+Replace the integrability estimate by compactness/uniform-integrability hypotheses.  This gives a version closer to Fortet's original method and includes a Gaussian-kernel corollary.
+
+\section*{Algorithmic proof skeleton}
+The proof constructs a decreasing positive sequence by clipping the natural iteration:
+\[
+  u_{n+1}=U/(n+1)\vee \bigl(\Phi[u_n]\wedge U\bigr),
+  \qquad u_1=U.
+\]
+Then:
+\begin{enumerate}[leftmargin=2em]
+\item monotonicity of \(\Phi\) gives \(u_{n+1}\le u_n\);
+\item pointwise monotone convergence gives a limit \(u_*\);
+\item passing to the limit in the clipped equation gives \(u_*\le \Phi[u_*]\);
+\item the identity
+\[
+  \int \frac{\Phi[u](x)}{u(x)}\,\mu(dx)=1
+\]
+forces equality once positivity of \(u_*\) is known;
+\item separate positivity lemmas rule out the zero fixed point.
+\end{enumerate}
+
+\section*{Uniqueness mechanism}
+Uniqueness is projective/gauge uniqueness.  If two positive finite functions solve \(u=\Phi[u]\), one compares their ratios and uses positivity of \(p\) to propagate any extremal ratio through the two integral updates.  The conclusion is that the ratio is constant, hence the two solutions differ by a scalar.  This is conceptually parallel to Hilbert projective uniqueness, though Leonard's proof is framed as Fortet's fixed-point argument rather than as Birkhoff contraction.
+
+\section*{Lean comparison target}
+For the finite formalization:
+\begin{itemize}[leftmargin=2em]
+\item \texttt{SinkhornTargets.lean} and quotient-update files formalize finite analogues of the Schrodinger system.
+\item \texttt{ScaleLag.lean} uses the same idea as Leonard's mass identity: a nonnegative residual with total integral/sum zero must vanish, thereby killing the residual scalar.
+\item \texttt{ProjectiveLag.lean} should not cite Leonard alone for contraction.  Leonard supports uniqueness of solution rays and Fortet iteration, but the finite projective-drift proof still needs the Birkhoff/positive-matrix contraction source.
+\end{itemize}
+
+\section*{Use as a source for distilled Lean proof notes}
+When writing formalization prose, use Leonard 2019 to justify the following schema:
+\[
+  \hbox{Schrodinger system}\quad\Longleftrightarrow\quad
+  \hbox{positive fixed point of }\Phi,
+\]
+then use Birkhoff/Lemmens--Nussbaum to justify any Hilbert-metric contraction claims.  This separation keeps the Lean development honest: Fortet/Leonard is existence/uniqueness of scalings, while Birkhoff is asymptotic projective regularity.
+
+\begin{thebibliography}{9}
+\bibitem{Leonard2019} C. Leonard, \emph{Revisiting Fortet's proof of existence of a solution to the Schrodinger system}, arXiv:1904.13211, 2019.
+\bibitem{Fortet1940} R. Fortet, \emph{Resolution d'un systeme d'equations de M. Schrodinger}, Journal de mathematiques pures et appliquees, 9e serie, 19(1--4):83--105, 1940.
+\end{thebibliography}
+\end{document}

@@ -1,0 +1,49 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from L\'eonard's Schr\"odinger Survey}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{Leonard2013-1308.0215.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Christian L\'eonard, \emph{A Survey of the Schr\"odinger Problem and Some of Its Connections with Optimal Transport}, Discrete and Continuous Dynamical Systems--A 34(4), 1533--1574, 2014 \cite{Leonard2014Survey}.
+
+\section*{Role in the formalization}
+This is the cleanest survey source for the dynamic/static Schr\"odinger problem, entropy minimization over path measures, the $(f,g)$-transform, and the Markov property inherited by the bridge.
+
+\begin{distillation}
+\item \textbf{Dynamic-to-static reduction.}  Let $R$ be a reference path measure on $\Omega$, and constrain endpoint marginals $P_0=\mu_0$, $P_1=\mu_1$.  The dynamic problem
+\[
+  \inf\{H(P\mid R):P_0=\mu_0,\ P_1=\mu_1\}
+\]
+can be reduced to a static entropy minimization over the endpoint coupling $\pi=P_{01}$ because relative entropy decomposes along disintegration:
+\[
+  H(P\mid R)=H(P_{01}\mid R_{01})+
+  \int H(P^{xy}\mid R^{xy})\,P_{01}(dxdy).
+\]
+The conditional entropy term is minimized by taking the reference bridges $R^{xy}$; hence the dynamic minimizer is obtained by mixing reference bridges with the optimal static endpoint coupling.
+\item \textbf{Multiplicative endpoint density.}  Under the usual integrability and irreducibility hypotheses, the optimal static coupling has density
+\[
+  \frac{d\widehat\pi}{dR_{01}}(x,y)=f(x)g(y),
+\]
+where $f,g\ge 0$ solve the Schr\"odinger system
+\[
+  f(x)\int g(y)R_{01}(dy\mid x)=\frac{d\mu_0}{dR_0}(x),\qquad
+  g(y)\int f(x)R_{01}(dx\mid y)=\frac{d\mu_1}{dR_1}(y).
+\]
+\item \textbf{$(f,g)$-transform.}  The bridge path measure is
+\[
+  \widehat P=f(X_0)g(X_1)R.
+\]
+If $R$ is Markov, this multiplicative endpoint tilt remains Markov.  Forward and backward harmonic functions propagate the endpoint potentials through the reference semigroup.
+\item \textbf{Connection to optimal transport.}  Entropic bridges converge, in small-noise or slow-reference limits, to optimal transport objects.  In proof terms, entropy gives strict convexity and compactness; the OT limit is a singular perturbation where the reference kernel concentrates on low-cost paths.
+\end{distillation}
+
+\section*{Lean comparison targets}
+Use this source for statements that identify path-space bridges with endpoint-coupling bridges and for any formalization of the Doob/$h$-transform picture.  For the finite Sinkhorn files, this is background rather than the primary convergence source.
+
+\section*{Distillation gaps}
+\TODO{For any Lean theorem about dynamic/static equivalence, pin it to L\'eonard's Proposition 2.10 / Theorem 2.12 style statements after checking exact numbering in the final PDF.}
+
+\input{references_manual}
+\end{document}

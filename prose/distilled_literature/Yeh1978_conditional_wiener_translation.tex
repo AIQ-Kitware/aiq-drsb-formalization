@@ -1,0 +1,28 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Yeh (1978)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{Transformations of Wiener Integrals Under Translations-Yeh-1977.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Yeh, \emph{Transformation of Conditional Wiener Integrals under Translation and the Cameron--Martin Translation Theorem}, Tohoku Mathematical Journal 30(4), 505--515, 1978 \cite{Yeh1978}.
+
+\section*{Role in the formalization}
+This is a specialized source for conditional Wiener integrals under endpoint conditioning.  It is relevant if the project formalizes conditional bridge/path integral formulas rather than only finite-state Sinkhorn systems.
+
+\begin{distillation}
+\item \textbf{Conditional Wiener integral.}  The paper treats conditional expectations of Wiener-integrable functionals given the endpoint map $X[x]=x(t)$.
+\item \textbf{Translation path.}  Let $x_0$ be absolutely continuous with square-integrable derivative.  The Cameron--Martin density supplies the Radon--Nikodym correction under $x\mapsto x+x_0$.
+\item \textbf{Endpoint shift.}  Conditioning on $x(t)=\xi$ interacts with translation by replacing the endpoint condition with $\xi-x_0(t)$ and multiplying by the corresponding exponential density factors.
+\item \textbf{Use in bridges.}  This is a path-integral route to Brownian bridge translation identities, which in turn underlie Gaussian bridge computations.
+\end{distillation}
+
+\section*{Lean comparison targets}
+Use only for conditional path-space bridge identities.  It is not needed for current finite Sinkhorn compactness.
+
+\section*{Distillation gaps}
+\TODO{If formalizing conditional Wiener formulas, extract Yeh's Theorem 1 and Theorem 2 exactly.}
+
+\input{references_manual}
+\end{document}

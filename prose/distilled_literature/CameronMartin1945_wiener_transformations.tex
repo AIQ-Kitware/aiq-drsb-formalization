@@ -1,0 +1,32 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Cameron--Martin (1945)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{S0002-9947-1945-0013240-1.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Cameron and Martin, \emph{Transformations of Wiener Integrals under a General Class of Linear Transformations}, Transactions of the American Mathematical Society 58(2), 184--219, 1945 \cite{CameronMartin1945}.
+
+\section*{Role in the formalization}
+This is a primary Wiener-integral transformation source.  The uploaded paper is about a broad class of linear transformations of Wiener space, with translation results used as background.  It supports continuum Gaussian-measure/quasi-invariance arguments adjacent to Schr\"odinger bridge path-space proofs.
+
+\begin{distillation}
+\item \textbf{Wiener space.}  Work on continuous paths $x:[0,1]\to\R$ with $x(0)=0$ under Wiener measure.
+\item \textbf{Linear transformation.}  Consider transformations of the form
+\[
+  y(t)=x(t)+\int_0^1 K(t,s)x(s)\,ds
+\]
+under analytic conditions on the kernel $K$ ensuring invertibility and measurability.
+\item \textbf{Jacobian/Radon--Nikodym correction.}  The Wiener integral of a functional after transformation equals an integral over the original path with a determinant factor and an exponential quadratic correction.
+\item \textbf{Connection to Cameron--Martin.}  Translation by an absolutely continuous path with square-integrable derivative is the simpler, now-standard quasi-invariance theorem: the translated measure is absolutely continuous and has exponential linear/quadratic density.
+\end{distillation}
+
+\section*{Lean comparison targets}
+This source should only be cited if the formalization includes Wiener-space quasi-invariance or Gaussian path-space transformations.  For finite Sinkhorn and static DRO files it is background.
+
+\section*{Distillation gaps}
+\TODO{If using the translation theorem specifically, add the original Cameron--Martin translation paper or a modern reference with an exact theorem statement.  The uploaded file is a general linear-transformation sequel rather than solely the translation theorem.}
+
+\input{references_manual}
+\end{document}

@@ -1,0 +1,38 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Wang--Gao--Xie (Sinkhorn DRO)}
+\author{Generated proof-target note}
+\date{Source PDFs: \texttt{WangGaoXie2023-2109.11926.pdf}, \texttt{WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Wang, Gao, and Xie, \emph{Sinkhorn Distributionally Robust Optimization}, Operations Research, 2025 \cite{WangGaoXie2025}.  The local folder includes both the arXiv PDF and the Operations Research supplement.
+
+\section*{Role in the formalization}
+This is the primary source for distributionally robust optimization with Sinkhorn/entropic-transport ambiguity.  It connects the DRO branch of the project to entropy-regularized optimal transport rather than classical Wasserstein balls.
+
+\begin{distillation}
+\item \textbf{Sinkhorn ambiguity.}  Replace the Wasserstein discrepancy by an entropically regularized transport cost, so the ambiguity set is smoother and worst-case distributions need not be purely discrete even when the nominal measure is empirical.
+\item \textbf{Dualization.}  The robust objective
+\[
+  \sup_Q\{\E_Q[\ell(\theta,Z)]: S_c^\eta(Q,\widehat P)\le \rho\}
+\]
+can be dualized with a Lagrange multiplier for the Sinkhorn radius.  Entropic regularization turns the inner transport problem into a log-sum-exp / Gibbs envelope rather than an ordinary supremum envelope.
+\item \textbf{Convex dual reformulation.}  Under the paper's assumptions on loss, cost, and nominal distribution, the robust objective has a convex dual representation.  This is the Sinkhorn analogue of the Wasserstein-DRO envelope in \cite{BlanchetMurthy2019,GaoKleywegt2023}, with KL/Gibbs terms replacing hard pointwise adversarial maximization.
+\item \textbf{Gibbs variational principle.}  The proof repeatedly uses the identity
+\[
+  \log \int e^{f/\eta}\,d\mu
+  = \sup_{\nu}\left\{\eta^{-1}\int f\,d\nu-\KL(\nu\mid\mu)\right\},
+\]
+up to the paper's normalization.  This is the bridge to Donsker--Varadhan style lemmas.
+\item \textbf{Algorithmic consequence.}  The dual objective admits stochastic biased subgradient/mirror-descent procedures because the entropic envelope can be sampled/estimated more smoothly than a hard Wasserstein supremum.
+\end{distillation}
+
+\section*{Lean comparison targets}
+This paper should be cited for Sinkhorn-DRO duality and any theorem using entropic transport to derive a convex robust objective.  It is not the right source for finite Sinkhorn phase convergence; that remains CGP/Sinkhorn--Knopp/Franklin--Lorenz territory.
+
+\section*{Distillation gaps}
+\TODO{Read the supplement and extract the exact proposition/equation numbers used for the dual reformulation.  The current note intentionally records proof architecture rather than theorem numbering.}
+
+\input{references_manual}
+\end{document}

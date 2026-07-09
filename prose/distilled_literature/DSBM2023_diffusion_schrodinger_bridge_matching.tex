@@ -1,0 +1,28 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Diffusion Schr\"odinger Bridge Matching}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{shi-etal-2023\_diffusion-schrodinger-bridge-matching-DSBM\_\_arXiv-2303.16852.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Shi, De Bortoli, Campbell, and Doucet, \emph{Diffusion Schr\"odinger Bridge Matching}, NeurIPS 2023 \cite{ShiDeBortoliCampbellDoucet2023}.
+
+\section*{Role in the formalization}
+This is an algorithmic/generative-model source, not a primary proof source for classical finite Sinkhorn convergence.  It is relevant if evaluation-card claims connect Schr\"odinger bridge theory to modern diffusion bridge matching methods.
+
+\begin{distillation}
+\item \textbf{Bridge objective.}  The target is a stochastic process whose marginals match prescribed endpoint distributions while remaining close in KL to a reference diffusion.
+\item \textbf{IPF viewpoint.}  Classical Iterative Proportional Fitting alternates projections onto endpoint-marginal constraint sets.  The paper introduces Iterative Markovian Fitting as a scalable Markovian analogue.
+\item \textbf{Matching reduction.}  Instead of exactly solving each bridge subproblem, DSBM trains drifts by regression/matching objectives derived from conditional bridge dynamics.
+\item \textbf{Relation to OT/diffusion.}  Schr\"odinger bridges interpolate between entropy-regularized OT and stochastic generative modeling; DSBM is positioned as a scalable approximation to this bridge construction.
+\end{distillation}
+
+\section*{Lean comparison targets}
+Cite for provenance of algorithmic evaluation claims only.  Do not use as the proof source for foundational Schr\"odinger bridge existence/convergence; use \cite{Leonard2014Survey,ChenGeorgiouPavon2021,SinkhornKnopp1967} instead.
+
+\section*{Distillation gaps}
+\TODO{If the project formalizes an algorithmic theorem from DSBM, extract the exact proposition/theorem from the PDF and add assumptions.}
+
+\input{references_manual}
+\end{document}

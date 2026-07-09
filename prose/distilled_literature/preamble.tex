@@ -1,0 +1,26 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{xcolor}
+\hypersetup{colorlinks=true, linkcolor=blue!50!black, citecolor=blue!50!black, urlcolor=blue!50!black}
+\newtheorem{distilled}{Distilled claim}
+\newtheorem{lemma}{Lemma}
+\newcommand{\KL}{\mathrm{KL}}
+\newcommand{\Ent}{\mathrm{Ent}}
+\newcommand{\Prob}{\mathsf{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Pcal}{\mathcal{P}}
+\newcommand{\Mcal}{\mathcal{M}}
+\newcommand{\Qcal}{\mathcal{Q}}
+\newcommand{\Gcal}{\mathcal{G}}
+\newcommand{\W}{\mathcal{W}}
+\newcommand{\one}{\mathbf{1}}
+\newcommand{\dd}{\,d}
+\newcommand{\TODO}[1]{\par\smallskip\noindent\textcolor{red!65!black}{\textbf{TODO.} #1}\par\smallskip}
+\newenvironment{formalizationnotes}{\paragraph{Formalization notes.}\begin{itemize}[leftmargin=2em]}{\end{itemize}}
+\newenvironment{distillation}{\paragraph{Distilled argument.}\begin{enumerate}[leftmargin=2em]}{\end{enumerate}}

@@ -1,0 +1,109 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\title{Distillation: Lemmens--Nussbaum 2013, Birkhoff's version of Hilbert's metric}
+\author{Generated for the AIQ DRSB formalization reference corpus}
+\date{2026-07-09}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+Bas Lemmens and Roger Nussbaum. ``Birkhoff's version of Hilbert's metric and its applications in analysis.'' arXiv:1304.7921v1, 2013.
+Source PDF expected in the repo as
+\texttt{prose/papers/LemmensNussbaum2013\_hilbert\_metric\_survey.pdf}.
+
+\section*{Why this paper matters for the formalization}
+This survey supplies modern notation and clean statements for Hilbert's metric on cones, order-preserving homogeneous maps, Birkhoff's contraction ratio, and the finite positive-matrix formula for projective diameter.  It is the best source for translating Birkhoff's argument into Lean-friendly finite-dimensional statements.
+
+\section*{Core definitions}
+Let \(C\) be a cone in a real vector space.  For \(x\in V\), \(y\in C\), define
+\[
+  M(x/y)=\inf\{\beta : x\le_C \beta y\},\qquad
+  m(x/y)=\sup\{\alpha : \alpha y\le_C x\}.
+\]
+For comparable nonzero points in the same part of the cone, Birkhoff's Hilbert metric is
+\[
+  d(x,y)=\log\frac{M(x/y)}{m(x/y)}.
+\]
+For the positive cone \(\mathbb{R}_+^n\) and strictly positive vectors,
+\[
+  M(x/y)=\max_i \frac{x_i}{y_i},\qquad
+  m(x/y)=\min_i \frac{x_i}{y_i}.
+\]
+Thus \(d(x,y)=0\) exactly when \(x\) and \(y\) are positive scalar multiples.
+
+\section*{Metric and nonexpansive-map facts}
+The survey proves the basic metric properties:
+\begin{enumerate}[leftmargin=2em]
+\item nonnegativity, symmetry, and triangle inequality for \(d\) on each part;
+\item projective invariance \(d(\lambda x,\mu y)=d(x,y)\) for \(\lambda,\mu>0\);
+\item in a closed Banach cone, zero distance means equality of rays.
+\end{enumerate}
+If \(f:C\to K\) is order-preserving and homogeneous of degree \(r>0\), then
+\[
+  M(f(x)/f(y))\le M(x/y)^r,
+  \qquad
+  m(x/y)^r\le m(f(x)/f(y)).
+\]
+Therefore degree-one order-preserving maps are nonexpansive for \(d\).  Order-reversing homogeneous maps of degree \(-1\) are also nonexpansive after the corresponding inversion of inequalities.
+
+\section*{Birkhoff contraction ratio}
+For a positive linear map \(L:C\to K\), define
+\[
+  \kappa(L)=\inf\{c: d(Lx,Ly)\le c\,d(x,y)\},\qquad
+  \Delta(L)=\sup\{d(Lx,Ly):x,y\in C\}.
+\]
+Birkhoff's theorem states
+\[
+  \kappa(L)=\tanh\bigl(\Delta(L)/4\bigr),
+\]
+with \(\tanh(\infty)=1\).  Hence finite projective diameter implies strict contraction.
+
+For a strictly positive matrix \(A=(a_{ij})\), the survey records the explicit finite formula
+\[
+  \Delta(A)=\log\max_{i,j,p,q}\frac{a_{pi}a_{qj}}{a_{pj}a_{qi}} < \infty.
+\]
+This formula is especially useful for Lean because it avoids compactness of function spaces and reduces finite diameter to inequalities over finite index sets.
+
+\section*{Distilled proof pattern for finite matrices}
+\begin{enumerate}[leftmargin=2em]
+\item Strict positivity of all entries gives every image coordinate \((Ax)_p=\sum_i a_{pi}x_i\) positive for nonzero \(x\ge0\).
+\item For two rows \(p,q\), compare \((Ax)_p/(Ax)_q\) using the coordinatewise ratios \(a_{pi}/a_{qi}\).  The ratio of two image vectors is trapped between finite extrema over entries of \(A\).
+\item The logarithmic spread of these extrema gives finite projective diameter \(\Delta(A)\).
+\item Birkhoff's theorem turns finite diameter into a strict contraction of Hilbert distance.
+\end{enumerate}
+
+\section*{Lean comparison target}
+For \texttt{ProjectiveLag.lean}, the most directly formalizable lemma is not the full theorem \(\kappa=\tanh(\Delta/4)\), but the finite diameter estimate:
+\[
+  \forall x,y>0,\quad
+  d_H(Kx,Ky)\le
+  \log\max_{i,i',j,j'}\frac{G_{ij}G_{i'j'}}{G_{ij'}G_{i'j}}.
+\]
+If the proof only needs uniqueness of projective cluster points, finite diameter plus monotonicity/nonexpansiveness may be enough.  If it needs convergence rate, import the strict contraction theorem as a separate theorem seam.
+
+\section*{Projective-lag relevance}
+The two remaining Lean targets are cross-product limits.  In a finite positive cone,
+\[
+  d_H(u_n,u_{n+1})\to 0
+\]
+implies for all \(i,j\),
+\[
+  \frac{u_{n+1,i}}{u_{n,i}}-\frac{u_{n+1,j}}{u_{n,j}}\to 0,
+\]
+and with positive box bounds this is equivalent to
+\[
+  u_{n+1,i}u_{n,j}-u_{n+1,j}u_{n,i}\to 0.
+\]
+The formalized finite-lag algebra already contains related bounded-denominator conversions; this file suggests the missing metric/diameter side.
+
+\begin{thebibliography}{9}
+\bibitem{LemmensNussbaum2013} B. Lemmens and R. Nussbaum, \emph{Birkhoff's version of Hilbert's metric and its applications in analysis}, arXiv:1304.7921, 2013.
+\bibitem{Birkhoff1957} G. Birkhoff, \emph{Extensions of Jentzsch's theorem}, Trans. Amer. Math. Soc. 85(1):219--227, 1957.
+\end{thebibliography}
+\end{document}

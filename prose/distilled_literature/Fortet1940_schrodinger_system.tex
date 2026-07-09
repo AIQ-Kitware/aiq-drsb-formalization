@@ -1,0 +1,91 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\title{Distillation: Fortet 1940, Resolution d'un systeme d'equations de M. Schrodinger}
+\author{Generated for the AIQ DRSB formalization reference corpus}
+\date{2026-07-09}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+Robert Fortet. ``Resolution d'un systeme d'equations de M. Schrodinger.'' \emph{Journal de mathematiques pures et appliquees}, 9e serie, tome 19, no. 1--4, pp. 83--105, 1940.  Numdam item \texttt{JMPA\_1940\_9\_19\_1-4\_83\_0}.
+Source PDF expected in the repo as
+\texttt{prose/papers/Fortet1940\_schrodinger\_system.pdf}.
+
+\section*{Why this paper matters for the formalization}
+Fortet is the historical source for existence and uniqueness of positive solutions of the two-marginal Schrodinger system.  It is not the most convenient source for the current finite \texttt{ProjectiveLag.lean} proof, but it is important provenance for the fixed-point/iteration architecture behind Sinkhorn and IPF.  Leonard's 2019 note is the modern proof guide; Fortet is the primary source.
+
+\section*{System and normalization}
+Fortet studies unknown functions \(\varphi(x)\) and \(\psi(y)\) satisfying
+\[
+  \varphi(x)\int g(x,y)\psi(y)\,dy = \omega_1(x),
+  \qquad
+  \psi(y)\int g(x,y)\varphi(x)\,dx = \omega_2(y).
+\]
+Solutions are identified up to the gauge transformation
+\[
+  (\varphi,\psi)\sim (\rho\varphi,\rho^{-1}\psi),\qquad \rho\ne0.
+\]
+The main hypotheses impose nonnegativity/positivity, boundedness and continuity conditions on \(g,\omega_1,\omega_2\), and normalize the total masses of \(\omega_1\) and \(\omega_2\).
+
+\section*{Reduction to one fixed-point equation}
+Fortet rewrites the system as a single nonlinear equation.  In modern notation, define an operator \(\Omega\) by
+\[
+  (\Omega h)(x)
+  = \int g(x,y)\frac{\omega_2(y)}{\int g(z,y)\omega_1(z)/h(z)\,dz}\,dy.
+\]
+Then a solution \(h=\Omega h\), neither zero nor infinite, yields a solution of the original system by
+\[
+  \varphi(x)=\frac{\omega_1(x)}{h(x)},
+  \qquad
+  \psi(y)=\frac{\omega_2(y)}{\int g(x,y)\varphi(x)\,dx}.
+\]
+This is the historical antecedent of the Sinkhorn quotient-update equations formalized in Lean.
+
+\section*{Fortet's function class and lemma}
+Fortet introduces a class \((C)\) of measurable functions bounded below by a positive number and finite almost everywhere.  The central lemma states, in paraphrase:
+
+\begin{quote}
+If \(H\) is in class \((C)\), then \(H'=\Omega(H)\) is measurable, positive, locally bounded below, and finite almost everywhere on the support of \(\omega_1\).  Moreover, if \(H'\le H\) almost everywhere or \(H'\ge H\) almost everywhere, then the mass identity forces \(H'=H\) almost everywhere on the relevant support.
+\end{quote}
+
+The proof uses finite-set truncations, monotone convergence/Beppo-Levi, and a normalization identity equivalent to
+\[
+  \int \frac{\Omega(H)}{H}\,\omega_1(dx)=1.
+\]
+This identity is the scalar normalization mechanism that reappears in modern Fortet/Schrodinger proofs.
+
+\section*{Successive approximation scheme}
+Fortet constructs monotone approximations by alternating \(\Omega\) with pointwise max/min truncations.  In modern notation, the idea is:
+\[
+  H_1=1,
+  \qquad
+  H_{n+1}=\max\{\Omega(H_n),1/(n+1)\}\quad\hbox{or a comparable clipped recursion}.
+\]
+The construction separates two cases:
+\begin{enumerate}[leftmargin=2em]
+\item if an iterate crosses below a previous bound, the lemma yields a fixed point;
+\item otherwise the decreasing/increasing envelopes have limits, and the lemma plus mass identities show that the limiting object is a fixed point.
+\end{enumerate}
+Fortet then obtains a positive solution and proves uniqueness of positive solutions up to the scalar gauge.
+
+\section*{Relation to Lean files}
+\begin{itemize}[leftmargin=2em]
+\item \texttt{QuotientDrift.lean}: Fortet's fixed-point reduction is the source-level ancestor of quotient updates such as \(\hat\varphi_0(k+1)\varphi_0(k)=p\) and \(\varphi_1(k+1)\hat\varphi_1(k)=q\).
+\item \texttt{ScaleLag.lean}: the identity \(\int \Omega(H)/H\,d\omega_1=1\) is the continuum analogue of the scalar normalization used to kill residual projective scaling.
+\item \texttt{ProjectiveLag.lean}: Fortet does not directly provide the finite Hilbert-metric cross-product drift proof.  It supports the existence/uniqueness story, not the finite projective contraction lemma needed for the remaining sorries.
+\end{itemize}
+
+\section*{Distillation warning}
+Fortet's paper is written in older analytic language and does not separate measure-theoretic details from the fixed-point mechanism as cleanly as Leonard 2019.  For Lean, cite Fortet for provenance and Leonard for a modern proof skeleton, unless formalizing Fortet's exact regularity hypotheses is the goal.
+
+\begin{thebibliography}{9}
+\bibitem{Fortet1940} R. Fortet, \emph{Resolution d'un systeme d'equations de M. Schrodinger}, Journal de mathematiques pures et appliquees, 9e serie, 19(1--4):83--105, 1940.
+\bibitem{Leonard2019} C. Leonard, \emph{Revisiting Fortet's proof of existence of a solution to the Schrodinger system}, arXiv:1904.13211, 2019.
+\end{thebibliography}
+\end{document}

@@ -1,0 +1,40 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Girsanov (1960)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{girsanov1960.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Girsanov, \emph{On Transforming a Certain Class of Stochastic Processes by Absolutely Continuous Substitution of Measures}, Theory of Probability and Its Applications 5(3), 285--301, 1960 \cite{Girsanov1960}.
+
+\section*{Role in the formalization}
+This is the classical source for changing drift by an absolutely continuous change of path measure.  It is relevant to dynamic Schr\"odinger bridge/SOC arguments where controlled diffusions are expressed as tilted Brownian path measures and relative entropy becomes quadratic control energy.
+
+\begin{distillation}
+\item \textbf{Setup.}  Start with a Wiener process $W$ under $P$ and an adapted drift/control process $u_t$ satisfying integrability conditions.
+\item \textbf{Exponential martingale.}  The Radon--Nikodym derivative is given by a stochastic exponential
+\[
+  Z_T=\exp\left(\int_0^T u_t\cdot dW_t - \frac12\int_0^T \|u_t\|^2dt\right),
+\]
+under appropriate conditions ensuring $Z$ is a martingale.
+\item \textbf{New Brownian motion.}  Under $Q$ defined by $dQ=Z_TdP$, the process
+\[
+  \widetilde W_t=W_t-\int_0^t u_sds
+\]
+is Brownian.  Thus adding drift under one measure is equivalent to changing measure.
+\item \textbf{Entropy/energy identity.}  In the regular case,
+\[
+  \KL(Q\mid P)=\frac12\E_Q\int_0^T\|u_t\|^2dt.
+\]
+This identity is the analytic bridge from relative entropy over path measures to stochastic optimal control cost.
+\end{distillation}
+
+\section*{Lean comparison targets}
+Use this note for continuum path-measure change-of-drift statements.  It is not part of the finite Sinkhorn compactness frontier.  Formalizing it fully would require stochastic integration and martingale infrastructure beyond ordinary measure theory.
+
+\section*{Distillation gaps}
+\TODO{Extract exact hypotheses from the translated paper before making any Lean theorem.  In modern formalization it may be cleaner to cite a contemporary theorem statement unless the project wants original-source provenance.}
+
+\input{references_manual}
+\end{document}

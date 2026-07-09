@@ -1,0 +1,244 @@
+
+\input{preamble}
+\title{Improved Distillation of Franklin--Lorenz (1989), Section 3: Hilbert Metric Proof of Sinkhorn Iteration Convergence}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{FranklinLorenz1989-1-s2.0-0024379589904904-main.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills the final part of Joel Franklin and Jens Lorenz,
+\emph{On the Scaling of Multidimensional Matrices}, Linear Algebra and its Applications
+114/115:717--735, 1989 \cite{FranklinLorenz1989}.  The exact source section is
+Section 3, ``Hilbert's Projective Metric and Sinkhorn's Iteration'', pp. 725--732
+of the article.  The core convergence result is Theorem 4 on pp. 729--731, preceded
+by the Hilbert metric setup and Lemmas 1--2 on pp. 726--729.
+
+\section*{Purpose of this distillation}
+The surrounding formalization needs a finite positive-kernel asymptotic-regularity
+argument for Sinkhorn-type iterates.  Franklin--Lorenz do not merely cite Sinkhorn's
+iteration: in Section 3 they isolate the Hilbert-projective contraction mechanism,
+prove geometric contraction of row/column marginal errors, and convert those bounds
+into convergence in a metric on the diagonal-equivalence class of the matrix.  This is
+one of the closest literature sources to the remaining Lean projective-lag frontier.
+
+\section*{Exact source anchor}
+\begin{itemize}[leftmargin=2em]
+\item \textbf{Section 3, p. 725:} starts ``Hilbert's Projective Metric and Sinkhorn's
+Iteration''.  It defines the alternating row-normalized and column-normalized matrices
+$A'_k$ and $A_{k+1}$.
+\item \textbf{pp. 726--727:} defines Hilbert's projective metric on the positive cone,
+then states Birkhoff's contraction ratio for a positive matrix as Lemma 1.
+\item \textbf{p. 728--729:} Lemma 2 connects one full Sinkhorn cycle to Hilbert metric
+contraction of the row and column sum errors.
+\item \textbf{pp. 729--731:} Theorem 4 gives the geometric convergence estimate for
+$A_k$ and $A'_k$ in the metric $\Delta$ on the diagonal-equivalence class.
+\item \textbf{pp. 731--732:} Lemma 3 converts $\Delta$-error into entrywise multiplicative
+error bounds.
+\end{itemize}
+
+\section*{Notation normalized for formalization}
+Let $A=(a_{ij})$ be a strictly positive $m\times n$ matrix.  Let
+$p\in\mathbb{R}^m_{>0}$ and $q\in\mathbb{R}^n_{>0}$ have the same total mass.
+Write $e$ for the all-ones vector of the relevant dimension.
+
+The Sinkhorn row/column-normalization cycle is:
+\[
+  r^{(k)} := A_k e, \qquad
+  A'_k := S_k A_k, \qquad
+  S_k := \operatorname{diag}\left(\frac{p_i}{r^{(k)}_i}\right),
+\]
+\[
+  c^{(k)} := (A'_k)^T e, \qquad
+  A_{k+1} := A'_k T_k, \qquad
+  T_k := \operatorname{diag}\left(\frac{q_j}{c^{(k)}_j}\right).
+\]
+Thus $A'_k$ has row sums $p$ and $A_{k+1}$ has column sums $q$.
+Franklin--Lorenz assume in Theorem 4 that the starting matrix is already column
+normalized, $A^T e=q$, so that $A_0^T e=q$.
+
+For $x,x'\in\mathbb{R}^m_{>0}$, Hilbert's projective metric is
+\[
+  d_H(x,x') = \log \max_{i,k}\frac{x_i x'_k}{x'_i x_k}
+            = \log\frac{\max_i(x_i/x'_i)}{\min_i(x_i/x'_i)}.
+\]
+It is a metric on positive rays: $d_H(x,x')=0$ iff $x=\alpha x'$ for some
+$\alpha>0$.
+
+For a positive matrix $A$, Franklin--Lorenz use the multiplicative projective
+diameter
+\[
+  \vartheta(A)
+  := \max_{i,j,k,\ell}\frac{a_{ik}a_{j\ell}}{a_{jk}a_{i\ell}}.
+\]
+Equivalently, the additive Hilbert diameter is $\log\vartheta(A)$.  Their Lemma 1
+states the contraction ratio
+\[
+  \kappa(A)
+  = \sup_{y\not\sim y'} \frac{d_H(Ay,Ay')}{d_H(y,y')}
+  = \frac{\sqrt{\vartheta(A)}-1}{\sqrt{\vartheta(A)}+1}
+  = \tanh\!\left(\frac{\log\vartheta(A)}{4}\right).
+\]
+The formula is invariant under positive diagonal equivalence of $A$.
+
+\section*{Distilled proof of the Section 3 convergence argument}
+
+\begin{distillation}
+\item \textbf{Positive matrices are strict Hilbert contractions.}
+Because $A$ is strictly positive and finite dimensional, $\vartheta(A)<\infty$ and
+therefore $0\le \kappa(A)<1$.  This is the Birkhoff input.  Positive diagonal row or
+column scalings do not change $\vartheta(A)$, hence every matrix $A_k$ and $A'_k$ in
+the Sinkhorn iteration has the same contraction ratio as the original $A$.
+
+\item \textbf{One full Sinkhorn cycle contracts the row and column marginal errors.}
+Suppose $A_0$ is column normalized, so $A_0^T e=q$.  Let $\gamma:=\kappa(A)^2$.
+Franklin--Lorenz Lemma 2 proves
+\[
+  d_H(r^{(1)},p) \le \gamma\,d_H(r^{(0)},p),
+  \qquad
+  d_H(c^{(1)},q) \le \gamma\,d_H(c^{(0)},q).
+\]
+The proof is two applications of Birkhoff contraction, one through $A'_0$ and one
+through $(A'_0)^T$.  The elementary identity
+\[
+  d_H(x/x',e)=d_H(x,x')
+\]
+turns the diagonal correction vectors $q/c^{(1)}$ and $p/r^{(0)}$ into marginal-error
+distances.  Iterating Lemma 2 gives
+\[
+  d_H(r^{(k)},p) \le \gamma^k d_H(r^{(0)},p),
+  \qquad
+  d_H(c^{(k)},q) \le \gamma^k d_H(c^{(0)},q).
+\]
+
+\item \textbf{The matrix-distance increment is exactly the sum of the two marginal-error
+corrections.}
+Let $E_A$ be the positive diagonal-equivalence class of $A$.  If
+$B=XB'Y$ with $X=\operatorname{diag}(x_i)$ and $Y=\operatorname{diag}(y_j)$,
+Franklin--Lorenz define
+\[
+  \Delta(B,B') := d_H(x,e)+d_H(y,e).
+\]
+For consecutive Sinkhorn matrices,
+\[
+  A_{k+1}=S_k A_k T_k,
+\]
+so
+\[
+  \Delta(A_k,A_{k+1})
+  = d_H(p/r^{(k)},e)+d_H(q/c^{(k)},e)
+  = d_H(r^{(k)},p)+d_H(c^{(k)},q).
+\]
+The last equality is exactly the quotient-to-Hilbert-metric identity above.
+
+\item \textbf{The geometric tail gives convergence in $\Delta$.}
+Theorem 4 sums the previous increment estimate.  If $\widehat B$ is the unique
+matrix diagonally equivalent to $A$ with row sums $p$ and column sums $q$, then
+\[
+  \Delta(A_k,\widehat B)
+  \le \frac{1}{1-\gamma}
+      \left(d_H(r^{(k)},p)+d_H(c^{(k)},q)\right)
+  \le \frac{\gamma^k}{1-\gamma}
+      \left(d_H(r^{(0)},p)+d_H(c^{(0)},q)\right).
+\]
+Franklin--Lorenz also state the analogous estimate for $A'_k$:
+\[
+  \Delta(A'_k,\widehat B)
+  \le \frac{1}{1-\gamma}
+      \left(d_H(r^{(k+1)},p)+d_H(c^{(k)},q)\right).
+\]
+Thus $A_k$ and $A'_k$ converge geometrically to the same scaled matrix.
+
+\item \textbf{Completeness can replace a prior convergence theorem.}
+The paper notes that its displayed proof uses Sinkhorn's earlier convergence theorem
+for the existence of $\widehat B$, but also observes that if one proves completeness of
+$(E_A,\Delta)$, then the same geometric-tail argument independently gives the limit
+and convergence in $(E_A,\Delta)$.
+
+\item \textbf{Entrywise error bounds are a consequence, not the main projective step.}
+Lemma 3 states that if $A\sim B$, $A^Te=B^Te$, and $\Delta(A,B)\le\epsilon$, then
+\[
+  e^{-\epsilon}\le \frac{b_{ij}}{a_{ij}}\le e^{\epsilon}.
+\]
+This converts the projective/diagonal-equivalence estimate into entrywise multiplicative
+control.  It is useful for numerical error bounds, but the formal compactness frontier
+mainly needs the preceding projective asymptotic regularity.
+\end{distillation}
+
+\section*{Formalization consequences}
+\paragraph{Useful theorem to port.}
+The exact statement most useful for Lean is not necessarily entrywise convergence.
+It is the geometric marginal-error contraction:
+\[
+  d_H(r^{(k)},p) \to 0,\qquad d_H(c^{(k)},q)\to 0,
+\]
+and the increment identity
+\[
+  \Delta(A_k,A_{k+1}) = d_H(r^{(k)},p)+d_H(c^{(k)},q) \to 0.
+\]
+Together these imply projective asymptotic regularity of the diagonal correction
+vectors:
+\[
+  d_H(p/r^{(k)},e)\to 0,\qquad d_H(q/c^{(k)},e)\to 0.
+\]
+In coordinates, for a positive vector stream $u_k$, projective convergence to a ray is
+equivalent to cross-product collapse:
+\[
+  u_{k,i}u_{k-1,j}-u_{k,j}u_{k-1,i}\to 0
+\]
+after the stream is identified with the appropriate row or column diagonal scaling
+sequence.  This is the bridge to the current projective-lag predicates.
+
+\paragraph{Hypotheses that must be present.}
+Franklin--Lorenz Section 3 requires a strictly positive finite matrix $A$ and positive
+prescribed marginals $p,q$.  The Birkhoff constant is strictly less than $1$ precisely
+because the multiplicative diameter $\vartheta(A)$ is finite.  In Lean, this suggests that
+any theorem trying to import this argument should have access to the positive-kernel
+hypothesis
+\[
+  \forall i j,\;0<G_{ij},
+\]
+not merely phase box bounds.  The phase bounds keep vectors in the positive cone, but
+the strict contraction input is a property of the kernel matrix.
+
+\paragraph{What Franklin--Lorenz proves and what remains to adapt.}
+Franklin--Lorenz prove convergence of matrices in a diagonal-equivalence class.  The
+current finite Schr\"odinger/Sinkhorn formalization works with phase variables rather
+than explicitly with matrices $A_k=S_kAT_k$.  To use this source cleanly, the Lean proof
+should either:
+\begin{enumerate}[leftmargin=2em]
+\item build the implicit normalized matrices from the phase iterates and show that their
+row/column normalization cycle matches Franklin--Lorenz's $A_k,A'_k$; or
+\item port only the vector-level contraction lemma behind their Lemma 2, stated directly
+for the phase update maps.
+\end{enumerate}
+The second route is probably closer to the existing Lean files, while the first route is
+closer to the published theorem.
+
+\section*{Lean target checklist}
+For the remaining projective-lag file, this source suggests the following intermediate
+lemmas.
+\begin{formalizationnotes}
+\item Define a finite Hilbert projective seminorm/distance on positive finite functions:
+\[
+  d_H(u,v)=\log\max_{i,j}\frac{u_i v_j}{v_i u_j}.
+\]
+\item Prove the finite positive-kernel Birkhoff contraction bound, or import it from the
+Birkhoff/Carroll/Eveson--Nussbaum distillation.
+\item Show that positive diagonal row/column scalings leave the multiplicative diameter
+of the kernel unchanged.
+\item Express one full Sinkhorn two-step update as two positive linear maps, hence with
+contraction factor $\gamma=\kappa(G)^2$.
+\item Derive $d_H$-asymptotic regularity of the relevant denominator/mixed phase streams.
+\item Convert $d_H(u_{k+1},u_k)\to0$ into coordinate cross-product convergence.
+\end{formalizationnotes}
+
+\section*{Caution about the exact source theorem}
+Theorem 4 is a convergence theorem for full alternating normalized matrices, not a
+standalone theorem about arbitrary bounded positive sequences.  It cannot justify
+projective-lag collapse unless the formal streams are first shown to be generated by the
+same row/column normalization cycle.  This is precisely why the Sinkhorn iterate-system
+hypotheses and positive-kernel hypothesis are essential in the Lean theorem shape.
+
+\input{references_manual}
+\end{document}

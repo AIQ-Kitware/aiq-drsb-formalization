@@ -1,0 +1,93 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\title{Distillation: Birkhoff 1957, Extensions of Jentzsch's theorem}
+\author{Generated for the AIQ DRSB formalization reference corpus}
+\date{2026-07-09}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+Garrett Birkhoff. ``Extensions of Jentzsch's theorem.'' \emph{Transactions of the American Mathematical Society} 85(1):219--227, 1957.
+Source PDF expected in the repo as
+\texttt{prose/papers/Birkhoff1957\_extensions\_jentzsch.pdf}.
+
+\section*{Why this paper matters for the formalization}
+This is a primary source for the Hilbert projective metric contraction argument behind Perron--Frobenius and positive-kernel convergence.  It is directly relevant to the remaining finite Sinkhorn projective-lag obligations in
+\texttt{ProjectiveLag.lean}, especially the two open one-sided projective drift statements for \(\hat\varphi_0\) and \(\varphi_1\).  The useful content is not the full vector-lattice generality, but the finite positive-cone specialization: a positive linear map sends the simplex into a subset of finite projective diameter, hence is a strict contraction on rays after normalization.
+
+\section*{Core definitions}
+In the positive quadrant, write a ray by homogeneous coordinates \(f=(f_1,f_2)\) with positive coordinates.  Birkhoff's one-dimensional projective distance is
+\[
+  \theta(f,g)=\left|\log\frac{f_2g_1}{f_1g_2}\right|.
+\]
+A projective transformation of the interval has the form
+\[
+  P(x)=\frac{ax+b}{cx+d}, \qquad a,b,c,d>0,
+\]
+and maps the positive interval into a smaller positive interval when the image has finite length.  If \(\lambda\) is the projective length of the image interval, Birkhoff obtains the contraction coefficient
+\[
+  N(P)=\tanh(\lambda/4).
+\]
+For a closed convex cone \(C\), the projective distance between two rays is defined by intersecting the projective line through the two rays with the cone and transporting the preceding cross-ratio metric.  A positive linear map \(P\) has projective norm
+\[
+  N(P;C)=\sup_{f,g\in C}\frac{\theta(fP,gP;C)}{\theta(f,g;C)}.
+\]
+
+\section*{Main argument distilled}
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{Line calculation.}  On a one-dimensional projective interval, a positive fractional-linear map contracts the Hilbert distance by the explicit factor \(\tanh(\lambda/4)\), where \(\lambda\) is the projective diameter of its image.
+
+\item \textbf{Cone reduction to lines.}  For any two rays in a cone, restrict the map to the projective line spanned by them.  The image of this line lies in the image of the whole cone.  Therefore if \(PC\) has finite projective diameter \(\Delta\), then
+\[
+  \theta(fP,gP;C) \le \tanh(\Delta/4)\,\theta(f,g;C).
+\]
+
+\item \textbf{Picard fixed-point step.}  If some power \(P^r\) has contraction coefficient less than one and the projective part is complete, then \(fP^n\) is a Cauchy sequence in Hilbert's metric.  It converges geometrically to a unique characteristic ray \(c\), and uniqueness follows from
+\[
+  \theta(c,c^*) = \theta(cP^r,c^*P^r)
+       \le N(P^r;C)\theta(c,c^*).
+\]
+
+\item \textbf{Positive matrix specialization.}  For a matrix with strictly positive entries, the image of the positive simplex is compactly contained in the simplex interior.  Hence its projective diameter is finite.  The contraction theorem then gives existence and uniqueness of a positive eigenvector ray.
+\end{enumerate}
+
+\section*{Lean comparison target}
+For finite \(\iota\), the positive cone is \(\iota\to\mathbb{R}_{>0}\), and its projective metric can be expressed by coordinate cross ratios:
+\[
+  d_H(u,v)=\log\frac{\max_i u_i/v_i}{\min_i u_i/v_i}.
+\]
+The remaining Lean projective drift statements only need the consequence that strict positivity of the kernel \(G\) gives finite projective diameter for the positive integral/matrix operator
+\[
+  (Kx)_i=\sum_j G_{ij}x_j.
+\]
+The proof should specialize Birkhoff's argument to finite matrices:
+\[
+  \Delta(K)\le \log\max_{i,i',j,j'}\frac{G_{ij}G_{i'j'}}{G_{ij'}G_{i'j}} < \infty,
+\]
+then use the Sinkhorn alternating maps as order-reversing/projective nonexpansive steps whose two-step composition is a positive linear or projectively contracting map after the appropriate quotient normalization.
+
+\section*{Action items for \texttt{ProjectiveLag.lean}}
+\begin{enumerate}[leftmargin=2em]
+\item Thread or recover the hypothesis \(hG : \forall i\,j, 0<G_{ij}\).  Birkhoff's finite-diameter step is not a consequence of phase box bounds alone.
+\item Add a finite positive-matrix lemma: strict positivity implies finite Hilbert diameter of the image of the positive cone/simplex.
+\item Add the contraction/nonexpansive lemma for the two Sinkhorn maps, or invoke an existing ratio/oscillation maximum-principle lemma if the repo already has it.
+\item Convert Hilbert diameter shrinkage or uniqueness of cluster rays into cross-product drift:
+\[
+  u_{n+1,i}u_{n,j}-u_{n+1,j}u_{n,i}\to 0.
+\]
+\end{enumerate}
+
+\section*{Caveat}
+Birkhoff proves convergence to a characteristic ray for repeated application of one positive map.  The Sinkhorn proof has an alternating nonlinear/projective map.  The formalization should avoid overclaiming: either identify a genuine two-step positive map on the relevant ray space, or use Birkhoff only as the contraction theorem behind a separately proved Sinkhorn-specific nonexpansive/contraction statement.
+
+\begin{thebibliography}{9}
+\bibitem{Birkhoff1957} G. Birkhoff, \emph{Extensions of Jentzsch's theorem}, Trans. Amer. Math. Soc. 85(1):219--227, 1957.
+\bibitem{LemmensNussbaum2013} B. Lemmens and R. Nussbaum, \emph{Birkhoff's version of Hilbert's metric and its applications in analysis}, arXiv:1304.7921, 2013.
+\end{thebibliography}
+\end{document}

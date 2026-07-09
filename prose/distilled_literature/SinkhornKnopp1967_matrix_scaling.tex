@@ -1,0 +1,28 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Sinkhorn--Knopp (1967)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{SinkhornKnopp1967.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Sinkhorn and Knopp, \emph{Concerning Nonnegative Matrices and Doubly Stochastic Matrices}, Pacific Journal of Mathematics 21(2), 343--348, 1967 \cite{SinkhornKnopp1967}.
+
+\section*{Role in the formalization}
+This is the classical finite matrix-scaling source.  It is most relevant when the Lean theorem is about existence, uniqueness up to diagonal scaling, total support, and convergence of alternating row/column normalization for nonnegative matrices.  For strictly positive finite kernels, all support hypotheses are automatically satisfied.
+
+\begin{distillation}
+\item \textbf{Scaling problem.}  Given a nonnegative square matrix $A$, ask whether there are positive diagonal matrices $D_1,D_2$ such that $D_1AD_2$ is doubly stochastic.
+\item \textbf{Support conditions.}  Total support is necessary and sufficient for existence of a doubly stochastic matrix of the form $D_1AD_2$.  Support is necessary and sufficient for convergence of alternating row/column normalization to a doubly stochastic limit.
+\item \textbf{Uniqueness.}  If $D_1AD_2$ and $D'_1AD'_2$ are doubly stochastic, compare the ratios of diagonal factors.  Taking maximal and minimal ratios and using the stochastic constraints forces equality on support blocks.  Full indecomposability collapses all blocks and gives uniqueness of the diagonal factors up to reciprocal scalar.
+\item \textbf{Iteration.}  Alternating normalization keeps the support pattern fixed.  A product-of-column-sums inequality for row-stochastic matrices, together with support decomposition, produces monotonicity/compactness sufficient for convergence under support.
+\end{distillation}
+
+\section*{Lean comparison targets}
+The current finite Schr\"odinger formalization uses strictly positive kernels rather than arbitrary nonnegative matrices.  Therefore the relevant fragment is the positive-matrix specialization: existence of positive scalings, uniqueness modulo a scalar, and convergence of alternating normalizations.  The exact projective-rate statement is not the main theorem of Sinkhorn--Knopp; for rate/asymptotic regularity the better source is \cite{FranklinLorenz1989,Carroll2004,EvesonNussbaum1995}.
+
+\section*{Distillation gaps}
+\TODO{If Lean formalizes nonnegative support/total-support statements, add the full block-decomposition proof.  If Lean stays in the strictly positive case, keep only the simpler corollary.}
+
+\input{references_manual}
+\end{document}

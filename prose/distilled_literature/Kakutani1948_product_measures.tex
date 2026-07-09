@@ -1,0 +1,36 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments for Kakutani Product-Measure Equivalence}
+\author{Generated proof-target note}
+\date{Local source: \texttt{Undergrad.2023S - Kakutani measure equivalence.pdf} plus original citation}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+The uploaded source is an undergraduate exposition of Kakutani's product-measure equivalence theorem.  The primary reference to cite for formalization provenance is Kakutani, \emph{On Equivalence of Infinite Product Measures}, Annals of Mathematics 49(1), 214--224, 1948 \cite{Kakutani1948}.
+
+\section*{Role in the formalization}
+This is relevant if the project formalizes equivalence/singularity of infinite product measures, especially Gaussian sequence measures.  It is background for path-space measure equivalence, not a finite Sinkhorn source.
+
+\begin{distillation}
+\item \textbf{Finite Hellinger affinity.}  For probability measures $\mu,\nu$ with densities relative to a common dominating measure, define
+\[
+  \rho(\mu,
+u)=\int \sqrt{\frac{d\mu}{d\lambda}\frac{d\nu}{d\lambda}}\,d\lambda.
+\]
+\item \textbf{Product factorization.}  For finite products, Hellinger affinity multiplies:
+\[
+  \rho\left(\bigotimes_{k=1}^n\mu_k,\bigotimes_{k=1}^n\nu_k\right)=\prod_{k=1}^n\rho(\mu_k,
+u_k).
+\]
+\item \textbf{Infinite dichotomy.}  Infinite product measures $\bigotimes_k\mu_k$ and $\bigotimes_k\nu_k$ are either equivalent or mutually singular.  Equivalence is characterized by positivity of the infinite product of affinities, equivalently summability of the Hellinger deficits in common cases.
+\item \textbf{Gaussian specialization.}  For Gaussian product measures, the affinity can be computed coordinatewise, yielding explicit square-summability conditions for shifts/scales.
+\end{distillation}
+
+\section*{Lean comparison targets}
+This theorem is a useful reference for any long-term continuum/Gaussian path-measure equivalence work.  It should not be cited for finite-dimensional phase compactness or projective Sinkhorn convergence.
+
+\section*{Distillation gaps}
+\TODO{Replace the undergraduate exposition with the original Kakutani PDF if available, or add page/section anchors from the original paper.}
+
+\input{references_manual}
+\end{document}

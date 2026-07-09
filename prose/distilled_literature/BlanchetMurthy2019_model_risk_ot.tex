@@ -1,0 +1,41 @@
+\input{preamble}
+\title{Distilled Mathematical Arguments from Blanchet--Murthy (2019)}
+\author{Generated proof-target note}
+\date{Source PDF: \texttt{BlanchetMurthy2019-1604.01446.pdf}}
+\begin{document}
+\maketitle
+
+\section*{Reference being distilled}
+This note distills Blanchet and Murthy, \emph{Quantifying Distributional Model Risk via Optimal Transport}, Mathematics of Operations Research 44(2), 565--600, 2019 \cite{BlanchetMurthy2019}.
+
+\section*{Role in the formalization}
+This is a primary source for the optimal-transport DRO duality principle: worst-case expected loss over a transportation-cost ball equals a one-dimensional infimum over Lagrange multipliers of a pointwise robust envelope.
+
+\begin{distillation}
+\item \textbf{Primal model-risk functional.}  For a baseline measure $\mu$, cost $c$, radius $\delta$, and upper semicontinuous integrable loss $f$, study
+\[
+  I(\delta)=\sup\left\{\int f\,d\nu: D_c(\mu,\nu)\le \delta\right\},
+\]
+where $D_c$ is an optimal-transport discrepancy.
+\item \textbf{Lagrange upper bound.}  For any $\lambda\ge 0$,
+\[
+  \int f(y)\nu(dy)
+  \le \lambda\delta + \int \sup_y\{f(y)-\lambda c(x,y)\}\,\mu(dx),
+\]
+using any coupling of $\mu$ and $\nu$ and then optimizing pointwise in $y$.
+\item \textbf{Strong duality.}  Under lower semicontinuity of $c$ and upper semicontinuity/integrability of $f$, the upper bound is tight:
+\[
+  I(\delta)=\inf_{\lambda\ge 0}\left\{\lambda\delta+\\int \sup_y(f(y)-\lambda c(x,y))\,\mu(dx)\right\}.
+\]
+The proof constructs nearly optimal couplings by measurable selection/tightness and handles noncompactness by truncation/localization.
+\item \textbf{Worst-case interpretation.}  At an optimal multiplier, a worst-case distribution transports each nominal point $x$ toward points maximizing $f(y)-\lambda c(x,y)$, whenever such maximizers exist.
+\end{distillation}
+
+\section*{Lean comparison targets}
+This source should support Lean statements about OT-DRO weak/strong duality and robust envelopes.  It is not a Sinkhorn/projective source.  The formalization should distinguish the unregularized transport duality here from entropic/Sinkhorn duality in \cite{WangGaoXie2025}.
+
+\section*{Distillation gaps}
+\TODO{Record exact theorem anchors for Theorem 1 and its assumptions A1--A2 if these are formalized.  The current note paraphrases the theorem and proof skeleton but does not yet reproduce the truncation lemmas.}
+
+\input{references_manual}
+\end{document}

@@ -26,7 +26,23 @@ theorem positive_convex_combination_pos {ι κ : Type*} [Fintype κ]
     (w : κ → ℝ) (hw : ∀ k, 0 ≤ w k) (hsum : ∑ k : κ, w k = 1)
     (i : ι) :
     0 < ∑ k : κ, w k * v k i := by
-  sorry
+  classical
+  have hw_exists_pos : ∃ k : κ, 0 < w k := by
+    by_contra hnone
+    have hw_zero : ∀ k : κ, w k = 0 := by
+      intro k
+      have hle : w k ≤ 0 := by
+        exact le_of_not_gt (fun hk_pos => hnone ⟨k, hk_pos⟩)
+      exact le_antisymm hle (hw k)
+    have hsum_zero : (∑ k : κ, w k) = 0 := by
+      simp [hw_zero]
+    have hone_zero : (1 : ℝ) = 0 := by
+      rw [← hsum, hsum_zero]
+    norm_num at hone_zero
+  obtain ⟨k₀, hwk₀_pos⟩ := hw_exists_pos
+  exact Finset.sum_pos'
+    (fun k _hk => mul_nonneg (hw k) (le_of_lt (hv k i)))
+    ⟨k₀, Finset.mem_univ k₀, mul_pos hwk₀_pos (hv k₀ i)⟩
 
 /-- Paper route Step 3: finite convex-hull diameter bound.
 

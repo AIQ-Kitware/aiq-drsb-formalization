@@ -34,27 +34,79 @@ quotient; nonzero denominators are supplied by the positivity fields at use site
 noncomputable def sinkhornRatio {ι : Type*} (ψ φ : ι → ℝ) : ι → ℝ :=
   fun i => ψ i / φ i
 
-/-- The next local maximum-principle target for finite Sinkhorn uniqueness.
+/-- Finite maximum witness for the right potential ratio.
 
-Assume the finite index type is nonempty.  The proof should choose a right-side extremizer
-`jstar` for the ratio `ψ1 / φ1`, use the Sinkhorn equations to bridge left and right ratios through
-strictly positive finite weighted averages, and then use strict positivity of `G` to propagate equality
-from that extremizer to every index.
+This is the purely order-theoretic first step in the Sinkhorn ratio-collapse proof: on a nonempty
+finite index type, the right ratio `ψ1 / φ1` has a maximizer.  It is separated out so the analytic
+maximum-principle work below can be tried with a fixed `jstar` and a concrete extremal hypothesis. -/
+theorem finite_sinkhorn_ratio_right_max_exists {ι : Type*} [Fintype ι] [Nonempty ι]
+    (φ1 ψ1 : ι → ℝ) :
+    ∃ jstar : ι, ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar := by
+  sorry
 
-This is deliberately sharper than the public scaling theorem below: it names the ratio witness
-`sinkhornRatio ψ1 φ1 jstar` and asks only for all left and right ratios to equal that witness.  Once
-this bridge is proved, the public existential scaling statement is just packaging plus positivity of
-the witness ratio. -/
-theorem finite_sinkhorn_ratio_bridge_all_indices {ι : Type*} [Fintype ι] [Nonempty ι]
+/-- Forward weighted-average inequality for the finite Sinkhorn ratio proof.
+
+With `jstar` maximizing the right ratio, the forward Sinkhorn equations and positivity of the kernel
+should show every left ratio is bounded above by the same right maximum.  Concretely, each
+`ψ0 i / φ0 i` is a strictly positive finite weighted average of the right ratios `ψ1 j / φ1 j`. -/
+theorem finite_sinkhorn_ratio_left_le_right_max {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
     (_hG : ∀ i j, 0 < G i j)
     (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
-    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
+    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (jstar : ι)
+    (_hright_max : ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar) :
+    ∀ i, sinkhornRatio ψ0 φ0 i ≤ sinkhornRatio ψ1 φ1 jstar := by
+  sorry
+
+/-- Reverse bounds from the hatted/backward equations and marginal normalizations.
+
+After the forward equations show all left ratios are bounded above by the right maximum, the
+backward equations for the hatted potentials and the identities `φ0 * φhat0 = p`, `φ1 * φhat1 = q`
+should force the same maximum to be a lower bound for every left and right ratio.  This is the
+remaining genuine maximum-principle step before equality follows by antisymmetry. -/
+theorem finite_sinkhorn_ratio_right_max_le_all {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1)
+    (jstar : ι)
+    (_hright_max : ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar)
+    (_hleft_upper : ∀ i, sinkhornRatio ψ0 φ0 i ≤ sinkhornRatio ψ1 φ1 jstar) :
+    (∀ i, sinkhornRatio ψ1 φ1 jstar ≤ sinkhornRatio ψ0 φ0 i) ∧
+    (∀ j, sinkhornRatio ψ1 φ1 jstar ≤ sinkhornRatio ψ1 φ1 j) := by
+  sorry
+
+/-- The local maximum-principle bridge for finite Sinkhorn uniqueness.
+
+The proof is now split into three smaller parts: choose a right-ratio maximizer, push that maximum
+through the forward equations to bound the left ratios above, then use the hatted/backward equations
+and marginal normalizations to obtain the reverse bounds.  This wrapper contains only the final
+`le_antisymm` packaging. -/
+theorem finite_sinkhorn_ratio_bridge_all_indices {ι : Type*} [Fintype ι] [Nonempty ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
     ∃ jstar : ι,
       (∀ i, sinkhornRatio ψ0 φ0 i = sinkhornRatio ψ1 φ1 jstar) ∧
       (∀ j, sinkhornRatio ψ1 φ1 j = sinkhornRatio ψ1 φ1 jstar) := by
-  sorry
+  obtain ⟨jstar, hright_upper⟩ := finite_sinkhorn_ratio_right_max_exists φ1 ψ1
+  have hleft_upper : ∀ i, sinkhornRatio ψ0 φ0 i ≤ sinkhornRatio ψ1 φ1 jstar :=
+    finite_sinkhorn_ratio_left_le_right_max p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys jstar hright_upper
+  obtain ⟨hleft_lower, hright_lower⟩ :=
+    finite_sinkhorn_ratio_right_max_le_all p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys
+      jstar hright_upper hleft_upper
+  refine ⟨jstar, ?_, ?_⟩
+  · intro i
+    exact le_antisymm (hleft_upper i) (hleft_lower i)
+  · intro j
+    exact le_antisymm (hright_upper j) (hright_lower j)
 
 /-- Finite ratio-collapse seam for the uniqueness proof.
 

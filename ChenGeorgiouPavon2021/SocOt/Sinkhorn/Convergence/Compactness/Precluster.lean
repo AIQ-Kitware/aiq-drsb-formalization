@@ -6,6 +6,8 @@ possibly distinct limits, so agents working here do not need to reason about Sin
 successor-limit compatibility.
 -/
 
+import Mathlib.Topology.Sequences
+import Mathlib.Topology.Order.Compact
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Compactness.Basic
 
 set_option autoImplicit false
@@ -23,9 +25,8 @@ subsequence along which all six streams converge, with strictly positive limitin
 This is intentionally Sinkhorn-free: the C2-1 target below only instantiates `x₂` and `x₄` with the
 absolute-successor streams needed by the raw precluster predicate.
 
-This is the remaining local topology seam for the raw compactness task.  It should be discharged by
-packing the six streams into the finite product `(Fin 6 × ι) → ℝ`, applying compactness of the
-closed finite box `[ε, B]`, and projecting the resulting limit back to the six phase functions. -/
+The proof packs the six streams into the compact finite product of closed intervals, extracts a
+convergent subsequence there, and projects the resulting limit back to the six phase functions. -/
 private theorem finite_six_stream_box_precluster_subsequence {ι : Type*} [Fintype ι]
     (x0 x1 x2 x3 x4 x5 : ℕ → ι → ℝ)
     (_hbox : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧
@@ -50,7 +51,94 @@ private theorem finite_six_stream_box_precluster_subsequence {ι : Type*} [Finty
         (∀ i, 0 < ψ3 i) ∧
         (∀ i, 0 < ψ4 i) ∧
         (∀ i, 0 < ψ5 i) := by
-  sorry
+  classical
+  rcases _hbox with ⟨ε, B, hε, _hB, h0, h1, h2, h3, h4, h5⟩
+  intro subseq hsubseq
+  let Cell : Type _ := ι → Set.Icc ε B
+  let Box : Type _ := Cell × Cell × Cell × Cell × Cell × Cell
+  let packed : ℕ → Box := fun n =>
+    ( (fun i => ⟨x0 (subseq n) i, h0 (subseq n) i⟩)
+    , (fun i => ⟨x1 (subseq n) i, h1 (subseq n) i⟩)
+    , (fun i => ⟨x2 (subseq n) i, h2 (subseq n) i⟩)
+    , (fun i => ⟨x3 (subseq n) i, h3 (subseq n) i⟩)
+    , (fun i => ⟨x4 (subseq n) i, h4 (subseq n) i⟩)
+    , (fun i => ⟨x5 (subseq n) i, h5 (subseq n) i⟩) )
+  obtain ⟨z, subsub, hsubsub, hz⟩ := CompactSpace.tendsto_subseq packed
+  let ψ0 : ι → ℝ := fun i => (z.1 i : ℝ)
+  let ψ1 : ι → ℝ := fun i => (z.2.1 i : ℝ)
+  let ψ2 : ι → ℝ := fun i => (z.2.2.1 i : ℝ)
+  let ψ3 : ι → ℝ := fun i => (z.2.2.2.1 i : ℝ)
+  let ψ4 : ι → ℝ := fun i => (z.2.2.2.2.1 i : ℝ)
+  let ψ5 : ι → ℝ := fun i => (z.2.2.2.2.2 i : ℝ)
+  have hmono : StrictMono (fun n => subseq (subsub n)) := hsubseq.comp hsubsub
+  have ht0 : Filter.Tendsto (fun n => x0 (subseq (subsub n))) Filter.atTop (nhds ψ0) := by
+    have hcont : Continuous (fun y : Box => fun i => ((y.1 i : Set.Icc ε B) : ℝ)) := by
+      refine continuous_pi ?_
+      intro i
+      exact continuous_subtype_val.comp ((continuous_apply i).comp continuous_fst)
+    simpa [packed, ψ0, Function.comp_def] using (hcont.tendsto z).comp hz
+  have ht1 : Filter.Tendsto (fun n => x1 (subseq (subsub n))) Filter.atTop (nhds ψ1) := by
+    have hproj : Continuous (fun y : Box => y.2.1) := by
+      exact continuous_fst.comp continuous_snd
+    have hcont : Continuous (fun y : Box => fun i => ((y.2.1 i : Set.Icc ε B) : ℝ)) := by
+      refine continuous_pi ?_
+      intro i
+      exact continuous_subtype_val.comp ((continuous_apply i).comp hproj)
+    simpa [packed, ψ1, Function.comp_def] using (hcont.tendsto z).comp hz
+  have ht2 : Filter.Tendsto (fun n => x2 (subseq (subsub n))) Filter.atTop (nhds ψ2) := by
+    have hproj : Continuous (fun y : Box => y.2.2.1) := by
+      exact continuous_fst.comp (continuous_snd.comp continuous_snd)
+    have hcont : Continuous (fun y : Box => fun i => ((y.2.2.1 i : Set.Icc ε B) : ℝ)) := by
+      refine continuous_pi ?_
+      intro i
+      exact continuous_subtype_val.comp ((continuous_apply i).comp hproj)
+    simpa [packed, ψ2, Function.comp_def] using (hcont.tendsto z).comp hz
+  have ht3 : Filter.Tendsto (fun n => x3 (subseq (subsub n))) Filter.atTop (nhds ψ3) := by
+    have hproj : Continuous (fun y : Box => y.2.2.2.1) := by
+      exact continuous_fst.comp (continuous_snd.comp (continuous_snd.comp continuous_snd))
+    have hcont : Continuous (fun y : Box => fun i => ((y.2.2.2.1 i : Set.Icc ε B) : ℝ)) := by
+      refine continuous_pi ?_
+      intro i
+      exact continuous_subtype_val.comp ((continuous_apply i).comp hproj)
+    simpa [packed, ψ3, Function.comp_def] using (hcont.tendsto z).comp hz
+  have ht4 : Filter.Tendsto (fun n => x4 (subseq (subsub n))) Filter.atTop (nhds ψ4) := by
+    have hproj : Continuous (fun y : Box => y.2.2.2.2.1) := by
+      exact continuous_fst.comp
+        (continuous_snd.comp (continuous_snd.comp (continuous_snd.comp continuous_snd)))
+    have hcont : Continuous (fun y : Box => fun i => ((y.2.2.2.2.1 i : Set.Icc ε B) : ℝ)) := by
+      refine continuous_pi ?_
+      intro i
+      exact continuous_subtype_val.comp ((continuous_apply i).comp hproj)
+    simpa [packed, ψ4, Function.comp_def] using (hcont.tendsto z).comp hz
+  have ht5 : Filter.Tendsto (fun n => x5 (subseq (subsub n))) Filter.atTop (nhds ψ5) := by
+    have hproj : Continuous (fun y : Box => y.2.2.2.2.2) := by
+      exact continuous_snd.comp
+        (continuous_snd.comp (continuous_snd.comp (continuous_snd.comp continuous_snd)))
+    have hcont : Continuous (fun y : Box => fun i => ((y.2.2.2.2.2 i : Set.Icc ε B) : ℝ)) := by
+      refine continuous_pi ?_
+      intro i
+      exact continuous_subtype_val.comp ((continuous_apply i).comp hproj)
+    simpa [packed, ψ5, Function.comp_def] using (hcont.tendsto z).comp hz
+  have hp0 : ∀ i, 0 < ψ0 i := by
+    intro i
+    exact lt_of_lt_of_le hε (z.1 i).2.1
+  have hp1 : ∀ i, 0 < ψ1 i := by
+    intro i
+    exact lt_of_lt_of_le hε (z.2.1 i).2.1
+  have hp2 : ∀ i, 0 < ψ2 i := by
+    intro i
+    exact lt_of_lt_of_le hε (z.2.2.1 i).2.1
+  have hp3 : ∀ i, 0 < ψ3 i := by
+    intro i
+    exact lt_of_lt_of_le hε (z.2.2.2.1 i).2.1
+  have hp4 : ∀ i, 0 < ψ4 i := by
+    intro i
+    exact lt_of_lt_of_le hε (z.2.2.2.2.1 i).2.1
+  have hp5 : ∀ i, 0 < ψ5 i := by
+    intro i
+    exact lt_of_lt_of_le hε (z.2.2.2.2.2 i).2.1
+  exact ⟨subsub, ψ0, ψ1, ψ2, ψ3, ψ4, ψ5,
+    hmono, ht0, ht1, ht2, ht3, ht4, ht5, hp0, hp1, hp2, hp3, hp4, hp5⟩
 
 /-- Pure bounded finite-dimensional extraction for every outer subsequence.
 

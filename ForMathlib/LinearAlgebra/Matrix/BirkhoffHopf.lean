@@ -352,28 +352,90 @@ theorem positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bou
   intro i i'
   exact positive_kernel_apply_log_crossratio_le_of_apply_crossratio_bound G hG hbound x y hx hy i i'
 
+/-- Positivity gives nonnegativity of the finite Hilbert log-spread.
+
+This is bookkeeping, not the Birkhoff theorem: choose a diagonal pair in the finite range, where
+the coordinate cross-ratio is `1`, and compare it with the supremum. -/
+theorem finiteHilbertProjectiveLogSpread_nonneg_of_pos {κ : Type*}
+    [Fintype κ] [Nonempty κ]
+    (x y : κ → ℝ)
+    (_hx : ∀ j, 0 < x j) (_hy : ∀ j, 0 < y j) :
+    0 ≤ finiteHilbertProjectiveLogSpread x y := by
+  sorry
+
+/-- Every coordinate log-cross-ratio is bounded by the finite Hilbert log-spread.
+
+This is the second finite-`sSup` bookkeeping lemma needed before the scalar Birkhoff inequality can
+be stated with an abstract diameter parameter `D`. -/
+theorem finiteHilbertProjectiveLogSpread_pair_le {κ : Type*}
+    [Fintype κ] [Nonempty κ]
+    (x y : κ → ℝ) (j j' : κ) :
+    Real.log ((x j * y j') / (x j' * y j)) ≤
+      finiteHilbertProjectiveLogSpread x y := by
+  sorry
+
+/-- Two-point weighted-average Birkhoff inequality.
+
+This is the genuinely irreducible scalar/calculus core suggested by the elementary proofs of
+Birkhoff--Hopf: after all finite-dimensional reductions, one has two positive atoms for two
+comparable weights and two positive input vectors whose projective diameter is at most `D`.
+
+The finite-simplex theorem below should be proved by reducing to this two-point inequality, usually
+by the standard extremal-pair or convexity/oscillation argument. -/
+theorem two_point_weighted_average_log_crossratio_contraction_of_crossratio_bound
+    (a₀ a₁ b₀ b₁ x₀ x₁ y₀ y₁ B D : ℝ)
+    (_ha₀ : 0 < a₀) (_ha₁ : 0 < a₁) (_hb₀ : 0 < b₀) (_hb₁ : 0 < b₁)
+    (_hx₀ : 0 < x₀) (_hx₁ : 0 < x₁) (_hy₀ : 0 < y₀) (_hy₁ : 0 < y₁)
+    (_hB : 1 ≤ B) (_hD : 0 ≤ D)
+    (_hweight₀₁ : a₀ * b₁ ≤ B * (b₀ * a₁))
+    (_hweight₁₀ : a₁ * b₀ ≤ B * (b₁ * a₀))
+    (_hxy₀₁ : Real.log ((x₀ * y₁) / (x₁ * y₀)) ≤ D)
+    (_hxy₁₀ : Real.log ((x₁ * y₀) / (x₀ * y₁)) ≤ D) :
+    Real.log ((((a₀ * x₀ + a₁ * x₁) * (b₀ * y₀ + b₁ * y₁)) /
+        ((b₀ * x₀ + b₁ * x₁) * (a₀ * y₀ + a₁ * y₁)))) ≤
+      ((B - 1) / B) * D := by
+  sorry
+
+/-- Finite-simplex weighted-average Birkhoff inequality with an abstract input diameter `D`.
+
+This is the finite-dimensional reduction layer: the projective spread of `x` and `y` is supplied as
+pairwise log bounds `hxy`, and the row comparability of `a` and `b` is supplied as `hweight`.
+The remaining proof should reduce the finite weighted averages to the two-point scalar inequality
+above. -/
+theorem finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound {κ : Type*}
+    [Fintype κ] [Nonempty κ]
+    (a b x y : κ → ℝ) (B D : ℝ)
+    (_ha : ∀ j, 0 < a j) (_hb : ∀ j, 0 < b j)
+    (_hx : ∀ j, 0 < x j) (_hy : ∀ j, 0 < y j)
+    (_hB : 1 ≤ B) (_hD : 0 ≤ D)
+    (_hweight : ∀ j j' : κ, a j * b j' ≤ B * (b j * a j'))
+    (_hxy : ∀ j j' : κ, Real.log ((x j * y j') / (x j' * y j)) ≤ D) :
+    Real.log (((∑ j : κ, a j * x j) * (∑ j : κ, b j * y j)) /
+        ((∑ j : κ, b j * x j) * (∑ j : κ, a j * y j))) ≤
+      ((B - 1) / B) * D := by
+  sorry
+
 /-- Weighted-average form of the finite Birkhoff--Hopf scalar core.
 
-This is the irreducible two-measure/finite-simplex inequality behind the positive-matrix theorem,
-and is the Lean target closest to the elementary two-dimensional reduction in
-Eveson--Nussbaum/Carroll.  The positive weights `a` and `b` are two rows of the positive kernel;
-the hypothesis `hweight` says their projective diameter is bounded by `B`.  The conclusion says
-that averaging two positive vectors against those two comparable weights contracts the Hilbert
-log-spread by the coarse Birkhoff coefficient `(B - 1) / B`.
-
-Once this scalar weighted-average inequality is proved, the matrix pointwise theorem below is just
-substitution with `a j = G i j` and `b j = G i' j`. -/
+This theorem now contains no hidden finite-`sSup` work.  It is a wrapper around the abstract-diameter
+finite-simplex inequality, with `D` instantiated as `finiteHilbertProjectiveLogSpread x y`. -/
 theorem finite_weighted_average_log_crossratio_contraction_of_crossratio_bound {κ : Type*}
     [Fintype κ] [Nonempty κ]
     (a b x y : κ → ℝ) (B : ℝ)
-    (_ha : ∀ j, 0 < a j) (_hb : ∀ j, 0 < b j)
-    (_hx : ∀ j, 0 < x j) (_hy : ∀ j, 0 < y j)
-    (_hB : 1 ≤ B)
-    (_hweight : ∀ j j' : κ, a j * b j' ≤ B * (b j * a j')) :
+    (ha : ∀ j, 0 < a j) (hb : ∀ j, 0 < b j)
+    (hx : ∀ j, 0 < x j) (hy : ∀ j, 0 < y j)
+    (hB : 1 ≤ B)
+    (hweight : ∀ j j' : κ, a j * b j' ≤ B * (b j * a j')) :
     Real.log (((∑ j : κ, a j * x j) * (∑ j : κ, b j * y j)) /
         ((∑ j : κ, b j * x j) * (∑ j : κ, a j * y j))) ≤
       ((B - 1) / B) * finiteHilbertProjectiveLogSpread x y := by
-  sorry
+  exact finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound
+    (a := a) (b := b) (x := x) (y := y)
+    (B := B) (D := finiteHilbertProjectiveLogSpread x y)
+    ha hb hx hy hB
+    (finiteHilbertProjectiveLogSpread_nonneg_of_pos x y hx hy)
+    hweight
+    (fun j j' => finiteHilbertProjectiveLogSpread_pair_le x y j j')
 
 /-- Pointwise four-coordinate form of Birkhoff's oscillation estimate.
 

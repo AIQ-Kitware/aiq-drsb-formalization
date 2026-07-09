@@ -552,6 +552,50 @@ abbrev SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong {ι : Type*} [Fint
         |u ((subseq n).pred) i / u (subseq n) i -
           u ((subseq n).pred) j / u (subseq n) j| ≤ η n
 
+/-- Full-orbit backward denominator ratio envelope for one positive phase.
+
+This is stronger than the along-subsequence envelope above and is the natural target for the
+Hilbert/Birkhoff engine: the projective oscillation decay is a property of the whole Sinkhorn orbit,
+not of the particular compactness subsequence selected later. -/
+abbrev SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAtTop {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) : Prop :=
+  ∃ η : ℕ → ℝ,
+    Filter.Tendsto η Filter.atTop (nhds (0 : ℝ)) ∧
+      ∀ᶠ k in Filter.atTop, ∀ i j,
+        |u k.pred i / u k i - u k.pred j / u k j| ≤ η k
+
+/-- Full-orbit coupled backward ratio envelopes for the two denominator phases. -/
+abbrev SinkhornBackwardDenominatorProjectiveRatioDriftEnvelopesAtTop {ι : Type*} [Fintype ι]
+    (φ0Iter φhat1Iter : ℕ → ι → ℝ) : Prop :=
+  SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAtTop φ0Iter ∧
+    SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAtTop φhat1Iter
+
+/-- Restrict a full-orbit backward ratio envelope to a strict absolute subsequence. -/
+theorem sinkhorn_phase_backward_projective_ratio_drift_envelope_along_of_atTop
+    {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) (subseq : ℕ → ℕ)
+    (hsubseq : StrictMono subseq)
+    (hglobal : SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAtTop u) :
+    SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong u subseq := by
+  obtain ⟨η, hη, hbound⟩ := hglobal
+  refine ⟨fun n => η (subseq n), hη.comp hsubseq.tendsto_atTop, ?_⟩
+  exact hsubseq.tendsto_atTop.eventually hbound
+
+/-- Restrict the coupled full-orbit denominator envelopes to a strict absolute subsequence. -/
+theorem sinkhorn_backward_denominator_projective_ratio_drift_envelopes_along_of_atTop
+    {ι : Type*} [Fintype ι]
+    (φ0Iter φhat1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ)
+    (hsubseq : StrictMono subseq)
+    (hglobal : SinkhornBackwardDenominatorProjectiveRatioDriftEnvelopesAtTop
+      φ0Iter φhat1Iter) :
+    SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong φ0Iter subseq ∧
+      SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong φhat1Iter subseq := by
+  exact ⟨
+    sinkhorn_phase_backward_projective_ratio_drift_envelope_along_of_atTop
+      φ0Iter subseq hsubseq hglobal.1,
+    sinkhorn_phase_backward_projective_ratio_drift_envelope_along_of_atTop
+      φhat1Iter subseq hsubseq hglobal.2⟩
+
 /-- A strictly increasing natural subsequence is eventually positive.
 
 This small fact is what permits the projective engine to use predecessor update equations without
@@ -776,11 +820,22 @@ theorem sinkhorn_hatted_left_ratio_eventually_eq_phi0_backward_ratio
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ)
     (hsubseq : StrictMono subseq)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     ∀ᶠ n in Filter.atTop, ∀ i,
       φhat0Iter (subseq n + 1) i / φhat0Iter (subseq n) i =
         φ0Iter ((subseq n).pred) i / φ0Iter (subseq n) i := by
-  sorry
+  filter_upwards [strictMono_nat_eventually_pos subseq hsubseq] with n hsubseq_pos i
+  have hpred_succ : (subseq n).pred + 1 = subseq n :=
+    Nat.succ_pred_eq_of_pos hsubseq_pos
+  have hnorm_succ := hiter.normalize_left (subseq n) i
+  have hnorm_pred := hiter.normalize_left ((subseq n).pred) i
+  rw [hpred_succ] at hnorm_pred
+  have hhat0_ne : φhat0Iter (subseq n) i ≠ 0 :=
+    ne_of_gt (hiter.φhat0_pos (subseq n) i)
+  have hφ0_ne : φ0Iter (subseq n) i ≠ 0 :=
+    ne_of_gt (hiter.φ0_pos (subseq n) i)
+  field_simp [hhat0_ne, hφ0_ne]
+  nlinarith [hnorm_succ, hnorm_pred]
 
 /-- Normalization converts the right successor/current ratio into a backward ratio of the
 hatted-right denominator phase, eventually along any strict absolute subsequence. -/
@@ -790,49 +845,107 @@ theorem sinkhorn_right_ratio_eventually_eq_phihat1_backward_ratio
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ)
     (hsubseq : StrictMono subseq)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     ∀ᶠ n in Filter.atTop, ∀ j,
       φ1Iter (subseq n + 1) j / φ1Iter (subseq n) j =
         φhat1Iter ((subseq n).pred) j / φhat1Iter (subseq n) j := by
+  filter_upwards [strictMono_nat_eventually_pos subseq hsubseq] with n hsubseq_pos j
+  have hpred_succ : (subseq n).pred + 1 = subseq n :=
+    Nat.succ_pred_eq_of_pos hsubseq_pos
+  have hnorm_succ := hiter.normalize_right (subseq n) j
+  have hnorm_pred := hiter.normalize_right ((subseq n).pred) j
+  rw [hpred_succ] at hnorm_pred
+  have hφ1_ne : φ1Iter (subseq n) j ≠ 0 :=
+    ne_of_gt (hiter.φ1_pos (subseq n) j)
+  have hφhat1_ne : φhat1Iter (subseq n) j ≠ 0 :=
+    ne_of_gt (hiter.φhat1_pos (subseq n) j)
+  field_simp [hφ1_ne, hφhat1_ne]
+  nlinarith [hnorm_succ, hnorm_pred]
+
+/-- Full-orbit coupled positive-kernel oscillation envelope for both backward denominator ratios.
+
+This is the single genuinely hard C2-projective seam.  It should be proved by the Hilbert/Birkhoff
+contraction or equivalent finite oscillation argument for the two alternating positive linear maps.
+It is intentionally stated for the whole orbit, not for a chosen compactness subsequence: projective
+asymptotic regularity is a dynamical property of the Sinkhorn iteration itself. -/
+theorem sinkhorn_backward_denominator_projective_ratio_drift_envelopes_atTop_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornBackwardDenominatorProjectiveRatioDriftEnvelopesAtTop φ0Iter φhat1Iter := by
   sorry
+
+/-- Coupled positive-kernel oscillation envelope for both backward denominator ratios along a
+strict absolute subsequence.
+
+The hard work is the full-orbit theorem above.  This wrapper only restricts that full-orbit
+envelope to the subsequence selected by compactness. -/
+theorem sinkhorn_backward_denominator_projective_ratio_drift_envelopes_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (hsubseq : StrictMono subseq)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong φ0Iter subseq ∧
+      SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong φhat1Iter subseq := by
+  exact sinkhorn_backward_denominator_projective_ratio_drift_envelopes_along_of_atTop
+    φ0Iter φhat1Iter subseq hsubseq
+    (sinkhorn_backward_denominator_projective_ratio_drift_envelopes_atTop_from_gauge_iterates
+      p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hG hiter hgauge hbounds)
 
 /-- Positive-kernel oscillation envelope for the backward ratios of the left denominator phase.
 
-This is now the first genuinely dynamical C2-projective subproblem.  A proof should construct a
-finite Hilbert/Birkhoff oscillation modulus for
-`φ0Iter ((subseq n).pred) / φ0Iter (subseq n)` and show that modulus tends to zero. -/
+This projection is kept as the public one-sided seam used by the hatted-left mixed ratio wrapper.
+The actual coupled Hilbert/Birkhoff proof lives in
+`sinkhorn_backward_denominator_projective_ratio_drift_envelopes_from_gauge_iterates`. -/
 theorem sinkhorn_phi0_backward_projective_ratio_drift_envelope_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ)
-    (_hsubseq : StrictMono subseq)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hsubseq : StrictMono subseq)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong φ0Iter subseq := by
-  sorry
+  exact (sinkhorn_backward_denominator_projective_ratio_drift_envelopes_from_gauge_iterates p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+    hsubseq hG hiter hgauge hbounds).1
 
 /-- Positive-kernel oscillation envelope for the backward ratios of the hatted-right denominator
-phase.  This should be the transpose/dual companion of
-`sinkhorn_phi0_backward_projective_ratio_drift_envelope_from_gauge_iterates`. -/
+phase.  This is the right projection of the same coupled positive-kernel oscillation engine. -/
 theorem sinkhorn_phihat1_backward_projective_ratio_drift_envelope_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ)
-    (_hsubseq : StrictMono subseq)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hsubseq : StrictMono subseq)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAlong φhat1Iter subseq := by
-  sorry
+  exact (sinkhorn_backward_denominator_projective_ratio_drift_envelopes_from_gauge_iterates p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+    hsubseq hG hiter hgauge hbounds).2
 
 /-- Vanishing scalar envelope for the left hatted mixed ratio drift from the
 positive-kernel Sinkhorn dynamics.

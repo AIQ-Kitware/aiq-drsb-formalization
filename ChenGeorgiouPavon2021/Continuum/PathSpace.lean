@@ -49,6 +49,23 @@ theorem intervalDyadicTime_zero (level : ℕ) :
   apply Subtype.ext
   simp [intervalDyadicTime, dyadicTime, unitIntervalZero]
 
+/-- Bounded dyadic grid points, indexed by a countable subtype of `(level, vertex)`.
+
+The bound `i ≤ 2^level` records the true finite grid vertices, including both endpoints.
+Out-of-range natural indices in `intervalDyadicTime` are a clamped implementation detail and are
+not used in the density/separation argument. -/
+noncomputable def boundedIntervalDyadicGridPoint :
+    {p : ℕ × ℕ // p.2 ≤ 2 ^ p.1} → UnitInterval :=
+  fun p => intervalDyadicTime p.1.1 p.1.2
+
+/-- The true bounded dyadic grid points are dense in the interval carrier.
+
+This is the remaining real-analysis seam for path separation: every `t ∈ [0,1]` is a limit of
+vertices `i / 2^level` with `0 ≤ i ≤ 2^level`. -/
+theorem denseRange_boundedIntervalDyadicGridPoint :
+    DenseRange boundedIntervalDyadicGridPoint := by
+  sorry
+
 /-- Anchored continuous interval paths agree at the zeroth dyadic grid point. -/
 theorem continuousAnchoredIntervalPath_dyadicGrid_zero_eq
     (ω η : ContinuousAnchoredIntervalPath) (level : ℕ) :
@@ -156,7 +173,9 @@ theorem intervalPath_eq_of_continuous_of_dyadicGrid_eq
     (hgrid : ∀ level i, i ≤ 2 ^ level →
       ω (intervalDyadicTime level i) = η (intervalDyadicTime level i)) :
     ω = η := by
-  sorry
+  refine Continuous.ext_on denseRange_boundedIntervalDyadicGridPoint hω hη ?_
+  rintro _ ⟨p, rfl⟩
+  exact hgrid p.1.1 p.1.2 p.2
 
 /-- Equality on all true dyadic grid points extends to equality of anchored continuous interval paths.
 

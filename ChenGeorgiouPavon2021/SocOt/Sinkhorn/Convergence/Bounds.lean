@@ -54,10 +54,70 @@ This is the kernel-comparison part of the fixed-gauge estimate, independent of t
 theorem sinkhorn_left_forward_projective_bound {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
-    (_hp : ∀ i, 0 < p i) (_hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (_hp : ∀ i, 0 < p i) (_hq : ∀ j, 0 < q j) (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     ∃ R : ℝ, 0 < R ∧ ∀ n i k, φ0Iter n i ≤ R * φ0Iter n k := by
-  sorry
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hne
+  · refine ⟨1, by norm_num, ?_⟩
+    intro n i
+    exact isEmptyElim i
+  · letI : Nonempty ι := hne
+    obtain ⟨i0⟩ := hne
+    letI : Nonempty (ι × ι) := ⟨(i0, i0)⟩
+    obtain ⟨pair_min, _hpair_min_mem, hpair_min⟩ :=
+      Finset.exists_min_image (Finset.univ : Finset (ι × ι))
+        (fun pair : ι × ι => G pair.1 pair.2) Finset.univ_nonempty
+    obtain ⟨pair_max, _hpair_max_mem, hpair_max⟩ :=
+      Finset.exists_max_image (Finset.univ : Finset (ι × ι))
+        (fun pair : ι × ι => G pair.1 pair.2) Finset.univ_nonempty
+    let gmin : ℝ := G pair_min.1 pair_min.2
+    let gmax : ℝ := G pair_max.1 pair_max.2
+    have hgmin_pos : 0 < gmin := by
+      dsimp [gmin]
+      exact hG pair_min.1 pair_min.2
+    have hgmax_pos : 0 < gmax := by
+      dsimp [gmax]
+      exact hG pair_max.1 pair_max.2
+    have hgmin_le : ∀ i j, gmin ≤ G i j := by
+      intro i j
+      dsimp [gmin]
+      exact hpair_min (i, j) (Finset.mem_univ (i, j))
+    have hle_gmax : ∀ i j, G i j ≤ gmax := by
+      intro i j
+      dsimp [gmax]
+      exact hpair_max (i, j) (Finset.mem_univ (i, j))
+    let R : ℝ := gmax / gmin
+    have hRpos : 0 < R := by
+      dsimp [R]
+      exact div_pos hgmax_pos hgmin_pos
+    refine ⟨R, hRpos, ?_⟩
+    intro n i k
+    have hφ1_nonneg : ∀ j, 0 ≤ φ1Iter n j := fun j => le_of_lt (hiter.φ1_pos n j)
+    have hupper : φ0Iter n i ≤ gmax * ∑ j, φ1Iter n j := by
+      calc
+        φ0Iter n i = ∑ j, G i j * φ1Iter n j := hiter.forward n i
+        _ ≤ ∑ j, gmax * φ1Iter n j := by
+          exact Finset.sum_le_sum (fun j _hj =>
+            mul_le_mul_of_nonneg_right (hle_gmax i j) (hφ1_nonneg j))
+        _ = gmax * ∑ j, φ1Iter n j := by
+          rw [Finset.mul_sum]
+    have hlower : gmin * ∑ j, φ1Iter n j ≤ φ0Iter n k := by
+      calc
+        gmin * ∑ j, φ1Iter n j = ∑ j, gmin * φ1Iter n j := by
+          rw [Finset.mul_sum]
+        _ ≤ ∑ j, G k j * φ1Iter n j := by
+          exact Finset.sum_le_sum (fun j _hj =>
+            mul_le_mul_of_nonneg_right (hgmin_le k j) (hφ1_nonneg j))
+        _ = φ0Iter n k := by
+          rw [hiter.forward n k]
+    have hscale : R * (gmin * ∑ j, φ1Iter n j) = gmax * ∑ j, φ1Iter n j := by
+      dsimp [R]
+      field_simp [ne_of_gt hgmin_pos]
+    have hscaled_lower : gmax * ∑ j, φ1Iter n j ≤ R * φ0Iter n k := by
+      rw [← hscale]
+      exact mul_le_mul_of_nonneg_left hlower (le_of_lt hRpos)
+    exact le_trans hupper hscaled_lower
 
 /-- Turn a fixed total mass and a projective-diameter bound into a common finite box.
 
@@ -66,11 +126,65 @@ Mathematical content: positivity and `∑ i, u n i = S` give the upper bound.  T
 bound when the type is nonempty.  The empty finite type is vacuous. -/
 theorem sinkhorn_phase_bounds_from_total_and_projective_bound {ι : Type*} [Fintype ι]
     (u : ℕ → ι → ℝ) (S : ℝ)
-    (_hpos : ∀ n i, 0 < u n i)
-    (_htotal : ∀ n, ∑ i, u n i = S)
-    (_hprojective : ∃ R : ℝ, 0 < R ∧ ∀ n i k, u n i ≤ R * u n k) :
+    (hpos : ∀ n i, 0 < u n i)
+    (htotal : ∀ n, ∑ i, u n i = S)
+    (hprojective : ∃ R : ℝ, 0 < R ∧ ∀ n i k, u n i ≤ R * u n k) :
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox u ε B := by
-  sorry
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hne
+  · refine ⟨1, 1, by norm_num, by norm_num, ?_⟩
+    intro n i
+    exact isEmptyElim i
+  · letI : Nonempty ι := hne
+    obtain ⟨R, hRpos, hRbound⟩ := hprojective
+    have hcard_nat : 0 < (Finset.univ : Finset ι).card :=
+      Finset.card_pos.mpr Finset.univ_nonempty
+    have hcard_pos : 0 < ((Finset.univ : Finset ι).card : ℝ) := by
+      exact_mod_cast hcard_nat
+    have hS_pos : 0 < S := by
+      rw [← htotal 0]
+      exact Finset.sum_pos (fun i _hi => hpos 0 i) Finset.univ_nonempty
+    let denom : ℝ := ((Finset.univ : Finset ι).card : ℝ) * R
+    have hdenom_pos : 0 < denom := by
+      dsimp [denom]
+      exact mul_pos hcard_pos hRpos
+    let ε : ℝ := S / denom
+    let B : ℝ := S
+    have hε_pos : 0 < ε := by
+      dsimp [ε]
+      exact div_pos hS_pos hdenom_pos
+    refine ⟨ε, B, hε_pos, hS_pos, ?_⟩
+    intro n i
+    have hupper : u n i ≤ S := by
+      have hsingle : u n i ≤ ∑ k : ι, u n k := by
+        exact Finset.single_le_sum
+          (fun k _hk => le_of_lt (hpos n k))
+          (Finset.mem_univ i)
+      exact le_trans hsingle (le_of_eq (htotal n))
+    have hsum_projective : S ≤ denom * u n i := by
+      have hsum_le : (∑ k : ι, u n k) ≤ ∑ k : ι, R * u n i := by
+        exact Finset.sum_le_sum (fun k _hk => hRbound n k i)
+      rw [htotal n] at hsum_le
+      have hsum_const : (∑ _k : ι, R * u n i) = ((Finset.univ : Finset ι).card : ℝ) * (R * u n i) := by
+        simp [Finset.sum_const, nsmul_eq_mul]
+      dsimp [denom]
+      rw [hsum_const] at hsum_le
+      simpa [mul_assoc] using hsum_le
+    have hlower : ε ≤ u n i := by
+      dsimp [ε]
+      have hscale : (S / denom) * denom = S := by
+        field_simp [ne_of_gt hdenom_pos]
+      by_contra hnot
+      have hlt : u n i < S / denom := lt_of_not_ge hnot
+      have hmul_lt : denom * u n i < S := by
+        have htmp : denom * u n i < denom * (S / denom) := by
+          exact mul_lt_mul_of_pos_left hlt hdenom_pos
+        have hdenom_scale : denom * (S / denom) = S := by
+          rw [mul_comm]
+          exact hscale
+        simpa [hdenom_scale] using htmp
+      exact (not_lt_of_ge hsum_projective) hmul_lt
+    exact ⟨hlower, hupper⟩
 
 /-- Fixed-gauge bounds for the forward left potentials.
 
@@ -100,12 +214,79 @@ same global finite box.  This lemma is intentionally Sinkhorn-free except for re
 predicate, so it can discharge both the left-hatted and right-forward normalization estimates. -/
 theorem sinkhorn_successor_quotient_phase_bounds {ι : Type*} [Fintype ι]
     (a : ι → ℝ) (denom target : ℕ → ι → ℝ)
-    (_ha : ∀ i, 0 < a i)
-    (_htarget_pos : ∀ n i, 0 < target n i)
-    (_hdenom_bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox denom ε B)
-    (_hupdate : ∀ n i, target (n + 1) i * denom n i = a i) :
+    (ha : ∀ i, 0 < a i)
+    (htarget_pos : ∀ n i, 0 < target n i)
+    (hdenom_bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox denom ε B)
+    (hupdate : ∀ n i, target (n + 1) i * denom n i = a i) :
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox target ε B := by
-  sorry
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hne
+  · refine ⟨1, 1, by norm_num, by norm_num, ?_⟩
+    intro n i
+    exact isEmptyElim i
+  · letI : Nonempty ι := hne
+    obtain ⟨εd, Bd, hεd, hBd, hdenom_box⟩ := hdenom_bounds
+    obtain ⟨i_init_min, _hi_init_min_mem, hinit_min⟩ :=
+      Finset.exists_min_image (Finset.univ : Finset ι) (fun i => target 0 i) Finset.univ_nonempty
+    obtain ⟨i_init_max, _hi_init_max_mem, hinit_max⟩ :=
+      Finset.exists_max_image (Finset.univ : Finset ι) (fun i => target 0 i) Finset.univ_nonempty
+    obtain ⟨i_a_min, _hi_a_min_mem, ha_min⟩ :=
+      Finset.exists_min_image (Finset.univ : Finset ι) a Finset.univ_nonempty
+    obtain ⟨i_a_max, _hi_a_max_mem, ha_max⟩ :=
+      Finset.exists_max_image (Finset.univ : Finset ι) a Finset.univ_nonempty
+    let εtarget : ℝ := min (target 0 i_init_min) (a i_a_min / Bd)
+    let Btarget : ℝ := max (target 0 i_init_max) (a i_a_max / εd)
+    have hamin_pos : 0 < a i_a_min := ha i_a_min
+    have hamax_pos : 0 < a i_a_max := ha i_a_max
+    have hεtarget_pos : 0 < εtarget := by
+      dsimp [εtarget]
+      exact lt_min (htarget_pos 0 i_init_min) (div_pos hamin_pos hBd)
+    have hBtarget_pos : 0 < Btarget := by
+      dsimp [Btarget]
+      exact lt_of_lt_of_le (htarget_pos 0 i_init_max)
+        (le_max_left (target 0 i_init_max) (a i_a_max / εd))
+    refine ⟨εtarget, Btarget, hεtarget_pos, hBtarget_pos, ?_⟩
+    intro n i
+    cases n with
+    | zero =>
+        have hlower : εtarget ≤ target 0 i := by
+          dsimp [εtarget]
+          exact le_trans (min_le_left (target 0 i_init_min) (a i_a_min / Bd))
+            (hinit_min i (Finset.mem_univ i))
+        have hupper : target 0 i ≤ Btarget := by
+          dsimp [Btarget]
+          exact le_trans (hinit_max i (Finset.mem_univ i))
+            (le_max_left (target 0 i_init_max) (a i_a_max / εd))
+        exact ⟨hlower, hupper⟩
+    | succ n =>
+        have hdenom_pos : 0 < denom n i := lt_of_lt_of_le hεd (hdenom_box n i).1
+        have htarget_nonneg : 0 ≤ target (n + 1) i := le_of_lt (htarget_pos (n + 1) i)
+        have ha_min_le : a i_a_min ≤ a i := ha_min i (Finset.mem_univ i)
+        have ha_le_max : a i ≤ a i_a_max := ha_max i (Finset.mem_univ i)
+        have htarget_mul_B : a i_a_min ≤ target (n + 1) i * Bd := by
+          have hprod_le : target (n + 1) i * denom n i ≤ target (n + 1) i * Bd := by
+            exact mul_le_mul_of_nonneg_left (hdenom_box n i).2 htarget_nonneg
+          exact le_trans (le_trans ha_min_le (le_of_eq (Eq.symm (hupdate n i)))) hprod_le
+        have htarget_lower_succ : a i_a_min / Bd ≤ target (n + 1) i := by
+          have hscale : (a i_a_min / Bd) * Bd = a i_a_min := by
+            field_simp [ne_of_gt hBd]
+          nlinarith
+        have htarget_mul_ε : target (n + 1) i * εd ≤ a i_a_max := by
+          have hprod_lower : target (n + 1) i * εd ≤ target (n + 1) i * denom n i := by
+            exact mul_le_mul_of_nonneg_left (hdenom_box n i).1 htarget_nonneg
+          exact le_trans hprod_lower (le_trans (le_of_eq (hupdate n i)) ha_le_max)
+        have htarget_upper_succ : target (n + 1) i ≤ a i_a_max / εd := by
+          have hscale : (a i_a_max / εd) * εd = a i_a_max := by
+            field_simp [ne_of_gt hεd]
+          nlinarith
+        have hlower : εtarget ≤ target (n + 1) i := by
+          dsimp [εtarget]
+          exact le_trans (min_le_right (target 0 i_init_min) (a i_a_min / Bd)) htarget_lower_succ
+        have hupper : target (n + 1) i ≤ Btarget := by
+          dsimp [Btarget]
+          exact le_trans htarget_upper_succ
+            (le_max_right (target 0 i_init_max) (a i_a_max / εd))
+        exact ⟨hlower, hupper⟩
 
 /-- Generic weighted-sum bound for one Sinkhorn phase.
 

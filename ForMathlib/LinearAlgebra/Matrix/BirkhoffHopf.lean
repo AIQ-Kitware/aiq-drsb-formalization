@@ -144,6 +144,30 @@ theorem positiveKernelBirkhoffCoefficient_nonneg_lt_one {ι κ : Type*}
   · unfold positiveKernelBirkhoffCoefficient
     exact (div_lt_iff₀ hB_pos).2 (by linarith)
 
+/-- Pointwise cross-product form of the finite cross-ratio bound.
+
+This is the algebraic atom used before summing against nonnegative weights in the image-cone
+cross-ratio estimate. -/
+def PositiveKernelPointwiseCrossRatioBounded {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ) : Prop :=
+  ∀ i i' : ι, ∀ j j' : κ,
+    G i j * G i' j' ≤ positiveKernelCrossRatioBound G * (G i' j * G i j')
+
+/-- The explicit finite cross-ratio bound gives the pointwise cross-product inequality. -/
+theorem positive_kernel_pointwise_crossRatioBounded {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j) :
+    PositiveKernelPointwiseCrossRatioBounded G := by
+  classical
+  intro i i' j j'
+  have hle := positiveKernelCrossRatio_le_bound G hG i i' j j'
+  have hden : 0 < G i j' * G i' j := mul_pos (hG i j') (hG i' j)
+  have hmul : G i j * G i' j' ≤
+      positiveKernelCrossRatioBound G * (G i j' * G i' j) := by
+    simpa [positiveKernelCrossRatio] using (div_le_iff₀ hden).1 hle
+  simpa [mul_assoc, mul_left_comm, mul_comm] using hmul
+
 /-- Predicate saying that `γ` contracts Hilbert projective spread for a positive kernel. -/
 def IsBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ) (γ : ℝ) : Prop :=
@@ -198,18 +222,30 @@ def PositiveKernelApplyCrossRatioBounded {ι κ : Type*} [Fintype ι] [Fintype �
           positiveKernelCrossRatioBound G *
             (positiveKernelApply G x i' * positiveKernelApply G y i)
 
+/-- Finite-sum image cross-ratio bound, assuming the pointwise cross-product inequality.
+
+This is now the remaining algebra-only summation seam.  It should be proved by expanding the two
+products of finite sums and summing `hpoint i i' j j'` against the nonnegative weights
+`x j * y j'`. -/
+theorem positive_kernel_apply_crossRatioBounded_of_pointwise_bound {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (_hpoint : PositiveKernelPointwiseCrossRatioBounded G) :
+    PositiveKernelApplyCrossRatioBounded G := by
+  sorry
+
 /-- Finite-sum image cross-ratio bound for a strictly positive kernel.
 
-This should be proved by expanding the two products of finite sums, applying
-`positiveKernelCrossRatio_le_bound` termwise, and summing against the nonnegative weights
-`x j * y j'`.  This is an algebraic, non-topological subgoal and can be assigned independently
-of the projective-metric contraction proof. -/
+The pointwise cross-product estimate is proved above from the explicit cross-ratio bound.  The only
+remaining algebraic work is the separate summation seam
+`positive_kernel_apply_crossRatioBounded_of_pointwise_bound`. -/
 theorem positive_kernel_apply_crossRatioBounded {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)
-    (_hG : ∀ i j, 0 < G i j) :
+    (hG : ∀ i j, 0 < G i j) :
     PositiveKernelApplyCrossRatioBounded G := by
-  sorry
+  exact positive_kernel_apply_crossRatioBounded_of_pointwise_bound G
+    (positive_kernel_pointwise_crossRatioBounded G hG)
 
 /-- Birkhoff's oscillation estimate once the image-cone cross-ratio is bounded.
 

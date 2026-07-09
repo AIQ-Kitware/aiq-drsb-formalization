@@ -6,7 +6,6 @@ by the finite Sinkhorn compactness proof.  It is intentionally separate from `Pr
 future agents can work on the contraction port without touching the downstream compactness assembly.
 -/
 
-import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Compactness.MatrixBridge
 
@@ -131,19 +130,21 @@ theorem franklinLorenz_targetColumn_pos {ι : Type*} [Fintype ι]
 /-!
 ## Hard-core theorem ledger for the right `φ1` / column-correction path
 
-At this point the right-side Sinkhorn bookkeeping has been peeled away.  The remaining hard pieces
-are intended to be exactly these named theorem statements:
+The expanded Franklin--Lorenz notes make an important correction to the theorem shape: Hilbert's
+projective metric controls **pairwise logarithmic oscillation** of the correction vector
+`q / c_k`, not directly the pointwise quantity `|log (q_j / c_{k,j})|` relative to `1`.
+Consequently the right-side proof should no longer pass through pointwise log-to-one error.
+
+The remaining hard pieces for the right side are now:
 
 1. `ForMathlib.Matrix.positive_kernel_birkhoff_contraction_coefficient` in `BirkhoffHopf.lean`:
    the paper-agnostic positive finite-kernel Birkhoff coefficient / strict contraction theorem.
-2. `hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound`: the
-   Franklin--Lorenz Section 3 step converting that coefficient into geometric decay of the
-   logarithmic column marginal error.
-3. `ForMathlib.Analysis.hard_core_relative_error_geometric_bound_explicit_constant_of_log_bound`:
-   the pure real-analysis conversion from log error to multiplicative relative error with the
-   explicit constant `exp C * C`; the local
-   `hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box`
-   wrapper keeps the older Franklin--Lorenz-facing signature with the now-proved ratio-box input.
+2. `hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound`: the
+   Franklin--Lorenz Lemma 2/Theorem 4 step giving geometric decay of the Hilbert/projective spread
+   of the column correction vector `q / c_k`.
+3. `hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound_and_ratio_box`: the
+   finite real-analysis bridge from a pairwise log-ratio bound plus the already-proved finite box
+   bound to the concrete pairwise difference bound needed by `finitePairwiseRatioSpread`.
 4. `hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound`: the still-unmirrored left-side
    row-correction theorem.
 
@@ -151,16 +152,18 @@ The non-`hard_core_*` theorems below are wrappers used by downstream code; they 
 while agents attack the hard-core theorem statements independently.
 -/
 
-/-- Hard core 2: Franklin--Lorenz / Birkhoff--Hopf log-error decay for the right column marginal.
+/-- Hard core 2: Franklin--Lorenz / Birkhoff--Hopf projective log-oscillation decay for the right
+column correction.
 
-This is the actual Hilbert/projective contraction-shaped right-side seam.  In Hilbert metric one
-controls logarithmic ratio oscillations, so the natural pointwise output is a geometric bound on
+This is the theorem shape directly suggested by the expanded Franklin--Lorenz Section 3 notes:
+Lemma 2 gives geometric decay of `d(c^(k), q)`, equivalently geometric decay of the Hilbert spread
+of the correction vector `q / c^(k)`.  In coordinates, this controls the pairwise log-ratio
 
-`|log (q j / c_k j)|`,
+`|log ((q i / c_k i) / (q j / c_k j))|`.
 
-where `c_k` is `franklinLorenzCurrentColumnMarginal G a b k`.  Proving this should use the finite
-Birkhoff--Hopf coefficient for `G` together with Franklin--Lorenz Lemma 2 / Theorem 4. -/
-theorem hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound
+This avoids the stronger and generally unjustified pointwise-to-one claim
+`|log (q j / c_k j)| ≤ C γ^k`. -/
+theorem hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
@@ -170,32 +173,17 @@ theorem hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound
     (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ k j,
-          |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k := by
+        ∀ k (ij : ι × ι),
+          |Real.log
+            ((q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1) /
+              (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2))| ≤ C * γ ^ k := by
   sorry
-
-/-- Stable wrapper around hard core 2, preserving the Franklin--Lorenz theorem name used by the
-rest of the right-side proof chain. -/
-theorem franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkhoff_coefficient
-    {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (a b : ℕ → ι → ℝ)
-    (hG : ∀ i j, 0 < G i j)
-    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
-    (hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
-    ∃ C : ℝ,
-      0 ≤ C ∧
-        ∀ k j,
-          |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k := by
-  exact hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound
-    p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
 
 /-- Uniform finite-box bound for the right-column relative ratio `q / c_k`.
 
-This is a finite-order/box-bounds seam, independent of Hilbert contraction.  From strict positivity of
-`G` and the uniform bounds on the scaling vectors, the current column marginal `c_k` stays uniformly
-away from zero and `q` stays uniformly bounded, hence the quotient `q j / c_k j` is bounded. -/
+This is a finite-order/box-bounds seam, independent of Hilbert contraction.  From the update equation
+`q_j = b_{k+1,j} * ∑_i G_ij a_{k,i}`, the quotient `q_j / c_{k,j}` is exactly
+`b_{k+1,j} / b_{k,j}`, so the two-sequence box bounds give the uniform bound `B / ε`. -/
 theorem franklinLorenz_right_column_relative_ratio_box_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -240,130 +228,38 @@ theorem franklinLorenz_right_column_relative_ratio_box_bound
   field_simp [ne_of_gt hb_k_pos, ne_of_gt hε]
   simpa [mul_comm, mul_left_comm, mul_assoc] using hmul
 
-/-- Franklin--Lorenz-facing wrapper for hard core 3.
+/-- Hard core 3: convert projective log-oscillation plus a ratio box into concrete pairwise
+oscillation.
 
-The actual reusable analysis seam now lives in
-`ForMathlib.Analysis.relative_error_geometric_bound_of_log_relative_error_geometric_bound`.  The
-extra ratio-box hypothesis is retained in this wrapper because it is a useful audited fact about the
-matrix-scaling orbit and may be useful for alternative proofs, but the exp/log conversion only needs
-positivity and the geometric log bound. -/
-theorem hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
-    {ι : Type*} [Fintype ι]
-    (r : ℕ → ι → ℝ) (γ : ℝ)
-    (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hr_pos : ∀ k j, 0 < r k j)
-    (_hr_box : ∃ R : ℝ, 0 ≤ R ∧ ∀ k j, |r k j| ≤ R)
-    (hlog : ∃ C : ℝ,
-      0 ≤ C ∧ ∀ k j, |Real.log (r k j)| ≤ C * γ ^ k) :
-    ∃ C : ℝ,
-      0 ≤ C ∧ ∀ k j, |r k j - 1| ≤ C * γ ^ k := by
-  exact ForMathlib.Analysis.relative_error_geometric_bound_of_log_relative_error_geometric_bound
-    r γ hγ_nonneg hγ_lt_one hr_pos hlog
-
-/-- Stable wrapper around hard core 3. -/
-theorem relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
-    {ι : Type*} [Fintype ι]
-    (r : ℕ → ι → ℝ) (γ : ℝ)
-    (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hr_pos : ∀ k j, 0 < r k j)
-    (hr_box : ∃ R : ℝ, 0 ≤ R ∧ ∀ k j, |r k j| ≤ R)
-    (hlog : ∃ C : ℝ,
-      0 ≤ C ∧ ∀ k j, |Real.log (r k j)| ≤ C * γ ^ k) :
-    ∃ C : ℝ,
-      0 ≤ C ∧ ∀ k j, |r k j - 1| ≤ C * γ ^ k := by
-  exact hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
-    r γ hγ_nonneg hγ_lt_one hr_pos hr_box hlog
-
-/-- Convert a logarithmic right-column relative-error bound into the concrete multiplicative
-correction bound used by the finite-spread bookkeeping.
-
-This theorem is now just the composition of two clearer lower-level tasks:
-
-* `franklinLorenz_right_column_relative_ratio_box_bound`, a finite box-bounds lemma for the ratio
-  `q / c_k`;
-* `relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box`, a pure
-  one-variable real-analysis conversion from log error to relative error on a bounded positive range.
--/
-theorem franklinLorenz_right_column_relative_error_geometric_bound_of_log_relative_error_bound
+For positive ratios `r_i`, `r_j` bounded by `R`, a bound on `|log (r_i / r_j)|` should imply a
+bound on `|r_i - r_j|` at the same geometric rate, with a larger constant depending on the box.
+This is the faithful replacement for the earlier pointwise log-to-one conversion. -/
+theorem hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound_and_ratio_box
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
-    (hG : ∀ i j, 0 < G i j)
-    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
-    (hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hlog : ∃ C : ℝ,
+    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (_hratio_pos : ∀ k j, 0 < q j / franklinLorenzCurrentColumnMarginal G a b k j)
+    (_hratio_box : ∃ R : ℝ,
+      0 ≤ R ∧ ∀ k j, |q j / franklinLorenzCurrentColumnMarginal G a b k j| ≤ R)
+    (_hlog : ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ k j,
-          |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k) :
+        ∀ k (ij : ι × ι),
+          |Real.log
+            ((q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1) /
+              (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2))| ≤ C * γ ^ k) :
     ∃ C : ℝ,
       0 ≤ C ∧
-        ∀ k j,
-          |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
-  have hratio_pos :
-      ∀ k j, 0 < q j / franklinLorenzCurrentColumnMarginal G a b k j := by
-    intro k j
-    exact div_pos
-      (franklinLorenz_targetColumn_pos p q G a b hG horbit k j)
-      (franklinLorenzCurrentColumnMarginal_pos G a b hG horbit.left_pos horbit.right_pos k j)
-  exact relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
-    (fun k j => q j / franklinLorenzCurrentColumnMarginal G a b k j) γ
-    hγ_nonneg hγ_lt_one hratio_pos
-    (franklinLorenz_right_column_relative_ratio_box_bound p q G a b hG horbit hbox)
-    hlog
-
-/-- Projective/Hilbert right-column relative-error decay for a two-sequence
-Franklin--Lorenz orbit.
-
-This is now a composition of two smaller right-side seams: the Hilbert/projective logarithmic error
-bound and the finite-box conversion from log-relative error to concrete relative error. -/
-theorem franklinLorenz_right_column_relative_error_geometric_bound_of_birkhoff_coefficient
-    {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (a b : ℕ → ι → ℝ)
-    (hG : ∀ i j, 0 < G i j)
-    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
-    (hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
-    ∃ C : ℝ,
-      0 ≤ C ∧
-        ∀ k j,
-          |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
-  exact franklinLorenz_right_column_relative_error_geometric_bound_of_log_relative_error_bound
-    p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
-    (franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkhoff_coefficient
-      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one)
-
-/-- Pointwise right-column correction decay for a two-sequence Franklin--Lorenz orbit.
-
-This theorem is now a named projection of the projective/Hilbert relative-error seam above.  It is
-kept as a stable downstream interface for the pairwise and finite-spread bookkeeping lemmas. -/
-theorem franklinLorenz_right_column_correction_pointwise_geometric_bound_of_birkhoff_coefficient
-    {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (a b : ℕ → ι → ℝ)
-    (hG : ∀ i j, 0 < G i j)
-    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
-    (hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
-    ∃ C : ℝ,
-      0 ≤ C ∧
-        ∀ k j,
-          |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
-  exact franklinLorenz_right_column_relative_error_geometric_bound_of_birkhoff_coefficient
-    p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
+        ∀ k (ij : ι × ι),
+          |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 -
+            q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2| ≤ C * γ ^ k := by
+  sorry
 
 /-- Pairwise right-column correction oscillation bound for a two-sequence Franklin--Lorenz orbit.
 
-This is the hard right-side theorem for agent 2 after stripping away both the four-phase Sinkhorn
-bookkeeping and the finite-sum bookkeeping.  It asks for a uniform geometric bound on each pairwise
-quotient-correction displacement
-
-`|q i / c_k i - q j / c_k j|`,
-
-where `c_k` is the current column marginal of the scaled matrix `diag(a k) * G * diag(b k)`.
-Franklin--Lorenz Section 3 should provide this from the Birkhoff--Hopf contraction coefficient and
-the finite box bounds. -/
+This is now the composition of the faithful Franklin--Lorenz projective-log seam and the finite
+real-analysis box conversion.  It no longer relies on the stronger pointwise-to-one log-error
+statement. -/
 theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -377,47 +273,17 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
         ∀ k (ij : ι × ι),
           |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 -
             q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2| ≤ C * γ ^ k := by
-  obtain ⟨C, hC_nonneg, hpoint⟩ :=
-    franklinLorenz_right_column_correction_pointwise_geometric_bound_of_birkhoff_coefficient
-      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
-  refine ⟨(2 : ℝ) * C, mul_nonneg (by norm_num) hC_nonneg, ?_⟩
-  intro k ij
-  have hrewrite :
-      q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 -
-          q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 =
-        (q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1) -
-          (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1) := by
-    ring
-  rw [hrewrite]
-  calc
-    |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1 -
-        (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1)|
-        ≤ |q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1| +
-          |q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1| := by
-            set x := q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1 - 1
-            set y := q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2 - 1
-            have hx_upper : x ≤ |x| := le_abs_self x
-            have hy_upper : -y ≤ |y| := by
-              simpa [abs_neg] using (le_abs_self (-y))
-            have hupper : x - y ≤ |x| + |y| := by
-              linarith
-            have hx_lower : -|x| ≤ x := by
-              by_cases hx : x < 0
-              · rw [abs_of_neg hx]
-                linarith
-              · have hx_nonneg : 0 ≤ x := le_of_not_gt hx
-                rw [abs_of_nonneg hx_nonneg]
-                linarith
-            have hy_lower : -|y| ≤ -y := by
-              have hy_upper : y ≤ |y| := le_abs_self y
-              linarith
-            have hlower : -(|x| + |y|) ≤ x - y := by
-              linarith
-            exact abs_le.mpr ⟨hlower, hupper⟩
-    _ ≤ C * γ ^ k + C * γ ^ k := by
-          exact add_le_add (hpoint k ij.1) (hpoint k ij.2)
-    _ = ((2 : ℝ) * C) * γ ^ k := by
-          ring
+  have hratio_pos :
+      ∀ k j, 0 < q j / franklinLorenzCurrentColumnMarginal G a b k j := by
+    intro k j
+    exact div_pos
+      (franklinLorenz_targetColumn_pos p q G a b hG horbit k j)
+      (franklinLorenzCurrentColumnMarginal_pos G a b hG horbit.left_pos horbit.right_pos k j)
+  exact hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound_and_ratio_box
+    p q G a b γ hγ_nonneg hγ_lt_one hratio_pos
+    (franklinLorenz_right_column_relative_ratio_box_bound p q G a b hG horbit hbox)
+    (hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one)
 
 /-- Pure two-sequence Franklin--Lorenz right-column correction geometric bound.
 

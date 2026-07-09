@@ -33,6 +33,58 @@ structure IsControlledReferenceKernelPair
       (d.pathLaw u ρ₀ : Measure (Path X)).map e = (ρ₀ : Measure X) ⊗ₘ Ku ∧
       (d.R : Measure (Path X)).map e = (initialMarginal d.R) ⊗ₘ Kw
 
+
+/-- The real-valued conditional KL seen through a finite projection `π n` of the path-noise
+coordinate.  Keeping this sequence named makes the projection-limit seams below explicit: finite
+projection laws identify this sequence with a concrete Gaussian/grid expression, and a separate
+exhaustion or Riemann-sum theorem supplies its limit. -/
+noncomputable def conditionalProjectedKernelKL
+    (ρ₀ : ProbabilityMeasure X)
+    {𝒴 : Type*} [MeasurableSpace 𝒴]
+    (Ku Kw : Kernel X 𝒴)
+    {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
+    (π : ∀ n, 𝒴 → 𝒵 n) : ℕ → ℝ :=
+  fun n : ℕ =>
+    (∫⁻ x, InformationTheory.klDiv
+      (Measure.map (π n) (Ku x))
+      (Measure.map (π n) (Kw x)) ∂(ρ₀ : Measure X)).toReal
+
+/-- Data needed for the KL-exhaustion half of the conditional Girsanov plan.
+
+The field `finite_projection_law` is the finite-dimensional identification step: it says the abstract
+projected conditional KL is the concrete projection-level quantity `projectionKL n`.  The field
+`projectionKL_tendsto_kernelKL` is the genuine exhaustion theorem for that concrete quantity.  This is
+not the conditional energy identity under another name: it does not mention control energy, and it is
+only the KL-to-full-kernel limit edge. -/
+structure ConditionalKLProjectionLimitData
+    (ρ₀ : ProbabilityMeasure X)
+    {𝒴 : Type*} [MeasurableSpace 𝒴]
+    (Ku Kw : Kernel X 𝒴)
+    {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
+    (π : ∀ n, 𝒴 → 𝒵 n) where
+  projectionKL : ℕ → ℝ
+  finite_projection_law : ∀ n, conditionalProjectedKernelKL ρ₀ Ku Kw π n = projectionKL n
+  projectionKL_tendsto_kernelKL :
+    Filter.Tendsto projectionKL Filter.atTop
+      (nhds ((∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal))
+
+/-- Data needed for the finite-dimensional Cameron--Martin/Riemann-sum half of the conditional
+Girsanov plan.
+
+The field `finite_grid_girsanov` identifies each projected conditional KL with a concrete grid energy.
+The field `gridEnergy_tendsto` is then the analytic convergence of those grid energies to the desired
+quadratic-control energy value.  This avoids assuming the final conditional KL/energy identity while
+exposing the two lower-level facts that a concrete diffusion model must prove. -/
+structure ConditionalKLEnergyLimitData
+    (ρ₀ : ProbabilityMeasure X)
+    {𝒴 : Type*} [MeasurableSpace 𝒴]
+    (Ku Kw : Kernel X 𝒴)
+    {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
+    (π : ∀ n, 𝒴 → 𝒵 n) (energyVal : ℝ) where
+  gridEnergy : ℕ → ℝ
+  finite_grid_girsanov : ∀ n, conditionalProjectedKernelKL ρ₀ Ku Kw π n = gridEnergy n
+  gridEnergy_tendsto : Filter.Tendsto gridEnergy Filter.atTop (nhds energyVal)
+
 /-- Non-circular data package that instantiates the proved disintegrated energy identity.
 
 `FiniteEnergyDiffusion` is only an integrability predicate, so it cannot by itself imply the full
@@ -75,15 +127,14 @@ theorem conditional_gridKL_tendsto_kernelKL_of_finiteEnergyDiffusion
     (π : ∀ n, 𝒴 → 𝒵 n) (_hπ : ∀ n, Measurable (π n))
     (_ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace 𝒴))
     (_hℱ : ∀ n, _ℱ n = (inferInstance : MeasurableSpace (𝒵 n)).comap (π n))
-    (_hgen : ⨆ n, _ℱ n = (inferInstance : MeasurableSpace 𝒴)) :
-    Filter.Tendsto
-      (fun n : ℕ =>
-        (∫⁻ x, InformationTheory.klDiv
-          (Measure.map (π n) (Ku x))
-          (Measure.map (π n) (Kw x)) ∂(ρ₀ : Measure X)).toReal)
-      Filter.atTop
+    (_hgen : ⨆ n, _ℱ n = (inferInstance : MeasurableSpace 𝒴))
+    (hlimit : ConditionalKLProjectionLimitData ρ₀ Ku Kw π) :
+    Filter.Tendsto (conditionalProjectedKernelKL ρ₀ Ku Kw π) Filter.atTop
       (nhds ((∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal)) := by
-  sorry
+  have hseq : conditionalProjectedKernelKL ρ₀ Ku Kw π = hlimit.projectionKL := by
+    funext n
+    exact hlimit.finite_projection_law n
+  simpa [hseq] using hlimit.projectionKL_tendsto_kernelKL
 
 /-- Projection-level conditional KLs converge to the quadratic control energy.
 
@@ -99,15 +150,13 @@ theorem conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
     (energyVal : ℝ)
     (_henergy : energyVal = energy u (d.pathLaw u ρ₀))
     {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
-    (π : ∀ n, 𝒴 → 𝒵 n) (_hπ : ∀ n, Measurable (π n)) :
-    Filter.Tendsto
-      (fun n : ℕ =>
-        (∫⁻ x, InformationTheory.klDiv
-          (Measure.map (π n) (Ku x))
-          (Measure.map (π n) (Kw x)) ∂(ρ₀ : Measure X)).toReal)
-      Filter.atTop
-      (nhds energyVal) := by
-  sorry
+    (π : ∀ n, 𝒴 → 𝒵 n) (_hπ : ∀ n, Measurable (π n))
+    (hlimit : ConditionalKLEnergyLimitData ρ₀ Ku Kw π energyVal) :
+    Filter.Tendsto (conditionalProjectedKernelKL ρ₀ Ku Kw π) Filter.atTop (nhds energyVal) := by
+  have hseq : conditionalProjectedKernelKL ρ₀ Ku Kw π = hlimit.gridEnergy := by
+    funext n
+    exact hlimit.finite_grid_girsanov n
+  simpa [hseq] using hlimit.gridEnergy_tendsto
 
 /-- Conditional Cameron--Martin/Girsanov target for a controlled diffusion kernel.
 
@@ -127,13 +176,15 @@ theorem conditional_kl_eq_control_energy_of_finiteEnergyDiffusion
     (π : ∀ n, 𝒴 → 𝒵 n) (hπ : ∀ n, Measurable (π n))
     (ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace 𝒴))
     (hℱ : ∀ n, ℱ n = (inferInstance : MeasurableSpace (𝒵 n)).comap (π n))
-    (hgen : ⨆ n, ℱ n = (inferInstance : MeasurableSpace 𝒴)) :
+    (hgen : ⨆ n, ℱ n = (inferInstance : MeasurableSpace 𝒴))
+    (hklLimit : ConditionalKLProjectionLimitData ρ₀ Ku Kw π)
+    (henergyLimit : ConditionalKLEnergyLimitData ρ₀ Ku Kw π energyVal) :
     (∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal = energyVal := by
   exact tendsto_nhds_unique
     (conditional_gridKL_tendsto_kernelKL_of_finiteEnergyDiffusion
-      d u ρ₀ hfe Ku Kw hkernel π hπ ℱ hℱ hgen)
+      d u ρ₀ hfe Ku Kw hkernel π hπ ℱ hℱ hgen hklLimit)
     (conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
-      d u ρ₀ hfe Ku Kw hkernel energyVal henergy π hπ)
+      d u ρ₀ hfe Ku Kw hkernel energyVal henergy π hπ henergyLimit)
 
 omit [NormedSpace ℝ X] in
 /-- Full feasible-control energy identity from explicit disintegration and Cameron--Martin data.

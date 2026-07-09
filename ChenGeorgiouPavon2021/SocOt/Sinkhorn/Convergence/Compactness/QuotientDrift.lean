@@ -95,6 +95,7 @@ theorem sinkhorn_denominator_lag_drift_tendsto_zero_from_gauge_iterates {ι : Ty
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -105,7 +106,7 @@ theorem sinkhorn_denominator_lag_drift_tendsto_zero_from_gauge_iterates {ι : Ty
   have hprojscale : SinkhornDenominatorProjectiveScaleLagZeroAlong φ0Iter φhat1Iter subseq :=
     sinkhorn_denominator_projective_scale_lag_tendsto_zero_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre
   exact sinkhorn_denominator_lag_drift_zero_of_projective_scale_lag
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq hbounds hprojscale
 
@@ -222,6 +223,7 @@ theorem sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fint
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -232,7 +234,7 @@ theorem sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fint
   have hdenom : SinkhornDenominatorLagDriftZeroAlong φ0Iter φhat1Iter subseq :=
     sinkhorn_denominator_lag_drift_tendsto_zero_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre
   exact sinkhorn_phase_drift_zero_of_denominator_lag_drift p q G
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq hpre.strict_mono hiter hbounds hdenom
 

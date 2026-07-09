@@ -51,6 +51,7 @@ theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*}
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -61,7 +62,7 @@ theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*}
   obtain ⟨hφhat0_drift, hφ1_drift⟩ :=
     sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre
   exact sinkhorn_precluster_successor_limits_eq_of_phase_drift
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
     ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hφhat0_drift hφ1_drift
@@ -73,6 +74,7 @@ theorem sinkhorn_cluster_along_of_precluster_from_gauge_iterates {ι : Type*} [F
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -84,7 +86,7 @@ theorem sinkhorn_cluster_along_of_precluster_from_gauge_iterates {ι : Type*} [F
   obtain ⟨hψhat0, hψ1⟩ :=
     sinkhorn_precluster_successor_limits_eq_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre
   exact sinkhorn_cluster_along_of_precluster_successor_eq
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
     ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hψhat0 hψ1
@@ -96,6 +98,7 @@ theorem sinkhorn_phase_compatible_subsequence_along_of_gauge_iterates_and_bounds
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -109,7 +112,7 @@ theorem sinkhorn_phase_compatible_subsequence_along_of_gauge_iterates_and_bounds
   exact ⟨subseq, ψ0, ψhat0, ψ1, ψhat1,
     sinkhorn_cluster_along_of_precluster_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre⟩
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre⟩
 
 /-- Bounded finite-dimensional sequences admit phase-compatible cluster subsequences after using the
 gauge-normalized Sinkhorn iterate structure to identify current and successor limits. -/
@@ -117,6 +120,7 @@ theorem sinkhorn_phase_compatible_subsequence_of_gauge_iterates_and_bounds {ι :
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -126,7 +130,7 @@ theorem sinkhorn_phase_compatible_subsequence_of_gauge_iterates_and_bounds {ι :
         ψ0 ψhat0 ψ1 ψhat1 := by
   obtain ⟨subseq, ψ0, ψhat0, ψ1, ψhat1, halong⟩ :=
     sinkhorn_phase_compatible_subsequence_along_of_gauge_iterates_and_bounds p q G
-      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hiter hgauge hbounds
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hG hiter hgauge hbounds
   exact ⟨ψ0, ψhat0, ψ1, ψhat1,
     sinkhorn_cluster_point_of_along
       φ0Iter φhat0Iter φ1Iter φhat1Iter subseq ψ0 ψhat0 ψ1 ψhat1 halong⟩
@@ -138,6 +142,7 @@ theorem sinkhorn_outer_subsequence_cluster_from_gauge_iterates_and_bounds {ι : 
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -154,7 +159,7 @@ theorem sinkhorn_outer_subsequence_cluster_from_gauge_iterates_and_bounds {ι : 
     sinkhorn_cluster_along_of_precluster_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       (fun n => subseq (subsub n)) ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1
-      hiter hgauge hbounds hpre⟩
+      hG hiter hgauge hbounds hpre⟩
 
 /-- Every outer subsequence has a further phase-compatible cluster subsequence.
 
@@ -178,7 +183,7 @@ theorem sinkhorn_gauge_normalized_every_subsequence_has_cluster {ι : Type*} [Fi
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       hp hq hG hiter hgauge
   exact sinkhorn_outer_subsequence_cluster_from_gauge_iterates_and_bounds p q G
-    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hiter hgauge hbounds
+    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hG hiter hgauge hbounds
 
 /-- Compactness/subsequence seam for gauge-normalized finite Sinkhorn iterates.
 
@@ -200,6 +205,6 @@ theorem sinkhorn_gauge_normalized_subsequence_exists {ι : Type*} [Fintype ι]
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       hp hq hG hiter hgauge
   exact sinkhorn_phase_compatible_subsequence_of_gauge_iterates_and_bounds p q G
-    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hiter hgauge hbounds
+    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 hG hiter hgauge hbounds
 
 end ChenGeorgiouPavon2021

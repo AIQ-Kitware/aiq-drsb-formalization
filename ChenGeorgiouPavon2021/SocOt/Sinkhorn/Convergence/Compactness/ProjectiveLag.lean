@@ -485,6 +485,7 @@ theorem sinkhorn_hatted_left_projective_drift_tendsto_zero_from_gauge_iterates
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ)
+    (_hG : ∀ i j, 0 < G i j)
     (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -502,6 +503,7 @@ theorem sinkhorn_right_projective_drift_tendsto_zero_from_gauge_iterates
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ)
+    (_hG : ∀ i j, 0 < G i j)
     (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -517,6 +519,7 @@ theorem sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterat
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -525,10 +528,10 @@ theorem sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterat
   exact ⟨
     sinkhorn_hatted_left_projective_drift_tendsto_zero_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      hiter hgauge hbounds,
+      hG hiter hgauge hbounds,
     sinkhorn_right_projective_drift_tendsto_zero_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      hiter hgauge hbounds⟩
+      hG hiter hgauge hbounds⟩
 
 /-- Limit-level mixed successor/current projective alignment, obtained from the sequence-level
 projective-drift seam and the raw precluster. -/
@@ -538,6 +541,7 @@ theorem sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -548,7 +552,7 @@ theorem sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates
   have hdrift : SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq :=
     sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      hiter hgauge hbounds
+      hG hiter hgauge hbounds
   exact sinkhorn_mixed_successor_projective_alignment_of_projective_drift
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
     ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hdrift
@@ -564,6 +568,7 @@ theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gaug
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -574,7 +579,7 @@ theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gaug
   have hmixed : SinkhornMixedSuccessorProjectiveAlignment ψhat0 ψhat0Succ ψ1 ψ1Succ :=
     sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre
   exact sinkhorn_denominator_quotient_predecessor_projective_alignment_of_mixed_successor_alignment
     p q G φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
     ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre hmixed
@@ -591,6 +596,7 @@ theorem sinkhorn_denominator_predecessor_projective_limits_from_gauge_iterates {
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -610,7 +616,7 @@ theorem sinkhorn_denominator_predecessor_projective_limits_from_gauge_iterates {
   obtain ⟨hφ0_projective, hφhat1_projective⟩ :=
     sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre
   exact ⟨
     ⟨fun i => p i / ψhat0 i, hφ0Pred, hφ0_projective⟩,
     ⟨fun j => q j / ψ1 j, hφhat1Pred, hφhat1_projective⟩⟩
@@ -628,6 +634,7 @@ theorem sinkhorn_denominator_projective_lag_tendsto_zero_from_gauge_iterates {ι
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
@@ -638,7 +645,7 @@ theorem sinkhorn_denominator_projective_lag_tendsto_zero_from_gauge_iterates {ι
   obtain ⟨hφ0Pred, hφhat1Pred⟩ :=
     sinkhorn_denominator_predecessor_projective_limits_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hG hiter hgauge hbounds hpre
   exact sinkhorn_denominator_projective_lag_zero_of_predecessor_projective_limits
     φ0Iter φhat1Iter subseq ψ0 ψhat1 hpre.tendsto_φ0 hpre.tendsto_φhat1
     hφ0Pred hφhat1Pred

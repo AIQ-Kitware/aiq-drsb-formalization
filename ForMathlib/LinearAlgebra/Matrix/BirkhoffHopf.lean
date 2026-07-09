@@ -230,9 +230,36 @@ products of finite sums and summing `hpoint i i' j j'` against the nonnegative w
 theorem positive_kernel_apply_crossRatioBounded_of_pointwise_bound {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)
-    (_hpoint : PositiveKernelPointwiseCrossRatioBounded G) :
+    (hpoint : PositiveKernelPointwiseCrossRatioBounded G) :
     PositiveKernelApplyCrossRatioBounded G := by
-  sorry
+  classical
+  unfold PositiveKernelApplyCrossRatioBounded positiveKernelApply
+  intro x y hx hy i i'
+  let B : ℝ := positiveKernelCrossRatioBound G
+  have hterm : ∀ j j' : κ,
+      (G i j * x j) * (G i' j' * y j') ≤
+        B * ((G i' j * x j) * (G i j' * y j')) := by
+    intro j j'
+    have hxy : 0 ≤ x j * y j' := mul_nonneg (hx j) (hy j')
+    have hmul := mul_le_mul_of_nonneg_right (hpoint i i' j j') hxy
+    simpa [B, mul_assoc, mul_left_comm, mul_comm] using hmul
+  have hsum :
+      (∑ j : κ, ∑ j' : κ, (G i j * x j) * (G i' j' * y j')) ≤
+        ∑ j : κ, ∑ j' : κ,
+          B * ((G i' j * x j) * (G i j' * y j')) := by
+    exact Finset.sum_le_sum (fun j _hj =>
+      Finset.sum_le_sum (fun j' _hj' => hterm j j'))
+  calc
+    (∑ j : κ, G i j * x j) * (∑ j : κ, G i' j * y j)
+        = ∑ j : κ, ∑ j' : κ, (G i j * x j) * (G i' j' * y j') := by
+          rw [Finset.sum_mul]
+          apply Finset.sum_congr rfl
+          intro j _hj
+          rw [Finset.mul_sum]
+    _ ≤ ∑ j : κ, ∑ j' : κ,
+          B * ((G i' j * x j) * (G i j' * y j')) := hsum
+    _ = B * ((∑ j : κ, G i' j * x j) * (∑ j : κ, G i j * y j)) := by
+          simp [B, Finset.mul_sum, mul_assoc, mul_left_comm, mul_comm]
 
 /-- Finite-sum image cross-ratio bound for a strictly positive kernel.
 

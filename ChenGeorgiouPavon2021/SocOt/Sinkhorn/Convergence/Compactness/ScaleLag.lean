@@ -342,18 +342,96 @@ scalar between `ψ1` and `ψ1Succ` to be one. -/
 theorem finite_right_normalize_current_of_quotient_projective_gauge_sum {ι : Type*} [Fintype ι]
     (q : ι → ℝ) (G : ι → ι → ℝ)
     (ψ0 ψ1 ψ1Succ ψhat1 : ι → ℝ)
-    (_hψ0_pos : ∀ i, 0 < ψ0 i)
-    (_hψ1_pos : ∀ j, 0 < ψ1 j)
+    (hψ0_pos : ∀ i, 0 < ψ0 i)
+    (hψ1_pos : ∀ j, 0 < ψ1 j)
     (_hψ1Succ_pos : ∀ j, 0 < ψ1Succ j)
-    (_hψhat1_pos : ∀ j, 0 < ψhat1 j)
-    (_hforward_current : ∀ i, ψ0 i = ∑ j, G i j * ψ1 j)
-    (_hweighted_totals : (∑ i, ∑ j, G i j * ψ1Succ j) =
+    (hψhat1_pos : ∀ j, 0 < ψhat1 j)
+    (hforward_current : ∀ i, ψ0 i = ∑ j, G i j * ψ1 j)
+    (hweighted_totals : (∑ i, ∑ j, G i j * ψ1Succ j) =
       (∑ i, ∑ j, G i j * ψ1 j))
-    (_hright_successor : ∀ j, ψ1Succ j * ψhat1 j = q j)
-    (_hquot_projective : ∀ i j,
+    (hright_successor : ∀ j, ψ1Succ j * ψhat1 j = q j)
+    (hquot_projective : ∀ i j,
       ψhat1 i * (q j / ψ1 j) - ψhat1 j * (q i / ψ1 i) = 0) :
     ∀ j, ψ1 j * ψhat1 j = q j := by
-  sorry
+  classical
+  intro j
+  let r : ℝ := ψ1Succ j / ψ1 j
+  have hratio_const : ∀ k, ψ1Succ k / ψ1 k = r := by
+    intro k
+    have hψhat1j_ne : ψhat1 j ≠ 0 := ne_of_gt (hψhat1_pos j)
+    have hψhat1k_ne : ψhat1 k ≠ 0 := ne_of_gt (hψhat1_pos k)
+    have hproj := hquot_projective j k
+    have hproj' :
+        ψhat1 j * (ψ1Succ k * ψhat1 k / ψ1 k) -
+          ψhat1 k * (ψ1Succ j * ψhat1 j / ψ1 j) = 0 := by
+      rw [← hright_successor k, ← hright_successor j] at hproj
+      simpa using hproj
+    have hscaled :
+        ψhat1 j * ψhat1 k * (ψ1Succ k / ψ1 k - ψ1Succ j / ψ1 j) = 0 := by
+      calc
+        ψhat1 j * ψhat1 k * (ψ1Succ k / ψ1 k - ψ1Succ j / ψ1 j)
+            = ψhat1 j * (ψ1Succ k * ψhat1 k / ψ1 k) -
+                ψhat1 k * (ψ1Succ j * ψhat1 j / ψ1 j) := by
+              ring
+        _ = 0 := hproj'
+    have hprod_ne : ψhat1 j * ψhat1 k ≠ 0 := mul_ne_zero hψhat1j_ne hψhat1k_ne
+    have hdiff_zero : ψ1Succ k / ψ1 k - ψ1Succ j / ψ1 j = 0 := by
+      rcases mul_eq_zero.mp hscaled with hprod_zero | hdiff_zero
+      · exact False.elim (hprod_ne hprod_zero)
+      · exact hdiff_zero
+    dsimp [r]
+    exact sub_eq_zero.mp hdiff_zero
+  have hsucc_eq_scaled : ∀ k, ψ1Succ k = r * ψ1 k := by
+    intro k
+    have hψ1k_ne : ψ1 k ≠ 0 := ne_of_gt (hψ1_pos k)
+    calc
+      ψ1Succ k = (ψ1Succ k / ψ1 k) * ψ1 k := by
+        rw [div_mul_cancel₀ (ψ1Succ k) hψ1k_ne]
+      _ = r * ψ1 k := by
+        rw [hratio_const k]
+  let T : ℝ := ∑ i, ∑ k, G i k * ψ1 k
+  have hleft_scaled : (∑ i, ∑ k, G i k * ψ1Succ k) = r * T := by
+    dsimp [T]
+    calc
+      (∑ i, ∑ k, G i k * ψ1Succ k)
+          = ∑ i, ∑ k, G i k * (r * ψ1 k) := by
+            refine Finset.sum_congr rfl ?_
+            intro i _hi
+            refine Finset.sum_congr rfl ?_
+            intro k _hk
+            rw [hsucc_eq_scaled k]
+      _ = ∑ i, ∑ k, r * (G i k * ψ1 k) := by
+            refine Finset.sum_congr rfl ?_
+            intro i _hi
+            refine Finset.sum_congr rfl ?_
+            intro k _hk
+            ring
+      _ = r * (∑ i, ∑ k, G i k * ψ1 k) := by
+            rw [Finset.mul_sum]
+            refine Finset.sum_congr rfl ?_
+            intro i _hi
+            rw [Finset.mul_sum]
+  have hT_current : T = ∑ i, ψ0 i := by
+    dsimp [T]
+    apply Finset.sum_congr rfl
+    intro i _hi
+    exact (hforward_current i).symm
+  have hT_pos : 0 < T := by
+    rw [hT_current]
+    exact Finset.sum_pos (fun i _hi => hψ0_pos i) ⟨j, Finset.mem_univ j⟩
+  have hscalar_eq : r * T = T := by
+    rw [← hleft_scaled]
+    exact hweighted_totals
+  have hr_one : r = 1 := by
+    have hT_ne : T ≠ 0 := ne_of_gt hT_pos
+    have hscalar_eq' : r * T = 1 * T := by
+      simpa using hscalar_eq
+    exact mul_right_cancel₀ hT_ne hscalar_eq'
+  have hsucc_eq_current : ψ1Succ j = ψ1 j := by
+    have h := hsucc_eq_scaled j
+    rw [hr_one] at h
+    simpa using h
+  rw [← hright_successor j, hsucc_eq_current]
 
 
 /-- Assemble the finite scalar spine from the already-proved limit-passage helpers.

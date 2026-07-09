@@ -21,6 +21,9 @@ One file per proposed Mathlib destination area:
   always-true `≤` half of OT-DRO duality). STAGING (placeholder); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
   existence (discrete Schrödinger potentials). STAGING (placeholder); see `FOUNDATIONS.md`.
+* `ForMathlib.Analysis.ExpLogBounds` — exp/log real-analysis inequalities converting
+  geometric logarithmic relative-error bounds into ordinary multiplicative relative-error bounds.
+  STAGING (placeholder); used by the Franklin--Lorenz projective contraction port.
 * `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf` — finite positive-matrix Hilbert
   projective contraction coefficient (Birkhoff--Hopf), the Franklin--Lorenz convergence engine.
   STAGING (placeholder); see `LITERATURE_REFERENCES.md`.
@@ -34,6 +37,7 @@ import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.WeakDuality
+import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
 -- Vendored Kolmogorov extension theorem (Apache-2.0, RemyDegenne/kolmogorov_extension4);

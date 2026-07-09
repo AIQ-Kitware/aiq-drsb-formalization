@@ -1,28 +1,956 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Eveson--Nussbaum (1995)}
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}{Proposition}
+\newtheorem{corollary}{Corollary}
+\newtheorem{remark}{Remark}
+\DeclareMathOperator{\diam}{diam}
+\DeclareMathOperator{\co}{co}
+\DeclareMathOperator{\spanop}{span}
+\DeclareMathOperator{\intopn}{int}
+\newcommand{\coneleq}[1]{\le_{#1}}
+\newcommand{\comp}[1]{\sim_{#1}}
+\newcommand{\clos}[1]{\overline{#1}}
+\newcommand{\bdry}[1]{\partial #1}
+\newcommand{\K}{K}
+\title{Step-by-step Modernization of Eveson--Nussbaum (1995):\\An Elementary Proof of the Birkhoff--Hopf Theorem}
 \author{Generated proof-target note}
-\date{Source PDF: \texttt{BirkhoffHopf-Nussbaum1995-nusseveson1995.pdf}}
+\date{Source PDF: \texttt{nusseveson1995.pdf}}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Eveson and Nussbaum, \emph{An Elementary Proof of the Birkhoff--Hopf Theorem}, Mathematical Proceedings of the Cambridge Philosophical Society 117(1), 31--55, 1995 \cite{EvesonNussbaum1995}.
+\section*{Reference being modernized}
+This note modernizes, rather than merely distills, Eveson and Nussbaum,
+\emph{An Elementary Proof of the Birkhoff--Hopf Theorem}, Mathematical Proceedings of the Cambridge Philosophical Society 117(1), 31--55, 1995 \cite{EvesonNussbaum1995}.
+The goal is to retain the proof architecture and the mathematical details that matter for formalization, while translating the prose into a notation closer to our Lean targets.
 
-\section*{Role in the formalization}
-This is a general cone-theoretic source for Birkhoff--Hopf contraction.  It is broader than the finite matrix formalization, but it can justify the abstract contraction principle if the Lean development later generalizes from finite vectors to ordered vector spaces or cones of functions.
+\paragraph{Main theorem, in the paper's notation.}
+Let $C \subset V$ and $D \subset W$ be cones in real vector spaces, and let $L:V\to W$ be linear with $L(C)\subset D$.
+The paper defines the Hopf oscillation ratio $N(L;C,D)$, Birkhoff contraction ratio $k(L;C,D)$, and projective diameter $\Delta(L;C,D)$.
+Its finite-diameter theorem states
+\[
+  k(L;C,D)=N(L;C,D)=\tanh\!\left(\frac{\Delta(L;C,D)}{4}\right).
+\]
+Its infinite-diameter theorem states $k(L;C,D)=N(L;C,D)=1$ when $\Delta(L;C,D)=\infty$.
+The striking feature is that no Archimedean or closed-cone hypothesis is needed in the abstract theorem; closure appears only as a temporary two-dimensional tool.
+
+\paragraph{Modern notation convention.}
+For a cone $C$, write $x\le_C y$ for $y-x\in C$.
+For $x\in C$ and $y\in V$, say that $x$ \emph{dominates} $y$ when there are $\alpha,\beta\in\R$ with
+\[
+  \alpha x \le_C y \le_C \beta x .
+\]
+When $x\ne0$, set
+\[
+  M_C(y/x)=\inf\{\beta\in\R: y\le_C \beta x\},\qquad
+  m_C(y/x)=\sup\{\alpha\in\R: \alpha x\le_C y\},
+\]
+\[
+  \omega_C(y/x)=M_C(y/x)-m_C(y/x).
+\]
+For comparable nonzero $x,y\in C$, define Hilbert's projective metric
+\[
+  d_C(x,y)=\log \frac{M_C(x/y)}{m_C(x/y)}.
+\]
+The paper sometimes suppresses the cone subscript; this note keeps it where it prevents ambiguity.
+
+\section{Section 2: ordered-vector preliminaries}
+
+\subsection{Cones, wedges, and the non-closed setting}
+A \emph{cone} in this paper is a convex, positively homogeneous subset $C$ with $C\cap(-C)=\{0\}$.
+A \emph{wedge} only requires convexity and positive homogeneity.
+No topology is assumed on $V$, and even when a topology is present the closure of a cone need only be a wedge.
+This matters later because the proof passes to two-dimensional closures and must explicitly separate the case where the closure remains a cone from the case where it degenerates to a half-plane.
+
+\begin{formalizationnotes}
+\item The order is carried by a cone, not by a typeclass order.  In Lean, avoid silently using lattice facts that require an ambient ordered vector space with topological closure properties.
+\item The wedge/cone distinction is not cosmetic: in Section 4 it is exactly the source of the ``zero metric'' degenerate case.
+\end{formalizationnotes}
+
+\subsection{Dominance, oscillation, and the order seminorm}
+The paper first proves basic properties of the domain of $\omega_C(\cdot/x)$.
+For $x\in C\setminus\{0\}$ define
+\[
+  V_x=\{y\in V: \alpha x\le_C y\le_C\beta x\text{ for some }\alpha,\beta\in\R\}.
+\]
+
+\begin{lemma}[Paper Lemma 2.4, expanded]
+$V_x$ is a linear subspace of $V$ and $p_x(y)=\omega_C(y/x)$ is a seminorm on $V_x$.
+Moreover, for $y\in V_x$, $\lambda,\mu\in\R$, and $\nu>0$,
+\[
+  \omega_C\!\big((\lambda y+\mu x)/(\nu x)\big)=\frac{|\lambda|}{\nu}\,\omega_C(y/x).
+\]
+\end{lemma}
+
+\begin{proof}[Proof details]
+To see that $V_x$ is closed under addition, suppose
+$\alpha_i x\le_C y_i\le_C \beta_i x$ for $i=1,2$.
+Adding the two order intervals gives
+\[
+  (\alpha_1+\alpha_2)x\le_C y_1+y_2\le_C (\beta_1+\beta_2)x.
+\]
+For scalar multiplication, if $\lambda\ge0$ multiply the same inequalities by $\lambda$.
+If $\lambda<0$, multiplication reverses the displayed bounds only after rewriting: from $\alpha x\le_C y\le_C\beta x$ we get
+$\lambda\beta x\le_C \lambda y\le_C\lambda\alpha x$.
+Thus $\lambda y\in V_x$.
+
+For subadditivity, the defining infimum and supremum give
+\[
+  M_C((y_1+y_2)/x)\le M_C(y_1/x)+M_C(y_2/x),
+\]
+\[
+  m_C((y_1+y_2)/x)\ge m_C(y_1/x)+m_C(y_2/x).
+\]
+Subtracting gives $p_x(y_1+y_2)\le p_x(y_1)+p_x(y_2)$.
+For homogeneity, if $\lambda\ge0$ then
+\[
+  M_C(\lambda y/x)=\lambda M_C(y/x),\qquad
+  m_C(\lambda y/x)=\lambda m_C(y/x),
+\]
+while for $\lambda<0$ the upper and lower endpoints swap:
+\[
+  M_C(\lambda y/x)=\lambda m_C(y/x),\qquad
+  m_C(\lambda y/x)=\lambda M_C(y/x).
+\]
+So $\omega_C(\lambda y/x)=|\lambda|\omega_C(y/x)$.
+Finally, adding $\mu x$ translates both $M$ and $m$ by $\mu$, and replacing the denominator $x$ by $\nu x$ scales both by $1/\nu$.
+\end{proof}
+
+\paragraph{Concrete examples retained from the paper.}
+For $C(S)$ with the nonnegative cone and $x(s)>0$ everywhere,
+\[
+  \omega_C(y/x)=\max_{s\in S}\frac{y(s)}{x(s)}-\min_{t\in S}\frac{y(t)}{x(t)}.
+\]
+For $S=\{1,\ldots,n\}$ this is
+\[
+  \max_i \frac{y_i}{x_i}-\min_i\frac{y_i}{x_i}.
+\]
+For measurable-function cones, the max/min become essential sup/inf.
+This is the Hopf side of the theorem.
+
+\subsection{Comparability and Hilbert's projective metric}
+Two nonzero elements $x,y\in C$ are comparable when each dominates the other.
+Equivalently, in a pointed cone, $x\comp C y$ means there exist positive $a,b$ such that
+$a x\le_C y\le_C b x$.
+For comparable $x,y$,
+\[
+  d_C(x,y)=\log\frac{M_C(x/y)}{m_C(x/y)}.
+\]
+The paper adopts $d_C(0,0)=0$ and the origin is only comparable to itself.
+
+\begin{lemma}[Paper Lemma 2.7, proof skeleton]
+On each comparability component, $d_C$ is symmetric, satisfies the triangle inequality, and is invariant under independent positive scaling of its two arguments.
+It may be only a pseudometric: $d_C(x,y)=0$ need not imply that $x$ and $y$ lie on the same ray unless the cone has stronger separation properties.
+\end{lemma}
+
+\begin{proof}[Proof details]
+The identities
+\[
+  M_C(y/x)=\frac{1}{m_C(x/y)},\qquad
+  m_C(y/x)=\frac{1}{M_C(x/y)}
+\]
+follow by rewriting $\alpha x\le_C y\le_C\beta x$ as
+$\beta^{-1}y\le_C x\le_C\alpha^{-1}y$ when $\alpha,\beta>0$.
+They imply symmetry.
+For the triangle inequality, if $x\le_C a y$ and $y\le_C b z$ then $x\le_C ab z$, hence
+$M_C(x/z)\le M_C(x/y)M_C(y/z)$.
+Similarly $m_C(x/z)\ge m_C(x/y)m_C(y/z)$.
+Taking logarithms gives
+$d_C(x,z)\le d_C(x,y)+d_C(y,z)$.
+Scaling invariance is immediate because $M_C(\lambda x/\mu y)=(\lambda/\mu)M_C(x/y)$ and similarly for $m$.
+\end{proof}
+
+\subsection{Diameter facts: Proposition 2.9}
+For $\Gamma\subset C$, define
+\[
+  \diam_C(\Gamma)=\sup\{d_C(x,y):x,y\in\Gamma,\ x\comp C y\}.
+\]
+The paper's Proposition 2.9 supplies four facts used later.
+
+\begin{proposition}[Paper Proposition 2.9, step-by-step]
+Let $C$ be a cone in $V$.
+\begin{enumerate}[label=(\alph*)]
+\item If $Q,S\subset C$ generate the same set of nonnegative rays, then $\diam_C(Q)=\diam_C(S)$.
+\item If $T\subset C$ and all nonzero elements of $T$ are mutually comparable, then
+$\diam_C(\co(T))=\diam_C(T)$.
+\item Let $S\subset C$ be convex.  Assume $M_C(v/u)>0$ whenever $u,v\in S\setminus\{0\}$ and $u$ dominates $v$.  If $\diam_C(S)<\infty$, then all nonzero elements of $S$ are comparable.
+\item If $V$ is Hausdorff topological, $C$ is closed, and all nonzero elements of $Q\subset C$ are comparable, then
+$\diam_C(\clos Q)=\diam_C(Q)$.
+\end{enumerate}
+\end{proposition}
+
+\begin{proof}[Proof details]
+For (a), $d_C$ is unchanged by positive scalar rescaling on each ray, and $0$ contributes only $d_C(0,0)=0$.
+
+For (b), write $R=\diam_C(T)$ and fix $R_1>R$.
+First compare an arbitrary $u\in\co(T)\setminus\{0\}$ to a point $v\in T\setminus\{0\}$.
+Write
+\[
+  u=t\sum_{k=1}^n \lambda_k u_k,
+  \qquad 0<t\le1,
+  \qquad \lambda_k>0,
+  \qquad \sum_k\lambda_k=1,
+  \qquad u_k\in T\setminus\{0\}.
+\]
+Since $d_C(u_k,v)<R_1$, choose $\alpha_k,\beta_k>0$ with
+\[
+  \alpha_k v\le_C u_k\le_C \beta_k v,
+  \qquad \log(\beta_k/\alpha_k)<R_1.
+\]
+Summing gives
+\[
+  t\Big(\sum_k\lambda_k\alpha_k\Big)v\le_C u\le_C
+  t\Big(\sum_k\lambda_k\beta_k\Big)v.
+\]
+Since $\beta_k<e^{R_1}\alpha_k$, the ratio of the upper scalar to the lower scalar is at most $e^{R_1}$; hence $d_C(u,v)\le R_1$.
+Now compare two arbitrary convex combinations $u,v\in\co(T)\setminus\{0\}$.
+Apply the first part to compare each support point in a representation of $v$ to the fixed point $u$ and repeat the same weighted-sum argument.
+Letting $R_1\downarrow R$ gives the equality.
+
+For (c), suppose $u,v\in S\setminus\{0\}$ are not comparable.
+After swapping, assume $v$ does not dominate $u$.
+Set
+\[
+  u_\varepsilon=u+\varepsilon v,
+  \qquad
+  v_\varepsilon=v+\varepsilon u,
+  \qquad 0<\varepsilon<1.
+\]
+Because $S$ is convex, $(1+\varepsilon)^{-1}u_\varepsilon$ and $(1+\varepsilon)^{-1}v_\varepsilon$ lie in $S$.
+There are two cases.
+
+If neither $u$ nor $v$ dominates the other, the key computation is
+\[
+  M_C(v_\varepsilon/u_\varepsilon)=\varepsilon^{-1},
+  \qquad
+  m_C(v_\varepsilon/u_\varepsilon)=\varepsilon.
+\]
+The upper bound $v_\varepsilon\le_C\varepsilon^{-1}u_\varepsilon$ is immediate.
+If there were a smaller upper scalar $\gamma<\varepsilon^{-1}$, then rearranging
+$v+\varepsilon u\le_C\gamma(u+\varepsilon v)$ yields
+$(1-\gamma\varepsilon)v\le_C(\gamma-\varepsilon)u$;
+because $1-\gamma\varepsilon>0$, this would force $u$ to dominate $v$.
+The lower endpoint is analogous.
+Thus $d_C(u_\varepsilon,v_\varepsilon)=\log(\varepsilon^{-2})\to\infty$, contradicting finite diameter.
+
+If $u$ dominates $v$ but $v$ does not dominate $u$, put $\beta=M_C(v/u)>0$.
+The same order rearrangements give
+\[
+  M_C(v_\varepsilon/u)=\beta+\varepsilon,
+  \qquad
+  m_C(v_\varepsilon/u)=\varepsilon.
+\]
+Hence $d_C(v_\varepsilon,u)=\log((\beta+\varepsilon)/\varepsilon)\to\infty$, again a contradiction.
+
+For (d), it is enough to bound distances between comparable $u,v\in\clos Q\setminus\{0\}$ by $\diam_C(Q)$.
+Let $\beta=M_C(v/u)$ and $\alpha=m_C(v/u)$.
+Choose $\alpha'>\alpha$ and $\beta'<\beta$.
+Then $\beta'u-v\notin C$ and $v-\alpha'u\notin C$.
+Since $C$ is closed, there are neighborhoods $U$ of $u$ and $V$ of $v$ such that for all $u_1\in U$, $v_1\in V$,
+\[
+  \beta'u_1-v_1\notin C,
+  \qquad
+  v_1-\alpha'u_1\notin C.
+\]
+Choose $u_1,v_1\in Q$ in these neighborhoods.
+The displayed exclusions force $M_C(v_1/u_1)\ge\beta'$ and $m_C(v_1/u_1)\le\alpha'$.
+Thus $\diam_C(Q)\ge \log(\beta'/\alpha')$.
+Let $\beta'\uparrow\beta$ and $\alpha'\downarrow\alpha$.
+\end{proof}
+
+\begin{remark}[Why the hypothesis in 2.9(c) is real]
+The paper gives a two-dimensional cone whose diameter is zero although some nonzero points are incomparable.
+The extra positivity assumption $M_C(v/u)>0$ rules out precisely that kind of one-sided degeneracy.
+For formalization, this is a warning not to prove comparability from finite diameter alone.
+\end{remark}
+
+\section{Section 3: positive linear maps and the ratios $N,k,\Delta,\chi$}
+
+\subsection{Monotonicity under positive linear maps}
+Let $L:V\to W$ be linear with $L(C)\subset D$.
+If $\alpha x\le_C y\le_C\beta x$, then applying $L$ gives
+\[
+  \alpha Lx\le_D Ly\le_D\beta Lx.
+\]
+This is Lemma 3.1's entire mechanism.
+It implies
+\[
+  \omega_D(Ly/Lx)\le \omega_C(y/x),
+  \qquad
+  d_D(Lx,Ly)\le d_C(x,y),
+\]
+whenever the left sides are defined.
+If $L$ is a bijection and $L(C)=D$, the same inequalities applied to $L^{-1}$ give equality.
+
+\begin{formalizationnotes}
+\item This lemma is the abstract ancestor of the finite-matrix fact that nonnegative matrices are nonexpansive in Hilbert metric.
+\item Positive diagonal matrices and permutation matrices are cone automorphisms of $\R^n_{\ge0}$, hence preserve $\omega$ and $d$ exactly.  This is the algebraic reason Section 5 can normalize a positive $2\times2$ matrix without changing the constants.
+\end{formalizationnotes}
+
+\subsection{The four numerical invariants}
+The paper defines
+\[
+N(L;C,D)=\inf\{\mu\ge0:
+  \omega_D(Ly/Lx)\le \mu\omega_C(y/x)
+  \text{ for all }x\in C\text{ dominating }y\in V\},
+\]
+\[
+k(L;C,D)=\inf\{\lambda\ge0:
+  d_D(Lx,Ly)\le \lambda d_C(x,y)
+  \text{ for all }x,y\in C\text{ with }x\comp C y\},
+\]
+\[
+\Delta(L;C,D)=\sup\{d_D(Lx,Ly):x,y\in C,\\ Lx\comp D Ly\},
+\]
+and
+\[
+\chi(L;C,D)^2=\sup\left\{\frac{M_D(Ly/Lx)}{m_D(Ly/Lx)}:x,y\in C,
+  \ Lx\comp D Ly\right\},
+\]
+with the convention that the ratio is $1$ when both numerator and denominator are zero.
+Because $d_D(Lx,Ly)=\log(M_D(Lx/Ly)/m_D(Lx/Ly))$, one has
+\[
+  \Delta(L;C,D)=2\log\chi(L;C,D).
+\]
+
+\subsection{Comparable vectors suffice for $N$}
+\begin{lemma}[Paper Lemma 3.4, expanded]
+The definition of $N(L;C,D)$ is unchanged if the test pairs are restricted from ``$x\in C$ dominates $y\in V$'' to ``$x,y\in C$ and $x\comp C y$''.
+\end{lemma}
+
+\begin{proof}[Proof details]
+The restricted infimum is clearly at least as large as the unrestricted one.
+For the reverse direction, start with $x\in C$ dominating $y\in V$.
+Choose $\alpha,\beta$ with $\alpha x\le_C y\le_C\beta x$.
+Set
+\[
+  z=y+(1-\alpha)x.
+\]
+Then $z\in C$ because $z-x=y-\alpha x\in C$, and $z\comp C x$ because
+\[
+  x\le_C z\le_C(\beta-\alpha+1)x.
+\]
+By Lemma 2.4, adding a scalar multiple of $x$ to the numerator does not change oscillation:
+\[
+  \omega_C(z/x)=\omega_C(y/x).
+\]
+Applying the same translation after $L$ gives
+\[
+  \omega_D(Lz/Lx)=\omega_D(Ly/Lx).
+\]
+Thus every dominated test pair has an equivalent comparable cone-valued test pair.
+\end{proof}
+
+\subsection{The reduction to two-dimensional subspaces}
+For $x,y\in V$, define
+\[
+  V(x,y)=\spanop\{x,y\},
+  \qquad
+  C(x,y)=C\cap V(x,y).
+\]
+The order induced by $C(x,y)$ agrees with the restriction of the $C$-order on that plane:
+for $u,v\in C(x,y)$,
+\[
+  u\le_{C(x,y)}v \iff u\le_C v.
+\]
+Consequently the restricted and ambient $M,m,\omega,d$ agree on the pairs where they are defined.
+
+\begin{lemma}[Paper Lemma 3.11, expanded]
+To prove the finite-diameter theorem it suffices to prove it when both spaces and both cones are at most two-dimensional; after discarding trivial cases, one may assume dimension exactly two and $L$ injective.
+\end{lemma}
+
+\begin{proof}[Proof details]
+If $\dim C\le1$ or $\dim D\le1$, every comparable image lies on one projective ray, so $\Delta=N=k=0$ and the theorem is immediate.
+If the two spaces and cones are two-dimensional but $L$ is not injective, the range has dimension $0$ or $1$, again forcing $\Delta=N=k=0$.
+
+Assume the theorem is known in all two-dimensional cases.
+For arbitrary $x,y\in C$, consider the restricted map
+\[
+  L:V(x,y)\to W(Lx,Ly),
+  \qquad
+  L(C(x,y))\subset D(Lx,Ly).
+\]
+Define local constants
+\[
+  k(x,y)=k(L;C(x,y),D(Lx,Ly)),
+\]
+\[
+  N(x,y)=N(L;C(x,y),D(Lx,Ly)),
+\]
+\[
+  \Delta(x,y)=\Delta(L;C(x,y),D(Lx,Ly)).
+\]
+The two-dimensional theorem gives
+\[
+  k(x,y)=N(x,y)=\tanh\!\left(\frac{\Delta(x,y)}{4}\right).
+\]
+Because the restricted order data agree with the ambient order data,
+\[
+  k(L)=\sup_{x,y\in C} k(x,y),
+  \qquad
+  N(L)=\sup_{x,y\in C} N(x,y),
+  \qquad
+  \Delta(L)=\sup_{x,y\in C}\Delta(x,y).
+\]
+Since $\tanh$ is increasing,
+\[
+  k(L)=N(L)=\sup_{x,y}\tanh\!\left(\frac{\Delta(x,y)}{4}\right)
+       =\tanh\!\left(\frac{\Delta(L)}{4}\right).
+\]
+\end{proof}
+
+\subsection{Invariance under cone isomorphisms}
+\begin{lemma}[Paper Lemma 3.12]
+Let $S:V_1\to V$ and $T:W\to W_1$ be linear bijections.
+Set $C_1=S^{-1}(C)$, $D_1=T(D)$, and $L_1=TLS$.
+Then
+\[
+  N(L;C,D)=N(L_1;C_1,D_1),\quad
+  k(L;C,D)=k(L_1;C_1,D_1),\quad
+  \Delta(L;C,D)=\Delta(L_1;C_1,D_1).
+\]
+\end{lemma}
+
+\begin{proof}[Proof details]
+The map $S$ is an order isomorphism from $(V_1,C_1)$ to $(V,C)$, hence it preserves all $M,m,\omega,d$ values.
+The map $T$ does the same from $(W,D)$ to $(W_1,D_1)$.
+Substituting $L_1=TLS$ into the definitions of $N,k,\Delta$ gives the identities exactly.
+\end{proof}
+
+\section{Section 4: classification of two-dimensional cones}
+
+This section is the geometric heart of the reduction.
+Let $C$ be a two-dimensional cone in $\R^2$ and let $\clos C$ be its Euclidean closure.
+The closure is always a wedge; it may or may not remain pointed.
+
+\begin{theorem}[Paper Theorem 4.1]
+Exactly one of the following holds.
+\begin{enumerate}[label=(\arabic*)]
+\item $\clos C$ is a cone.  Then there are linearly independent $u,v$ such that
+\[
+  \clos C=\{\lambda u+\mu v:\lambda,\mu\ge0\},
+  \qquad
+  \intopn(\clos C)=\{\lambda u+\mu v:\lambda,\mu>0\}.
+\]
+\item $\clos C$ is not a cone.  Then there are linearly independent $u,v$ such that
+\[
+  \clos C=\{\lambda u+\mu v:\lambda\in\R,\ \mu\ge0\},
+  \qquad
+  \intopn(\clos C)=\{\lambda u+\mu v:\lambda\in\R,\ \mu>0\}.
+\]
+\end{enumerate}
+\end{theorem}
+
+\begin{proof}[Proof details]
+Choose linearly independent $a,b\in C$.
+Then every positive combination $\lambda a+\mu b$ with $\lambda,\mu>0$ lies in the interior of $C$ relative to the plane.
+In particular $a+b$ has a small disk contained in $C$, so $-(a+b)$ has a small disk disjoint from $C$.
+Set
+\[
+  x=2a+b\in C^\circ,
+  \qquad
+  y=-(a+b)\notin \clos C.
+\]
+The points $x,y$ are linearly independent.
+
+Assume first that $\clos C$ is pointed.
+On the segment from $y$ to $x$, define
+\[
+  \tau=\sup\{t\in(0,1):(1-t)y+tx\notin \clos C\}.
+\]
+Then $u=(1-\tau)y+\tau x$ is a nonzero boundary point of $\clos C$.
+Pointedness gives $-u\notin\clos C$.
+Now run the same construction on the segment from $-u$ to $x$:
+\[
+  \sigma=\sup\{s\in(0,1):(1-s)(-u)+sx\notin\clos C\},
+\]
+and set $v=(1-\sigma)(-u)+\sigma x$.
+Then $v$ is another nonzero boundary point, and $u,v$ are linearly independent.
+Positive homogeneity and convexity imply
+\[
+  \{\lambda u+\mu v:\lambda,\mu\ge0\}\subset\clos C.
+\]
+The interior of that quadrant lies in $C$ by the elementary closure/interior lemma (paper Lemma 3.8).
+If $\clos C$ contained a point $z=\lambda_0u+\mu_0v$ with one coefficient negative, pointedness forces the other coefficient positive.
+For instance, if $\lambda_0<0<\mu_0$, then a positive convex combination of $z$ and $|\lambda_0|u+|\lambda_0|v$ produces a positive multiple of $v$ in the interior, contradicting $v\in\partial\clos C$.
+So no such point exists, and the closure is exactly the closed quadrant spanned by $u,v$.
+
+Now assume $\clos C$ is not pointed.
+Because it is a wedge, there exists $u\ne0$ with $u,-u\in\clos C$.
+Both $u$ and $-u$ lie on the boundary: if $u$ were interior, convexity with $-u$ would put $0$ in the interior, impossible for the closure of a pointed cone.
+Choose $v\in C^\circ$.
+Then $u,v$ are linearly independent, and the wedge contains the half-plane
+\[
+  \{\lambda u+\mu v:\lambda\in\R,
+\mu\ge0\}.
+\]
+If it also contained a point with negative $v$-coordinate, then averaging that point with the corresponding positive-$v$ point would put a point of the line $\R u$ in the interior, contradicting that $u$ is boundary.
+Thus the wedge is exactly the closed half-plane.
+\end{proof}
+
+\subsection{Explicit formulas in a two-dimensional closed cone}
+If $\clos C$ is the closed quadrant spanned by $u,v$ and
+\[
+  x=\lambda_1u+\lambda_2v,
+  \qquad
+  y=\mu_1u+\mu_2v,
+  \qquad
+  \lambda_i,
+  \mu_i>0,
+\]
+then $x$ and $y$ are comparable and
+\[
+  M_C(x/y)=\max\left\{\frac{\lambda_1}{\mu_1},\frac{\lambda_2}{\mu_2}\right\},
+  \qquad
+  m_C(x/y)=\min\left\{\frac{\lambda_1}{\mu_1},\frac{\lambda_2}{\mu_2}\right\},
+\]
+\[
+  \omega_C(x/y)=\left|\frac{\lambda_1}{\mu_1}-\frac{\lambda_2}{\mu_2}\right|,
+  \qquad
+  d_C(x,y)=\left|\log\frac{\lambda_1\mu_2}{\lambda_2\mu_1}\right|.
+\]
+If $\clos C$ is the half-plane case, all dominated pairs have zero oscillation and all comparable pairs have zero projective distance.
+
+\begin{proof}[Half-plane case details from Paper Corollary 4.2]
+Write $\clos C=\{\lambda u+\mu v:\lambda\in\R,
+\mu\ge0\}$.
+If $x=\lambda_1u+\lambda_2v$ dominates $y=\mu_1u+\mu_2v$, then $\alpha x\le_C y\le_C\beta x$ forces
+\[
+  \alpha\lambda_2\le \mu_2\le \beta\lambda_2.
+\]
+If $\lambda_2=0$, then $\mu_2=0$ and both vectors lie on the $u$-line, so the oscillation and distance are zero.
+If $\lambda_2>0$, then for every $\varepsilon>0$ the scalars
+\[
+  \alpha=\mu_2/\lambda_2-\varepsilon,
+  \qquad
+  \beta=\mu_2/\lambda_2+\varepsilon
+\]
+are admissible because the difference vectors have strictly positive $v$-coordinate and hence lie in $C$.
+Letting $\varepsilon\downarrow0$ gives
+$M_C(y/x)=m_C(y/x)=\mu_2/\lambda_2$.
+\end{proof}
+
+\subsection{Replacing a two-dimensional cone by its closure}
+The paper next proves that, when the closure remains a cone, the original cone and its closure give the same order endpoints.
+
+\begin{lemma}[Paper Lemma 4.3]
+Let $C$ be a cone in a topological vector space and assume $\clos C$ is also a cone.
+For $x\in C^\circ$ and $y\in V$, domination with respect to $C$ and $\clos C$ are equivalent, and the corresponding $M$ and $m$ values agree.
+\end{lemma}
+
+\begin{proof}[Proof details]
+The implication from $C$ to $\clos C$ is immediate, giving
+$M_C(y/x)\ge M_{\clos C}(y/x)$ and $m_C(y/x)\le m_{\clos C}(y/x)$.
+Using the translation identities
+\[
+  M((y+\lambda x)/x)=M(y/x)+\lambda,
+  \qquad
+  m((y+\lambda x)/x)=m(y/x)+\lambda,
+\]
+it suffices to treat $y\in C^\circ$.
+Let $\alpha=m_{\clos C}(y/x)$ and $\beta=M_{\clos C}(y/x)$.
+Then $\alpha x\le_{\clos C}y\le_{\clos C}\beta x$.
+Because $x,y\in C^\circ$, the endpoints are positive, and for each $t\in(0,1)$,
+\[
+  (1-t)y+t(y-\alpha x)=y-t\alpha x\in C.
+\]
+Thus $t\alpha x\le_C y$ for all $t<1$, so $m_C(y/x)\ge\alpha$.
+The upper endpoint is similar, using $(1-t)y+t(\beta x-y)$.
+\end{proof}
+
+\begin{corollary}[Paper Corollaries 4.4--4.5]
+For two-dimensional cones whose closures are cones, replacing $C,D$ by $\clos C,\clos D$ leaves $N,k,\Delta$ unchanged.
+Boundary vectors require a separate check: if $x\in\partial\clos C\setminus\{0\}$ and $x$ dominates $y$, the quadrant representation forces $y$ to be a scalar multiple of $x$, so $M=m$ independently of whether one uses $C$ or $\clos C$.
+\end{corollary}
+
+\subsection{Reduction to a positive $2\times2$ matrix}
+Combining Section 3 with the closure classification gives the paper's Lemmas 4.6 and 4.7.
+
+\begin{lemma}[Paper Lemma 4.6]
+For the finite-diameter theorem, it suffices to handle the case
+\[
+  \dim V=\dim W=\dim C=\dim D=2,
+\]
+$\clos C$ and $\clos D$ are cones, and $L$ is injective.
+\end{lemma}
+
+\begin{proof}[Proof details]
+Lemma 3.11 already reduces to dimension two and injective maps after trivial cases.
+If $\clos C$ or $\clos D$ is not a cone, Corollary 4.2 says the relevant oscillations and projective distances in that closed half-plane geometry are zero.
+Since positive maps do not increase $\omega$ or $d$, all three constants $N,k,\Delta$ vanish, so the theorem is trivial.
+\end{proof}
+
+\begin{lemma}[Paper Lemma 4.7]
+It suffices to prove the finite-diameter theorem for $V=W=\R^2$, $C=D=\R^2_{\ge0}$, and
+\[
+  A=\begin{pmatrix}a&b\\c&d\end{pmatrix},
+  \qquad a,b,c,d>0,
+  \qquad ad-bc\ne0.
+\]
+\end{lemma}
+
+\begin{proof}[Proof details]
+After Lemma 4.6 and Corollary 4.5, replace the two cones by their closed quadrant closures.
+Theorem 4.1 provides bases $u,v$ for $C$ and $\tilde u,\tilde v$ for $D$.
+Let
+\[
+  S(\alpha,\beta)=\alpha u+\beta v,
+  \qquad
+  T(\alpha\tilde u+\beta\tilde v)=(\alpha,
+\beta).
+\]
+Then $S$ and $T$ are cone isomorphisms between the standard quadrant and the two closed cones.
+By Lemma 3.12, one may replace $L$ by $A=TLS$.
+The condition $A(\R^2_{\ge0})\subset\R^2_{\ge0}$ makes the matrix entries nonnegative, and injectivity gives $ad-bc\ne0$.
+Since $\Delta(A)<\infty$, the two columns $Ae_1=(a,c)$ and $Ae_2=(b,d)$ are comparable in the quadrant; otherwise the image diameter would be infinite or undefined in the needed way.
+Comparability of two nonzero nonnegative vectors in the quadrant forces matching supports.
+The only support patterns compatible with $ad-bc\ne0$ are the full-support case, hence $a,b,c,d>0$.
+\end{proof}
+
+\section{Section 5: completion by calculus}
+
+\subsection{Final normalization to a symmetric matrix}
+The remaining matrix has all entries positive and nonzero determinant.
+The paper first normalizes it by cone automorphisms.
+
+\begin{lemma}[Paper Lemma 5.1, expanded]
+For $A=\begin{pmatrix}a&b\\c&d\end{pmatrix}$ with $a,b,c,d>0$ and $ad-bc\ne0$, there are positive diagonal matrices, possibly a coordinate swap, and a positive scalar multiple that transform $A$ into
+\[
+  A_\alpha=\begin{pmatrix}\alpha&1\\1&\alpha\end{pmatrix},
+  \qquad \alpha>1,
+\]
+without changing $N,k,$ or $\Delta$.
+\end{lemma}
+
+\begin{proof}[Proof details]
+Since positive diagonal matrices and permutations are cone automorphisms of $\R^2_{\ge0}$, Lemma 3.12 permits left and right multiplication by them.
+Find positive diagonal matrices $D_1=\operatorname{diag}(x_1,x_2)$ and $D_2=\operatorname{diag}(y_1,y_2)$ such that $D_1AD_2$ is doubly stochastic.
+Set $x_2=1-x_1$ with $x_1\in[0,1]$, and define
+\[
+  y_1=\frac{1}{a x_1+c x_2},
+  \qquad
+  y_2=\frac{1}{b x_1+d x_2}.
+\]
+This makes the two column sums equal to $1$.
+The first row sum is
+\[
+  \theta(x_1)=
+  \frac{a x_1}{a x_1+c(1-x_1)}+
+  \frac{b x_1}{b x_1+d(1-x_1)}.
+\]
+It is continuous, with $\theta(0)=0$ and $\theta(1)=2$, so some $x_1\in(0,1)$ gives $\theta(x_1)=1$.
+Then both row sums and both column sums are $1$, so
+\[
+  D_1AD_2=\begin{pmatrix}\beta&1-\beta\\1-\beta&\beta\end{pmatrix}
+\]
+for some $\beta\in(0,1)$.
+If $\det A<0$, compose on the left with the swap matrix so that the diagonal entry becomes $\gamma>1/2$.
+If $\det A>0$, take no swap and again obtain $\gamma>1/2$.
+Finally multiply by $(1-\gamma)^{-1}$ to get
+\[
+  \begin{pmatrix}\alpha&1\\1&\alpha\end{pmatrix},
+  \qquad
+  \alpha=\frac{\gamma}{1-\gamma}>1.
+\]
+All operations are cone automorphisms or scalar rescalings, so $N,k,\Delta$ are unchanged.
+\end{proof}
+
+\subsection{The symmetric $2\times2$ computation}
+Let
+\[
+  A_\alpha=\begin{pmatrix}\alpha&1\\1&\alpha\end{pmatrix},
+  \qquad \alpha>1.
+\]
+We compute $N$, $k$, and $\Delta$ in the standard quadrant.
+Use the cross-section $x=(1,s)$, $y=(1,t)$ with $s,t>0$.
+In the quadrant,
+\[
+  \omega(x/y)=\left|1-\frac{s}{t}\right|,
+  \qquad
+  d(x,y)=\left|\log\frac{s}{t}\right|.
+\]
+Also
+\[
+  A_\alpha x=(\alpha+s,1+\alpha s),
+  \qquad
+  A_\alpha y=(\alpha+t,1+\alpha t).
+\]
+
+\begin{theorem}[Paper Theorem 5.3, expanded]
+For $A_\alpha$,
+\[
+  N(A_\alpha)=k(A_\alpha)=\frac{\alpha-1}{\alpha+1}
+  =\tanh\!\left(\frac{\Delta(A_\alpha)}{4}\right).
+\]
+\end{theorem}
+
+\begin{proof}[Proof details]
+For $N$, the ratio $\omega(Ax/Ay)/\omega(x/y)$ is invariant under positive rescaling of $x$ and $y$, so the cross-section is legitimate.
+Using the coordinate formula for $\omega$,
+\[
+  \frac{\omega(Ax/Ay)}{\omega(x/y)}
+  =
+  \frac{\left|\frac{\alpha+s}{\alpha+t}-\frac{1+\alpha s}{1+\alpha t}\right|}
+       {\left|1-\frac{s}{t}\right|}.
+\]
+A direct simplification cancels the factor $|s-t|$ and yields a function only of $t$:
+\[
+  \frac{\omega(Ax/Ay)}{\omega(x/y)}
+  =\phi(t),
+  \qquad
+  \phi(t)=\frac{(\alpha^2-1)t}{(\alpha+t)(\alpha t+1)}.
+\]
+Indeed, the numerator difference is
+\[
+  \frac{(\alpha+s)(1+\alpha t)-(1+\alpha s)(\alpha+t)}{(\alpha+t)(1+\alpha t)}
+  =\frac{(\alpha^2-1)(t-s)}{(\alpha+t)(1+\alpha t)}.
+\]
+The denominator is $|t-s|/t$.
+Now $\phi(t)\ge0$, $\phi(t)\to0$ as $t\downarrow0$ or $t\to\infty$, and
+\[
+  \phi'(t)=0 \iff t=1.
+\]
+Thus the maximum occurs at $t=1$:
+\[
+  N(A_\alpha)=\phi(1)=\frac{\alpha^2-1}{(\alpha+1)^2}
+  =\frac{\alpha-1}{\alpha+1}.
+\]
+
+For $k$, the cross-section gives
+\[
+  k(A_\alpha)=\sup_{s,t>0,
+\ s\ne t}
+  \left|\frac{
+    \log\frac{(\alpha+s)(1+\alpha t)}{(\alpha+t)(1+\alpha s)}
+  }{
+    \log(s/t)
+  }\right|.
+\]
+Define
+\[
+  f(t)=\log\frac{\alpha+t}{1+\alpha t}.
+\]
+Then the displayed numerator is $f(s)-f(t)$, so
+\[
+  \psi(s,t)=\frac{f(s)-f(t)}{\log s-\log t}.
+\]
+For $0<s<t$, the generalized mean value theorem applied to $f$ and $g(t)=\log t$ gives some $\tau\in[s,t]$ such that
+\[
+  \psi(s,t)=\frac{f'(\tau)}{g'(\tau)}=\tau f'(\tau).
+\]
+Since
+\[
+  f'(\tau)=\frac{1}{\alpha+\tau}-\frac{\alpha}{1+\alpha\tau}
+  =\frac{1-\alpha^2}{(\alpha+\tau)(1+\alpha\tau)},
+\]
+we get
+\[
+  |\psi(s,t)|=\phi(\tau)\le\sup_{r>0}\phi(r).
+\]
+This proves $k\le \sup\phi$.
+Conversely, for any fixed $t>0$, apply the same mean-value argument to $(t-\varepsilon,t+\varepsilon)$; as $\varepsilon\downarrow0$, the intermediate point tends to $t$, so $|\psi|$ takes values arbitrarily close to $\phi(t)$.
+Thus $k\ge\sup\phi$ and
+\[
+  k(A_\alpha)=\sup\phi=\frac{\alpha-1}{\alpha+1}=N(A_\alpha).
+\]
+
+It remains to compute the diameter.
+The image cone $A_\alpha(C)$ is the convex cone spanned by
+\[
+  A_\alpha e_1=(\alpha,1),
+  \qquad
+  A_\alpha e_2=(1,
+\alpha).
+\]
+By Proposition 2.9, its diameter equals the distance between these two extreme rays:
+\[
+  \Delta(A_\alpha)=d(A_
+\alpha e_1,A_\alpha e_2).
+\]
+The quadrant formula gives
+\[
+  d((\alpha,1),(1,
+\alpha))=\log(\alpha^2)=2\log\alpha.
+\]
+Therefore
+\[
+  \tanh\!\left(\frac{\Delta(A_\alpha)}{4}\right)
+  =\tanh\left(\frac12\log\alpha\right)
+  =\frac{\alpha-1}{\alpha+1}.
+\]
+\end{proof}
+
+\subsection{Infinite projective diameter}
+\begin{theorem}[Paper Theorem 5.4, expanded]
+If $\Delta(L;C,D)=\infty$, then $N(L;C,D)=k(L;C,D)=1$.
+\end{theorem}
+
+\begin{proof}[Proof details]
+Nonexpansiveness from Lemma 3.1 already gives $N,k\le1$.
+It remains to prove lower bounds arbitrarily close to $1$.
+Given $M>0$, choose $x,y\in C$ with
+\[
+  d_D(Lx,Ly)>M.
+\]
+Then $Lx$ and $Ly$ are linearly independent, hence so are $x,y$.
+Let $V'=\spanop\{x,y\}$ and order it by the closed two-ray cone
+\[
+  C'=\{\lambda x+\mu y:\lambda,\mu\ge0\}.
+\]
+Let $W'=\spanop\{Lx,Ly\}$ with the restricted cone $D'=D\cap W'$.
+Because $C'\subset C$, distances measured in $C$ are no larger than distances measured in $C'$:
+\[
+  d_C(u,v)\le d_{C'}(u,v)
+\]
+for $u,v\in C'$ where both are defined.
+The restricted map $L: (V',C')\to(W',D')$ has finite projective diameter at least $M$ on the two-dimensional subproblem generated by the two images; by the finite-diameter theorem already proved, for every $\varepsilon>0$ there are $u,v\in C'$ with
+\[
+  \frac{d_D(Lu,Lv)}{d_{C'}(u,v)}
+  >\tanh(M/4)-\varepsilon.
+\]
+Using $d_C(u,v)\le d_{C'}(u,v)$ gives the same lower bound for the ambient ratio with denominator $d_C(u,v)$ or a stronger one after choosing the test pair carefully in the same two-ray cone.
+Let $M\to\infty$ and $\varepsilon\downarrow0$ to obtain $k\ge1$.
+The proof for $N$ is identical, using the finite-diameter identity for $N$ on the same two-dimensional restriction.
+\end{proof}
+
+\begin{formalizationnotes}
+\item The finite-diameter theorem is proved before the infinite case, so Theorem 5.4 is a limiting reduction, not an independent analytic proof.
+\item In a formal proof, the comparison of ambient and subcone denominators should be stated as a separate lemma: if $C'\subset C$, then order intervals in $C'$ are smaller, hence $d_C\le d_{C'}$ and similarly $\omega_C\le\omega_{C'}$ in the appropriate dominated setting.
+\end{formalizationnotes}
+
+\section{Section 6: explicit formulas for matrices and kernels}
+
+The final section records computable expressions for $\Delta$ in finite-dimensional positive matrices and in Hopf's integral-operator setting.
+These formulas are often the most directly useful for Sinkhorn-type formalization.
+
+\subsection{A comparability criterion for finite image diameter}
+\begin{lemma}[Paper Lemma 6.1]
+In the finite-diameter setting of Theorem 3.5, suppose that whenever nonzero $u,v\in L(C)$ and $u$ dominates $v$ in $D$, one has $M_D(v/u)>0$.
+Then every pair of nonzero elements of $L(C)$ is comparable in $D$.
+\end{lemma}
+
+\begin{proof}[Proof details]
+Set $S=L(C)$.
+It is convex because $L$ is linear and $C$ is convex.
+The projective diameter of $S$ is finite by the definition of $\Delta(L;C,D)$.
+The stated positivity hypothesis is exactly the missing hypothesis in Proposition 2.9(c), so that proposition implies pairwise comparability of all nonzero points of $S$.
+\end{proof}
+
+\subsection{Nonnegative matrices}
+Let $V=\R^n$, $W=\R^m$, $C=\R^n_{\ge0}$, $D=\R^m_{\ge0}$, and let $A=(a_{ij})$ be an $m\times n$ matrix with nonnegative entries.
+Let $e_j$ be the $j$th standard basis vector, so $Ae_j$ is the $j$th column.
+For positive vectors in a standard quadrant,
+\[
+  d_C(x,y)=\log\max_{p,q}\frac{x_p y_q}{x_q y_p}.
+\]
+
+\begin{theorem}[Paper Theorem 6.2]
+Suppose there is $J\subset\{1,
+\ldots,n\}$ such that $Ae_i$ and $Ae_j$ are nonzero and comparable in $D$ for all $i,j\in J$, and $Ae_i=0$ for $i\notin J$.
+Then $\Delta(A;C,D)$ is finite and
+\[
+  \Delta(A;C,D)=\max_{i,j\in J}d_D(Ae_i,Ae_j).
+\]
+If all entries of $A$ are strictly positive, then
+\[
+  \Delta(A;C,D)
+  =\log\max_{i,j,p,q}\frac{a_{p i}a_{q j}}{a_{p j}a_{q i}}.
+\]
+\end{theorem}
+
+\begin{proof}[Proof details]
+Let $T=\{Ae_i:i\in J\}$.
+Every image $Ax$ with $x\in C$ is a nonnegative linear combination of columns in $T$, and zero columns do not affect the image cone.
+Equivalently,
+\[
+  A(C)=\{r z:r\ge0,\ z\in\co(T)\}.
+\]
+By Proposition 2.9(a), passing between a cone and a cross-section on the same rays does not change diameter.
+By Proposition 2.9(b), the diameter of $\co(T)$ is the diameter of $T$ because the nonzero columns in $T$ are mutually comparable.
+Thus
+\[
+  \Delta(A;C,D)=\diam_D(A(C))=\diam_D(T)=\max_{i,j\in J}d_D(Ae_i,Ae_j).
+\]
+If all entries are positive, every column is strictly positive and comparable to every other column.
+Applying the standard quadrant formula to columns $i,j$ gives
+\[
+  d_D(Ae_i,Ae_j)=\log\max_{p,q}\frac{a_{p i}a_{q j}}{a_{p j}a_{q i}},
+\]
+and maximizing over $i,j$ yields the cross-ratio formula.
+\end{proof}
+
+\begin{formalizationnotes}
+\item For a strictly positive matrix $G$ with entries $G_{ij}>0$, the finite-matrix Birkhoff coefficient is therefore
+\[
+  \tanh\!\left(\frac{1}{4}\log\max_{i,j,p,q}\frac{G_{p i}G_{q j}}{G_{p j}G_{q i}}\right).
+\]
+\item In a Sinkhorn proof, this is the exact place to connect the abstract projective diameter to a closed product/cross-ratio bound over matrix entries.
+\end{formalizationnotes}
+
+\subsection{Positive integral kernels}
+Let $S$ be compact Hausdorff, $\mu$ a regular Borel measure of full support, and $k:S\times S\to\R$ a positive continuous kernel.
+On $V=C(S)$ with the nonnegative cone, define
+\[
+  (Ax)(s)=\int_S k(s,t)x(t)\,\mu(dt).
+\]
+The paper states Hopf's formula
+\[
+  \Delta(A;C,C)=
+  \log\max_{s,t,u,v\in S}\frac{k(s,t)k(u,v)}{k(s,v)k(u,t)}.
+\]
+
+\begin{proof}[Proof details]
+For nonzero $x,y\in C$,
+\[
+  M(Ay/Ax)=\max_s
+  \frac{\int k(s,t)y(t)\,\mu(dt)}{\int k(s,t)x(t)\,\mu(dt)}.
+\]
+Multiplying by the analogous expression for $M(Ax/Ay)$ gives a two-copy integral expression involving
+$k(s,r)k(u,v)x(v)y(r)$ in the numerator and the swapped product in the denominator.
+The inequality
+\[
+  k(s,r)k(u,v)\le \Lambda^2 k(s,v)k(u,r)
+\]
+for all variables is sufficient to force $\chi(A)\le\Lambda$ for all $x,y$.
+Thus $\chi(A)$ is at most the square root of the displayed maximal cross-ratio.
+For the reverse inequality, if $\Lambda$ is smaller than that maximum, continuity gives open neighborhoods on which the strict reverse inequality holds.
+Full support permits choosing nonzero continuous nonnegative $x,y$ supported in the corresponding neighborhoods.
+Substituting those test functions into the two-copy integral expression forces $\chi(A)>\Lambda$.
+Hence equality holds, and $\Delta=2\log\chi$ gives the formula.
+\end{proof}
+
+\begin{remark}[Paper Remark 6.4]
+If the measure lacks full support, the same expression is still an upper bound, but equality can fail.
+For merely measurable $L^\infty$ kernels, the essential-sup version gives an upper bound; the paper does not claim that the previous equality proof survives at that level of generality.
+\end{remark}
+
+\section{Formalization map and hard seams}
 
 \begin{distillation}
-\item \textbf{Cone order and oscillation.}  In an ordered vector space with cone $C$, compare positive elements $x,y$ by the least and greatest scalars $\alpha,\beta$ such that $\alpha x\le y\le \beta x$.  The logarithm of $\beta/\alpha$ is Hilbert's projective metric.
-\item \textbf{Positive homogeneous maps.}  If a linear map sends the interior of one cone into the interior of another with finite projective diameter, then it contracts Hilbert metric by a coefficient strictly below one.
-\item \textbf{Two-dimensional reduction.}  The proof reduces the contraction inequality to the cone generated by two elements and then to the standard positive quadrant in $\R^2$, where the estimate is an elementary calculus inequality.
-\item \textbf{Convergence consequence.}  Once a positive operator is a strict projective contraction on an invariant normalized slice, Banach-style iteration yields convergence of rays and hence asymptotic regularity.
+\item \textbf{Order interval algebra.}  Prove the endpoint identities for $M,m,\omega$ under addition of multiples, scalar multiplication, and positive linear maps.  This supports both Hopf oscillation and Hilbert metric facts.
+\item \textbf{Convex hull diameter.}  Proposition 2.9(b) is a reusable finite-combination lemma: a convex hull of comparable rays has the same Hilbert diameter as the generating set.  This is the core step behind the matrix column formula.
+\item \textbf{Two-dimensional subspace restriction.}  Define $C(x,y)=C\cap\spanop\{x,y\}$ and prove that all $M,m,\omega,d$ data agree with the ambient cone for vectors in the plane.
+\item \textbf{Cone isomorphism invariance.}  Positive diagonal scalings and permutations preserve the finite matrix constants.  This should be stated and used before attempting the $2\times2$ normalization.
+\item \textbf{Two-dimensional closed cone classification.}  For our finite matrix target, we may not need the full general topological proof immediately; but it is the paper's bridge from arbitrary cones to the quadrant.
+\item \textbf{Normalized $2\times2$ calculus.}  The only analytic maximization is the function
+\[
+  \phi(t)=\frac{(\alpha^2-1)t}{(\alpha+t)(\alpha t+1)}.
+\]
+Its maximum at $t=1$ gives both $N$ directly and $k$ by the generalized mean value theorem.
+\item \textbf{Matrix cross-ratio formula.}  For strictly positive matrices, Section 6 collapses the projective diameter to a maximum over four indices.  This is likely the closest match to the current finite Lean Birkhoff--Hopf target.
 \end{distillation}
 
 \section*{Lean comparison targets}
-This reference is probably too general for the current finite Lean target.  It should be cited as the conceptual theorem source only if the proof introduces a reusable Hilbert-projective-metric layer.  For immediate finite work, \cite{Carroll2004} or the last section of \cite{FranklinLorenz1989} is likely more directly formalizable.
-
-\section*{Distillation gaps}
-\TODO{If the formalization introduces an abstract cone theorem, extract the precise hypotheses from Eveson--Nussbaum Theorems 3--5 and 3--6, then state a finite-dimensional corollary.}
+For the current finite-dimensional development, the most valuable extract is not the full arbitrary-cone theorem, but the chain
+\[
+  \text{positive matrix}
+  \Rightarrow
+  \Delta(A)=\log\max_{i,j,p,q}\frac{a_{p i}a_{q j}}{a_{p j}a_{q i}}
+  \Rightarrow
+  k(A)=N(A)=\tanh(\Delta(A)/4).
+\]
+The paper proves this by reducing the general theorem to the symmetric $2\times2$ case and then returning to matrices in Section 6.
+If we only need Sinkhorn convergence for strictly positive finite kernels, Theorem 6.2 plus Theorem 3.5 is the clean citation route.
+If we want a self-contained Lean proof, the minimum faithful route is: finite quadrant formulas, convex-hull diameter, $2\times2$ normalization, calculus lemma, matrix cross-ratio formula.
 
 \input{references_manual}
 \end{document}

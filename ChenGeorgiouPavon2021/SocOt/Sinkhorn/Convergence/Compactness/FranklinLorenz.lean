@@ -6,6 +6,7 @@ by the finite Sinkhorn compactness proof.  It is intentionally separate from `Pr
 future agents can work on the contraction port without touching the downstream compactness assembly.
 -/
 
+import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Compactness.MatrixBridge
 
@@ -138,8 +139,10 @@ are intended to be exactly these named theorem statements:
 2. `hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound`: the
    Franklin--Lorenz Section 3 step converting that coefficient into geometric decay of the
    logarithmic column marginal error.
-3. `hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box`:
-   the pure real-analysis/box conversion from log error to multiplicative relative error.
+3. `ForMathlib.Analysis.relative_error_geometric_bound_of_log_relative_error_geometric_bound`:
+   the pure real-analysis conversion from log error to multiplicative relative error; the local
+   `hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box`
+   wrapper keeps the older Franklin--Lorenz-facing signature with the now-proved ratio-box input.
 4. `hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound`: the still-unmirrored left-side
    row-correction theorem.
 
@@ -236,23 +239,25 @@ theorem franklinLorenz_right_column_relative_ratio_box_bound
   field_simp [ne_of_gt hb_k_pos, ne_of_gt hε]
   simpa [mul_comm, mul_left_comm, mul_assoc] using hmul
 
-/-- Hard core 3: pure real-analysis conversion from geometric log-relative error to geometric
-relative error.
+/-- Franklin--Lorenz-facing wrapper for hard core 3.
 
-Once ratios `r k j` are known positive and uniformly bounded above, the map `x ↦ exp x - 1` is
-Lipschitz on the corresponding bounded log range.  This lemma is the calculus/compactness tail that
-turns a Hilbert/log estimate into the concrete multiplicative correction estimate. -/
+The actual reusable analysis seam now lives in
+`ForMathlib.Analysis.relative_error_geometric_bound_of_log_relative_error_geometric_bound`.  The
+extra ratio-box hypothesis is retained in this wrapper because it is a useful audited fact about the
+matrix-scaling orbit and may be useful for alternative proofs, but the exp/log conversion only needs
+positivity and the geometric log bound. -/
 theorem hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
     {ι : Type*} [Fintype ι]
     (r : ℕ → ι → ℝ) (γ : ℝ)
-    (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
-    (_hr_pos : ∀ k j, 0 < r k j)
+    (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hr_pos : ∀ k j, 0 < r k j)
     (_hr_box : ∃ R : ℝ, 0 ≤ R ∧ ∀ k j, |r k j| ≤ R)
-    (_hlog : ∃ C : ℝ,
+    (hlog : ∃ C : ℝ,
       0 ≤ C ∧ ∀ k j, |Real.log (r k j)| ≤ C * γ ^ k) :
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k j, |r k j - 1| ≤ C * γ ^ k := by
-  sorry
+  exact ForMathlib.Analysis.relative_error_geometric_bound_of_log_relative_error_geometric_bound
+    r γ hγ_nonneg hγ_lt_one hr_pos hlog
 
 /-- Stable wrapper around hard core 3. -/
 theorem relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box

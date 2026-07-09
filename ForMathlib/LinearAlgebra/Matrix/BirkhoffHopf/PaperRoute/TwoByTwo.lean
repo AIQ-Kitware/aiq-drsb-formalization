@@ -68,6 +68,28 @@ theorem symmetricTwoByTwoPhi_le {α t : ℝ} (hα : 1 < α) (ht : 0 < t) :
     simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using hdiv
   exact (div_le_iff₀ hden).2 hscaled
 
+/-- The normalized two-by-two coefficient lies in the strict Birkhoff range. -/
+theorem symmetricTwoByTwoCoefficient_nonneg_lt_one {α : ℝ} (hα : 1 < α) :
+    0 ≤ (α - 1) / (α + 1) ∧ (α - 1) / (α + 1) < 1 := by
+  have hden_pos : 0 < α + 1 := by linarith
+  constructor
+  · exact div_nonneg (sub_nonneg.mpr (le_of_lt hα)) (le_of_lt hden_pos)
+  · exact (div_lt_iff₀ hden_pos).2 (by linarith)
+
+/-- First row of the normalized two-by-two kernel, written as a finite weighted average. -/
+theorem positiveKernelApply_symmetricTwoByTwo_zero (α : ℝ) (x : Fin 2 → ℝ) :
+    positiveKernelApply (symmetricTwoByTwoKernel α) x (0 : Fin 2) =
+      α * x (0 : Fin 2) + x (1 : Fin 2) := by
+  rw [positiveKernelApply, Fin.sum_univ_two]
+  simp [symmetricTwoByTwoKernel]
+
+/-- Second row of the normalized two-by-two kernel, written as a finite weighted average. -/
+theorem positiveKernelApply_symmetricTwoByTwo_one (α : ℝ) (x : Fin 2 → ℝ) :
+    positiveKernelApply (symmetricTwoByTwoKernel α) x (1 : Fin 2) =
+      x (0 : Fin 2) + α * x (1 : Fin 2) := by
+  rw [positiveKernelApply, Fin.sum_univ_two]
+  simp [symmetricTwoByTwoKernel, add_comm]
+
 /-- Paper route Step 5: normalized two-by-two Birkhoff contraction.
 
 Paper analogue: Eveson--Nussbaum Theorem 5.3,
@@ -76,6 +98,17 @@ theorem symmetricTwoByTwo_birkhoff_contraction {α : ℝ} (hα : 1 < α) :
     IsBirkhoffHopfContractionCoefficient
       (symmetricTwoByTwoKernel α) ((α - 1) / (α + 1)) := by
   sorry
+
+/-- Strict packaged version of the normalized two-by-two Birkhoff contraction theorem.
+
+This is the Agent-5 interface that later assembly code should consume: the coefficient is not just
+the analytic contraction constant, but also comes with the strict range facts needed for geometric
+decay. -/
+theorem symmetricTwoByTwo_strict_birkhoff_contraction {α : ℝ} (hα : 1 < α) :
+    IsStrictBirkhoffHopfContractionCoefficient
+      (symmetricTwoByTwoKernel α) ((α - 1) / (α + 1)) := by
+  rcases symmetricTwoByTwoCoefficient_nonneg_lt_one hα with ⟨hγ_nonneg, hγ_lt_one⟩
+  exact ⟨hγ_nonneg, hγ_lt_one, symmetricTwoByTwo_birkhoff_contraction hα⟩
 
 /-- Paper route Step 6: positive two-by-two matrices reduce to the normalized symmetric case.
 

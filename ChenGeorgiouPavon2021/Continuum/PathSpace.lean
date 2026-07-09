@@ -49,6 +49,22 @@ theorem intervalDyadicTime_zero (level : ℕ) :
   apply Subtype.ext
   simp [intervalDyadicTime, dyadicTime, unitIntervalZero]
 
+/-- Bounded dyadic times are represented by the unclamped quotient `i / 2^level`.
+
+This small endpoint lemma is the algebraic core needed by the dyadic-density argument: once the
+vertex index satisfies `i ≤ 2^level`, the interval clamp in `intervalDyadicTime` is inactive. -/
+theorem coe_intervalDyadicTime_of_le (level i : ℕ) (hi : i ≤ 2 ^ level) :
+    ((intervalDyadicTime level i : UnitInterval) : ℝ) = dyadicTime level i := by
+  have hi_le : dyadicTime level i ≤ 1 := by
+    unfold dyadicTime
+    rw [div_le_one (by positivity : (0 : ℝ) < (2 : ℝ) ^ level)]
+    exact_mod_cast hi
+  have hi_nonneg : 0 ≤ dyadicTime level i := by
+    unfold dyadicTime
+    positivity
+  unfold intervalDyadicTime
+  rw [coe_clampUnitInterval, min_eq_right hi_le, max_eq_right hi_nonneg]
+
 /-- Bounded dyadic grid points, indexed by a countable subtype of `(level, vertex)`.
 
 The bound `i ≤ 2^level` records the true finite grid vertices, including both endpoints.
@@ -57,6 +73,12 @@ not used in the density/separation argument. -/
 noncomputable def boundedIntervalDyadicGridPoint :
     {p : ℕ × ℕ // p.2 ≤ 2 ^ p.1} → UnitInterval :=
   fun p => intervalDyadicTime p.1.1 p.1.2
+
+/-- Bounded grid points have the expected real coordinate `i / 2^level`. -/
+theorem coe_boundedIntervalDyadicGridPoint
+    (p : {p : ℕ × ℕ // p.2 ≤ 2 ^ p.1}) :
+    ((boundedIntervalDyadicGridPoint p : UnitInterval) : ℝ) = dyadicTime p.1.1 p.1.2 := by
+  exact coe_intervalDyadicTime_of_le p.1.1 p.1.2 p.2
 
 /-- The true bounded dyadic grid points are dense in the interval carrier.
 

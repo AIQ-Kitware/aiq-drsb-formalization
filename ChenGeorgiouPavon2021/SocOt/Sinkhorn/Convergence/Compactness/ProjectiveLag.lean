@@ -359,26 +359,142 @@ theorem sinkhorn_denominator_predecessor_quotient_limits_from_precluster {ι : T
       ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre⟩
 
 
-/-- Remaining C2-projective dynamical seam, now before quotient-limit algebra.
+/-- Sequence-level mixed-phase projective drift along the selected absolute subsequence.
+
+This is the clean Hilbert-contraction/asymptotic-regularity target before any cluster-limit
+packaging: each mixed phase should become projectively parallel to its absolute successor. -/
+abbrev SinkhornMixedProjectiveDriftZeroAlong {ι : Type*} [Fintype ι]
+    (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+      (fun n => fun ij : ι × ι =>
+        φhat0Iter (subseq n + 1) ij.1 * φhat0Iter (subseq n) ij.2 -
+          φhat0Iter (subseq n + 1) ij.2 * φhat0Iter (subseq n) ij.1)
+      Filter.atTop (nhds (0 : ι × ι → ℝ)) ∧
+    Filter.Tendsto
+      (fun n => fun ij : ι × ι =>
+        φ1Iter (subseq n + 1) ij.1 * φ1Iter (subseq n) ij.2 -
+          φ1Iter (subseq n + 1) ij.2 * φ1Iter (subseq n) ij.1)
+      Filter.atTop (nhds (0 : ι × ι → ℝ))
+
+/-- Pass sequence-level mixed projective drift through a raw precluster.
+
+This is only topology: the same cross-product sequence has limit zero by the drift hypothesis and
+has the displayed successor/current cluster-limit cross-product by finite-function convergence, so
+uniqueness of limits gives projective alignment of the two mixed cluster limits. -/
+theorem sinkhorn_mixed_successor_projective_alignment_of_projective_drift {ι : Type*}
+    [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
+    (hdrift : SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq) :
+    SinkhornMixedSuccessorProjectiveAlignment ψhat0 ψhat0Succ ψ1 ψ1Succ := by
+  obtain ⟨hhat0_drift, hφ1_drift⟩ := hdrift
+  refine ⟨?_, ?_⟩
+  · intro i j
+    have hsucc_i :
+        Filter.Tendsto (fun n => φhat0Iter (subseq n + 1) i)
+          Filter.atTop (nhds (ψhat0Succ i)) :=
+      ((continuous_apply i).tendsto ψhat0Succ).comp hpre.tendsto_φhat0_succ
+    have hcurr_j :
+        Filter.Tendsto (fun n => φhat0Iter (subseq n) j)
+          Filter.atTop (nhds (ψhat0 j)) :=
+      ((continuous_apply j).tendsto ψhat0).comp hpre.tendsto_φhat0
+    have hsucc_j :
+        Filter.Tendsto (fun n => φhat0Iter (subseq n + 1) j)
+          Filter.atTop (nhds (ψhat0Succ j)) :=
+      ((continuous_apply j).tendsto ψhat0Succ).comp hpre.tendsto_φhat0_succ
+    have hcurr_i :
+        Filter.Tendsto (fun n => φhat0Iter (subseq n) i)
+          Filter.atTop (nhds (ψhat0 i)) :=
+      ((continuous_apply i).tendsto ψhat0).comp hpre.tendsto_φhat0
+    have hcluster :
+        Filter.Tendsto
+          (fun n => φhat0Iter (subseq n + 1) i * φhat0Iter (subseq n) j -
+            φhat0Iter (subseq n + 1) j * φhat0Iter (subseq n) i)
+          Filter.atTop (nhds (ψhat0Succ i * ψhat0 j - ψhat0Succ j * ψhat0 i)) :=
+      (hsucc_i.mul hcurr_j).sub (hsucc_j.mul hcurr_i)
+    have hzero :
+        Filter.Tendsto
+          (fun n => φhat0Iter (subseq n + 1) i * φhat0Iter (subseq n) j -
+            φhat0Iter (subseq n + 1) j * φhat0Iter (subseq n) i)
+          Filter.atTop (nhds (0 : ℝ)) := by
+      have hcoord := (tendsto_pi_nhds.mp hhat0_drift) (i, j)
+      simpa using hcoord
+    exact tendsto_nhds_unique hcluster hzero
+  · intro i j
+    have hsucc_i :
+        Filter.Tendsto (fun n => φ1Iter (subseq n + 1) i)
+          Filter.atTop (nhds (ψ1Succ i)) :=
+      ((continuous_apply i).tendsto ψ1Succ).comp hpre.tendsto_φ1_succ
+    have hcurr_j :
+        Filter.Tendsto (fun n => φ1Iter (subseq n) j)
+          Filter.atTop (nhds (ψ1 j)) :=
+      ((continuous_apply j).tendsto ψ1).comp hpre.tendsto_φ1
+    have hsucc_j :
+        Filter.Tendsto (fun n => φ1Iter (subseq n + 1) j)
+          Filter.atTop (nhds (ψ1Succ j)) :=
+      ((continuous_apply j).tendsto ψ1Succ).comp hpre.tendsto_φ1_succ
+    have hcurr_i :
+        Filter.Tendsto (fun n => φ1Iter (subseq n) i)
+          Filter.atTop (nhds (ψ1 i)) :=
+      ((continuous_apply i).tendsto ψ1).comp hpre.tendsto_φ1
+    have hcluster :
+        Filter.Tendsto
+          (fun n => φ1Iter (subseq n + 1) i * φ1Iter (subseq n) j -
+            φ1Iter (subseq n + 1) j * φ1Iter (subseq n) i)
+          Filter.atTop (nhds (ψ1Succ i * ψ1 j - ψ1Succ j * ψ1 i)) :=
+      (hsucc_i.mul hcurr_j).sub (hsucc_j.mul hcurr_i)
+    have hzero :
+        Filter.Tendsto
+          (fun n => φ1Iter (subseq n + 1) i * φ1Iter (subseq n) j -
+            φ1Iter (subseq n + 1) j * φ1Iter (subseq n) i)
+          Filter.atTop (nhds (0 : ℝ)) := by
+      have hcoord := (tendsto_pi_nhds.mp hφ1_drift) (i, j)
+      simpa using hcoord
+    exact tendsto_nhds_unique hcluster hzero
+
+/-- Remaining C2-projective dynamical seam, now moved before cluster-limit packaging.
 
 This is the true projective/Hilbert-contraction residue after the elementary normalization algebra
-has been extracted.  It asks only that each mixed phase be projectively aligned with its absolute
-successor limit in the raw precluster.  The next theorem turns this into denominator predecessor
-alignment using the mixed normalization equations. -/
+has been extracted.  It is stated directly as asymptotic projective regularity of the mixed phases
+along the selected absolute subsequence; the following wrapper passes it to the raw-precluster
+successor/current limit alignment. -/
+theorem sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  sorry
+
+/-- Limit-level mixed successor/current projective alignment, obtained from the sequence-level
+projective-drift seam and the raw precluster. -/
 theorem sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
     SinkhornMixedSuccessorProjectiveAlignment ψhat0 ψhat0Succ ψ1 ψ1Succ := by
-  sorry
+  have hdrift : SinkhornMixedProjectiveDriftZeroAlong φhat0Iter φ1Iter subseq :=
+    sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      hiter hgauge hbounds
+  exact sinkhorn_mixed_successor_projective_alignment_of_projective_drift
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+    ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hdrift
 
 /-- Package the remaining mixed-phase projective alignment seam into quotient-predecessor
 denominator projective alignment.

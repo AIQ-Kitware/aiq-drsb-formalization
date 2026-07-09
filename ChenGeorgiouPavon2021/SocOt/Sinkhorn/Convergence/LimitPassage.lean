@@ -23,11 +23,35 @@ theorem sinkhorn_cluster_point_along_forward_equation {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψ1 ψhat1) :
     ∀ i, ψ0 i = ∑ j, G i j * ψ1 j := by
-  sorry
+  intro i
+  have hleft :
+      Filter.Tendsto (fun n => φ0Iter (subseq n) i)
+        Filter.atTop (nhds (ψ0 i)) :=
+    ((continuous_apply i).tendsto ψ0).comp halong.tendsto_φ0
+  have hright :
+      Filter.Tendsto (fun n => ∑ j, G i j * φ1Iter (subseq n) j)
+        Filter.atTop (nhds (∑ j, G i j * ψ1 j)) := by
+    have hcont : Continuous (fun y : ι → ℝ => ∑ j, G i j * y j) := by
+      fun_prop
+    change Filter.Tendsto
+      ((fun y : ι → ℝ => ∑ j, G i j * y j) ∘ (fun n => φ1Iter (subseq n)))
+        Filter.atTop (nhds (∑ j, G i j * ψ1 j))
+    exact (hcont.tendsto ψ1).comp halong.tendsto_φ1
+  have hleft_as_right :
+      Filter.Tendsto (fun n => φ0Iter (subseq n) i)
+        Filter.atTop (nhds (∑ j, G i j * ψ1 j)) := by
+    have hseq_eq :
+        (fun n => φ0Iter (subseq n) i) =
+          (fun n => ∑ j, G i j * φ1Iter (subseq n) j) := by
+      funext n
+      exact hiter.forward (subseq n) i
+    rw [hseq_eq]
+    exact hright
+  exact tendsto_nhds_unique hleft hleft_as_right
 
 /-- Forward equation for phase-compatible cluster points. -/
 theorem sinkhorn_cluster_point_forward_equation {ι : Type*} [Fintype ι]
@@ -47,11 +71,35 @@ theorem sinkhorn_cluster_point_along_backward_equation {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψ1 ψhat1) :
     ∀ j, ψhat1 j = ∑ i, G i j * ψhat0 i := by
-  sorry
+  intro j
+  have hleft :
+      Filter.Tendsto (fun n => φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (ψhat1 j)) :=
+    ((continuous_apply j).tendsto ψhat1).comp halong.tendsto_φhat1
+  have hright :
+      Filter.Tendsto (fun n => ∑ i, G i j * φhat0Iter (subseq n) i)
+        Filter.atTop (nhds (∑ i, G i j * ψhat0 i)) := by
+    have hcont : Continuous (fun y : ι → ℝ => ∑ i, G i j * y i) := by
+      fun_prop
+    change Filter.Tendsto
+      ((fun y : ι → ℝ => ∑ i, G i j * y i) ∘ (fun n => φhat0Iter (subseq n)))
+        Filter.atTop (nhds (∑ i, G i j * ψhat0 i))
+    exact (hcont.tendsto ψhat0).comp halong.tendsto_φhat0
+  have hleft_as_right :
+      Filter.Tendsto (fun n => φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (∑ i, G i j * ψhat0 i)) := by
+    have hseq_eq :
+        (fun n => φhat1Iter (subseq n) j) =
+          (fun n => ∑ i, G i j * φhat0Iter (subseq n) i) := by
+      funext n
+      exact hiter.backward (subseq n) j
+    rw [hseq_eq]
+    exact hright
+  exact tendsto_nhds_unique hleft hleft_as_right
 
 /-- Backward equation for phase-compatible cluster points. -/
 theorem sinkhorn_cluster_point_backward_equation {ι : Type*} [Fintype ι]
@@ -71,11 +119,37 @@ theorem sinkhorn_cluster_point_along_normalize_left {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψ1 ψhat1) :
     ∀ i, ψ0 i * ψhat0 i = p i := by
-  sorry
+  intro i
+  have hφ0 :
+      Filter.Tendsto (fun n => φ0Iter (subseq n) i)
+        Filter.atTop (nhds (ψ0 i)) :=
+    ((continuous_apply i).tendsto ψ0).comp halong.tendsto_φ0
+  have hφhat0_succ :
+      Filter.Tendsto (fun n => φhat0Iter (subseq n + 1) i)
+        Filter.atTop (nhds (ψhat0 i)) :=
+    ((continuous_apply i).tendsto ψhat0).comp halong.tendsto_φhat0_succ
+  have hprod_cluster :
+      Filter.Tendsto
+        (fun n => φ0Iter (subseq n) i * φhat0Iter (subseq n + 1) i)
+        Filter.atTop (nhds (ψ0 i * ψhat0 i)) := by
+    exact hφ0.mul hφhat0_succ
+  have hprod_target :
+      Filter.Tendsto
+        (fun n => φ0Iter (subseq n) i * φhat0Iter (subseq n + 1) i)
+        Filter.atTop (nhds (p i)) := by
+    have hseq_eq :
+        (fun n => φ0Iter (subseq n) i * φhat0Iter (subseq n + 1) i) =
+          (fun _ : ℕ => p i) := by
+      funext n
+      simpa [mul_comm] using hiter.normalize_left (subseq n) i
+    rw [hseq_eq]
+    exact (tendsto_const_nhds :
+      Filter.Tendsto (fun _ : ℕ => p i) Filter.atTop (nhds (p i)))
+  exact tendsto_nhds_unique hprod_cluster hprod_target
 
 /-- Left marginal normalization for phase-compatible cluster points. -/
 theorem sinkhorn_cluster_point_normalize_left {ι : Type*} [Fintype ι]
@@ -95,11 +169,37 @@ theorem sinkhorn_cluster_point_along_normalize_right {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψ1 ψhat1) :
     ∀ j, ψ1 j * ψhat1 j = q j := by
-  sorry
+  intro j
+  have hφ1_succ :
+      Filter.Tendsto (fun n => φ1Iter (subseq n + 1) j)
+        Filter.atTop (nhds (ψ1 j)) :=
+    ((continuous_apply j).tendsto ψ1).comp halong.tendsto_φ1_succ
+  have hφhat1 :
+      Filter.Tendsto (fun n => φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (ψhat1 j)) :=
+    ((continuous_apply j).tendsto ψhat1).comp halong.tendsto_φhat1
+  have hprod_cluster :
+      Filter.Tendsto
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (ψ1 j * ψhat1 j)) := by
+    exact hφ1_succ.mul hφhat1
+  have hprod_target :
+      Filter.Tendsto
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (q j)) := by
+    have hseq_eq :
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j) =
+          (fun _ : ℕ => q j) := by
+      funext n
+      exact hiter.normalize_right (subseq n) j
+    rw [hseq_eq]
+    exact (tendsto_const_nhds :
+      Filter.Tendsto (fun _ : ℕ => q j) Filter.atTop (nhds (q j)))
+  exact tendsto_nhds_unique hprod_cluster hprod_target
 
 /-- Right marginal normalization for phase-compatible cluster points. -/
 theorem sinkhorn_cluster_point_normalize_right {ι : Type*} [Fintype ι]

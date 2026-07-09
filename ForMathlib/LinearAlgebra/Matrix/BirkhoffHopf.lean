@@ -152,22 +152,96 @@ def IsBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype ι] [Fintype �
       finiteHilbertProjectiveLogSpread (positiveKernelApply G x) (positiveKernelApply G y) ≤
         γ * finiteHilbertProjectiveLogSpread x y
 
-/-- The actual Birkhoff--Hopf contraction theorem for a strictly positive finite kernel.
+/-- Applying a nonnegative finite kernel to a nonnegative vector gives a nonnegative vector. -/
+theorem positiveKernelApply_nonneg {ι κ : Type*} [Fintype κ]
+    (G : ι → κ → ℝ) (hG : ∀ i j, 0 ≤ G i j)
+    (x : κ → ℝ) (hx : ∀ j, 0 ≤ x j) (i : ι) :
+    0 ≤ positiveKernelApply G x i := by
+  classical
+  unfold positiveKernelApply
+  exact Finset.sum_nonneg (fun j _hj => mul_nonneg (hG i j) (hx j))
 
-This is the true Mathlib-facing hard theorem.  The preceding lemmas expose the finite cross-ratio
-bound and an explicit strict coefficient.  A full proof should:
+/-- Applying a strictly positive finite kernel to a nonnegative vector with at least one positive
+coordinate gives a strictly positive output coordinate. -/
+theorem positiveKernelApply_pos_of_exists_pos {ι κ : Type*} [Fintype κ]
+    (G : ι → κ → ℝ) (hG : ∀ i j, 0 < G i j)
+    (x : κ → ℝ) (hx_nonneg : ∀ j, 0 ≤ x j)
+    {j₀ : κ} (hx_pos : 0 < x j₀) (i : ι) :
+    0 < positiveKernelApply G x i := by
+  classical
+  unfold positiveKernelApply
+  exact Finset.sum_pos'
+    (fun j _hj => mul_nonneg (le_of_lt (hG i j)) (hx_nonneg j))
+    ⟨j₀, Finset.mem_univ j₀, mul_pos (hG i j₀) hx_pos⟩
 
-1. bound the image-cone Hilbert diameter using `positiveKernelCrossRatio_le_bound`;
-2. apply Birkhoff's oscillation contraction estimate to Hilbert projective spread;
-3. use the coarser coefficient `positiveKernelBirkhoffCoefficient`, which is still `< 1`.
+/-- Applying a strictly positive finite kernel to a strictly positive vector gives a strictly
+positive vector, provided the input index type is nonempty. -/
+theorem positiveKernelApply_pos {ι κ : Type*} [Fintype κ] [Nonempty κ]
+    (G : ι → κ → ℝ) (hG : ∀ i j, 0 < G i j)
+    (x : κ → ℝ) (hx : ∀ j, 0 < x j) (i : ι) :
+    0 < positiveKernelApply G x i := by
+  classical
+  obtain ⟨j₀⟩ := (inferInstance : Nonempty κ)
+  exact positiveKernelApply_pos_of_exists_pos G hG x (fun j => le_of_lt (hx j)) (hx_pos := hx j₀) i
 
-This is intentionally stronger and more useful than the old bare `∃ γ, 0 ≤ γ ∧ γ < 1` seam. -/
-theorem positive_kernel_birkhoff_hopf_contraction {ι κ : Type*}
+/-- Algebraic cross-multiplicative image bound supplied by the finite kernel cross-ratio bound.
+
+Expanding both kernel applications, this is the finite double-sum estimate
+`G i j * G i' j' ≤ B * (G i' j * G i j')` integrated against nonnegative weights.
+It is the first real Birkhoff--Hopf proof obligation after the elementary coefficient facts. -/
+def PositiveKernelApplyCrossRatioBounded {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ) : Prop :=
+  ∀ x y : κ → ℝ,
+    (∀ j, 0 ≤ x j) → (∀ j, 0 ≤ y j) →
+      ∀ i i' : ι,
+        positiveKernelApply G x i * positiveKernelApply G y i' ≤
+          positiveKernelCrossRatioBound G *
+            (positiveKernelApply G x i' * positiveKernelApply G y i)
+
+/-- Finite-sum image cross-ratio bound for a strictly positive kernel.
+
+This should be proved by expanding the two products of finite sums, applying
+`positiveKernelCrossRatio_le_bound` termwise, and summing against the nonnegative weights
+`x j * y j'`.  This is an algebraic, non-topological subgoal and can be assigned independently
+of the projective-metric contraction proof. -/
+theorem positive_kernel_apply_crossRatioBounded {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)
     (_hG : ∀ i j, 0 < G i j) :
+    PositiveKernelApplyCrossRatioBounded G := by
+  sorry
+
+/-- Birkhoff's oscillation estimate once the image-cone cross-ratio is bounded.
+
+This is the analytic/projective-metric subgoal: turn the finite image cross-ratio bound into
+Hilbert projective contraction with the explicit coefficient.  It is intentionally separated from
+the preceding finite-sum algebra so the two hardest pieces can be attacked independently. -/
+theorem positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hbound : PositiveKernelApplyCrossRatioBounded G) :
     IsBirkhoffHopfContractionCoefficient G (positiveKernelBirkhoffCoefficient G) := by
   sorry
+
+/-- The actual Birkhoff--Hopf contraction theorem for a strictly positive finite kernel.
+
+This wrapper is now proved from two smaller seams:
+
+1. the finite double-sum image cross-ratio bound,
+   `positive_kernel_apply_crossRatioBounded`;
+2. the projective oscillation estimate,
+   `positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound`.
+
+The old single broad `sorry` has therefore been split into an algebraic task and an analytic
+Hilbert-metric task. -/
+theorem positive_kernel_birkhoff_hopf_contraction {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j) :
+    IsBirkhoffHopfContractionCoefficient G (positiveKernelBirkhoffCoefficient G) := by
+  exact positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound G hG
+    (positive_kernel_apply_crossRatioBounded G hG)
 
 /-- Birkhoff--Hopf coefficient seam for a strictly positive finite kernel.
 

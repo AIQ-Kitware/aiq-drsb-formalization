@@ -47,12 +47,12 @@ theorem scalar_not_tendsto_has_frequently_bad_epsilon
     ∃ ε : ℝ, 0 < ε ∧ ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n - xLim| := by
   rw [Metric.tendsto_atTop] at hnot
   push_neg at hnot
-  obtain ⟨ε, hε, hfreq⟩ := hnot
+  obtain ⟨ε, hε, hbad⟩ := hnot
   refine ⟨ε, hε, ?_⟩
   intro N
-  obtain ⟨n, hnN, hbad⟩ := hfreq N
-  refine ⟨n, hnN, ?_⟩
-  simpa [Real.dist_eq] using hbad
+  obtain ⟨n, hn, hdist⟩ := hbad N
+  refine ⟨n, hn, ?_⟩
+  simpa [Real.dist_eq] using hdist
 
 /-- If a finite-function sequence does not converge, then some coordinate is frequently
 separated from the candidate limit.
@@ -81,14 +81,33 @@ theorem finite_function_frequently_bad_coordinate_subsequence {ι : Type*}
       ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i| := by
   sorry
 
-/-- A bad coordinate subsequence stays nonconvergent after every cofinal further subsequence. -/
+/-- A scalar sequence that stays outside a fixed epsilon-neighborhood cannot converge to its target.
+
+This is the one-dimensional obstruction used by the finite-function bad-coordinate theorem.  It is
+separated from the finite-function wrapper so the remaining proof is just the metric definition of
+convergence on `ℝ`. -/
+theorem scalar_bad_epsilon_blocks_tendsto
+    (x : ℕ → ℝ) (xLim : ℝ) (ε : ℝ)
+    (_hε : 0 < ε)
+    (_hbad : ∀ k : ℕ, ε ≤ |x k - xLim|) :
+    ¬ Filter.Tendsto x Filter.atTop (nhds xLim) := by
+  sorry
+
+/-- A bad coordinate subsequence stays nonconvergent after every cofinal further subsequence.
+
+The finite-function part is now only projection to the bad coordinate.  The scalar metric obstruction
+is isolated in `scalar_bad_epsilon_blocks_tendsto`. -/
 theorem finite_function_bad_coordinate_blocks_cofinal_convergence {ι : Type*} [Fintype ι]
     (x : ℕ → ι → ℝ) (xLim : ι → ℝ) (i : ι) (ε : ℝ)
-    (_hε : 0 < ε) (subseq : ℕ → ℕ)
-    (_hbad : ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i|)
+    (hε : 0 < ε) (subseq : ℕ → ℕ)
+    (hbad : ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i|)
     (subsub : ℕ → ℕ) (_hsubsub : Filter.Tendsto subsub Filter.atTop Filter.atTop) :
     ¬ Filter.Tendsto (fun n => x (subseq (subsub n))) Filter.atTop (nhds xLim) := by
-  sorry
+  intro hconv
+  have hcoord : Filter.Tendsto (fun n => x (subseq (subsub n)) i) Filter.atTop (nhds (xLim i)) := by
+    exact ((continuous_apply i).tendsto xLim).comp hconv
+  exact scalar_bad_epsilon_blocks_tendsto
+    (fun n => x (subseq (subsub n)) i) (xLim i) ε hε (fun n => hbad (subsub n)) hcoord
 
 /-- A nonconvergent finite-function sequence has a bad subsequence that no cofinal further
 subsequence can make converge to the candidate limit.

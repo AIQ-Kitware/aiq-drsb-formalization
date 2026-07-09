@@ -271,12 +271,14 @@ theorem sinkhorn_gauge_normalized_cluster_point_unique {ι : Type*} [Fintype ι]
   exact sinkhorn_gauge_fixed_point_unique p q G
     φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hpotentials hψsys hψgauge
 
-/-- Unique cluster points imply full finite-dimensional convergence.
+/-- Unique-cluster topology seam for the forward-left iterate family.
 
-This is the final general topology seam: if every subsequence has a further cluster subsequence and
-all cluster points equal the same target tuple, then the original finite-dimensional sequence
-converges to that tuple. -/
-theorem sinkhorn_unique_cluster_points_imply_convergence {ι : Type*} [Fintype ι]
+This is one component of the general topology theorem: if every outer subsequence has a further
+phase-compatible cluster subsequence, and every cluster point is the selected gauge representative,
+then the `φ0` iterate family converges to `φ0`.  A proof should argue by contradiction: from failure
+of convergence, extract a bad coordinate/subsequence; compactness gives a further cluster point; and
+cluster uniqueness contradicts the bad coordinate. -/
+theorem sinkhorn_unique_cluster_points_imply_φ0_convergence {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
     (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
@@ -287,11 +289,87 @@ theorem sinkhorn_unique_cluster_points_imply_convergence {ι : Type*} [Fintype �
       IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
         ψ0 ψhat0 ψ1 ψhat1 →
       ψ0 = φ0 ∧ ψhat0 = φhat0 ∧ ψ1 = φ1 ∧ ψhat1 = φhat1) :
+    Filter.Tendsto φ0Iter Filter.atTop (nhds φ0) := by
+  sorry
+
+/-- Unique-cluster topology seam for the hatted-left iterate family. -/
+theorem sinkhorn_unique_cluster_points_imply_φhat0_convergence {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+      ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
+        IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+          (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
+    (_hcluster_unique : ∀ ψ0 ψhat0 ψ1 ψhat1,
+      IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+        ψ0 ψhat0 ψ1 ψhat1 →
+      ψ0 = φ0 ∧ ψhat0 = φhat0 ∧ ψ1 = φ1 ∧ ψhat1 = φhat1) :
+    Filter.Tendsto φhat0Iter Filter.atTop (nhds φhat0) := by
+  sorry
+
+/-- Unique-cluster topology seam for the forward-right iterate family. -/
+theorem sinkhorn_unique_cluster_points_imply_φ1_convergence {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+      ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
+        IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+          (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
+    (_hcluster_unique : ∀ ψ0 ψhat0 ψ1 ψhat1,
+      IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+        ψ0 ψhat0 ψ1 ψhat1 →
+      ψ0 = φ0 ∧ ψhat0 = φhat0 ∧ ψ1 = φ1 ∧ ψhat1 = φhat1) :
+    Filter.Tendsto φ1Iter Filter.atTop (nhds φ1) := by
+  sorry
+
+/-- Unique-cluster topology seam for the hatted-right iterate family. -/
+theorem sinkhorn_unique_cluster_points_imply_φhat1_convergence {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (_hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+      ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
+        IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+          (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
+    (_hcluster_unique : ∀ ψ0 ψhat0 ψ1 ψhat1,
+      IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+        ψ0 ψhat0 ψ1 ψhat1 →
+      ψ0 = φ0 ∧ ψhat0 = φhat0 ∧ ψ1 = φ1 ∧ ψhat1 = φhat1) :
+    Filter.Tendsto φhat1Iter Filter.atTop (nhds φhat1) := by
+  sorry
+
+/-- Unique cluster points imply full finite-dimensional convergence.
+
+The hard general topology theorem is now reduced to the four family-wise convergence seams above.
+Each component can be attacked independently by the same bad-subsequence/cluster-subsequence
+argument. -/
+theorem sinkhorn_unique_cluster_points_imply_convergence {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hsubseq_compact : ∀ subseq : ℕ → ℕ, StrictMono subseq →
+      ∃ (subsub : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ),
+        IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+          (fun n => subseq (subsub n)) ψ0 ψhat0 ψ1 ψhat1)
+    (hcluster_unique : ∀ ψ0 ψhat0 ψ1 ψhat1,
+      IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+        ψ0 ψhat0 ψ1 ψhat1 →
+      ψ0 = φ0 ∧ ψhat0 = φhat0 ∧ ψ1 = φ1 ∧ ψhat1 = φhat1) :
     Filter.Tendsto φ0Iter Filter.atTop (nhds φ0) ∧
     Filter.Tendsto φhat0Iter Filter.atTop (nhds φhat0) ∧
     Filter.Tendsto φ1Iter Filter.atTop (nhds φ1) ∧
     Filter.Tendsto φhat1Iter Filter.atTop (nhds φhat1) := by
-  sorry
+  exact ⟨
+    sinkhorn_unique_cluster_points_imply_φ0_convergence
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hsubseq_compact hcluster_unique,
+    sinkhorn_unique_cluster_points_imply_φhat0_convergence
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hsubseq_compact hcluster_unique,
+    sinkhorn_unique_cluster_points_imply_φ1_convergence
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hsubseq_compact hcluster_unique,
+    sinkhorn_unique_cluster_points_imply_φhat1_convergence
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hsubseq_compact hcluster_unique⟩
 
 /-- Finite-dimensional convergence seam after gauge normalization.
 

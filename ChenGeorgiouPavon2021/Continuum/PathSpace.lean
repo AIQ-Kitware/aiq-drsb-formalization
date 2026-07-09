@@ -94,7 +94,19 @@ theorem intervalDyadicIncrement_eq_of_normalizedContinuousAnchoredIntervalDyadic
         (continuousAnchoredIntervalPathToIntervalPath ω) i
       = intervalDyadicIncrement level
         (continuousAnchoredIntervalPathToIntervalPath η) i := by
-  sorry
+  change intervalDyadicIncrement level ω.1 i = intervalDyadicIncrement level η.1 i
+  have hpoint :
+      intervalDyadicIncrement level ω.1 i / Real.sqrt (dyadicMesh level)
+        = intervalDyadicIncrement level η.1 i / Real.sqrt (dyadicMesh level) := by
+    simpa [normalizedContinuousAnchoredIntervalDyadicIncrementMap,
+      normalizedIntervalDyadicIncrementMap, normalizedIntervalDyadicIncrement] using congrFun hN i
+  have hsqrt_ne : Real.sqrt (dyadicMesh level) ≠ 0 := by
+    have hmesh_pos : 0 < dyadicMesh level := by
+      unfold dyadicMesh
+      positivity
+    exact ne_of_gt (Real.sqrt_pos.2 hmesh_pos)
+  field_simp [hsqrt_ne] at hpoint
+  exact hpoint
 
 /-- Bounded finite telescoping target for dyadic grid values.
 

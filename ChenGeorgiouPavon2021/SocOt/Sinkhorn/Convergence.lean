@@ -316,9 +316,13 @@ sequence implies convergence of the coordinate sum.  It is deliberately local to
 module because Agent C uses it only to pass the fixed gauge through a cluster subsequence. -/
 theorem finite_sum_tendsto_of_function_tendsto {ι : Type*} [Fintype ι]
     (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
-    (_h : Filter.Tendsto x Filter.atTop (nhds xLim)) :
+    (h : Filter.Tendsto x Filter.atTop (nhds xLim)) :
     Filter.Tendsto (fun n => ∑ i, x n i) Filter.atTop (nhds (∑ i, xLim i)) := by
-  sorry
+  have hcont : Continuous (fun y : ι → ℝ => ∑ i, y i) := by
+    fun_prop
+  change Filter.Tendsto ((fun y : ι → ℝ => ∑ i, y i) ∘ x)
+    Filter.atTop (nhds (∑ i, xLim i))
+  exact (hcont.tendsto xLim).comp h
 
 /-- Gauge inheritance for an explicit phase-compatible cluster subsequence.
 

@@ -42,7 +42,12 @@ maximum-principle work below can be tried with a fixed `jstar` and a concrete ex
 theorem finite_sinkhorn_ratio_right_max_exists {ι : Type*} [Fintype ι] [Nonempty ι]
     (φ1 ψ1 : ι → ℝ) :
     ∃ jstar : ι, ∀ j, sinkhornRatio ψ1 φ1 j ≤ sinkhornRatio ψ1 φ1 jstar := by
-  sorry
+  classical
+  obtain ⟨j0⟩ := (inferInstance : Nonempty ι)
+  have huniv_nonempty : (Finset.univ : Finset ι).Nonempty := ⟨j0, by simp⟩
+  obtain ⟨jstar, _hjstar_mem, hmax⟩ :=
+    Finset.exists_max_image (Finset.univ : Finset ι) (sinkhornRatio ψ1 φ1) huniv_nonempty
+  exact ⟨jstar, fun j => hmax j (by simp)⟩
 
 /-- Forward weighted-average inequality for the finite Sinkhorn ratio proof.
 

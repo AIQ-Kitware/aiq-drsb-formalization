@@ -34,23 +34,56 @@ quotient; nonzero denominators are supplied by the positivity fields at use site
 noncomputable def sinkhornRatio {ι : Type*} (ψ φ : ι → ℝ) : ι → ℝ :=
   fun i => ψ i / φ i
 
-/-- Finite ratio-collapse seam for the uniqueness proof.
+/-- The next local maximum-principle target for finite Sinkhorn uniqueness.
 
-This is the Perron--Frobenius/Sinkhorn maximum-principle core requested by the roadmap.  The intended
-proof is: compare the ratios `ψ0/φ0` and `ψ1/φ1`; use the forward equations to show each left ratio
-is a strictly positive weighted average of the right ratios; use the hatted backward equations plus
-the marginal normalizations to obtain the reciprocal inequalities; take finite max/min ratios; and
-use strict positivity of `G` to propagate equality from an extremizer to every index. -/
-theorem finite_sinkhorn_ratio_extreme_principle {ι : Type*} [Fintype ι]
+Assume the finite index type is nonempty.  The proof should choose a right-side extremizer
+`jstar` for the ratio `ψ1 / φ1`, use the Sinkhorn equations to bridge left and right ratios through
+strictly positive finite weighted averages, and then use strict positivity of `G` to propagate equality
+from that extremizer to every index.
+
+This is deliberately sharper than the public scaling theorem below: it names the ratio witness
+`sinkhornRatio ψ1 φ1 jstar` and asks only for all left and right ratios to equal that witness.  Once
+this bridge is proved, the public existential scaling statement is just packaging plus positivity of
+the witness ratio. -/
+theorem finite_sinkhorn_ratio_bridge_all_indices {ι : Type*} [Fintype ι] [Nonempty ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
     (_hG : ∀ i j, 0 < G i j)
     (_hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
     (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
+    ∃ jstar : ι,
+      (∀ i, sinkhornRatio ψ0 φ0 i = sinkhornRatio ψ1 φ1 jstar) ∧
+      (∀ j, sinkhornRatio ψ1 φ1 j = sinkhornRatio ψ1 φ1 jstar) := by
+  sorry
+
+/-- Finite ratio-collapse seam for the uniqueness proof.
+
+The remaining maximum-principle work has been isolated in
+`finite_sinkhorn_ratio_bridge_all_indices`.  This theorem now handles the empty-index edge case and
+packages the nonempty bridge as a positive common ratio. -/
+theorem finite_sinkhorn_ratio_extreme_principle {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
     ∃ c : ℝ, 0 < c ∧
       (∀ i, sinkhornRatio ψ0 φ0 i = c) ∧
       (∀ j, sinkhornRatio ψ1 φ1 j = c) := by
-  sorry
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hnonempty
+  · haveI : IsEmpty ι := hempty
+    refine ⟨1, zero_lt_one, ?_, ?_⟩
+    · intro i
+      exact isEmptyElim i
+    · intro j
+      exact isEmptyElim j
+  · haveI : Nonempty ι := hnonempty
+    obtain ⟨jstar, hratio0, hratio1⟩ :=
+      finite_sinkhorn_ratio_bridge_all_indices p q G
+        φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys
+    refine ⟨sinkhornRatio ψ1 φ1 jstar, ?_, hratio0, hratio1⟩
+    exact div_pos (hψsys.φ1_pos jstar) (hφsys.φ1_pos jstar)
 
 /-- Core uniqueness target for finite Schrödinger/Sinkhorn potentials.
 

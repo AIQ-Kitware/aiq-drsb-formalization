@@ -29,11 +29,13 @@ structure IsFiniteSinkhornPotentialSystem {ι : Type*} [Fintype ι]
   normalize_left : ∀ i, φ0 i * φhat0 i = p i
   normalize_right : ∀ j, φ1 j * φhat1 j = q j
 
-/-- Uniqueness target for finite Schrödinger/Sinkhorn potentials up to reciprocal scaling.
+/-- Core uniqueness target for finite Schrödinger/Sinkhorn potentials.
 
-The kernel positivity hypothesis is essential: without it the finite Schrödinger equations can split
-into disconnected blocks and the global reciprocal-scaling conclusion is false. -/
-theorem sinkhorn_potentials_unique_up_to_scaling {ι : Type*} [Fintype ι]
+This is the genuine Perron--Frobenius / projective-contraction seam: two positive solutions of the
+finite Schrödinger system, for strictly positive kernel, have the same left and right potentials up
+to one common positive scaling.  The reciprocal scaling of the hatted potentials is an algebraic
+consequence proved below from the marginal normalization equations. -/
+theorem sinkhorn_potentials_common_scaling {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
     (_hG : ∀ i j, 0 < G i j)
@@ -41,10 +43,63 @@ theorem sinkhorn_potentials_unique_up_to_scaling {ι : Type*} [Fintype ι]
     (_hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
     ∃ c : ℝ, 0 < c ∧
       (∀ i, ψ0 i = c * φ0 i) ∧
+      (∀ j, ψ1 j = c * φ1 j) := by
+  sorry
+
+/-- Uniqueness of finite Schrödinger/Sinkhorn potentials up to reciprocal scaling.
+
+The hard part is the common-scaling theorem for the two positive potential pairs.  Once that is
+known, the reciprocal scaling of the hatted potentials follows directly from the two marginal
+normalization equations and positivity. -/
+theorem sinkhorn_potentials_unique_up_to_scaling {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hφsys : IsFiniteSinkhornPotentialSystem p q G φ0 φhat0 φ1 φhat1)
+    (hψsys : IsFiniteSinkhornPotentialSystem p q G ψ0 ψhat0 ψ1 ψhat1) :
+    ∃ c : ℝ, 0 < c ∧
+      (∀ i, ψ0 i = c * φ0 i) ∧
       (∀ i, ψhat0 i = c⁻¹ * φhat0 i) ∧
       (∀ j, ψ1 j = c * φ1 j) ∧
       (∀ j, ψhat1 j = c⁻¹ * φhat1 j) := by
-  sorry
+  obtain ⟨c, hc, hψ0, hψ1⟩ :=
+    sinkhorn_potentials_common_scaling p q G
+      φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hφsys hψsys
+  refine ⟨c, hc, hψ0, ?_, hψ1, ?_⟩
+  · intro i
+    have hφ0_ne : φ0 i ≠ 0 := ne_of_gt (hφsys.φ0_pos i)
+    have hc_ne : c ≠ 0 := ne_of_gt hc
+    have hprod : (c * φ0 i) * ψhat0 i = φ0 i * φhat0 i := by
+      calc
+        (c * φ0 i) * ψhat0 i = ψ0 i * ψhat0 i := by rw [hψ0 i]
+        _ = p i := hψsys.normalize_left i
+        _ = φ0 i * φhat0 i := (hφsys.normalize_left i).symm
+    have hcancel : c * ψhat0 i = φhat0 i := by
+      apply mul_left_cancel₀ hφ0_ne
+      calc
+        φ0 i * (c * ψhat0 i) = (c * φ0 i) * ψhat0 i := by ring
+        _ = φ0 i * φhat0 i := hprod
+    calc
+      ψhat0 i = c⁻¹ * (c * ψhat0 i) := by
+        field_simp [hc_ne]
+      _ = c⁻¹ * φhat0 i := by rw [hcancel]
+  · intro j
+    have hφ1_ne : φ1 j ≠ 0 := ne_of_gt (hφsys.φ1_pos j)
+    have hc_ne : c ≠ 0 := ne_of_gt hc
+    have hprod : (c * φ1 j) * ψhat1 j = φ1 j * φhat1 j := by
+      calc
+        (c * φ1 j) * ψhat1 j = ψ1 j * ψhat1 j := by rw [hψ1 j]
+        _ = q j := hψsys.normalize_right j
+        _ = φ1 j * φhat1 j := (hφsys.normalize_right j).symm
+    have hcancel : c * ψhat1 j = φhat1 j := by
+      apply mul_left_cancel₀ hφ1_ne
+      calc
+        φ1 j * (c * ψhat1 j) = (c * φ1 j) * ψhat1 j := by ring
+        _ = φ1 j * φhat1 j := hprod
+    calc
+      ψhat1 j = c⁻¹ * (c * ψhat1 j) := by
+        field_simp [hc_ne]
+      _ = c⁻¹ * φhat1 j := by rw [hcancel]
 
 /-- Abstract Fortet--IPF/Sinkhorn update equations for the finite target theorem.
 

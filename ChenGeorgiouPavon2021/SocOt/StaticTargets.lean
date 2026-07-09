@@ -47,6 +47,7 @@ theorem dynamic_to_static_gluing_le
       exact ENNReal.toReal_nonneg
     exact le_trans (csInf_le hKL_bdd ⟨u, hu, rfl⟩) hle
 
+omit [NormedSpace ℝ X] in
 /-- Feasible path laws are absolutely continuous with respect to the reference under the
 finite-energy model-data regime. -/
 theorem feasible_pathLaw_absCont_reference

@@ -21,6 +21,9 @@ One file per proposed Mathlib destination area:
   always-true `≤` half of OT-DRO duality). STAGING (placeholder); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
   existence (discrete Schrödinger potentials). STAGING (placeholder); see `FOUNDATIONS.md`.
+* `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf` — finite positive-matrix Hilbert
+  projective contraction coefficient (Birkhoff--Hopf), the Franklin--Lorenz convergence engine.
+  STAGING (placeholder); see `LITERATURE_REFERENCES.md`.
 * `ForMathlib.MeasureTheory.PathEmbedding` — a standard-Borel space with a countable
   point-separating measurable family embeds measurably into `ℕ→ℝ` with a measurable left
   inverse (Lusin–Souslin); the concrete continuous-path (`C(T,ℝ)`) instance and the resulting
@@ -32,6 +35,7 @@ import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
+import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
 -- Vendored Kolmogorov extension theorem (Apache-2.0, RemyDegenne/kolmogorov_extension4);
 -- see ForMathlib/KolmogorovExtension/README.md. Supplies `projectiveLimit` for the
 -- continuum reference path measure.

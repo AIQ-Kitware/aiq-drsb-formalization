@@ -137,8 +137,9 @@ Consequently the right-side proof should no longer pass through pointwise log-to
 
 The remaining hard pieces for the right side are now:
 
-1. `ForMathlib.Matrix.positive_kernel_birkhoff_contraction_coefficient` in `BirkhoffHopf.lean`:
-   the paper-agnostic positive finite-kernel Birkhoff coefficient / strict contraction theorem.
+1. `ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient` in
+   `BirkhoffHopf.lean`: the paper-agnostic positive finite-kernel Birkhoff coefficient bundled
+   with its Hilbert-projective contraction proof.
 2. `hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound`: the
    Franklin--Lorenz Lemma 2/Theorem 4 step giving geometric decay of the Hilbert/projective spread
    of the column correction vector `q / c_k`.
@@ -170,7 +171,8 @@ theorem hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_
     (_hG : ∀ i j, 0 < G i j)
     (_horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
     (_hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1) :
+    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (_hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k (ij : ι × ι),
@@ -267,7 +269,8 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
     (hG : ∀ i j, 0 < G i j)
     (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
     (hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k (ij : ι × ι),
@@ -283,7 +286,7 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
     p q G a b γ hγ_nonneg hγ_lt_one hratio_pos
     (franklinLorenz_right_column_relative_ratio_box_bound p q G a b hG horbit hbox)
     (hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
-      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one)
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one hγ_contract)
 
 /-- Pure two-sequence Franklin--Lorenz right-column correction geometric bound.
 
@@ -298,14 +301,15 @@ theorem franklinLorenz_right_column_correction_spread_geometric_bound_of_birkhof
     (hG : ∀ i j, 0 < G i j)
     (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
     (hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k, ForMathlib.Matrix.finitePairwiseRatioSpread q
             (franklinLorenzCurrentColumnMarginal G a b k) ≤ C * γ ^ k := by
   obtain ⟨C, hC_nonneg, hpair⟩ :=
     franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient
-      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one hγ_contract
   refine ⟨(Fintype.card (ι × ι) : ℝ) * C,
     mul_nonneg (Nat.cast_nonneg _) hC_nonneg, ?_⟩
   intro k
@@ -388,7 +392,8 @@ theorem sinkhorn_phi1_column_marginal_correction_spread_geometric_bound_of_birkh
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k, ForMathlib.Matrix.finitePairwiseRatioSpread q
@@ -400,7 +405,7 @@ theorem sinkhorn_phi1_column_marginal_correction_spread_geometric_bound_of_birkh
         φ0Iter φhat0Iter φ1Iter φhat1Iter hiter)
       (franklinLorenzScalingBoxBounds_of_sinkhornPhaseBoxBounds
         φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds)
-      γ hγ_nonneg hγ_lt_one
+      γ hγ_nonneg hγ_lt_one hγ_contract
   refine ⟨C, hC_nonneg, ?_⟩
   intro k
   rw [sinkhorn_currentColumnMarginal_eq_franklinLorenzCurrentColumnMarginal
@@ -422,13 +427,14 @@ theorem sinkhorn_phi1_forward_ratio_spread_geometric_bound_of_birkhoff_coefficie
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φ1Iter k ≤ C * γ ^ k := by
   obtain ⟨C, hC_nonneg, hbound⟩ :=
     sinkhorn_phi1_column_marginal_correction_spread_geometric_bound_of_birkhoff_coefficient
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one
+      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
   refine ⟨C, hC_nonneg, ?_⟩
   intro k
   rw [sinkhorn_phi1_forward_ratio_spread_eq_column_marginal_correction_spread
@@ -450,7 +456,8 @@ theorem hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1) :
+    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (_hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
   sorry
@@ -466,12 +473,13 @@ theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coeffi
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
   exact hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound
     p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-    hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one
+    hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
 
 /-- Harder/right-side Franklin--Lorenz core: geometric decay of the column-correction spread.
 
@@ -491,12 +499,12 @@ theorem sinkhorn_phi1_forward_ratio_spread_geometric_bound_from_franklin_lorenz
     ∃ C γ : ℝ,
       0 ≤ C ∧ 0 ≤ γ ∧ γ < 1 ∧
         ∀ k, finiteForwardRatioSpread φ1Iter k ≤ C * γ ^ k := by
-  obtain ⟨γ, hγ_nonneg, hγ_lt_one⟩ :=
-    ForMathlib.Matrix.positive_kernel_birkhoff_contraction_coefficient G hG
+  obtain ⟨γ, hγ_nonneg, hγ_lt_one, hγ_contract⟩ :=
+    ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient G hG
   obtain ⟨C, hC_nonneg, hbound⟩ :=
     sinkhorn_phi1_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one
+      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
   exact ⟨C, γ, hC_nonneg, hγ_nonneg, hγ_lt_one, hbound⟩
 
 /-- Left-side Franklin--Lorenz core: geometric decay of the row-correction spread. -/
@@ -513,12 +521,12 @@ theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_from_franklin_lore
     ∃ C γ : ℝ,
       0 ≤ C ∧ 0 ≤ γ ∧ γ < 1 ∧
         ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
-  obtain ⟨γ, hγ_nonneg, hγ_lt_one⟩ :=
-    ForMathlib.Matrix.positive_kernel_birkhoff_contraction_coefficient G hG
+  obtain ⟨γ, hγ_nonneg, hγ_lt_one, hγ_contract⟩ :=
+    ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient G hG
   obtain ⟨C, hC_nonneg, hbound⟩ :=
     sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one
+      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
   exact ⟨C, γ, hC_nonneg, hγ_nonneg, hγ_lt_one, hbound⟩
 
 end ChenGeorgiouPavon2021

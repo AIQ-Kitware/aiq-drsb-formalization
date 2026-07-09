@@ -176,6 +176,13 @@ def IsBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype ι] [Fintype �
       finiteHilbertProjectiveLogSpread (positiveKernelApply G x) (positiveKernelApply G y) ≤
         γ * finiteHilbertProjectiveLogSpread x y
 
+/-- A strict Birkhoff--Hopf contraction coefficient packages both the analytic contraction fact and
+its range as a usable geometric rate.  This is the coefficient shape downstream Franklin--Lorenz
+arguments need: a bare number `γ < 1` is not enough unless it is known to contract Hilbert spread. -/
+def IsStrictBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ) (γ : ℝ) : Prop :=
+  0 ≤ γ ∧ γ < 1 ∧ IsBirkhoffHopfContractionCoefficient G γ
+
 /-- Applying a nonnegative finite kernel to a nonnegative vector gives a nonnegative vector. -/
 theorem positiveKernelApply_nonneg {ι κ : Type*} [Fintype κ]
     (G : ι → κ → ℝ) (hG : ∀ i j, 0 ≤ G i j)
@@ -527,11 +534,29 @@ theorem positive_kernel_birkhoff_hopf_contraction {ι κ : Type*}
   exact positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound G hG
     (positive_kernel_apply_crossRatioBounded G hG)
 
-/-- Birkhoff--Hopf coefficient seam for a strictly positive finite kernel.
+/-- Certified Birkhoff--Hopf coefficient seam for a strictly positive finite kernel.
 
-This range-only wrapper is what the current DRSB Franklin--Lorenz file needs.  It is now proved from
-an explicit finite cross-ratio coefficient; the genuine contraction estimate is isolated above as
-`positive_kernel_birkhoff_hopf_contraction`. -/
+This is the theorem shape that Franklin--Lorenz should consume: the chosen `γ` is not merely a
+number in `[0,1)`, but a genuine Hilbert-projective contraction coefficient for `G`.  The proof is
+parked here, rather than in the Sinkhorn-specific files, so that the remaining hard Birkhoff--Hopf
+work stays paper-agnostic and Mathlib-facing. -/
+theorem positive_kernel_strict_birkhoff_contraction_coefficient {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j) :
+    ∃ γ : ℝ, IsStrictBirkhoffHopfContractionCoefficient G γ := by
+  obtain ⟨hγ_nonneg, hγ_lt_one⟩ := positiveKernelBirkhoffCoefficient_nonneg_lt_one G hG
+  refine ⟨positiveKernelBirkhoffCoefficient G, hγ_nonneg, hγ_lt_one, ?_⟩
+  -- This is the actual finite positive-kernel Birkhoff--Hopf contraction theorem.  It should
+  -- eventually be discharged by the paper-route hierarchy rather than by Sinkhorn-specific code.
+  sorry
+
+/-- Range-only Birkhoff--Hopf coefficient seam for a strictly positive finite kernel.
+
+This weaker wrapper is retained for callers that only need a strict geometric rate.  New
+Franklin--Lorenz/Sinkhorn proof seams should prefer
+`positive_kernel_strict_birkhoff_contraction_coefficient`, because a bare `γ < 1` is not enough to
+justify projective decay. -/
 theorem positive_kernel_birkhoff_contraction_coefficient {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)

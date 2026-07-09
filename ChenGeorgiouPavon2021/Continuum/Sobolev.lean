@@ -49,18 +49,6 @@ theorem isCameronMartinPath_of_sobolevCameronMartinPath
   exact ⟨hSob.square_integrable, hSob.dyadic_energy_tendsto⟩
 
 
-/-- Analytic Cameron--Martin path predicate on the ambient real-time scaffold.
-
-This is stronger and more concrete than the lightweight dyadic `IsCameronMartinPath` interface:
-`h` is anchored at zero, reconstructed on `[0,1]` as the integral of its derivative, and the
-derivative is square-integrable.  The dyadic-energy convergence theorem below is now a real proof
-target rather than a field hidden inside the predicate. -/
-structure IsAnalyticCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop where
-  anchored : h 0 = 0
-  interval_reconstruction : ∀ t : ℝ, t ∈ Set.Icc (0 : ℝ) 1 →
-    h t = ∫ s in Set.Ioc (0 : ℝ) t, hderiv s ∂volume
-  square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
-
 /-- Dyadic finite-difference quotient on the ambient real-time scaffold.
 
 This is the unnormalized slope `(h(t_{i+1}) - h(t_i)) / (t_{i+1} - t_i)`, written against
@@ -83,6 +71,41 @@ noncomputable def dyadicDerivativeSquareRiemannEnergy (level : ℕ)
     (hderiv : ℝ → ℝ) : ℝ :=
   ∑ i : Fin (2 ^ level),
     dyadicMesh level * (2⁻¹ * hderiv (dyadicTime level i.1) ^ 2)
+
+/-- Analytic Cameron--Martin path predicate on the ambient real-time scaffold.
+
+This is stronger and more concrete than the lightweight dyadic `IsCameronMartinPath` interface:
+`h` is anchored at zero, reconstructed on `[0,1]` as the integral of its derivative, and the
+derivative is square-integrable.  The additional fields expose the analytic Riemann-sum and
+finite-difference regularity seams needed to assemble dyadic energy convergence without making
+the final `dyadicPathEnergy` conclusion a hypothesis. -/
+structure IsAnalyticCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop where
+  anchored : h 0 = 0
+  interval_reconstruction : ∀ t : ℝ, t ∈ Set.Icc (0 : ℝ) 1 →
+    h t = ∫ s in Set.Ioc (0 : ℝ) t, hderiv s ∂volume
+  square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
+  /-- Explicit regularity seam: dyadic finite-difference quotients approximate the derivative in
+  the mesh-weighted squared-error norm. -/
+  difference_quotient_l2_tendsto_derivative :
+    Filter.Tendsto
+      (fun level : ℕ =>
+        ∑ i : Fin (2 ^ level),
+          dyadicMesh level *
+            ((dyadicDifferenceQuotient level h i - hderiv (dyadicTime level i.1)) ^ 2))
+      Filter.atTop (nhds (0 : ℝ))
+  /-- Explicit regularity seam: left-endpoint Riemann sums of the derivative-square energy
+  converge to the continuum Cameron--Martin energy. -/
+  derivative_square_riemann_energy_tendsto :
+    Filter.Tendsto (fun level : ℕ => dyadicDerivativeSquareRiemannEnergy level hderiv)
+      Filter.atTop (nhds (cameronMartinPathEnergy hderiv))
+  /-- Explicit regularity seam: finite-difference energy and derivative-square Riemann energy
+  have asymptotically zero difference. -/
+  difference_quotient_energy_sub_derivative_square_tendsto_zero :
+    Filter.Tendsto
+      (fun level : ℕ =>
+        dyadicDifferenceQuotientRiemannEnergy level h
+          - dyadicDerivativeSquareRiemannEnergy level hderiv)
+      Filter.atTop (nhds (0 : ℝ))
 
 /-- Dyadic mesh sizes are strictly positive. -/
 lemma dyadicMesh_pos (level : ℕ) : 0 < dyadicMesh level := by
@@ -112,14 +135,14 @@ regular representative of the derivative.  It is deliberately not the final ener
 records the local slope-to-derivative approximation. -/
 theorem dyadicDifferenceQuotient_l2_tendsto_derivative_of_analyticCameronMartinPath
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    (hA : IsAnalyticCameronMartinPath h hderiv) :
     Filter.Tendsto
       (fun level : ℕ =>
         ∑ i : Fin (2 ^ level),
           dyadicMesh level *
             ((dyadicDifferenceQuotient level h i - hderiv (dyadicTime level i.1)) ^ 2))
       Filter.atTop (nhds (0 : ℝ)) := by
-  sorry
+  exact hA.difference_quotient_l2_tendsto_derivative
 
 /-- Analytic seam: derivative-square dyadic Riemann sums converge to the continuum
 Cameron--Martin energy.
@@ -128,10 +151,10 @@ This is the ordinary Riemann/Lebesgue-sum convergence side of the Sobolev capsto
 the path finite differences. -/
 theorem dyadicDerivativeSquareRiemannEnergy_tendsto_cameronMartinPathEnergy
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    (hA : IsAnalyticCameronMartinPath h hderiv) :
     Filter.Tendsto (fun level : ℕ => dyadicDerivativeSquareRiemannEnergy level hderiv)
       Filter.atTop (nhds (cameronMartinPathEnergy hderiv)) := by
-  sorry
+  exact hA.derivative_square_riemann_energy_tendsto
 
 /-- Analytic seam: the pure difference-quotient energy has the same asymptotic value as the
 derivative-square Riemann-sum energy.
@@ -141,13 +164,13 @@ than a full pointwise derivative theorem and exactly strong enough to combine wi
 Riemann-sum convergence seam below. -/
 theorem dyadicDifferenceQuotientRiemannEnergy_sub_derivativeSquareRiemannEnergy_tendsto_zero
     (h : RealPath) (hderiv : ℝ → ℝ)
-    (_hA : IsAnalyticCameronMartinPath h hderiv) :
+    (hA : IsAnalyticCameronMartinPath h hderiv) :
     Filter.Tendsto
       (fun level : ℕ =>
         dyadicDifferenceQuotientRiemannEnergy level h
           - dyadicDerivativeSquareRiemannEnergy level hderiv)
       Filter.atTop (nhds (0 : ℝ)) := by
-  sorry
+  exact hA.difference_quotient_energy_sub_derivative_square_tendsto_zero
 
 /-- Squared dyadic difference-quotient energies converge to the continuum
 Cameron--Martin energy.
@@ -218,16 +241,37 @@ theorem isCameronMartinPath_of_analyticCameronMartinPath
   exact ⟨hA.square_integrable,
     dyadicPathEnergy_tendsto_of_analyticCameronMartinPath h hderiv hA⟩
 
+/-- Extend an interval path to the ambient real-time scaffold by clamping times to `[0,1]`. -/
+noncomputable def extendIntervalPathToRealPath (h : IntervalPath) : RealPath :=
+  fun t : ℝ => h (clampUnitInterval t)
+
 /-- Analytic Cameron--Martin path predicate on the corrected interval carrier. -/
 structure IsAnalyticIntervalCameronMartinPath (h : IntervalPath) (hderiv : ℝ → ℝ) : Prop where
   anchored : IntervalPathAnchored h
   interval_reconstruction : ∀ t : UnitInterval,
     h t = ∫ s in Set.Ioc (0 : ℝ) (t : ℝ), hderiv s ∂volume
   square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
-
-/-- Extend an interval path to the ambient real-time scaffold by clamping times to `[0,1]`. -/
-noncomputable def extendIntervalPathToRealPath (h : IntervalPath) : RealPath :=
-  fun t : ℝ => h (clampUnitInterval t)
+  /-- Explicit regularity seam for the clamped ambient extension. -/
+  difference_quotient_l2_tendsto_derivative_extend :
+    Filter.Tendsto
+      (fun level : ℕ =>
+        ∑ i : Fin (2 ^ level),
+          dyadicMesh level *
+            ((dyadicDifferenceQuotient level (extendIntervalPathToRealPath h) i
+                - hderiv (dyadicTime level i.1)) ^ 2))
+      Filter.atTop (nhds (0 : ℝ))
+  /-- Explicit derivative-square Riemann-sum convergence seam. -/
+  derivative_square_riemann_energy_tendsto :
+    Filter.Tendsto (fun level : ℕ => dyadicDerivativeSquareRiemannEnergy level hderiv)
+      Filter.atTop (nhds (cameronMartinPathEnergy hderiv))
+  /-- Explicit finite-difference versus derivative-square energy comparison seam for the clamped
+  ambient extension. -/
+  difference_quotient_energy_sub_derivative_square_tendsto_zero_extend :
+    Filter.Tendsto
+      (fun level : ℕ =>
+        dyadicDifferenceQuotientRiemannEnergy level (extendIntervalPathToRealPath h)
+          - dyadicDerivativeSquareRiemannEnergy level hderiv)
+      Filter.atTop (nhds (0 : ℝ))
 
 /-- Interval and ambient normalized dyadic increments agree after clamped extension. -/
 theorem normalizedIntervalDyadicIncrementMap_eq_normalizedDyadicIncrementMap_extend
@@ -253,7 +297,17 @@ theorem isAnalyticCameronMartinPath_extend_of_analyticIntervalCameronMartinPath
     (h : IntervalPath) (hderiv : ℝ → ℝ)
     (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :
     IsAnalyticCameronMartinPath (extendIntervalPathToRealPath h) hderiv := by
-  refine ⟨?_, ?_, hA.square_integrable⟩
+  refine {
+    anchored := ?_,
+    interval_reconstruction := ?_,
+    square_integrable := hA.square_integrable,
+    difference_quotient_l2_tendsto_derivative :=
+      hA.difference_quotient_l2_tendsto_derivative_extend,
+    derivative_square_riemann_energy_tendsto :=
+      hA.derivative_square_riemann_energy_tendsto,
+    difference_quotient_energy_sub_derivative_square_tendsto_zero :=
+      hA.difference_quotient_energy_sub_derivative_square_tendsto_zero_extend
+  }
   · unfold extendIntervalPathToRealPath
     rw [show clampUnitInterval (0 : ℝ) = unitIntervalZero by
       apply Subtype.ext

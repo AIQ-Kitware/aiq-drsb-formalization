@@ -7,7 +7,7 @@ convergence sorry is split into boundedness, subsequence extraction, limit-passa
 inheritance, and the unique-cluster-point convergence principle.
 -/
 
-import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Ratio
+import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Topology
 
 set_option autoImplicit false
 
@@ -139,20 +139,30 @@ theorem sinkhorn_gauge_normalized_every_subsequence_has_cluster {ι : Type*} [Fi
 
 /-- Compactness/subsequence seam for gauge-normalized finite Sinkhorn iterates.
 
-This target-facing theorem is kept as the one-cluster corollary, while the real convergence proof
-should use `sinkhorn_gauge_normalized_every_subsequence_has_cluster`. -/
+This target-facing theorem is the one-cluster corollary of the uniform-bounds and phase-compatible
+subsequence-extraction seams.  The harder every-outer-subsequence form remains available as
+`sinkhorn_gauge_normalized_every_subsequence_has_cluster` for the final convergence proof. -/
 theorem sinkhorn_gauge_normalized_subsequence_exists {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hp : ∀ i, 0 < p i) (_hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j) (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1) :
     ∃ ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ,
       IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
         ψ0 ψhat0 ψ1 ψhat1 := by
-  sorry
+  have hbounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧
+      (∀ n i, ε ≤ φ0Iter n i ∧ φ0Iter n i ≤ B) ∧
+      (∀ n i, ε ≤ φhat0Iter n i ∧ φhat0Iter n i ≤ B) ∧
+      (∀ n j, ε ≤ φ1Iter n j ∧ φ1Iter n j ≤ B) ∧
+      (∀ n j, ε ≤ φhat1Iter n j ∧ φhat1Iter n j ≤ B) :=
+    sinkhorn_gauge_normalized_uniform_bounds p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hp hq hG hiter hgauge
+  exact sinkhorn_phase_compatible_subsequence_of_bounds
+    φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds
 
 /-- Forward equation for phase-compatible cluster points. -/
 theorem sinkhorn_cluster_point_forward_equation {ι : Type*} [Fintype ι]
@@ -337,109 +347,6 @@ theorem sinkhorn_gauge_normalized_cluster_point_unique {ι : Type*} [Fintype ι]
   exact sinkhorn_gauge_fixed_point_unique p q G
     φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 hG hpotentials hψsys hψgauge
 
-
-/-- If the absolute composed subsequence `subseq (subsub n)` is strictly increasing, then the
-inner index selector `subsub` is cofinal.  This is the small order-theoretic bridge needed by the
-bad-subsequence compactness argument: a bad outer subsequence remains bad after passing to a
-cofinal further subsequence. -/
-theorem sinkhorn_subsub_tendsto_atTop_of_strictMono_comp
-    (subseq subsub : ℕ → ℕ)
-    (_hsubseq : StrictMono subseq)
-    (_hcomp : StrictMono (fun n => subseq (subsub n))) :
-    Filter.Tendsto subsub Filter.atTop Filter.atTop := by
-  sorry
-
-/-- Coordinatewise convergence implies convergence in the finite function space.
-
-This is the product-topology bridge behind the bad-coordinate extraction.  For finite `ι`, a sequence
-in `ι → ℝ` converges exactly when all scalar coordinate projections converge. -/
-theorem finite_function_tendsto_of_coordinate_tendsto {ι : Type*} [Fintype ι]
-    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
-    (_hcoord : ∀ i : ι, Filter.Tendsto (fun n => x n i) Filter.atTop (nhds (xLim i))) :
-    Filter.Tendsto x Filter.atTop (nhds xLim) := by
-  sorry
-
-/-- Scalar nonconvergence at `atTop` produces a frequently bad epsilon-neighborhood.
-
-This is the one-dimensional sequential-topology core used by the finite-product bad-coordinate
-argument. -/
-theorem scalar_not_tendsto_has_frequently_bad_epsilon
-    (x : ℕ → ℝ) (xLim : ℝ)
-    (_hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
-    ∃ ε : ℝ, 0 < ε ∧ ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n - xLim| := by
-  sorry
-
-/-- If a finite-function sequence does not converge, then some coordinate is frequently
-separated from the candidate limit.
-
-This is now a wrapper around two purer topology seams: finite product convergence is coordinatewise,
-and scalar nonconvergence produces a frequently bad epsilon-neighborhood. -/
-theorem finite_function_not_tendsto_has_frequently_bad_coordinate {ι : Type*} [Fintype ι]
-    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
-    (hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
-    ∃ i : ι, ∃ ε : ℝ, 0 < ε ∧ ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n i - xLim i| := by
-  by_contra hnone
-  have hcoord : ∀ i : ι, Filter.Tendsto (fun n => x n i) Filter.atTop (nhds (xLim i)) := by
-    intro i
-    by_contra hnot_i
-    obtain ⟨ε, hε, hfreq⟩ :=
-      scalar_not_tendsto_has_frequently_bad_epsilon (fun n => x n i) (xLim i) hnot_i
-    exact hnone ⟨i, ε, hε, hfreq⟩
-  exact hnot (finite_function_tendsto_of_coordinate_tendsto x xLim hcoord)
-
-/-- A scalar coordinate that is frequently bad admits a strictly increasing bad subsequence. -/
-theorem finite_function_frequently_bad_coordinate_subsequence {ι : Type*}
-    (x : ℕ → ι → ℝ) (xLim : ι → ℝ) (i : ι) (ε : ℝ)
-    (_hε : 0 < ε)
-    (_hfreq : ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n i - xLim i|) :
-    ∃ subseq : ℕ → ℕ, StrictMono subseq ∧
-      ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i| := by
-  sorry
-
-/-- A bad coordinate subsequence stays nonconvergent after every cofinal further subsequence. -/
-theorem finite_function_bad_coordinate_blocks_cofinal_convergence {ι : Type*} [Fintype ι]
-    (x : ℕ → ι → ℝ) (xLim : ι → ℝ) (i : ι) (ε : ℝ)
-    (_hε : 0 < ε) (subseq : ℕ → ℕ)
-    (_hbad : ∀ k : ℕ, ε ≤ |x (subseq k) i - xLim i|)
-    (subsub : ℕ → ℕ) (_hsubsub : Filter.Tendsto subsub Filter.atTop Filter.atTop) :
-    ¬ Filter.Tendsto (fun n => x (subseq (subsub n))) Filter.atTop (nhds xLim) := by
-  sorry
-
-/-- A nonconvergent finite-function sequence has a bad subsequence that no cofinal further
-subsequence can make converge to the candidate limit.
-
-This packages the standard contradiction setup used by the unique-cluster convergence theorem. -/
-theorem finite_function_not_tendsto_produces_bad_subsequence {ι : Type*} [Fintype ι]
-    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
-    (hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
-    ∃ subseq : ℕ → ℕ, StrictMono subseq ∧
-      ∀ subsub : ℕ → ℕ, Filter.Tendsto subsub Filter.atTop Filter.atTop →
-        ¬ Filter.Tendsto (fun n => x (subseq (subsub n))) Filter.atTop (nhds xLim) := by
-  obtain ⟨i, ε, hε, hfreq⟩ := finite_function_not_tendsto_has_frequently_bad_coordinate x xLim hnot
-  obtain ⟨subseq, hsubseq_mono, hbad⟩ :=
-    finite_function_frequently_bad_coordinate_subsequence x xLim i ε hε hfreq
-  refine ⟨subseq, hsubseq_mono, ?_⟩
-  intro subsub hsubsub
-  exact finite_function_bad_coordinate_blocks_cofinal_convergence
-    x xLim i ε hε subseq hbad subsub hsubsub
-
-/-- Generic finite-function topology seam: if every subsequence has a cofinal further subsequence
-converging to the same candidate limit, then the original finite-dimensional sequence converges.
-
-This theorem is now only the final contradiction wrapper.  The genuinely hard topology has been split
-into the bad-coordinate extraction, bad-subsequence construction, and cofinal-obstruction lemmas above. -/
-theorem finite_function_tendsto_of_unique_subseq_cluster {ι : Type*} [Fintype ι]
-    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
-    (hsubseq_cluster : ∀ subseq : ℕ → ℕ, StrictMono subseq →
-      ∃ subsub : ℕ → ℕ,
-        Filter.Tendsto subsub Filter.atTop Filter.atTop ∧
-        Filter.Tendsto (fun n => x (subseq (subsub n))) Filter.atTop (nhds xLim)) :
-    Filter.Tendsto x Filter.atTop (nhds xLim) := by
-  by_contra hnot
-  obtain ⟨subseq, hsubseq_mono, hbad⟩ :=
-    finite_function_not_tendsto_produces_bad_subsequence x xLim hnot
-  obtain ⟨subsub, hsubsub, hconv⟩ := hsubseq_cluster subseq hsubseq_mono
-  exact hbad subsub hsubsub hconv
 
 /-- Unique-along topology wrapper for the forward-left iterate family.
 

@@ -63,20 +63,51 @@ theorem sinkhorn_gauge_normalized_left_forward_bounds {ι : Type*} [Fintype ι]
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φ0Iter ε B := by
   sorry
 
+/-- Generic successor-quotient bound for one Sinkhorn phase.
+
+If a positive target phase is related to a uniformly boxed denominator by
+`target (n + 1) i * denom n i = a i`, then all successor values of `target` are bounded by
+`a i / B` and `a i / ε`, while the finitely many initial values `target 0 i` are absorbed into the
+same global finite box.  This lemma is intentionally Sinkhorn-free except for reusing the local box
+predicate, so it can discharge both the left-hatted and right-forward normalization estimates. -/
+theorem sinkhorn_successor_quotient_phase_bounds {ι : Type*} [Fintype ι]
+    (a : ι → ℝ) (denom target : ℕ → ι → ℝ)
+    (_ha : ∀ i, 0 < a i)
+    (_htarget_pos : ∀ n i, 0 < target n i)
+    (_hdenom_bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox denom ε B)
+    (_hupdate : ∀ n i, target (n + 1) i * denom n i = a i) :
+    ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox target ε B := by
+  sorry
+
+/-- Generic weighted-sum bound for one Sinkhorn phase.
+
+If `source` is uniformly boxed and `target n j = ∑ i, G i j * source n i` with a strictly positive
+finite kernel, then `target` is uniformly boxed.  The lower bound comes from any one strictly positive
+summand; the upper bound comes from the finite sum of kernel coefficients times the source upper
+bound. -/
+theorem sinkhorn_weighted_sum_phase_bounds {ι : Type*} [Fintype ι]
+    (G : ι → ι → ℝ) (source target : ℕ → ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hsource_bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox source ε B)
+    (_hupdate : ∀ n j, target n j = ∑ i, G i j * source n i) :
+    ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox target ε B := by
+  sorry
+
 /-- Hatted-left bounds from left-forward bounds and the left marginal normalization.
 
 For successor phases this is the algebraic estimate
 `φhat0Iter (n + 1) i = p i / φ0Iter n i`; the finitely many initial values
 `φhat0Iter 0 i` are absorbed into the final finite box using positivity. -/
 theorem sinkhorn_hatted_left_bounds_from_left_forward_bounds {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
-    (_hp : ∀ i, 0 < p i)
-    (_hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hφ0bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φ0Iter ε B) :
+    (p _q : ι → ℝ) (_G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter _φ1Iter _φhat1Iter : ℕ → ι → ℝ)
+    (hp : ∀ i, 0 < p i)
+    (_hq : ∀ j, 0 < _q j) (_hG : ∀ i j, 0 < _G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p _q _G φ0Iter φhat0Iter _φ1Iter _φhat1Iter)
+    (hφ0bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φ0Iter ε B) :
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φhat0Iter ε B := by
-  sorry
+  exact sinkhorn_successor_quotient_phase_bounds p φ0Iter φhat0Iter
+    hp hiter.φhat0_pos hφ0bounds hiter.normalize_left
 
 /-- Hatted-right bounds from hatted-left bounds and the backward equation.
 
@@ -84,14 +115,15 @@ The backward equation writes each `φhat1Iter n j` as a positive finite weighted
 bounded hatted-left phase.  Positivity of `G` supplies a positive lower bound, and finiteness supplies
 an upper bound. -/
 theorem sinkhorn_hatted_right_bounds_from_hatted_left_bounds {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
-    (_hp : ∀ i, 0 < p i)
-    (_hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hφhat0bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φhat0Iter ε B) :
+    (_p _q : ι → ℝ) (G : ι → ι → ℝ)
+    (_φ0Iter φhat0Iter _φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (_hp : ∀ i, 0 < _p i)
+    (_hq : ∀ j, 0 < _q j) (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem _p _q G _φ0Iter φhat0Iter _φ1Iter φhat1Iter)
+    (hφhat0bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φhat0Iter ε B) :
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φhat1Iter ε B := by
-  sorry
+  exact sinkhorn_weighted_sum_phase_bounds G φhat0Iter φhat1Iter
+    hG hφhat0bounds hiter.backward
 
 /-- Right-forward bounds from hatted-right bounds and the right marginal normalization.
 
@@ -99,14 +131,15 @@ For successor phases this is the algebraic estimate
 `φ1Iter (n + 1) j = q j / φhat1Iter n j`; the finitely many initial values `φ1Iter 0 j` are
 absorbed into the final finite box using positivity. -/
 theorem sinkhorn_right_forward_bounds_from_hatted_right_bounds {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
-    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
-    (_hp : ∀ i, 0 < p i)
-    (_hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hφhat1bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φhat1Iter ε B) :
+    (_p q : ι → ℝ) (_G : ι → ι → ℝ)
+    (_φ0Iter _φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (_hp : ∀ i, 0 < _p i)
+    (hq : ∀ j, 0 < q j) (_hG : ∀ i j, 0 < _G i j)
+    (hiter : IsFiniteSinkhornIterateSystem _p q _G _φ0Iter _φhat0Iter φ1Iter φhat1Iter)
+    (hφhat1bounds : ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φhat1Iter ε B) :
     ∃ ε B : ℝ, 0 < ε ∧ 0 < B ∧ SinkhornPhaseInUniformBox φ1Iter ε B := by
-  sorry
+  exact sinkhorn_successor_quotient_phase_bounds q φhat1Iter φ1Iter
+    hq hiter.φ1_pos hφhat1bounds hiter.normalize_right
 
 /-- Combine four positive finite boxes into one common box.
 

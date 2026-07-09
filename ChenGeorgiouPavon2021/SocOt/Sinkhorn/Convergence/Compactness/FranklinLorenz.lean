@@ -151,21 +151,90 @@ theorem franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkho
           |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k := by
   sorry
 
+/-- Uniform finite-box bound for the right-column relative ratio `q / c_k`.
+
+This is a finite-order/box-bounds seam, independent of Hilbert contraction.  From strict positivity of
+`G` and the uniform bounds on the scaling vectors, the current column marginal `c_k` stays uniformly
+away from zero and `q` stays uniformly bounded, hence the quotient `q j / c_k j` is bounded. -/
+theorem franklinLorenz_right_column_relative_ratio_box_bound
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hbox : FranklinLorenzScalingBoxBounds a b) :
+    ∃ R : ℝ,
+      0 ≤ R ∧
+        ∀ k j,
+          |q j / franklinLorenzCurrentColumnMarginal G a b k j| ≤ R := by
+  classical
+  rcases hbox with ⟨ε, B, hε, hB, ha_box, hb_box⟩
+  refine ⟨B / ε, le_of_lt (div_pos hB hε), ?_⟩
+  intro k j
+  let S : ℝ := ∑ i, G i j * a k i
+  have hS_pos : 0 < S := by
+    dsimp [S]
+    apply Finset.sum_pos
+    · intro i _hi
+      exact mul_pos (hG i j) (horbit.left_pos k i)
+    · exact ⟨j, Finset.mem_univ j⟩
+  have hb_k_pos : 0 < b k j := lt_of_lt_of_le hε (hb_box k j).1
+  have hb_next_nonneg : 0 ≤ b (k + 1) j :=
+    le_trans (le_of_lt hε) (hb_box (k + 1) j).1
+  have hratio_eq :
+      q j / franklinLorenzCurrentColumnMarginal G a b k j = b (k + 1) j / b k j := by
+    unfold franklinLorenzCurrentColumnMarginal
+    dsimp [S] at hS_pos
+    rw [← horbit.column_update k j]
+    field_simp [ne_of_gt hS_pos, ne_of_gt hb_k_pos]
+  have hmul : b (k + 1) j * ε ≤ B * b k j := by
+    have h1 : b (k + 1) j * ε ≤ B * ε := by
+      exact mul_le_mul_of_nonneg_right (hb_box (k + 1) j).2 (le_of_lt hε)
+    have h2 : B * ε ≤ B * b k j := by
+      exact mul_le_mul_of_nonneg_left (hb_box k j).1 (le_of_lt hB)
+    exact le_trans h1 h2
+  rw [hratio_eq]
+  have hratio_nonneg : 0 ≤ b (k + 1) j / b k j :=
+    div_nonneg hb_next_nonneg (le_of_lt hb_k_pos)
+  rw [abs_of_nonneg hratio_nonneg]
+  field_simp [ne_of_gt hb_k_pos, ne_of_gt hε]
+  simpa [mul_comm, mul_left_comm, mul_assoc] using hmul
+
+/-- Pure real-analysis conversion from geometric log-relative error to geometric relative error.
+
+Once ratios `r k j` are known positive and uniformly bounded above, the map `x ↦ exp x - 1` is
+Lipschitz on the corresponding bounded log range.  This lemma is the calculus/compactness tail that
+turns a Hilbert/log estimate into the concrete multiplicative correction estimate. -/
+theorem relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
+    {ι : Type*} [Fintype ι]
+    (r : ℕ → ι → ℝ) (γ : ℝ)
+    (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (_hr_pos : ∀ k j, 0 < r k j)
+    (_hr_box : ∃ R : ℝ, 0 ≤ R ∧ ∀ k j, |r k j| ≤ R)
+    (_hlog : ∃ C : ℝ,
+      0 ≤ C ∧ ∀ k j, |Real.log (r k j)| ≤ C * γ ^ k) :
+    ∃ C : ℝ,
+      0 ≤ C ∧ ∀ k j, |r k j - 1| ≤ C * γ ^ k := by
+  sorry
+
 /-- Convert a logarithmic right-column relative-error bound into the concrete multiplicative
 correction bound used by the finite-spread bookkeeping.
 
-This is the finite-box/positivity conversion layer below the Hilbert metric theorem.  The expected
-proof uses positivity of `q` and `c_k`, the uniform box bounds on the scaling sequences, and a finite
-compactness/Lipschitz estimate comparing `|log r|` and `|r - 1|` on the resulting bounded positive
-range of ratios. -/
+This theorem is now just the composition of two clearer lower-level tasks:
+
+* `franklinLorenz_right_column_relative_ratio_box_bound`, a finite box-bounds lemma for the ratio
+  `q / c_k`;
+* `relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box`, a pure
+  one-variable real-analysis conversion from log error to relative error on a bounded positive range.
+-/
 theorem franklinLorenz_right_column_relative_error_geometric_bound_of_log_relative_error_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
-    (_hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
     (hlog : ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k j,
@@ -174,7 +243,17 @@ theorem franklinLorenz_right_column_relative_error_geometric_bound_of_log_relati
       0 ≤ C ∧
         ∀ k j,
           |q j / franklinLorenzCurrentColumnMarginal G a b k j - 1| ≤ C * γ ^ k := by
-  sorry
+  have hratio_pos :
+      ∀ k j, 0 < q j / franklinLorenzCurrentColumnMarginal G a b k j := by
+    intro k j
+    exact div_pos
+      (franklinLorenz_targetColumn_pos p q G a b hG horbit k j)
+      (franklinLorenzCurrentColumnMarginal_pos G a b hG horbit.left_pos horbit.right_pos k j)
+  exact relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
+    (fun k j => q j / franklinLorenzCurrentColumnMarginal G a b k j) γ
+    hγ_nonneg hγ_lt_one hratio_pos
+    (franklinLorenz_right_column_relative_ratio_box_bound p q G a b hG horbit hbox)
+    hlog
 
 /-- Projective/Hilbert right-column relative-error decay for a two-sequence
 Franklin--Lorenz orbit.

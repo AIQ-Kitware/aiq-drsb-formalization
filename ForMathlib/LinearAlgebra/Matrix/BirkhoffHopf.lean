@@ -352,20 +352,50 @@ theorem positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bou
   intro i i'
   exact positive_kernel_apply_log_crossratio_le_of_apply_crossratio_bound G hG hbound x y hx hy i i'
 
-/-- Birkhoff's oscillation estimate from finite image diameter.
+/-- Pointwise four-coordinate form of Birkhoff's oscillation estimate.
 
-This is the remaining analytic core: a positive linear map whose image has Hilbert diameter bounded
-by `log B` contracts Hilbert projective spread.  The coefficient here is the deliberately coarse
-explicit coefficient `(B - 1) / B`, which is above the standard `tanh (Δ / 4)` coefficient when
-`B = exp Δ`. -/
-theorem positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_bound
+This is the remaining analytic core in its most local form.  For every output-coordinate pair
+`i, i'`, the image cross-ratio logarithm is controlled by the input Hilbert spread times the
+Birkhoff coefficient.  A standard proof introduces the extremal input ratios, applies the finite
+image-diameter bound to the two positive parts of the oscillation decomposition, and then uses the
+scalar Birkhoff inequality (equivalently the `tanh (Δ / 4)` estimate).
+
+Keeping this pointwise version separate makes the surrounding finite-`sSup` wrapper below routine. -/
+theorem positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_apply_hilbert_log_diameter_bound
     {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)
     (_hG : ∀ i j, 0 < G i j)
     (_hdiam : PositiveKernelApplyHilbertLogDiameterBounded G
+      (Real.log (positiveKernelCrossRatioBound G)))
+    (x y : κ → ℝ)
+    (_hx : ∀ j, 0 < x j) (_hy : ∀ j, 0 < y j)
+    (i i' : ι) :
+    Real.log (((positiveKernelApply G x i) * (positiveKernelApply G y i')) /
+        ((positiveKernelApply G x i') * (positiveKernelApply G y i))) ≤
+      positiveKernelBirkhoffCoefficient G * finiteHilbertProjectiveLogSpread x y := by
+  sorry
+
+/-- Birkhoff's oscillation estimate from finite image diameter.
+
+The only nontrivial ingredient is the pointwise four-coordinate oscillation estimate above.  This
+wrapper just packages those pointwise inequalities into the finite supremum defining Hilbert
+projective spread.  The coefficient here is the deliberately coarse explicit coefficient
+`(B - 1) / B`, which is above the standard `tanh (Δ / 4)` coefficient when `B = exp Δ`. -/
+theorem positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_bound
+    {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hdiam : PositiveKernelApplyHilbertLogDiameterBounded G
       (Real.log (positiveKernelCrossRatioBound G))) :
     IsBirkhoffHopfContractionCoefficient G (positiveKernelBirkhoffCoefficient G) := by
-  sorry
+  classical
+  unfold IsBirkhoffHopfContractionCoefficient
+  intro x y hx hy
+  apply finiteHilbertProjectiveLogSpread_le_of_forall_pair
+  intro i i'
+  exact
+    positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_apply_hilbert_log_diameter_bound
+      G hG hdiam x y hx hy i i'
 
 /-- Birkhoff's oscillation estimate once the image-cone cross-ratio is bounded.
 

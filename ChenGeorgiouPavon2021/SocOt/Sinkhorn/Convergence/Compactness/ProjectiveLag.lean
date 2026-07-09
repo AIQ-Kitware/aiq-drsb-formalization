@@ -93,6 +93,162 @@ abbrev SinkhornDenominatorQuotientPredecessorProjectiveAlignment {ι : Type*}
   (∀ i j, ψ0 i * (p j / ψhat0 j) - ψ0 j * (p i / ψhat0 i) = 0) ∧
     (∀ i j, ψhat1 i * (q j / ψ1 j) - ψhat1 j * (q i / ψ1 i) = 0)
 
+
+/-- Projective alignment of the current and successor mixed phases in a raw precluster.
+
+This is a cleaner Hilbert-contraction target than denominator lag itself.  The denominator
+predecessor limits are quotients through the normalization equations, so projective alignment of
+`ψhat0Succ` with `ψhat0` and of `ψ1Succ` with `ψ1` is exactly the ratio-collapse input needed to
+make those quotient predecessor limits projectively parallel to `ψ0` and `ψhat1`. -/
+abbrev SinkhornMixedSuccessorProjectiveAlignment {ι : Type*}
+    (ψhat0 ψhat0Succ ψ1 ψ1Succ : ι → ℝ) : Prop :=
+  (∀ i j, ψhat0Succ i * ψhat0 j - ψhat0Succ j * ψhat0 i = 0) ∧
+    (∀ i j, ψ1Succ i * ψ1 j - ψ1Succ j * ψ1 i = 0)
+
+/-- Left normalization passed to a raw six-stream precluster.
+
+This is the limit form of `φhat0Iter (k + 1) * φ0Iter k = p` along `k = subseq n`.
+It uses the successor mixed-phase limit `ψhat0Succ`, so it is valid before successor compatibility
+has been proved. -/
+theorem projective_lag_precluster_normalize_left_successor {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    ∀ i, ψ0 i * ψhat0Succ i = p i := by
+  intro i
+  have hφ0 :
+      Filter.Tendsto (fun n => φ0Iter (subseq n) i)
+        Filter.atTop (nhds (ψ0 i)) :=
+    ((continuous_apply i).tendsto ψ0).comp hpre.tendsto_φ0
+  have hφhat0_succ :
+      Filter.Tendsto (fun n => φhat0Iter (subseq n + 1) i)
+        Filter.atTop (nhds (ψhat0Succ i)) :=
+    ((continuous_apply i).tendsto ψhat0Succ).comp hpre.tendsto_φhat0_succ
+  have hprod_cluster :
+      Filter.Tendsto
+        (fun n => φ0Iter (subseq n) i * φhat0Iter (subseq n + 1) i)
+        Filter.atTop (nhds (ψ0 i * ψhat0Succ i)) := by
+    exact hφ0.mul hφhat0_succ
+  have hprod_target :
+      Filter.Tendsto
+        (fun n => φ0Iter (subseq n) i * φhat0Iter (subseq n + 1) i)
+        Filter.atTop (nhds (p i)) := by
+    have hseq_eq :
+        (fun n => φ0Iter (subseq n) i * φhat0Iter (subseq n + 1) i) =
+          (fun _ : ℕ => p i) := by
+      funext n
+      simpa [mul_comm] using hiter.normalize_left (subseq n) i
+    rw [hseq_eq]
+    exact (tendsto_const_nhds :
+      Filter.Tendsto (fun _ : ℕ => p i) Filter.atTop (nhds (p i)))
+  exact tendsto_nhds_unique hprod_cluster hprod_target
+
+/-- Right normalization passed to a raw six-stream precluster.
+
+This is the limit form of `φ1Iter (k + 1) * φhat1Iter k = q` along `k = subseq n`.
+It is duplicated here under a projective-specific name to avoid an import cycle with `ScaleLag`. -/
+theorem projective_lag_precluster_normalize_right_successor {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    ∀ j, ψ1Succ j * ψhat1 j = q j := by
+  intro j
+  have hφ1_succ :
+      Filter.Tendsto (fun n => φ1Iter (subseq n + 1) j)
+        Filter.atTop (nhds (ψ1Succ j)) :=
+    ((continuous_apply j).tendsto ψ1Succ).comp hpre.tendsto_φ1_succ
+  have hφhat1 :
+      Filter.Tendsto (fun n => φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (ψhat1 j)) :=
+    ((continuous_apply j).tendsto ψhat1).comp hpre.tendsto_φhat1
+  have hprod_cluster :
+      Filter.Tendsto
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (ψ1Succ j * ψhat1 j)) := by
+    exact hφ1_succ.mul hφhat1
+  have hprod_target :
+      Filter.Tendsto
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (q j)) := by
+    have hseq_eq :
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j) =
+          (fun _ : ℕ => q j) := by
+      funext n
+      exact hiter.normalize_right (subseq n) j
+    rw [hseq_eq]
+    exact (tendsto_const_nhds :
+      Filter.Tendsto (fun _ : ℕ => q j) Filter.atTop (nhds (q j)))
+  exact tendsto_nhds_unique hprod_cluster hprod_target
+
+/-- Quotient-predecessor denominator alignment follows algebraically from successor/current
+projective alignment of the mixed phases.
+
+The proof uses only the two mixed normalization equations at the raw-precluster limit.  It does not
+use Hilbert contraction directly; that is isolated in
+`sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates`. -/
+theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_of_mixed_successor_alignment
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
+    (hmixed : SinkhornMixedSuccessorProjectiveAlignment ψhat0 ψhat0Succ ψ1 ψ1Succ) :
+    SinkhornDenominatorQuotientPredecessorProjectiveAlignment p q ψ0 ψhat0 ψ1 ψhat1 := by
+  obtain ⟨hmix_hat0, hmix_φ1⟩ := hmixed
+  have hnorm_left := projective_lag_precluster_normalize_left_successor p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+    ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre
+  have hnorm_right := projective_lag_precluster_normalize_right_successor p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+    ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre
+  refine ⟨?_, ?_⟩
+  · intro i j
+    have hi_ne : ψhat0 i ≠ 0 := ne_of_gt (hpre.positive.2.1 i)
+    have hj_ne : ψhat0 j ≠ 0 := ne_of_gt (hpre.positive.2.1 j)
+    have hcross : ψhat0Succ i * ψhat0 j = ψhat0Succ j * ψhat0 i :=
+      sub_eq_zero.mp (hmix_hat0 i j)
+    have hratio : ψhat0Succ j / ψhat0 j = ψhat0Succ i / ψhat0 i := by
+      field_simp [hi_ne, hj_ne]
+      nlinarith [hcross]
+    rw [← hnorm_left i, ← hnorm_left j]
+    rw [div_eq_mul_inv, div_eq_mul_inv]
+    calc
+      ψ0 i * ((ψ0 j * ψhat0Succ j) * (ψhat0 j)⁻¹) -
+          ψ0 j * ((ψ0 i * ψhat0Succ i) * (ψhat0 i)⁻¹)
+          = ψ0 i * ψ0 j * (ψhat0Succ j * (ψhat0 j)⁻¹) -
+            ψ0 j * ψ0 i * (ψhat0Succ i * (ψhat0 i)⁻¹) := by ring
+      _ = ψ0 i * ψ0 j * (ψhat0Succ i * (ψhat0 i)⁻¹) -
+            ψ0 j * ψ0 i * (ψhat0Succ i * (ψhat0 i)⁻¹) := by
+          rw [← div_eq_mul_inv, ← div_eq_mul_inv, hratio]
+      _ = 0 := by ring
+  · intro i j
+    have hi_ne : ψ1 i ≠ 0 := ne_of_gt (hpre.positive.2.2.2.1 i)
+    have hj_ne : ψ1 j ≠ 0 := ne_of_gt (hpre.positive.2.2.2.1 j)
+    have hcross : ψ1Succ i * ψ1 j = ψ1Succ j * ψ1 i :=
+      sub_eq_zero.mp (hmix_φ1 i j)
+    have hratio : ψ1Succ j / ψ1 j = ψ1Succ i / ψ1 i := by
+      field_simp [hi_ne, hj_ne]
+      nlinarith [hcross]
+    rw [← hnorm_right i, ← hnorm_right j]
+    rw [div_eq_mul_inv, div_eq_mul_inv]
+    calc
+      ψhat1 i * ((ψ1Succ j * ψhat1 j) * (ψ1 j)⁻¹) -
+          ψhat1 j * ((ψ1Succ i * ψhat1 i) * (ψ1 i)⁻¹)
+          = ψhat1 i * ψhat1 j * (ψ1Succ j * (ψ1 j)⁻¹) -
+            ψhat1 j * ψhat1 i * (ψ1Succ i * (ψ1 i)⁻¹) := by ring
+      _ = ψhat1 i * ψhat1 j * (ψ1Succ i * (ψ1 i)⁻¹) -
+            ψhat1 j * ψhat1 i * (ψ1Succ i * (ψ1 i)⁻¹) := by
+          rw [← div_eq_mul_inv, ← div_eq_mul_inv, hratio]
+      _ = 0 := by ring
+
 /-- The left denominator predecessor subsequence has the quotient limit forced by
 `φhat0Iter (k + 1) * φ0Iter k = p`.
 
@@ -203,13 +359,13 @@ theorem sinkhorn_denominator_predecessor_quotient_limits_from_precluster {ι : T
       ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre⟩
 
 
-/-- Remaining C2-projective dynamical seam, now stated after quotient-limit passage.
+/-- Remaining C2-projective dynamical seam, now before quotient-limit algebra.
 
-The normalization equations identify the absolute-predecessor denominator limits as `p / ψhat0` and
-`q / ψ1`; this theorem is exactly the leftover projective dynamics.  It should come from a Hilbert
-projective contraction, a monotone projective-diameter argument, or an equivalent positive-kernel
-oscillation/energy estimate. -/
-theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gauge_iterates
+This is the true projective/Hilbert-contraction residue after the elementary normalization algebra
+has been extracted.  It asks only that each mixed phase be projectively aligned with its absolute
+successor limit in the raw precluster.  The next theorem turns this into denominator predecessor
+alignment using the mixed normalization equations. -/
+theorem sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -221,8 +377,34 @@ theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gaug
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
-    SinkhornDenominatorQuotientPredecessorProjectiveAlignment p q ψ0 ψhat0 ψ1 ψhat1 := by
+    SinkhornMixedSuccessorProjectiveAlignment ψhat0 ψhat0Succ ψ1 ψ1Succ := by
   sorry
+
+/-- Package the remaining mixed-phase projective alignment seam into quotient-predecessor
+denominator projective alignment.
+
+After the previous theorem supplies projective alignment of `ψhat0Succ` with `ψhat0` and `ψ1Succ`
+with `ψ1`, the rest is algebra from the two precluster normalization equations. -/
+theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    SinkhornDenominatorQuotientPredecessorProjectiveAlignment p q ψ0 ψhat0 ψ1 ψhat1 := by
+  have hmixed : SinkhornMixedSuccessorProjectiveAlignment ψhat0 ψhat0Succ ψ1 ψ1Succ :=
+    sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+  exact sinkhorn_denominator_quotient_predecessor_projective_alignment_of_mixed_successor_alignment
+    p q G φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+    ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hpre hmixed
 
 /-- Package quotient predecessor limits plus the remaining quotient-form projective alignment into
 predecessor-limit projective alignment.

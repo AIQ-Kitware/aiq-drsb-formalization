@@ -82,13 +82,41 @@ theorem finite_function_not_tendsto_has_frequently_bad_coordinate {ι : Type*} [
 /-- A purely arithmetic extraction lemma: a property that occurs arbitrarily far out admits
 an increasing subsequence along which it holds.
 
-This is now the only remaining topology-file seam.  It contains no Sinkhorn-specific data and no
-metric/topological structure; it is just the standard recursive choice of `n₀`, then `nₖ₊₁ ≥ nₖ+1`. -/
+This is now proved by recursive choice: choose `n₀` with `P n₀`, then choose
+`nₖ₊₁ ≥ nₖ + 1` with `P nₖ₊₁`. -/
 theorem nat_strictMono_subsequence_of_frequently
     (P : ℕ → Prop)
-    (_hfreq : ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ P n) :
+    (hfreq : ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ P n) :
     ∃ subseq : ℕ → ℕ, StrictMono subseq ∧ ∀ k : ℕ, P (subseq k) := by
-  sorry
+  classical
+  let pick : ℕ → ℕ := fun N => Classical.choose (hfreq N)
+  have hpick_ge : ∀ N : ℕ, N ≤ pick N := by
+    intro N
+    exact (Classical.choose_spec (hfreq N)).1
+  have hpick_P : ∀ N : ℕ, P (pick N) := by
+    intro N
+    exact (Classical.choose_spec (hfreq N)).2
+  let subseq : ℕ → ℕ := fun k =>
+    Nat.recOn k (pick 0) (fun _ prev => pick (prev + 1))
+  have hstep : ∀ k : ℕ, subseq k < subseq (k + 1) := by
+    intro k
+    have hge : subseq k + 1 ≤ pick (subseq k + 1) := hpick_ge (subseq k + 1)
+    have hrec : subseq (k + 1) = pick (subseq k + 1) := by
+      simp [subseq]
+    rw [hrec]
+    exact Nat.lt_of_succ_le hge
+  have hmono : StrictMono subseq := strictMono_nat_of_lt_succ hstep
+  have hP : ∀ k : ℕ, P (subseq k) := by
+    intro k
+    cases k with
+    | zero =>
+        simpa [subseq] using hpick_P 0
+    | succ k =>
+        have hrec : subseq (k + 1) = pick (subseq k + 1) := by
+          simp [subseq]
+        rw [hrec]
+        exact hpick_P (subseq k + 1)
+  exact ⟨subseq, hmono, hP⟩
 
 /-- A scalar coordinate that is frequently bad admits a strictly increasing bad subsequence. -/
 theorem finite_function_frequently_bad_coordinate_subsequence {ι : Type*}

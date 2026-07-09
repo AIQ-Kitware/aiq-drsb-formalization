@@ -969,6 +969,77 @@ theorem tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence
   · exact tendsto_nonnegative_atTop_zero_of_eventually_lt s₁ hs₁_nonneg
       (fun ε hε => eventually_lt_right_of_no_positive_subsequence s₀ s₁ hno_pos_subseq hε)
 
+
+/-- Franklin--Lorenz/Birkhoff-Hopf projective engine for the coupled backward denominator spreads.
+
+This is the remaining paper-level theorem.  Franklin--Lorenz, Section 3, prove geometric Sinkhorn
+convergence for strictly positive finite matrices by combining Hilbert's projective metric with
+Birkhoff's contraction theorem: Lemma 2 contracts the row/column marginal Hilbert errors by
+`κ(G)^2`, and Theorem 4 sums those increments in the diagonal-equivalence metric.  In the current
+phase-only formalization, this theorem is the port of that argument to the denominator ratio-spread
+quantities monitored below.
+
+The useful source anchors are Franklin--Lorenz (1989), Section 3: Hilbert metric setup and
+Birkhoff contraction on pp. 726--728, Lemma 2 on pp. 728--729, and Theorem 4 on pp. 729--731. -/
+theorem sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_franklin_lorenz
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    Filter.Tendsto (fun k => finiteBackwardRatioSpread φ0Iter k)
+        Filter.atTop (nhds (0 : ℝ)) ∧
+      Filter.Tendsto (fun k => finiteBackwardRatioSpread φhat1Iter k)
+        Filter.atTop (nhds (0 : ℝ)) := by
+  sorry
+
+private theorem eventually_lt_of_tendsto_zero
+    (s : ℕ → ℝ) (hs : Filter.Tendsto s Filter.atTop (nhds (0 : ℝ)))
+    {ε : ℝ} (hε : 0 < ε) :
+    ∀ᶠ k in Filter.atTop, s k < ε := by
+  have hdist := (Metric.tendsto_nhds.mp hs) ε hε
+  filter_upwards [hdist] with k hk
+  have habs : |s k - 0| < ε := by
+    simpa [dist_eq_norm, Real.norm_eq_abs] using hk
+  have hle_abs : s k ≤ |s k - 0| := by
+    simpa using (le_abs_self (s k))
+  exact lt_of_le_of_lt hle_abs habs
+
+/-- A pair of scalar spreads tending to zero rules out a bad positive-spread subsequence. -/
+theorem no_positive_subsequence_of_pair_tendsto_zero
+    (s₀ s₁ : ℕ → ℝ)
+    (hs₀ : Filter.Tendsto s₀ Filter.atTop (nhds (0 : ℝ)))
+    (hs₁ : Filter.Tendsto s₁ Filter.atTop (nhds (0 : ℝ))) :
+    ∀ ε : ℝ, 0 < ε →
+      ¬ ∃ subseq : ℕ → ℕ,
+        StrictMono subseq ∧
+          ∀ n, ε ≤ s₀ (subseq n) ∨ ε ≤ s₁ (subseq n) := by
+  intro ε hε hbad
+  obtain ⟨subseq, hsubseq, hsubseq_bad⟩ := hbad
+  have hsmall₀ : ∀ᶠ n in Filter.atTop, s₀ (subseq n) < ε :=
+    hsubseq.tendsto_atTop.eventually (eventually_lt_of_tendsto_zero s₀ hs₀ hε)
+  have hsmall₁ : ∀ᶠ n in Filter.atTop, s₁ (subseq n) < ε :=
+    hsubseq.tendsto_atTop.eventually (eventually_lt_of_tendsto_zero s₁ hs₁ hε)
+  rw [Filter.eventually_atTop] at hsmall₀ hsmall₁
+  obtain ⟨N₀, hN₀⟩ := hsmall₀
+  obtain ⟨N₁, hN₁⟩ := hsmall₁
+  let n : ℕ := max N₀ N₁
+  have hn₀ : N₀ ≤ n := by
+    dsimp [n]
+    exact le_max_left N₀ N₁
+  have hn₁ : N₁ ≤ n := by
+    dsimp [n]
+    exact le_max_right N₀ N₁
+  have h0lt : s₀ (subseq n) < ε := hN₀ n hn₀
+  have h1lt : s₁ (subseq n) < ε := hN₁ n hn₁
+  cases hsubseq_bad n with
+  | inl h0 => exact (not_le_of_gt h0lt) h0
+  | inr h1 => exact (not_le_of_gt h1lt) h1
+
 /-- No positive-limsup subsequence for the coupled backward denominator spread.
 
 This is now the single Sinkhorn-specific hard theorem.  The uploaded distillations identify the
@@ -982,18 +1053,26 @@ theorem sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subse
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     ∀ ε : ℝ, 0 < ε →
       ¬ ∃ subseq : ℕ → ℕ,
         StrictMono subseq ∧
           ∀ n,
             ε ≤ finiteBackwardRatioSpread φ0Iter (subseq n) ∨
               ε ≤ finiteBackwardRatioSpread φhat1Iter (subseq n) := by
-  sorry
+  exact no_positive_subsequence_of_pair_tendsto_zero
+    (fun k => finiteBackwardRatioSpread φ0Iter k)
+    (fun k => finiteBackwardRatioSpread φhat1Iter k)
+    (sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_franklin_lorenz
+      p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hG hiter hgauge hbounds).1
+    (sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_franklin_lorenz
+      p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hG hiter hgauge hbounds).2
 
 /-- Full-orbit coupled positive-kernel scalar spread collapse for both backward denominator ratios.
 

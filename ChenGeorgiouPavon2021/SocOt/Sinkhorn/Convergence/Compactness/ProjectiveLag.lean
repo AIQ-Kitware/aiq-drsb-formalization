@@ -970,18 +970,112 @@ theorem tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence
       (fun ε hε => eventually_lt_right_of_no_positive_subsequence s₀ s₁ hno_pos_subseq hε)
 
 
-/-- Franklin--Lorenz/Birkhoff-Hopf projective engine for the coupled backward denominator spreads.
 
-This is the remaining paper-level theorem.  Franklin--Lorenz, Section 3, prove geometric Sinkhorn
-convergence for strictly positive finite matrices by combining Hilbert's projective metric with
-Birkhoff's contraction theorem: Lemma 2 contracts the row/column marginal Hilbert errors by
-`κ(G)^2`, and Theorem 4 sums those increments in the diagonal-equivalence metric.  In the current
-phase-only formalization, this theorem is the port of that argument to the denominator ratio-spread
-quantities monitored below.
+/-- The implicit Franklin--Lorenz row-normalized matrix at Sinkhorn step `n`.
 
-The useful source anchors are Franklin--Lorenz (1989), Section 3: Hilbert metric setup and
-Birkhoff contraction on pp. 726--728, Lemma 2 on pp. 728--729, and Theorem 4 on pp. 729--731. -/
-theorem sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_franklin_lorenz
+In Section 3 of Franklin--Lorenz, the row-normalized matrix `A'_k` has prescribed row
+sums `p` and column sums `c^(k)`.  In the phase notation used here, the corresponding
+matrix has entries
+
+`φhat0Iter (n + 1) i * G i j * φ1Iter n j`.
+
+The next lemmas prove the two marginal identities needed to connect the phase-only
+iteration to the matrix-normalization picture. -/
+abbrev sinkhornRowNormalizedMatrix {ι : Type*}
+    (G : ι → ι → ℝ) (φhat0 φ1 : ι → ℝ) : ι → ι → ℝ :=
+  fun i j => φhat0 i * G i j * φ1 j
+
+/-- The implicit row-normalized matrix has row sums `p`. -/
+theorem sinkhorn_rowNormalizedMatrix_row_sum {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (n : ℕ) (i : ι) :
+    (∑ j, sinkhornRowNormalizedMatrix G (φhat0Iter (n + 1)) (φ1Iter n) i j) = p i := by
+  calc
+    (∑ j, sinkhornRowNormalizedMatrix G (φhat0Iter (n + 1)) (φ1Iter n) i j)
+        = φhat0Iter (n + 1) i * ∑ j, G i j * φ1Iter n j := by
+          rw [Finset.mul_sum]
+          simp [sinkhornRowNormalizedMatrix, mul_assoc]
+    _ = φhat0Iter (n + 1) i * φ0Iter n i := by
+          rw [← hiter.forward n i]
+    _ = p i := hiter.normalize_left n i
+
+/-- The column sums of the implicit row-normalized matrix are
+`φ1Iter n j * φhat1Iter (n + 1) j`, i.e. the Franklin--Lorenz column-error vector
+before the next column normalization. -/
+theorem sinkhorn_rowNormalizedMatrix_column_sum {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (n : ℕ) (j : ι) :
+    (∑ i, sinkhornRowNormalizedMatrix G (φhat0Iter (n + 1)) (φ1Iter n) i j) =
+      φhat1Iter (n + 1) j * φ1Iter n j := by
+  calc
+    (∑ i, sinkhornRowNormalizedMatrix G (φhat0Iter (n + 1)) (φ1Iter n) i j)
+        = (∑ i, G i j * φhat0Iter (n + 1) i) * φ1Iter n j := by
+          rw [Finset.sum_mul]
+          apply Finset.sum_congr rfl
+          intro i _hi
+          ring
+    _ = φhat1Iter (n + 1) j * φ1Iter n j := by
+          rw [← hiter.backward (n + 1) j]
+
+/-- The implicit Franklin--Lorenz column-normalized matrix following the row-normalized matrix
+at step `n`.
+
+It has entries `φhat0Iter (n + 1) i * G i j * φ1Iter (n + 2) j`, so its column sums
+are the prescribed marginal `q`. -/
+abbrev sinkhornColumnNormalizedMatrix {ι : Type*}
+    (G : ι → ι → ℝ) (φhat0 φ1 : ι → ℝ) : ι → ι → ℝ :=
+  fun i j => φhat0 i * G i j * φ1 j
+
+/-- The implicit column-normalized matrix has column sums `q`. -/
+theorem sinkhorn_columnNormalizedMatrix_column_sum {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (n : ℕ) (j : ι) :
+    (∑ i, sinkhornColumnNormalizedMatrix G (φhat0Iter (n + 1)) (φ1Iter (n + 2)) i j) = q j := by
+  calc
+    (∑ i, sinkhornColumnNormalizedMatrix G (φhat0Iter (n + 1)) (φ1Iter (n + 2)) i j)
+        = (∑ i, G i j * φhat0Iter (n + 1) i) * φ1Iter (n + 2) j := by
+          rw [Finset.sum_mul]
+          apply Finset.sum_congr rfl
+          intro i _hi
+          ring
+    _ = φhat1Iter (n + 1) j * φ1Iter (n + 2) j := by
+          rw [← hiter.backward (n + 1) j]
+    _ = q j := by
+          simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm, mul_comm, mul_left_comm, mul_assoc]
+            using hiter.normalize_right (n + 1) j
+
+/-- A nonnegative scalar sequence with a geometric envelope tends to zero.
+
+This is the pure real-analysis tail of the Franklin--Lorenz port.  It should be discharged without
+any Sinkhorn-specific facts, using `ρ ^ k → 0` for `0 ≤ ρ < 1` and squeeze/order arguments. -/
+theorem tendsto_nonnegative_atTop_zero_of_geometric_envelope
+    (s : ℕ → ℝ) (ρ C : ℝ)
+    (hρ_nonneg : 0 ≤ ρ) (hρ_lt_one : ρ < 1) (hC_nonneg : 0 ≤ C)
+    (hs_nonneg : ∀ k, 0 ≤ s k)
+    (hbound : ∀ k, s k ≤ C * ρ ^ k) :
+    Filter.Tendsto s Filter.atTop (nhds (0 : ℝ)) := by
+  sorry
+
+/-- Left-denominator geometric spread envelope from the Franklin--Lorenz/Birkhoff-Hopf engine.
+
+This is the first paper-level subproblem.  In Franklin--Lorenz Section 3 terminology it corresponds
+to controlling the row-normalization diagonal increment.  The expected proof path is:
+
+* identify the phase-defined row-normalized/column-normalized matrices above with `A'_k`/`A_k`;
+* use Birkhoff's contraction coefficient for the strictly positive kernel `G`;
+* apply the Lemma 2/Theorem 4 geometric estimate;
+* convert the diagonal-equivalence increment bound into the scalar spread
+  `finiteBackwardRatioSpread φ0Iter k`.
+
+The output is intentionally a concrete geometric envelope rather than a direct `Tendsto`, so that
+this theorem can be attacked independently of the pure squeeze lemma above. -/
+theorem sinkhorn_phi0_backward_ratio_spread_geometric_envelope_from_franklin_lorenz
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -991,11 +1085,84 @@ theorem sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    ∃ ρ C : ℝ,
+      0 ≤ ρ ∧ ρ < 1 ∧ 0 ≤ C ∧
+        ∀ k, finiteBackwardRatioSpread φ0Iter k ≤ C * ρ ^ k := by
+  sorry
+
+/-- Right-denominator geometric spread envelope from the Franklin--Lorenz/Birkhoff-Hopf engine.
+
+This is the second paper-level subproblem, symmetric to the left-denominator one.  It controls the
+column-normalization diagonal increment, i.e. the spread of
+`φhat1Iter k.pred / φhat1Iter k`.  The proof should reuse the same Birkhoff contraction certificate
+as the left theorem; after one side is solved, this side should mostly be a transposed/dual copy. -/
+theorem sinkhorn_phihat1_backward_ratio_spread_geometric_envelope_from_franklin_lorenz
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    ∃ ρ C : ℝ,
+      0 ≤ ρ ∧ ρ < 1 ∧ 0 ≤ C ∧
+        ∀ k, finiteBackwardRatioSpread φhat1Iter k ≤ C * ρ ^ k := by
+  sorry
+
+/-- Franklin--Lorenz/Birkhoff-Hopf projective engine for the coupled backward denominator spreads.
+
+The formerly monolithic paper-level theorem now factors into three separately attackable seams:
+
+1. `tendsto_nonnegative_atTop_zero_of_geometric_envelope`, a pure real-analysis lemma;
+2. `sinkhorn_phi0_backward_ratio_spread_geometric_envelope_from_franklin_lorenz`, the left/row
+   Franklin--Lorenz diagonal-increment estimate;
+3. `sinkhorn_phihat1_backward_ratio_spread_geometric_envelope_from_franklin_lorenz`, the
+   right/column Franklin--Lorenz diagonal-increment estimate.
+
+Franklin--Lorenz Section 3 supplies the intended route: Hilbert metric setup and Birkhoff
+contraction on pp. 726--728, Lemma 2 on pp. 728--729, and Theorem 4 on pp. 729--731. -/
+theorem sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_franklin_lorenz
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     Filter.Tendsto (fun k => finiteBackwardRatioSpread φ0Iter k)
         Filter.atTop (nhds (0 : ℝ)) ∧
       Filter.Tendsto (fun k => finiteBackwardRatioSpread φhat1Iter k)
         Filter.atTop (nhds (0 : ℝ)) := by
-  sorry
+  obtain ⟨ρ0, C0, hρ0_nonneg, hρ0_lt_one, hC0_nonneg, hφ0_bound⟩ :=
+    sinkhorn_phi0_backward_ratio_spread_geometric_envelope_from_franklin_lorenz
+      p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hG hiter hgauge hbounds
+  obtain ⟨ρ1, C1, hρ1_nonneg, hρ1_lt_one, hC1_nonneg, hφhat1_bound⟩ :=
+    sinkhorn_phihat1_backward_ratio_spread_geometric_envelope_from_franklin_lorenz
+      p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hG hiter hgauge hbounds
+  have hφ0_nonneg : ∀ k, 0 ≤ finiteBackwardRatioSpread φ0Iter k := by
+    intro k
+    unfold finiteBackwardRatioSpread
+    exact Finset.sum_nonneg (fun ij _hij => abs_nonneg
+      (φ0Iter k.pred ij.1 / φ0Iter k ij.1 - φ0Iter k.pred ij.2 / φ0Iter k ij.2))
+  have hφhat1_nonneg : ∀ k, 0 ≤ finiteBackwardRatioSpread φhat1Iter k := by
+    intro k
+    unfold finiteBackwardRatioSpread
+    exact Finset.sum_nonneg (fun ij _hij => abs_nonneg
+      (φhat1Iter k.pred ij.1 / φhat1Iter k ij.1 -
+        φhat1Iter k.pred ij.2 / φhat1Iter k ij.2))
+  exact ⟨
+    tendsto_nonnegative_atTop_zero_of_geometric_envelope
+      (fun k => finiteBackwardRatioSpread φ0Iter k) ρ0 C0
+      hρ0_nonneg hρ0_lt_one hC0_nonneg hφ0_nonneg hφ0_bound,
+    tendsto_nonnegative_atTop_zero_of_geometric_envelope
+      (fun k => finiteBackwardRatioSpread φhat1Iter k) ρ1 C1
+      hρ1_nonneg hρ1_lt_one hC1_nonneg hφhat1_nonneg hφhat1_bound⟩
 
 private theorem eventually_lt_of_tendsto_zero
     (s : ℕ → ℝ) (hs : Filter.Tendsto s Filter.atTop (nhds (0 : ℝ)))

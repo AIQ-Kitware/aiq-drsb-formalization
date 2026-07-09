@@ -127,8 +127,27 @@ theorem franklinLorenz_targetColumn_pos {ι : Type*} [Fintype ι]
       exact mul_pos (hG i j) (horbit.left_pos k i)
     · exact ⟨j, Finset.mem_univ j⟩
 
-/-- Projective/Hilbert right-column log-relative-error decay for a two-sequence
-Franklin--Lorenz orbit.
+/-!
+## Hard-core theorem ledger for the right `φ1` / column-correction path
+
+At this point the right-side Sinkhorn bookkeeping has been peeled away.  The remaining hard pieces
+are intended to be exactly these named theorem statements:
+
+1. `ForMathlib.Matrix.positive_kernel_birkhoff_contraction_coefficient` in `BirkhoffHopf.lean`:
+   the paper-agnostic positive finite-kernel Birkhoff coefficient / strict contraction theorem.
+2. `hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound`: the
+   Franklin--Lorenz Section 3 step converting that coefficient into geometric decay of the
+   logarithmic column marginal error.
+3. `hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box`:
+   the pure real-analysis/box conversion from log error to multiplicative relative error.
+4. `hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound`: the still-unmirrored left-side
+   row-correction theorem.
+
+The non-`hard_core_*` theorems below are wrappers used by downstream code; they should stay stable
+while agents attack the hard-core theorem statements independently.
+-/
+
+/-- Hard core 2: Franklin--Lorenz / Birkhoff--Hopf log-error decay for the right column marginal.
 
 This is the actual Hilbert/projective contraction-shaped right-side seam.  In Hilbert metric one
 controls logarithmic ratio oscillations, so the natural pointwise output is a geometric bound on
@@ -137,7 +156,7 @@ controls logarithmic ratio oscillations, so the natural pointwise output is a ge
 
 where `c_k` is `franklinLorenzCurrentColumnMarginal G a b k`.  Proving this should use the finite
 Birkhoff--Hopf coefficient for `G` together with Franklin--Lorenz Lemma 2 / Theorem 4. -/
-theorem franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkhoff_coefficient
+theorem hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
@@ -150,6 +169,23 @@ theorem franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkho
         ∀ k j,
           |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k := by
   sorry
+
+/-- Stable wrapper around hard core 2, preserving the Franklin--Lorenz theorem name used by the
+rest of the right-side proof chain. -/
+theorem franklinLorenz_right_column_log_relative_error_geometric_bound_of_birkhoff_coefficient
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ k j,
+          |Real.log (q j / franklinLorenzCurrentColumnMarginal G a b k j)| ≤ C * γ ^ k := by
+  exact hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound
+    p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one
 
 /-- Uniform finite-box bound for the right-column relative ratio `q / c_k`.
 
@@ -200,12 +236,13 @@ theorem franklinLorenz_right_column_relative_ratio_box_bound
   field_simp [ne_of_gt hb_k_pos, ne_of_gt hε]
   simpa [mul_comm, mul_left_comm, mul_assoc] using hmul
 
-/-- Pure real-analysis conversion from geometric log-relative error to geometric relative error.
+/-- Hard core 3: pure real-analysis conversion from geometric log-relative error to geometric
+relative error.
 
 Once ratios `r k j` are known positive and uniformly bounded above, the map `x ↦ exp x - 1` is
 Lipschitz on the corresponding bounded log range.  This lemma is the calculus/compactness tail that
 turns a Hilbert/log estimate into the concrete multiplicative correction estimate. -/
-theorem relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
+theorem hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
     {ι : Type*} [Fintype ι]
     (r : ℕ → ι → ℝ) (γ : ℝ)
     (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
@@ -216,6 +253,20 @@ theorem relative_error_geometric_bound_of_log_relative_error_geometric_bound_and
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k j, |r k j - 1| ≤ C * γ ^ k := by
   sorry
+
+/-- Stable wrapper around hard core 3. -/
+theorem relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
+    {ι : Type*} [Fintype ι]
+    (r : ℕ → ι → ℝ) (γ : ℝ)
+    (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hr_pos : ∀ k j, 0 < r k j)
+    (hr_box : ∃ R : ℝ, 0 ≤ R ∧ ∀ k j, |r k j| ≤ R)
+    (hlog : ∃ C : ℝ,
+      0 ≤ C ∧ ∀ k j, |Real.log (r k j)| ≤ C * γ ^ k) :
+    ∃ C : ℝ,
+      0 ≤ C ∧ ∀ k j, |r k j - 1| ≤ C * γ ^ k := by
+  exact hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box
+    r γ hγ_nonneg hγ_lt_one hr_pos hr_box hlog
 
 /-- Convert a logarithmic right-column relative-error bound into the concrete multiplicative
 correction bound used by the finite-spread bookkeeping.
@@ -512,12 +563,12 @@ theorem sinkhorn_phi1_forward_ratio_spread_geometric_bound_of_birkhoff_coefficie
     p q G φ0Iter φhat0Iter φ1Iter φhat1Iter hiter k]
   exact hbound k
 
-/-- Left-side Franklin--Lorenz core under a chosen Birkhoff contraction coefficient.
+/-- Hard core 4: left-side Franklin--Lorenz row-correction geometric bound.
 
-This is the row-normalization analogue of
-`sinkhorn_phi1_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient`.  It should share most
-of the final proof with the right-side theorem after abstracting the row/column orientation. -/
-theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient
+This is the row-normalization analogue of the right-side `φ1` development.  It should become much
+less mysterious after the right-side log-error theorem is proved, because the remaining work should
+mostly be the row/column orientation mirror. -/
+theorem hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -531,6 +582,24 @@ theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coeffi
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
   sorry
+
+/-- Stable wrapper around hard core 4. -/
+theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1) :
+    ∃ C : ℝ,
+      0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
+  exact hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound
+    p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+    hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one
 
 /-- Harder/right-side Franklin--Lorenz core: geometric decay of the column-correction spread.
 

@@ -309,19 +309,65 @@ theorem sinkhorn_gauge_fixed_point_unique {ι : Type*} [Fintype ι]
     · funext j
       simpa [hc_eq_one] using hψhat1 j
 
+/-- Finite-sum continuity for function-valued sequences.
+
+This is the only generic ingredient needed for gauge inheritance: convergence of a finite-vector
+sequence implies convergence of the coordinate sum.  It is deliberately local to the convergence
+module because Agent C uses it only to pass the fixed gauge through a cluster subsequence. -/
+theorem finite_sum_tendsto_of_function_tendsto {ι : Type*} [Fintype ι]
+    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
+    (_h : Filter.Tendsto x Filter.atTop (nhds xLim)) :
+    Filter.Tendsto (fun n => ∑ i, x n i) Filter.atTop (nhds (∑ i, xLim i)) := by
+  sorry
+
+/-- Gauge inheritance for an explicit phase-compatible cluster subsequence.
+
+The proof is now just finite-sum continuity plus uniqueness of limits: the gauge identity holds for
+each iterate index `subseq n`, while the cluster data says those left-forward vectors converge to
+`ψ0`. -/
+theorem sinkhorn_cluster_point_along_inherits_gauge {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψ1 ψhat1) :
+    ∑ i, ψ0 i = ∑ i, φ0 i := by
+  have hsum_cluster :
+      Filter.Tendsto (fun n => ∑ i, φ0Iter (subseq n) i)
+        Filter.atTop (nhds (∑ i, ψ0 i)) :=
+    finite_sum_tendsto_of_function_tendsto
+      (fun n => φ0Iter (subseq n)) ψ0 halong.tendsto_φ0
+  have hsum_target :
+      Filter.Tendsto (fun n => ∑ i, φ0Iter (subseq n) i)
+        Filter.atTop (nhds (∑ i, φ0 i)) := by
+    have hseq_eq :
+        (fun n => ∑ i, φ0Iter (subseq n) i) = (fun _ : ℕ => ∑ i, φ0 i) := by
+      funext n
+      exact hgauge.left_total (subseq n)
+    simpa [hseq_eq] using
+      (tendsto_const_nhds :
+        Filter.Tendsto (fun _ : ℕ => ∑ i, φ0 i) Filter.atTop (nhds (∑ i, φ0 i)))
+  exact tendsto_nhds_unique hsum_cluster hsum_target
+
 /-- Gauge inheritance for cluster points.
 
 If every iterate has the selected left-total gauge, then every phase-compatible cluster point has the
-same gauge.  This is a finite-sum continuity lemma separate from the Sinkhorn equations themselves. -/
+same gauge.  This wrapper now only opens the existential cluster subsequence and delegates to the
+explicit-along lemma. -/
 theorem sinkhorn_cluster_point_inherits_gauge {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
       ψ0 ψhat0 ψ1 ψhat1) :
     ∑ i, ψ0 i = ∑ i, φ0 i := by
-  sorry
+  obtain ⟨subseq, halong⟩ := hcluster.exists_subseq
+  exact sinkhorn_cluster_point_along_inherits_gauge
+    φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+    ψ0 ψhat0 ψ1 ψhat1 subseq hgauge halong
 
 /-- Every cluster point is the selected gauge representative. -/
 theorem sinkhorn_gauge_normalized_cluster_point_unique {ι : Type*} [Fintype ι]

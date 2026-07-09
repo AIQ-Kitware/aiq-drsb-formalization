@@ -59,21 +59,81 @@ structure FiniteEnergyDiffusionEnergyIdentityData
       ((initialMarginal (d.pathLaw u ρ₀)) ⊗ₘ Kw)).toReal
       = energy u (d.pathLaw u ρ₀)
 
-/-- Conditional Cameron--Martin/Girsanov target for a controlled diffusion kernel.
+/-- Projection-level conditional KLs converge to the conditional path-kernel KL.
 
-This is the model-level theorem that should supply the `hCM` edge of
-`energy_identity_conditional`: conditional path-kernel relative entropy is exactly the expected
-quadratic control energy. -/
-theorem conditional_kl_eq_control_energy_of_finiteEnergyDiffusion
+This is the KL-exhaustion half of the conditional Girsanov proof plan.  For a concrete standard
+Borel path-noise carrier `𝒴`, finite measurable projections `π n` should generate the path-noise
+sigma-algebra, and the conditional kernel KLs of the projected kernels should increase to the full
+conditional kernel KL. -/
+theorem conditional_gridKL_tendsto_kernelKL_of_finiteEnergyDiffusion
+    (u : Control X) (ρ₀ : ProbabilityMeasure X)
+    (_hfe : FiniteEnergyDiffusion d u ρ₀)
+    {𝒴 : Type*} [MeasurableSpace 𝒴]
+    (Ku Kw : Kernel X 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
+    (_hkernel : IsControlledReferenceKernelPair d u ρ₀ Ku Kw)
+    {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
+    (π : ∀ n, 𝒴 → 𝒵 n) (_hπ : ∀ n, Measurable (π n))
+    (_ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace 𝒴))
+    (_hℱ : ∀ n, _ℱ n = (inferInstance : MeasurableSpace (𝒵 n)).comap (π n))
+    (_hgen : ⨆ n, _ℱ n = (inferInstance : MeasurableSpace 𝒴)) :
+    Filter.Tendsto
+      (fun n : ℕ =>
+        (∫⁻ x, InformationTheory.klDiv
+          (Measure.map (π n) (Ku x))
+          (Measure.map (π n) (Kw x)) ∂(ρ₀ : Measure X)).toReal)
+      Filter.atTop
+      (nhds ((∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal)) := by
+  sorry
+
+/-- Projection-level conditional KLs converge to the quadratic control energy.
+
+This is the finite-dimensional Girsanov/Riemann-sum half of the conditional proof plan: after
+projecting the conditional path kernels to finite grids, their Gaussian Cameron--Martin KLs are the
+finite control energies, and those energies converge to the continuum quadratic control energy. -/
+theorem conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (_hfe : FiniteEnergyDiffusion d u ρ₀)
     {𝒴 : Type*} [MeasurableSpace 𝒴]
     (Ku Kw : Kernel X 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
     (_hkernel : IsControlledReferenceKernelPair d u ρ₀ Ku Kw)
     (energyVal : ℝ)
-    (_henergy : energyVal = energy u (d.pathLaw u ρ₀)) :
-    (∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal = energyVal := by
+    (_henergy : energyVal = energy u (d.pathLaw u ρ₀))
+    {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
+    (π : ∀ n, 𝒴 → 𝒵 n) (_hπ : ∀ n, Measurable (π n)) :
+    Filter.Tendsto
+      (fun n : ℕ =>
+        (∫⁻ x, InformationTheory.klDiv
+          (Measure.map (π n) (Ku x))
+          (Measure.map (π n) (Kw x)) ∂(ρ₀ : Measure X)).toReal)
+      Filter.atTop
+      (nhds energyVal) := by
   sorry
+
+/-- Conditional Cameron--Martin/Girsanov target for a controlled diffusion kernel.
+
+The monolithic identity is now reduced to two smaller approximation theorems: finite-grid
+conditional KLs converge to the full conditional kernel KL, and the same finite-grid KLs converge to
+the quadratic control energy.  The proof here is just uniqueness of limits; the two analytic seams
+above remain visible theorem targets. -/
+theorem conditional_kl_eq_control_energy_of_finiteEnergyDiffusion
+    (u : Control X) (ρ₀ : ProbabilityMeasure X)
+    (hfe : FiniteEnergyDiffusion d u ρ₀)
+    {𝒴 : Type*} [MeasurableSpace 𝒴]
+    (Ku Kw : Kernel X 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
+    (hkernel : IsControlledReferenceKernelPair d u ρ₀ Ku Kw)
+    (energyVal : ℝ)
+    (henergy : energyVal = energy u (d.pathLaw u ρ₀))
+    {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
+    (π : ∀ n, 𝒴 → 𝒵 n) (hπ : ∀ n, Measurable (π n))
+    (ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace 𝒴))
+    (hℱ : ∀ n, ℱ n = (inferInstance : MeasurableSpace (𝒵 n)).comap (π n))
+    (hgen : ⨆ n, ℱ n = (inferInstance : MeasurableSpace 𝒴)) :
+    (∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal = energyVal := by
+  exact tendsto_nhds_unique
+    (conditional_gridKL_tendsto_kernelKL_of_finiteEnergyDiffusion
+      d u ρ₀ hfe Ku Kw hkernel π hπ ℱ hℱ hgen)
+    (conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
+      d u ρ₀ hfe Ku Kw hkernel energyVal henergy π hπ)
 
 omit [NormedSpace ℝ X] in
 /-- Full feasible-control energy identity from explicit disintegration and Cameron--Martin data.

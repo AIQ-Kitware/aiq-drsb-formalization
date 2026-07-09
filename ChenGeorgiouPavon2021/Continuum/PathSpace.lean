@@ -43,11 +43,35 @@ theorem continuousAnchoredIntervalPath_ext_of_intervalPath_eq
     ω = η := by
   exact Subtype.ext h
 
-/-- Point-separation target reduced to equality of the underlying interval paths.
+/-- Dyadic increment equality recovers equality at every finite dyadic grid point.
 
-This is the remaining mathematical seam: the Brownian anchor recovers dyadic values from increments,
-dyadic points are dense in `[0,1]`, and continuity extends equality from dyadic points to the whole
-interval. -/
+This is the finite algebraic/telescoping part of path separation.  It should use the anchor at `0`
+and the equality of normalized increments to recover equality of cumulative dyadic sums at all grid
+vertices. -/
+theorem continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncrements_eq
+    (ω η : ContinuousAnchoredIntervalPath)
+    (hN : ∀ level : ℕ,
+      normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
+        = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
+    ∀ level i,
+      continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i)
+        = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i) := by
+  sorry
+
+/-- Equality on all dyadic grid points extends to equality of anchored continuous interval paths.
+
+This is the topological/density part of path separation: dyadic times are dense in `[0,1]`, and two
+continuous functions agreeing on that dense set agree everywhere. -/
+theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq
+    (ω η : ContinuousAnchoredIntervalPath)
+    (hgrid : ∀ level i,
+      continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i)
+        = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i)) :
+    continuousAnchoredIntervalPathToIntervalPath ω
+      = continuousAnchoredIntervalPathToIntervalPath η := by
+  sorry
+
+/-- Point-separation target reduced to finite-grid recovery plus dyadic-density continuity. -/
 theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_normalizedDyadicIncrements_eq
     (ω η : ContinuousAnchoredIntervalPath)
     (hN : ∀ level : ℕ,
@@ -55,7 +79,8 @@ theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_normalizedDyadicIncr
         = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
     continuousAnchoredIntervalPathToIntervalPath ω
       = continuousAnchoredIntervalPathToIntervalPath η := by
-  sorry
+  exact continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq ω η
+    (continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncrements_eq ω η hN)
 
 /-- Point-separation wrapper: anchored continuous paths are determined by all normalized dyadic
 increment vectors. -/

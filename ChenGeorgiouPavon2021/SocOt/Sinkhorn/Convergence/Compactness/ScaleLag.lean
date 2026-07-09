@@ -47,6 +47,50 @@ theorem sinkhorn_compactness_finite_sum_tendsto_of_function_tendsto {ι : Type*}
     Filter.atTop (nhds (∑ i, xLim i))
   exact (hcont.tendsto xLim).comp h
 
+
+/-- Right normalization passed to a raw six-stream precluster.
+
+This is the quotient identity that fixes the product of the successor mixed phase and the current
+`φhat1` denominator limit:
+`ψ1Succ j * ψhat1 j = q j`.  The lagged-total core below uses this together with the lagged
+normalization equation at `(subseq n).pred`; keeping this limit-passage lemma separate makes the
+remaining scalar obstruction explicit. -/
+theorem sinkhorn_precluster_normalize_right_successor {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    ∀ j, ψ1Succ j * ψhat1 j = q j := by
+  intro j
+  have hφ1_succ :
+      Filter.Tendsto (fun n => φ1Iter (subseq n + 1) j)
+        Filter.atTop (nhds (ψ1Succ j)) :=
+    ((continuous_apply j).tendsto ψ1Succ).comp hpre.tendsto_φ1_succ
+  have hφhat1 :
+      Filter.Tendsto (fun n => φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (ψhat1 j)) :=
+    ((continuous_apply j).tendsto ψhat1).comp hpre.tendsto_φhat1
+  have hprod_cluster :
+      Filter.Tendsto
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (ψ1Succ j * ψhat1 j)) := by
+    exact hφ1_succ.mul hφhat1
+  have hprod_target :
+      Filter.Tendsto
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j)
+        Filter.atTop (nhds (q j)) := by
+    have hseq_eq :
+        (fun n => φ1Iter (subseq n + 1) j * φhat1Iter (subseq n) j) =
+          (fun _ : ℕ => q j) := by
+      funext n
+      exact hiter.normalize_right (subseq n) j
+    rw [hseq_eq]
+    exact (tendsto_const_nhds :
+      Filter.Tendsto (fun _ : ℕ => q j) Filter.atTop (nhds (q j)))
+  exact tendsto_nhds_unique hprod_cluster hprod_target
+
 /-- The real scalar-lag seam for the non-gauge-fixed denominator `φhat1`.
 
 Along a raw precluster, `φhat1Iter (subseq n)` already has total limit `∑ j, ψhat1 j`.  What remains

@@ -862,13 +862,69 @@ theorem sinkhorn_right_ratio_eventually_eq_phihat1_backward_ratio
   field_simp [hφ1_ne, hφhat1_ne]
   nlinarith [hnorm_succ, hnorm_pred]
 
-/-- Full-orbit coupled positive-kernel oscillation envelope for both backward denominator ratios.
+/-- Finite scalar spread of the backward ratio vector `u (k.pred) / u k`.
 
-This is the single genuinely hard C2-projective seam.  It should be proved by the Hilbert/Birkhoff
-contraction or equivalent finite oscillation argument for the two alternating positive linear maps.
-It is intentionally stated for the whole orbit, not for a chosen compactness subsequence: projective
-asymptotic regularity is a dynamical property of the Sinkhorn iteration itself. -/
-theorem sinkhorn_backward_denominator_projective_ratio_drift_envelopes_atTop_from_gauge_iterates
+This is a concrete progress metric for the last projective theorem: it is zero exactly when all
+backward coordinate ratios agree, and it bounds every coordinatewise ratio displacement.  The final
+Hilbert/Birkhoff engine should prove that this scalar spread tends to zero for the two denominator
+phases. -/
+noncomputable def finiteBackwardRatioSpread {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) (k : ℕ) : ℝ :=
+  ∑ ij : ι × ι,
+    |u k.pred ij.1 / u k ij.1 - u k.pred ij.2 / u k ij.2|
+
+/-- The finite scalar spread bounds each individual backward-ratio displacement. -/
+theorem abs_backward_ratio_le_finiteBackwardRatioSpread {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ) (k : ℕ) (i j : ι) :
+    |u k.pred i / u k i - u k.pred j / u k j| ≤
+      finiteBackwardRatioSpread u k := by
+  classical
+  unfold finiteBackwardRatioSpread
+  exact Finset.single_le_sum
+    (fun ij _hij => abs_nonneg
+      (u k.pred ij.1 / u k ij.1 - u k.pred ij.2 / u k ij.2))
+    (Finset.mem_univ (i, j))
+
+/-- A vanishing finite backward-ratio spread gives the full-orbit scalar envelope predicate. -/
+theorem sinkhorn_phase_backward_projective_ratio_drift_envelope_atTop_of_spread_tendsto_zero
+    {ι : Type*} [Fintype ι]
+    (u : ℕ → ι → ℝ)
+    (hspread : Filter.Tendsto (fun k => finiteBackwardRatioSpread u k)
+      Filter.atTop (nhds (0 : ℝ))) :
+    SinkhornPhaseBackwardProjectiveRatioDriftEnvelopeAtTop u := by
+  refine ⟨fun k => finiteBackwardRatioSpread u k, hspread, ?_⟩
+  filter_upwards [] with k i j
+  exact abs_backward_ratio_le_finiteBackwardRatioSpread u k i j
+
+/-- General nonnegative-sequence criterion used by the last projective engine.
+
+To prove two nonnegative scalar spreads tend to zero, it is enough to rule out every strictly
+monotone subsequence on which at least one of the spreads stays above a fixed positive threshold.
+This is the compactness/limsup bookkeeping layer, separated from the Sinkhorn-specific
+Hilbert/Fortet argument below. -/
+theorem tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence
+    (s₀ s₁ : ℕ → ℝ)
+    (hs₀_nonneg : ∀ k, 0 ≤ s₀ k)
+    (hs₁_nonneg : ∀ k, 0 ≤ s₁ k)
+    (hno_pos_subseq : ∀ ε : ℝ, 0 < ε →
+      ¬ ∃ subseq : ℕ → ℕ,
+        StrictMono subseq ∧
+          ∀ n, ε ≤ s₀ (subseq n) ∨ ε ≤ s₁ (subseq n)) :
+    Filter.Tendsto s₀ Filter.atTop (nhds (0 : ℝ)) ∧
+      Filter.Tendsto s₁ Filter.atTop (nhds (0 : ℝ)) := by
+  -- Pure order/topology lemma.  Prove by contraposition: if one nonnegative sequence does not
+  -- tend to zero, extract a strictly increasing subsequence above some positive threshold.
+  -- This is independent of Sinkhorn dynamics.
+  sorry
+
+/-- No positive-limsup subsequence for the coupled backward denominator spread.
+
+This is now the single Sinkhorn-specific hard theorem.  It should be proved by the original
+Fortet/Hilbert/Birkhoff argument: assume a bad subsequence with spread bounded below, extract a
+phase-compatible finite cluster using the uniform box bounds, pass the alternating positive-kernel
+update equations to the limit, and use strict positivity of `G` to force the two backward-ratio
+vectors to be projectively constant, contradicting the positive spread. -/
+theorem sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subsequence_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -878,8 +934,82 @@ theorem sinkhorn_backward_denominator_projective_ratio_drift_envelopes_atTop_fro
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
-    SinkhornBackwardDenominatorProjectiveRatioDriftEnvelopesAtTop φ0Iter φhat1Iter := by
+    ∀ ε : ℝ, 0 < ε →
+      ¬ ∃ subseq : ℕ → ℕ,
+        StrictMono subseq ∧
+          ∀ n,
+            ε ≤ finiteBackwardRatioSpread φ0Iter (subseq n) ∨
+              ε ≤ finiteBackwardRatioSpread φhat1Iter (subseq n) := by
   sorry
+
+/-- Full-orbit coupled positive-kernel scalar spread collapse for both backward denominator ratios.
+
+The theorem now factors into two pieces:
+
+* a pure order/topology lemma excluding positive-limsup subsequences;
+* the Sinkhorn-specific Fortet/Hilbert argument that proves such bad subsequences cannot exist.
+
+The concrete scalar quantities monitored are:
+
+* `finiteBackwardRatioSpread φ0Iter k`;
+* `finiteBackwardRatioSpread φhat1Iter k`. -/
+theorem sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    Filter.Tendsto (fun k => finiteBackwardRatioSpread φ0Iter k)
+        Filter.atTop (nhds (0 : ℝ)) ∧
+      Filter.Tendsto (fun k => finiteBackwardRatioSpread φhat1Iter k)
+        Filter.atTop (nhds (0 : ℝ)) := by
+  have hφ0_nonneg : ∀ k, 0 ≤ finiteBackwardRatioSpread φ0Iter k := by
+    intro k
+    unfold finiteBackwardRatioSpread
+    exact Finset.sum_nonneg (fun ij _hij => abs_nonneg
+      (φ0Iter k.pred ij.1 / φ0Iter k ij.1 - φ0Iter k.pred ij.2 / φ0Iter k ij.2))
+  have hφhat1_nonneg : ∀ k, 0 ≤ finiteBackwardRatioSpread φhat1Iter k := by
+    intro k
+    unfold finiteBackwardRatioSpread
+    exact Finset.sum_nonneg (fun ij _hij => abs_nonneg
+      (φhat1Iter k.pred ij.1 / φhat1Iter k ij.1 -
+        φhat1Iter k.pred ij.2 / φhat1Iter k ij.2))
+  exact tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence
+    (fun k => finiteBackwardRatioSpread φ0Iter k)
+    (fun k => finiteBackwardRatioSpread φhat1Iter k)
+    hφ0_nonneg hφhat1_nonneg
+    (sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subsequence_from_gauge_iterates
+      p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hG hiter hgauge hbounds)
+
+/-- Full-orbit coupled positive-kernel oscillation envelope for both backward denominator ratios.
+
+The hard work is the scalar-spread theorem above.  This wrapper turns the two scalar spreads into
+the envelope predicate used by the downstream ratio-to-cross and compactness wrappers. -/
+theorem sinkhorn_backward_denominator_projective_ratio_drift_envelopes_atTop_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornBackwardDenominatorProjectiveRatioDriftEnvelopesAtTop φ0Iter φhat1Iter := by
+  obtain ⟨hφ0_spread, hφhat1_spread⟩ :=
+    sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_gauge_iterates
+      p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
+      hG hiter hgauge hbounds
+  exact ⟨
+    sinkhorn_phase_backward_projective_ratio_drift_envelope_atTop_of_spread_tendsto_zero
+      φ0Iter hφ0_spread,
+    sinkhorn_phase_backward_projective_ratio_drift_envelope_atTop_of_spread_tendsto_zero
+      φhat1Iter hφhat1_spread⟩
 
 /-- Coupled positive-kernel oscillation envelope for both backward denominator ratios along a
 strict absolute subsequence.

@@ -150,15 +150,16 @@ theorem conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
     (Ku Kw : Kernel X 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
     (_hkernel : IsControlledReferenceKernelPair d u ρ₀ Ku Kw)
     (energyVal : ℝ)
-    (_henergy : energyVal = energy u (d.pathLaw u ρ₀))
+    (henergy : energyVal = energy u (d.pathLaw u ρ₀))
     {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
     (π : ∀ n, 𝒴 → 𝒵 n) (_hπ : ∀ n, Measurable (π n))
     (hlimit : ConditionalKLEnergyLimitData ρ₀ Ku Kw π energyVal) :
-    Filter.Tendsto (conditionalProjectedKernelKL ρ₀ Ku Kw π) Filter.atTop (nhds energyVal) := by
+    Filter.Tendsto (conditionalProjectedKernelKL ρ₀ Ku Kw π) Filter.atTop
+      (nhds (energy u (d.pathLaw u ρ₀))) := by
   have hseq : conditionalProjectedKernelKL ρ₀ Ku Kw π = hlimit.gridEnergy := by
     funext n
     exact hlimit.finite_grid_girsanov n
-  simpa [hseq] using hlimit.gridEnergy_tendsto
+  simpa [hseq, henergy] using hlimit.gridEnergy_tendsto
 
 omit [NormedSpace ℝ X] in
 /-- Conditional Cameron--Martin/Girsanov target for a controlled diffusion kernel.
@@ -182,7 +183,8 @@ theorem conditional_kl_eq_control_energy_of_finiteEnergyDiffusion
     (hgen : ⨆ n, ℱ n = (inferInstance : MeasurableSpace 𝒴))
     (hklLimit : ConditionalKLProjectionLimitData ρ₀ Ku Kw π)
     (henergyLimit : ConditionalKLEnergyLimitData ρ₀ Ku Kw π energyVal) :
-    (∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal = energyVal := by
+    (∫⁻ x, InformationTheory.klDiv (Ku x) (Kw x) ∂(ρ₀ : Measure X)).toReal
+      = energy u (d.pathLaw u ρ₀) := by
   exact tendsto_nhds_unique
     (conditional_gridKL_tendsto_kernelKL_of_finiteEnergyDiffusion
       d u ρ₀ hfe Ku Kw hkernel π hπ ℱ hℱ hgen hklLimit)

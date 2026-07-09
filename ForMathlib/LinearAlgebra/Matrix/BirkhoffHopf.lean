@@ -274,18 +274,59 @@ theorem positive_kernel_apply_crossRatioBounded {ι κ : Type*}
   exact positive_kernel_apply_crossRatioBounded_of_pointwise_bound G
     (positive_kernel_pointwise_crossRatioBounded G hG)
 
-/-- Birkhoff's oscillation estimate once the image-cone cross-ratio is bounded.
+/-- A finite positive kernel has image Hilbert diameter at most `Δ`.
 
-This is the analytic/projective-metric subgoal: turn the finite image cross-ratio bound into
-Hilbert projective contraction with the explicit coefficient.  It is intentionally separated from
-the preceding finite-sum algebra so the two hardest pieces can be attacked independently. -/
-theorem positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound {ι κ : Type*}
+This is the projective-diameter half of Birkhoff--Hopf: it is weaker than contraction, but it is
+the exact bridge from the cross-multiplicative image estimate to the analytic oscillation lemma. -/
+def PositiveKernelApplyHilbertLogDiameterBounded {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ) (Δ : ℝ) : Prop :=
+  ∀ x y : κ → ℝ,
+    (∀ j, 0 < x j) → (∀ j, 0 < y j) →
+      finiteHilbertProjectiveLogSpread (positiveKernelApply G x) (positiveKernelApply G y) ≤ Δ
+
+/-- The finite image cross-ratio bound gives a finite Hilbert projective diameter bound.
+
+This is still substantial but algebraic/topological rather than the full Birkhoff oscillation
+estimate: prove every image cross-ratio is at most `positiveKernelCrossRatioBound G`, take logs,
+and pass to the finite supremum defining `finiteHilbertProjectiveLogSpread`. -/
+theorem positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)
     (_hG : ∀ i j, 0 < G i j)
     (_hbound : PositiveKernelApplyCrossRatioBounded G) :
+    PositiveKernelApplyHilbertLogDiameterBounded G
+      (Real.log (positiveKernelCrossRatioBound G)) := by
+  sorry
+
+/-- Birkhoff's oscillation estimate from finite image diameter.
+
+This is the remaining analytic core: a positive linear map whose image has Hilbert diameter bounded
+by `log B` contracts Hilbert projective spread.  The coefficient here is the deliberately coarse
+explicit coefficient `(B - 1) / B`, which is above the standard `tanh (Δ / 4)` coefficient when
+`B = exp Δ`. -/
+theorem positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_bound
+    {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (_hG : ∀ i j, 0 < G i j)
+    (_hdiam : PositiveKernelApplyHilbertLogDiameterBounded G
+      (Real.log (positiveKernelCrossRatioBound G))) :
     IsBirkhoffHopfContractionCoefficient G (positiveKernelBirkhoffCoefficient G) := by
   sorry
+
+/-- Birkhoff's oscillation estimate once the image-cone cross-ratio is bounded.
+
+This is the analytic/projective-metric subgoal: turn the finite image cross-ratio bound into
+Hilbert projective contraction with the explicit coefficient.  It is now only a wrapper around two
+smaller Mathlib-style seams: finite image diameter from cross-ratio control, and the pure
+Birkhoff--Hopf oscillation estimate from finite image diameter. -/
+theorem positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (hbound : PositiveKernelApplyCrossRatioBounded G) :
+    IsBirkhoffHopfContractionCoefficient G (positiveKernelBirkhoffCoefficient G) := by
+  exact positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_bound G hG
+    (positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound G hG hbound)
 
 /-- The actual Birkhoff--Hopf contraction theorem for a strictly positive finite kernel.
 

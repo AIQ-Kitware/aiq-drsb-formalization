@@ -164,15 +164,43 @@ theorem sinkhorn_gauge_normalized_subsequence_exists {ι : Type*} [Fintype ι]
   exact sinkhorn_phase_compatible_subsequence_of_bounds
     φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds
 
+/-- Forward equation for an explicit phase-compatible cluster subsequence.
+
+This is the real limit-passage seam: combine the iterate forward equation with finite weighted-sum
+continuity along the named subsequence.  The target-facing existential wrapper below should remain
+just packaging. -/
+theorem sinkhorn_cluster_point_along_forward_equation {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψ1 ψhat1) :
+    ∀ i, ψ0 i = ∑ j, G i j * ψ1 j := by
+  sorry
+
 /-- Forward equation for phase-compatible cluster points. -/
 theorem sinkhorn_cluster_point_forward_equation {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
       ψ0 ψhat0 ψ1 ψhat1) :
     ∀ i, ψ0 i = ∑ j, G i j * ψ1 j := by
+  obtain ⟨subseq, halong⟩ := hcluster.exists_subseq
+  exact sinkhorn_cluster_point_along_forward_equation p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq ψ0 ψhat0 ψ1 ψhat1 hiter halong
+
+/-- Backward equation for an explicit phase-compatible cluster subsequence. -/
+theorem sinkhorn_cluster_point_along_backward_equation {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψ1 ψhat1) :
+    ∀ j, ψhat1 j = ∑ i, G i j * ψhat0 i := by
   sorry
 
 /-- Backward equation for phase-compatible cluster points. -/
@@ -180,10 +208,23 @@ theorem sinkhorn_cluster_point_backward_equation {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
       ψ0 ψhat0 ψ1 ψhat1) :
     ∀ j, ψhat1 j = ∑ i, G i j * ψhat0 i := by
+  obtain ⟨subseq, halong⟩ := hcluster.exists_subseq
+  exact sinkhorn_cluster_point_along_backward_equation p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq ψ0 ψhat0 ψ1 ψhat1 hiter halong
+
+/-- Left marginal normalization for an explicit phase-compatible cluster subsequence. -/
+theorem sinkhorn_cluster_point_along_normalize_left {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψ1 ψhat1) :
+    ∀ i, ψ0 i * ψhat0 i = p i := by
   sorry
 
 /-- Left marginal normalization for phase-compatible cluster points. -/
@@ -191,10 +232,23 @@ theorem sinkhorn_cluster_point_normalize_left {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
       ψ0 ψhat0 ψ1 ψhat1) :
     ∀ i, ψ0 i * ψhat0 i = p i := by
+  obtain ⟨subseq, halong⟩ := hcluster.exists_subseq
+  exact sinkhorn_cluster_point_along_normalize_left p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq ψ0 ψhat0 ψ1 ψhat1 hiter halong
+
+/-- Right marginal normalization for an explicit phase-compatible cluster subsequence. -/
+theorem sinkhorn_cluster_point_along_normalize_right {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_halong : IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψ1 ψhat1) :
+    ∀ j, ψ1 j * ψhat1 j = q j := by
   sorry
 
 /-- Right marginal normalization for phase-compatible cluster points. -/
@@ -202,11 +256,13 @@ theorem sinkhorn_cluster_point_normalize_right {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (ψ0 ψhat0 ψ1 ψhat1 : ι → ℝ)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (_hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hcluster : IsFiniteSinkhornClusterPoint φ0Iter φhat0Iter φ1Iter φhat1Iter
       ψ0 ψhat0 ψ1 ψhat1) :
     ∀ j, ψ1 j * ψhat1 j = q j := by
-  sorry
+  obtain ⟨subseq, halong⟩ := hcluster.exists_subseq
+  exact sinkhorn_cluster_point_along_normalize_right p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq ψ0 ψhat0 ψ1 ψhat1 hiter halong
 
 /-- Limit-passage seam for the equations satisfied by a phase-compatible cluster point.
 

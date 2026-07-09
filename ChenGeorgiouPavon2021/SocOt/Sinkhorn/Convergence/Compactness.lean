@@ -104,12 +104,14 @@ theorem sinkhorn_cluster_along_of_precluster_successor_eq {ι : Type*} [Fintype 
     positive := ⟨hpre.positive.1, hpre.positive.2.1,
       hpre.positive.2.2.2.1, hpre.positive.2.2.2.2.2⟩ }
 
-/-- Sinkhorn-specific compatibility seam for raw six-phase preclusters.
+/-- Asymptotic-regularity seam for the two mixed phases.
 
 This is the non-compactness part that was previously hidden in the bounded-subsequence theorem.  A
-follow-on agent should prove that the Sinkhorn update equations rule out different current and
-successor limits for the hatted-left and right-forward phases. -/
-theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*} [Fintype ι]
+follow-on agent should prove, from the Sinkhorn update equations and the chosen gauge, that the two
+phase streams appearing at both `n` and `n + 1` have vanishing drift along every raw precluster
+subsequence.  Once this is available, equality of the current and successor limits is a generic
+uniqueness-of-limits argument below. -/
+theorem sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
@@ -119,8 +121,64 @@ theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*}
       φ0 φhat0 φ1 φhat1)
     (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
-    ψhat0Succ = ψhat0 ∧ ψ1Succ = ψ1 := by
+    Filter.Tendsto
+        (fun n => fun i => φhat0Iter (subseq n + 1) i - φhat0Iter (subseq n) i)
+        Filter.atTop (nhds 0) ∧
+      Filter.Tendsto
+        (fun n => fun j => φ1Iter (subseq n + 1) j - φ1Iter (subseq n) j)
+        Filter.atTop (nhds 0) := by
   sorry
+
+/-- Vanishing phase drift identifies the current and successor limits in a raw precluster.
+
+This is a generic topology wrapper: if the successor-minus-current stream tends to zero and both
+streams already have named limits, then those limits agree. -/
+theorem sinkhorn_precluster_successor_limits_eq_of_phase_drift {ι : Type*} [Fintype ι]
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
+    (hφhat0_drift :
+      Filter.Tendsto
+        (fun n => fun i => φhat0Iter (subseq n + 1) i - φhat0Iter (subseq n) i)
+        Filter.atTop (nhds 0))
+    (hφ1_drift :
+      Filter.Tendsto
+        (fun n => fun j => φ1Iter (subseq n + 1) j - φ1Iter (subseq n) j)
+        Filter.atTop (nhds 0)) :
+    ψhat0Succ = ψhat0 ∧ ψ1Succ = ψ1 := by
+  have hφhat0_limit : ψhat0Succ - ψhat0 = 0 :=
+    tendsto_nhds_unique
+      (hpre.tendsto_φhat0_succ.sub hpre.tendsto_φhat0)
+      hφhat0_drift
+  have hφ1_limit : ψ1Succ - ψ1 = 0 :=
+    tendsto_nhds_unique
+      (hpre.tendsto_φ1_succ.sub hpre.tendsto_φ1)
+      hφ1_drift
+  exact ⟨sub_eq_zero.mp hφhat0_limit, sub_eq_zero.mp hφ1_limit⟩
+
+/-- Sinkhorn-specific compatibility seam for raw six-phase preclusters.
+
+The hard content is now isolated as asymptotic regularity of the two phase drifts.  This wrapper only
+turns that drift statement into equality of current and successor limits. -/
+theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    ψhat0Succ = ψhat0 ∧ ψ1Succ = ψ1 := by
+  obtain ⟨hφhat0_drift, hφ1_drift⟩ :=
+    sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hpre
+  exact sinkhorn_precluster_successor_limits_eq_of_phase_drift
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
+    ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hφhat0_drift hφ1_drift
 
 /-- Upgrade a raw precluster to a phase-compatible cluster using gauge-normalized Sinkhorn iterate
 structure. -/

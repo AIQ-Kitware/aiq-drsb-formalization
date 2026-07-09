@@ -349,16 +349,43 @@ theorem sinkhorn_subsub_tendsto_atTop_of_strictMono_comp
     Filter.Tendsto subsub Filter.atTop Filter.atTop := by
   sorry
 
+/-- Coordinatewise convergence implies convergence in the finite function space.
+
+This is the product-topology bridge behind the bad-coordinate extraction.  For finite `ι`, a sequence
+in `ι → ℝ` converges exactly when all scalar coordinate projections converge. -/
+theorem finite_function_tendsto_of_coordinate_tendsto {ι : Type*} [Fintype ι]
+    (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
+    (_hcoord : ∀ i : ι, Filter.Tendsto (fun n => x n i) Filter.atTop (nhds (xLim i))) :
+    Filter.Tendsto x Filter.atTop (nhds xLim) := by
+  sorry
+
+/-- Scalar nonconvergence at `atTop` produces a frequently bad epsilon-neighborhood.
+
+This is the one-dimensional sequential-topology core used by the finite-product bad-coordinate
+argument. -/
+theorem scalar_not_tendsto_has_frequently_bad_epsilon
+    (x : ℕ → ℝ) (xLim : ℝ)
+    (_hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
+    ∃ ε : ℝ, 0 < ε ∧ ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n - xLim| := by
+  sorry
+
 /-- If a finite-function sequence does not converge, then some coordinate is frequently
 separated from the candidate limit.
 
-This is the first hard pure-topology step in the unique-cluster convergence argument.  It converts
-failure of convergence in the finite product `ι → ℝ` into a scalar bad-coordinate statement. -/
+This is now a wrapper around two purer topology seams: finite product convergence is coordinatewise,
+and scalar nonconvergence produces a frequently bad epsilon-neighborhood. -/
 theorem finite_function_not_tendsto_has_frequently_bad_coordinate {ι : Type*} [Fintype ι]
     (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
-    (_hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
+    (hnot : ¬ Filter.Tendsto x Filter.atTop (nhds xLim)) :
     ∃ i : ι, ∃ ε : ℝ, 0 < ε ∧ ∀ N : ℕ, ∃ n : ℕ, N ≤ n ∧ ε ≤ |x n i - xLim i| := by
-  sorry
+  by_contra hnone
+  have hcoord : ∀ i : ι, Filter.Tendsto (fun n => x n i) Filter.atTop (nhds (xLim i)) := by
+    intro i
+    by_contra hnot_i
+    obtain ⟨ε, hε, hfreq⟩ :=
+      scalar_not_tendsto_has_frequently_bad_epsilon (fun n => x n i) (xLim i) hnot_i
+    exact hnone ⟨i, ε, hε, hfreq⟩
+  exact hnot (finite_function_tendsto_of_coordinate_tendsto x xLim hcoord)
 
 /-- A scalar coordinate that is frequently bad admits a strictly increasing bad subsequence. -/
 theorem finite_function_frequently_bad_coordinate_subsequence {ι : Type*}

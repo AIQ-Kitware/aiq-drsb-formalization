@@ -1,28 +1,492 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Sinkhorn--Knopp (1967)}
+\newtheorem{theorem}{Theorem}
+\newtheorem{remark}{Remark}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\supp}{\operatorname{supp}}
+\title{Modernized proof notes: Sinkhorn--Knopp (1967)}
 \author{Generated proof-target note}
 \date{Source PDF: \texttt{SinkhornKnopp1967.pdf}}
+
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Sinkhorn and Knopp, \emph{Concerning Nonnegative Matrices and Doubly Stochastic Matrices}, Pacific Journal of Mathematics 21(2), 343--348, 1967 \cite{SinkhornKnopp1967}.
+\section*{Reference being modernized}
+This note expands Sinkhorn and Knopp, \emph{Concerning Nonnegative Matrices and Doubly Stochastic Matrices}, Pacific Journal of Mathematics 21(2), 343--348, 1967 \cite{SinkhornKnopp1967}.
 
 \section*{Role in the formalization}
-This is the classical finite matrix-scaling source.  It is most relevant when the Lean theorem is about existence, uniqueness up to diagonal scaling, total support, and convergence of alternating row/column normalization for nonnegative matrices.  For strictly positive finite kernels, all support hypotheses are automatically satisfied.
+Sinkhorn--Knopp is the classical finite nonnegative matrix-scaling theorem.  Its strongest relevance to the current finite Schrodinger/Sinkhorn formalization is the positive-matrix specialization: positive row/column scaling factors exist, the resulting doubly stochastic matrix is unique, and alternating row/column normalization converges.  The paper also proves the exact support hypotheses needed for arbitrary nonnegative matrices.  These details matter if we later generalize beyond strictly positive kernels.
 
-\begin{distillation}
-\item \textbf{Scaling problem.}  Given a nonnegative square matrix $A$, ask whether there are positive diagonal matrices $D_1,D_2$ such that $D_1AD_2$ is doubly stochastic.
-\item \textbf{Support conditions.}  Total support is necessary and sufficient for existence of a doubly stochastic matrix of the form $D_1AD_2$.  Support is necessary and sufficient for convergence of alternating row/column normalization to a doubly stochastic limit.
-\item \textbf{Uniqueness.}  If $D_1AD_2$ and $D'_1AD'_2$ are doubly stochastic, compare the ratios of diagonal factors.  Taking maximal and minimal ratios and using the stochastic constraints forces equality on support blocks.  Full indecomposability collapses all blocks and gives uniqueness of the diagonal factors up to reciprocal scalar.
-\item \textbf{Iteration.}  Alternating normalization keeps the support pattern fixed.  A product-of-column-sums inequality for row-stochastic matrices, together with support decomposition, produces monotonicity/compactness sufficient for convergence under support.
-\end{distillation}
+This note keeps the original proof structure but modernizes notation and fills in implicit algebraic steps.
 
-\section*{Lean comparison targets}
-The current finite Schr\"odinger formalization uses strictly positive kernels rather than arbitrary nonnegative matrices.  Therefore the relevant fragment is the positive-matrix specialization: existence of positive scalings, uniqueness modulo a scalar, and convergence of alternating normalizations.  The exact projective-rate statement is not the main theorem of Sinkhorn--Knopp; for rate/asymptotic regularity the better source is \cite{FranklinLorenz1989,Carroll2004,EvesonNussbaum1995}.
+\section{Definitions}
+Let \(A=(a_{ij})\in\mathbb{R}_+^{N\times N}\).
 
-\section*{Distillation gaps}
-\TODO{If Lean formalizes nonnegative support/total-support statements, add the full block-decomposition proof.  If Lean stays in the strictly positive case, keep only the simpler corollary.}
+\paragraph{Diagonals.}
+For a permutation \(\sigma\) of \(\{1,
+\ldots,N\}\), the associated diagonal is
+\[
+  a_{1,\sigma(1)},a_{2,\sigma(2)},\ldots,a_{N,\sigma(N)}.
+\]
+It is positive if every listed entry is positive.  The identity permutation gives the main diagonal.
+
+\paragraph{Support.}
+The matrix \(A\) has support if it has at least one positive diagonal.
+
+\paragraph{Total support.}
+The matrix \(A\) has total support if \(A\ne0\) and every positive entry \(a_{ij}>0\) lies on at least one positive diagonal.
+
+\paragraph{Fully indecomposable.}
+A square nonnegative matrix is fully indecomposable if no simultaneous row/column permutation can put it into a block form with a zero off-diagonal rectangular block of complementary size.  Equivalently, there do not exist nonempty proper index sets \(I,J\subset\{1,
+\ldots,N\}\) with \(|I|+|J|=N\) such that
+\[
+  A[I^c,J]=0.
+\]
+The paper uses the standard submatrix notation \(A[\mu\mid \nu]\), \(A(\mu\mid\nu]\), etc.; in this note we write explicit row and column sets.
+
+\paragraph{Diagonal equivalence.}
+Two matrices \(B,C\) are diagonally equivalent if there exist diagonal matrices \(D_1,D_2\) with positive diagonal entries such that
+\[
+  C=D_1BD_2.
+\]
+
+\section{Main theorem}
+\begin{theorem}[Sinkhorn--Knopp]
+Let \(A\in\mathbb{R}_+^{N\times N}\).
+\begin{enumerate}[leftmargin=2em]
+\item There exist positive diagonal matrices \(D_1,D_2\) such that \(D_1AD_2\) is doubly stochastic if and only if \(A\) has total support.
+\item If such a doubly stochastic matrix exists, then the matrix \(D_1AD_2\) is unique.
+\item The scaling matrices \(D_1,D_2\) are unique up to reciprocal scalar multiplication if and only if \(A\) is fully indecomposable.
+\item Alternating row and column normalization converges to a doubly stochastic matrix if and only if \(A\) has support.
+\item If \(A\) has total support, the iterative limit is the unique matrix \(D_1AD_2\).  If \(A\) has support but not total support, the iterative limit is doubly stochastic but cannot be written as \(D_1AD_2\) with \(D_1,D_2\) positive diagonal.
+\end{enumerate}
+\end{theorem}
+
+\section{Uniqueness of the doubly stochastic scaling}
+Assume
+\[
+  B=D_1AD_2,
+  \qquad
+  B'=D_1'AD_2'
+\]
+are both doubly stochastic, with
+\[
+  D_1=\diag(x_1,
+\ldots,x_N),\quad
+  D_2=\diag(y_1,
+\ldots,y_N),
+\]
+and similarly \(D_1'=\diag(x_1',
+\ldots,x_N')\), \(D_2'=\diag(y_1',
+\ldots,y_N')\).  Define ratios
+\[
+  p_i=\frac{x_i'}{x_i},
+  \qquad
+  q_j=\frac{y_j'}{y_j}.
+\]
+Then
+\[
+  b_{ij}=x_i a_{ij}y_j,
+  \qquad
+  b'_{ij}=p_iq_j b_{ij}.
+\]
+For every column \(j\), both \(B\) and \(B'\) have column sum \(1\), so
+\begin{equation}
+  \sum_i b_{ij}=1,
+  \qquad
+  \sum_i p_iq_j b_{ij}=1.
+  \label{eq:SK-column-stochastic-ratio}
+\end{equation}
+For every row \(i\),
+\begin{equation}
+  \sum_j b_{ij}=1,
+  \qquad
+  \sum_j p_iq_j b_{ij}=1.
+  \label{eq:SK-row-stochastic-ratio}
+\end{equation}
+Let
+\[
+  p=\min_i p_i,
+  \qquad
+  q=\max_j q_j,
+\]
+and set
+\[
+  m=\{i:p_i=p\},
+  \qquad
+  M=\{j:q_j=q\}.
+\]
+Pick \(i_0\in m\) and \(j_0\in M\).  From \eqref{eq:SK-column-stochastic-ratio} at column \(j_0\),
+\[
+  1=q\sum_i p_i b_{ij_0}.
+\]
+Since \(p_i\ge p\) and \(\sum_i b_{ij_0}=1\),
+\[
+  1=q\sum_i p_i b_{ij_0}\ge qp.
+\]
+Thus \(q\le p^{-1}\).  From \eqref{eq:SK-row-stochastic-ratio} at row \(i_0\),
+\[
+  1=p\sum_j q_j b_{i_0j}\le pq\sum_j b_{i_0j}=pq,
+\]
+so \(q\ge p^{-1}\).  Hence
+\begin{equation}
+  pq=1.
+  \label{eq:SK-pq-one}
+\end{equation}
+Equality in the column inequality is possible only if \(p_i=p\) whenever \(b_{ij_0}>0\).  More generally, for any \(j\in M\), equality in
+\[
+  1=q\sum_i p_i b_{ij}\ge qp
+\]
+forces \(p_i=p\) for every \(i\) with \(b_{ij}>0\).  Hence
+\[
+  \bigcup_{j\in M}\{i:a_{ij}>0\}\subseteq m.
+\]
+Equivalently,
+\begin{equation}
+  A[m^c,M]=0.
+  \label{eq:SK-zero-block-one}
+\end{equation}
+Similarly, equality in the row inequality for each \(i\in m\) forces \(q_j=q\) whenever \(b_{ij}>0\), so
+\[
+  \bigcup_{i\in m}\{j:a_{ij}>0\}\subseteq M,
+\]
+or
+\begin{equation}
+  A[m,M^c]=0.
+  \label{eq:SK-zero-block-two}
+\end{equation}
+On the submatrix \(m\times M\), \eqref{eq:SK-pq-one} gives
+\[
+  b'_{ij}=p_iq_jb_{ij}=pqb_{ij}=b_{ij}.
+\]
+Moreover \(B[m,M]\) and \(B'[m,M]\) are doubly stochastic submatrices.  Indeed, rows in \(m\) have no support outside \(M\), and columns in \(M\) have no support outside \(m\), by \eqref{eq:SK-zero-block-one} and \eqref{eq:SK-zero-block-two}.  Thus the row and column sums inside the block are still \(1\).  In particular \(|m|=|M|\).
+
+If \(A\) is fully indecomposable, the only way to avoid a forbidden zero decomposition is \(m=M=\{1,
+\ldots,N\}\).  Then \(p_i=p\) for all \(i\), \(q_j=p^{-1}\) for all \(j\), and
+\[
+  D_1'=pD_1,
+  \qquad
+  D_2'=p^{-1}D_2.
+\]
+Thus \(D_1,D_2\) are unique up to reciprocal scalar.
+
+If \(A\) is not fully indecomposable, the same block argument applies recursively to complementary blocks.  Each recursion proves equality of the doubly stochastic matrices on the current block.  Since the process terminates in finite dimension, one obtains
+\[
+  B=B'.
+\]
+The diagonal factors may fail to be globally unique because independent reciprocal scalars can be used on different fully indecomposable blocks.
+
+\section{Necessity of total support}
+Assume \(D_1AD_2=B\) is doubly stochastic with \(D_1,D_2\) positive diagonal.  Positive diagonal scaling does not change the zero pattern, so \(a_{ij}>0\) if and only if \(b_{ij}>0\).
+
+Birkhoff's theorem on doubly stochastic matrices says that every doubly stochastic matrix is a convex combination of permutation matrices:
+\[
+  B=\sum_\sigma \lambda_\sigma P_\sigma,
+  \qquad
+  \lambda_\sigma\ge0,
+  \qquad
+  \sum_\sigma\lambda_\sigma=1.
+\]
+If \(b_{ij}>0\), then for at least one permutation \(\sigma\) with \(\lambda_\sigma>0\), the permutation matrix has a \(1\) at \((i,j)\), i.e. \(\sigma(i)=j\).  For that same \(\sigma\), every entry \((k,\sigma(k))\) of \(B\) is positive.  Therefore every positive entry of \(B\), and hence every positive entry of \(A\), lies on a positive diagonal.  Thus \(A\) has total support.
+
+\section{Lemma 1: a product inequality for row stochastic matrices}
+\begin{lemma}[Sinkhorn--Knopp Lemma 1]
+Let \(A\) be row stochastic, and let \(\beta_1,
+\ldots,\beta_N\) be its column sums.  Then
+\[
+  \prod_{k=1}^N\beta_k\le1,
+\]
+with equality if and only if \(\beta_1=\cdots=\beta_N=1\).
+\end{lemma}
+
+\begin{proof}
+Since \(A\) is row stochastic, the sum of all entries is \(N\).  Therefore
+\[
+  \sum_{k=1}^N\beta_k=N.
+\]
+Each \(\beta_k\ge0\).  By the arithmetic-geometric mean inequality,
+\[
+  \left(\prod_{k=1}^N\beta_k\right)^{1/N}
+  \le \frac1N\sum_{k=1}^N\beta_k=1.
+\]
+Raising to the \(N\)-th power gives the inequality.  Equality in AM--GM holds exactly when all \(\beta_k\) are equal; since their sum is \(N\), the common value is \(1\).
+\end{proof}
+
+\section{Lemma 2: renormalizing convergent products}
+\begin{lemma}[Sinkhorn--Knopp Lemma 2]
+Let \(A=(a_{ij})\) have total support.  Suppose \(x_{i,n}>0\) and \(y_{j,n}>0\) are sequences such that
+\[
+  x_{i,n}y_{j,n}\to \ell_{ij}\in(0,\infty)
+\]
+for every \((i,j)\) with \(a_{ij}>0\).  Then there exist positive sequences \(x'_{i,n}\), \(y'_{j,n}\), each converging to a positive limit, such that
+\[
+  x'_{i,n}y'_{j,n}=x_{i,n}y_{j,n}
+\]
+for all \((i,j,n)\) with \(a_{ij}>0\).  Equivalently, the same products can be represented by individually convergent row and column factors.
+\end{lemma}
+
+\begin{proof}
+First assume \(A\) is fully indecomposable.  Build row and column index sets by alternating along positive entries:
+\[
+  E^{(1)}=\{1\},
+  \qquad
+  F^{(1)}=\{j:a_{1j}>0\},
+\]
+and for \(s>1\),
+\[
+  E^{(s)}=\{i\notin \cup_{k<s}E^{(k)}:\exists j\in F^{(s-1)}\text{ with }a_{ij}>0\},
+\]
+\[
+  F^{(s)}=\{j\notin \cup_{k<s}F^{(k)}:\exists i\in E^{(s)}\text{ with }a_{ij}>0\}.
+\]
+Only finitely many of these sets are nonempty.  Let
+\[
+  E=\bigcup_s E^{(s)},
+  \qquad
+  F=\bigcup_s F^{(s)}.
+\]
+Total support implies row \(1\) has a positive entry, so \(F^{(1)}\ne\emptyset\); hence \(E,F\) are nonempty.
+
+Suppose \(E\) is proper.  If \(i\notin E\) and \(j\in F\), then \(j\in F^{(s)}\) for some \(s\).  If \(a_{ij}>0\), then \(i\) would be included in \(E^{(s+1)}\), contradiction.  Thus
+\[
+  A[E^c,F]=0.
+\]
+Similarly, if \(F\) is proper, then
+\[
+  A[E,F^c]=0.
+\]
+Now construct a doubly stochastic matrix \(H=(h_{ij})\) with the same zero pattern as \(A\): if \(a_{ij}=0\), set \(h_{ij}=0\); if \(a_{ij}>0\) and that entry lies on \(t\) positive diagonals, set
+\[
+  h_{ij}=\frac{t}{\tau},
+\]
+where \(\tau\) is the total number of positive diagonals.  Counting positive diagonals shows each row and column sum of \(H\) is \(1\).
+
+Let \(|E|=u\) and \(|F|=v\).  Since \(H[E^c,F]=0\), the columns in \(F\) have all their mass in rows \(E\), so
+\[
+  \sum_{i\in E}\sum_{j\in F}h_{ij}=v.
+\]
+If \(F\) is proper, then \(H[E,F^c]=0\), so the rows in \(E\) have all their mass in columns \(F\), giving
+\[
+  \sum_{i\in E}\sum_{j\in F}h_{ij}=u.
+\]
+If \(F\) is all columns, this same equality is trivially \(u=N=v\).  Hence \(u=v\).  A proper such block would contradict full indecomposability.  Therefore
+\[
+  E=F=\{1,
+\ldots,N\}.
+\]
+Now define
+\[
+  x'_{i,n}=x_{1,n}^{-1}x_{i,n},
+  \qquad
+  y'_{j,n}=x_{1,n}y_{j,n}.
+\]
+Then \(x'_{i,n}y'_{j,n}=x_{i,n}y_{j,n}\).  Also \(x'_{1,n}=1\).  For \(j\in F^{(1)}\),
+\[
+  y'_{j,n}=x_{1,n}y_{j,n}\to\ell_{1j}>0.
+\]
+Inductively suppose \(x'_{i,n}\) converges to a positive limit for all \(i\in\cup_{k<s}E^{(k)}\), and \(y'_{j,n}\) does so for all \(j\in\cup_{k<s}F^{(k)}\).  If \(i\in E^{(s)}\), then by definition there is \(j_{s-1}\in F^{(s-1)}\) with \(a_{ij_{s-1}}>0\).  Hence
+\[
+  x'_{i,n}=\frac{x'_{i,n}y'_{j_{s-1},n}}{y'_{j_{s-1},n}}
+  =\frac{x_{i,n}y_{j_{s-1},n}}{y'_{j_{s-1},n}}
+\]
+converges to a positive limit.  If \(j\in F^{(s)}\), choose \(i_s\in E^{(s)}\) with \(a_{i_sj}>0\).  Then
+\[
+  y'_{j,n}=\frac{x'_{i_s,n}y'_{j,n}}{x'_{i_s,n}}
+  =\frac{x_{i_s,n}y_{j,n}}{x'_{i_s,n}}
+\]
+converges to a positive limit.  Since \(E=F\) equals the full index set, all factors converge.
+
+For general total-support \(A\), the associated doubly stochastic zero-pattern matrix \(H\) decomposes after row and column permutations as
+\[
+  PHQ=H_1\oplus\cdots\oplus H_g,
+\]
+with each \(H_k\) fully indecomposable.  The same permutations decompose
+\[
+  PAQ=A_1\oplus\cdots\oplus A_g,
+\]
+where each \(A_k\) has total support and is fully indecomposable.  Apply the preceding argument on each block.  Independent block normalizations give the desired convergent factors.
+\end{proof}
+
+\section{The alternating normalization iteration}
+Assume \(A\) has support.  Sinkhorn--Knopp define positive scaling factors by
+\[
+  x_{i,0}=1,
+  \qquad
+  y_{j,0}=\left(\sum_{i=1}^N a_{ij}\right)^{-1},
+\]
+and recursively
+\[
+  x_{i,n+1}=\alpha_{i,n}^{-1}x_{i,n},
+  \qquad
+  y_{j,n+1}=\beta_{j,n}^{-1}y_{j,n},
+\]
+where
+\begin{equation}
+  \alpha_{i,n}=\sum_{j=1}^N x_{i,n}a_{ij}y_{j,n},
+  \qquad
+  \beta_{j,n}=\sum_{i=1}^N \alpha_{i,n}^{-1}x_{i,n}a_{ij}y_{j,n}.
+  \label{eq:SK-alpha-beta}
+\end{equation}
+The matrix
+\[
+  C_n=(x_{i,n}a_{ij}y_{j,n})_{ij}
+\]
+is column stochastic, and
+\[
+  R_n=(x_{i,n+1}a_{ij}y_{j,n})_{ij}
+  =(\alpha_{i,n}^{-1}x_{i,n}a_{ij}y_{j,n})_{ij}
+\]
+is row stochastic.  Then \(\beta_{j,n}\) is the \(j\)-th column sum of \(R_n\), and the next matrix \(C_{n+1}\) is obtained by column-normalizing \(R_n\).
+
+Let \(a>0\) be the smallest positive entry of \(A\).  If \(a_{i_0j}>0\), then
+\[
+  y_{j,n}=\left(\sum_i x_{i,n}a_{ij}\right)^{-1}
+  \le x_{i_0,n}^{-1}a_{i_0j}^{-1}
+  \le x_{i_0,n}^{-1}a^{-1}.
+\]
+Thus for every positive entry \(a_{ij}>0\),
+\begin{equation}
+  x_{i,n}y_{j,n}\le a^{-1}\cdot \frac{x_{i,n}}{x_{i_0,n}}.
+\end{equation}
+The paper uses this kind of bound only to show that products along a positive diagonal remain uniformly controlled; the key monotonicity below supplies the convergence.
+
+Let \(\sigma\) be a permutation giving a positive diagonal.  Define
+\[
+  s_n=\prod_{i=1}^N x_{i,n}y_{\sigma(i),n},
+  \qquad
+  s'_n=\prod_{i=1}^N x_{i,n+1}y_{\sigma(i),n}.
+\]
+The row-normalized matrix \(R_n\) is row stochastic, and its column sums are \(\beta_{j,n}\).  By Lemma 1,
+\[
+  \prod_{j=1}^N\beta_{j,n}\le1.
+\]
+Because
+\[
+  y_{j,n+1}=\beta_{j,n}^{-1}y_{j,n},
+\]
+we have
+\[
+  s_{n+1}=\prod_i x_{i,n+1}y_{\sigma(i),n+1}
+  =s'_n\prod_i \beta_{\sigma(i),n}^{-1}
+  \ge s'_n.
+\]
+Also \(x_{i,n+1}=\alpha_{i,n}^{-1}x_{i,n}\), and row normalization gives the corresponding inequality
+\[
+  s_n\le s'_n.
+\]
+Thus
+\begin{equation}
+  s_n\le s'_n\le s_{n+1}.
+  \label{eq:SK-s-monotone}
+\end{equation}
+Using the minimal positive entry bound along the fixed positive diagonal, \(s_n\) is bounded above by \(a^{-N}\).  Hence \(s_n\) and \(s'_n\) converge to the same limit \(L\), with
+\[
+  0<L\le a^{-N}.
+\]
+Therefore
+\[
+  \prod_{j=1}^N\beta_{j,n}=\frac{s'_n}{s_{n+1}}\to1.
+\]
+Since the \(\beta_{j,n}\) are nonnegative and have sum \(N\), Lemma 1 says their product can approach the unique maximum \(1\) only if
+\[
+  \beta_{j,n}\to1\qquad\text{for every }j.
+\]
+Similarly,
+\[
+  \alpha_{i,n}\to1\qquad\text{for every }i.
+\]
+Thus every limit point of the alternating normalization sequence is doubly stochastic.
+
+\section{Uniqueness of the iterative limit}
+Let \(A_n\) denote the matrices produced by the iteration.  Suppose two subsequences converge:
+\[
+  A_{n_k}\to B,
+  \qquad
+  A_{m_k}\to C.
+\]
+The preceding section shows \(B\) and \(C\) are doubly stochastic.  Also the zero pattern of positive limit entries is the same for both limit points.  If \(b_{i_0j_0}>0\), then that entry lies on a positive diagonal of \(B\) by Birkhoff's theorem.  The product of entries on the corresponding diagonal in \(B\) is the positive limit
+\[
+  L\prod_i a_{i,\sigma(i)}.
+\]
+The same diagonal product for \(C\) has the same positive value, so \(c_{i_0j_0}>0\).  The reverse implication is identical.  If \(A\) has total support, then
+\[
+  a_{ij}>0\quad\Longleftrightarrow\quad b_{ij}>0\quad\Longleftrightarrow\quad c_{ij}>0.
+\]
+
+By construction, for each \(k\) there are positive diagonal matrices
+\[
+  D_{1,k}=\diag(w_{1,k},
+\ldots,w_{N,k}),
+  \qquad
+  D_{2,k}=\diag(z_{1,k},
+\ldots,z_{N,k})
+\]
+such that
+\[
+  A_{m_k}=D_{1,k}A_{n_k}D_{2,k}.
+\]
+For entries with \(b_{ij}>0\),
+\[
+  w_{i,k}z_{j,k}\to \frac{c_{ij}}{b_{ij}}>0.
+\]
+Lemma 2 supplies modified factors \(w'_{i,k}\), \(z'_{j,k}\) converging to positive limits and preserving all products on the support.  Passing to the limit gives positive diagonal matrices \(D_1,D_2\) such that
+\[
+  C=D_1BD_2.
+\]
+Since both \(B\) and \(C\) are doubly stochastic, the uniqueness part already proved forces \(B=C\).  Therefore all subsequential limits are equal, so the entire iteration converges.
+
+\section{Existence under total support}
+If \(A\) has total support, the iterative limit \(B\) exists by the preceding argument and has the same support as \(A\).  Since
+\[
+  B=\lim_{n\to\infty}D_{1,n}AD_{2,n},
+\]
+with
+\[
+  D_{1,n}=\diag(x_{1,n},
+\ldots,x_{N,n}),
+  \qquad
+  D_{2,n}=\diag(y_{1,n},
+\ldots,y_{N,n}),
+\]
+we have for every \(a_{ij}>0\),
+\[
+  x_{i,n}y_{j,n}\to \frac{b_{ij}}{a_{ij}}>0.
+\]
+By Lemma 2, replace \(x_{i,n},y_{j,n}\) by equivalent positive factors \(x'_{i,n},y'_{j,n}\) that converge individually to positive limits.  Let
+\[
+  D_1=\lim_n \diag(x'_{1,n},
+\ldots,x'_{N,n}),
+  \qquad
+  D_2=\lim_n \diag(y'_{1,n},
+\ldots,y'_{N,n}).
+\]
+Then
+\[
+  B=D_1AD_2.
+\]
+This proves sufficiency of total support for existence of positive diagonal scalings.
+
+\section{Support but not total support}
+If \(A\) has support but not total support, the iteration still converges to a doubly stochastic limit.  However, at least one positive entry of \(A\) is not on any positive diagonal.  Birkhoff's theorem on doubly stochastic matrices implies that in any doubly stochastic limit, an entry that is not on a positive diagonal must be zero.  Thus some positive entry \(a_{ij}>0\) is driven to zero by the iteration.
+
+If the limit could be written as \(D_1AD_2\) with positive diagonal matrices, then every positive entry of \(A\) would remain positive in \(D_1AD_2\), contradiction.  If one allowed zero diagonal entries, then an entry \((D_1AD_2)_{ij}=x_i a_{ij}y_j=0\) with \(a_{ij}>0\) would force \(x_i=0\) or \(y_j=0\), producing an all-zero row or column, impossible for a doubly stochastic matrix.  Hence the support-not-total-support limit is not a positive diagonal scaling of \(A\).
+
+\section{Strictly positive specialization}
+If \(A\) is strictly positive, then every entry lies on every sufficiently chosen positive diagonal through that entry; in particular \(A\) has total support.  The theorem therefore gives:
+\begin{enumerate}[leftmargin=2em]
+\item existence of positive diagonal scalings \(D_1,D_2\) such that \(D_1AD_2\) is doubly stochastic;
+\item uniqueness of the scaled matrix;
+\item full indecomposability, hence uniqueness of \(D_1,D_2\) up to reciprocal scalar;
+\item convergence of alternating row/column normalization to that unique matrix.
+\end{enumerate}
+This is the fragment most directly relevant to the strictly positive finite-kernel Schrodinger bridge setting.
+
+\section{Lean comparison targets}
+\begin{enumerate}[leftmargin=2em]
+\item For strictly positive finite kernels, avoid the full support theory initially.  Prove total support and full indecomposability by elementary finite arguments.
+\item The uniqueness proof is mostly finite max/min reasoning over diagonal factor ratios.  It can be formalized without Hilbert metric.
+\item The convergence proof in this paper uses compactness of finite matrices, Lemma 1, and the product monotonicity \(s_n\le s'_n\le s_{n+1}\).  It is constructive but bookkeeping-heavy.
+\item Franklin--Lorenz and Birkhoff--Hopf are better sources for projective-rate/asymptotic-regularity statements.  Sinkhorn--Knopp is better for support hypotheses, uniqueness of diagonal scaling, and existence of a doubly stochastic scaling.
+\end{enumerate}
 
 \input{references_manual}
 \end{document}

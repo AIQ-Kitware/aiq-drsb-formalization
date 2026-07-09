@@ -1,109 +1,693 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb,amsthm}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
+
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
 \newtheorem{proposition}{Proposition}
-\title{Distillation: Lemmens--Nussbaum 2013, Birkhoff's version of Hilbert's metric}
+\newtheorem{remark}{Remark}
+\newcommand{\R}{\mathbb{R}}
+
+\newcommand{\e}{\mathrm{e}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\Aut}{\operatorname{Aut}}
+\newcommand{\conv}{\operatorname{conv}}
+\newcommand{\tr}{\operatorname{tr}}
+\newcommand{\relint}{\operatorname{relint}}
+\DeclareMathOperator{\Log}{Log}
+
+\title{Modernized proof notes: Lemmens--Nussbaum 2013, Birkhoff's version of Hilbert's metric}
 \author{Generated for the AIQ DRSB formalization reference corpus}
 \date{2026-07-09}
+
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
+\section*{Reference being modernized}
 Bas Lemmens and Roger Nussbaum. ``Birkhoff's version of Hilbert's metric and its applications in analysis.'' arXiv:1304.7921v1, 2013.
 Source PDF expected in the repo as
-\texttt{prose/papers/LemmensNussbaum2013\_hilbert\_metric\_survey.pdf}.
+\path{prose/papers/LemmensNussbaum2013_hilbert_metric_survey.pdf}.
 
-\section*{Why this paper matters for the formalization}
-This survey supplies modern notation and clean statements for Hilbert's metric on cones, order-preserving homogeneous maps, Birkhoff's contraction ratio, and the finite positive-matrix formula for projective diameter.  It is the best source for translating Birkhoff's argument into Lean-friendly finite-dimensional statements.
+\section*{Purpose of this note}
+The earlier note only summarized the survey.  This replacement keeps the modern notation and proof-level details that are useful for formalization: the order definition of Hilbert's metric, the proof of its basic metric properties, the equivalence with Hilbert's cross-ratio metric, nonexpansiveness of order-preserving homogeneous maps, the Birkhoff contraction theorem as the main theorem seam, the finite positive-matrix diameter formula, the Perron--Frobenius operator application, and the special-cone formulas for simplicial, polyhedral, and symmetric cones.
 
-\section*{Core definitions}
-Let \(C\) be a cone in a real vector space.  For \(x\in V\), \(y\in C\), define
-\[
-  M(x/y)=\inf\{\beta : x\le_C \beta y\},\qquad
-  m(x/y)=\sup\{\alpha : \alpha y\le_C x\}.
-\]
-For comparable nonzero points in the same part of the cone, Birkhoff's Hilbert metric is
-\[
-  d(x,y)=\log\frac{M(x/y)}{m(x/y)}.
-\]
-For the positive cone \(\mathbb{R}_+^n\) and strictly positive vectors,
-\[
-  M(x/y)=\max_i \frac{x_i}{y_i},\qquad
-  m(x/y)=\min_i \frac{x_i}{y_i}.
-\]
-Thus \(d(x,y)=0\) exactly when \(x\) and \(y\) are positive scalar multiples.
+The survey also contains later dynamical results for nonexpansive maps.  Those are recorded as theorem seams rather than fully reproved, because the survey itself cites external sources for several of them.  The fully expanded material below covers the parts whose proofs are present in the paper and most directly relevant to Birkhoff--Hopf/Sinkhorn formalization.
 
-\section*{Metric and nonexpansive-map facts}
-The survey proves the basic metric properties:
-\begin{enumerate}[leftmargin=2em]
-\item nonnegativity, symmetry, and triangle inequality for \(d\) on each part;
-\item projective invariance \(d(\lambda x,\mu y)=d(x,y)\) for \(\lambda,\mu>0\);
-\item in a closed Banach cone, zero distance means equality of rays.
+\section{Cones, order, domination, and parts}
+Let \(V\) be a real vector space.  A subset \(C\subseteq V\) is a cone if
+\begin{enumerate}[label=(C\arabic*),leftmargin=2em]
+\item \(C\) is convex;
+\item \(\lambda C\subseteq C\) for all \(\lambda\ge0\);
+\item \(C\cap(-C)=\{0\}\).
 \end{enumerate}
-If \(f:C\to K\) is order-preserving and homogeneous of degree \(r>0\), then
+If only the first two conditions hold, \(C\) is a wedge.  A cone induces a partial order
+\[
+  x\le_C y\quad\Longleftrightarrow\quad y-x\in C.
+\]
+A wedge induces only a preorder, because antisymmetry may fail.
+
+If \(C\) is a closed cone in a Banach space \((V,\|\cdot\|)\), it is called normal if there exists \(\kappa>0\) such that
+\[
+  0\le_C x\le_C y\quad\Longrightarrow\quad \|x\|\le\kappa\|y\|.
+\]
+All closed cones in finite-dimensional normed spaces are normal, but infinite-dimensional closed cones need not be.
+
+The dual wedge is
+\[
+  C^*=\{\varphi\in V^*: \varphi(x)\ge0\text{ for all }x\in C\}.
+\]
+If \(C-C\) is dense in \(V\), then \(C^*\) is a cone.  In finite dimensions, if \(C\) is closed and has nonempty interior, then \(C^*\) is a closed cone with nonempty interior.
+
+For \(\varphi\in C^*\), define the base
+\[
+  \Sigma_\varphi=\{x\in C:\varphi(x)=1\}.
+\]
+In finite dimensions, if \(C\) is closed with nonempty interior and \(\varphi\in (C^*)^\circ\), then \(\Sigma_\varphi\) is nonempty, compact, and convex.  In infinite dimensions such bounded bases may fail to exist; the standard cone in \(\ell^2\) is one example.
+
+\subsection{Domination}
+For \(x\in V\) and \(y\in C\), say that \(y\) dominates \(x\) if there exist \(\alpha,\beta\in\R\) such that
+\[
+  \alpha y\le_C x\le_C \beta y.
+\]
+When \(y\) dominates \(x\), define
+\[
+  M(x/y)=\inf\{\beta\in\R:x\le_C \beta y\},
+  \qquad
+  m(x/y)=\sup\{\alpha\in\R:\alpha y\le_C x\}.
+\]
+If \(y=0\) and \(y\) dominates \(x\), then \(x=0\), because \(x\in C\cap(-C)\).  If \(y\ne0\), then \(M(x/y)\ge m(x/y)\).
+
+Define an equivalence relation on \(C\) by
+\[
+  x\sim_C y
+  \quad\Longleftrightarrow\quad
+  x\text{ dominates }y\text{ and }y\text{ dominates }x.
+\]
+The equivalence classes are called parts of \(C\).  The origin is a part by itself.  If \(C\) is closed with nonempty interior in a Banach space, then \(C^\circ\) is a part.  For finite-dimensional closed cones, parts are precisely the relative interiors of faces.
+
+For \(x,y\in C\setminus\{0\}\), comparability is equivalent to the existence of \(0<\alpha\le\beta\) with
+\[
+  \alpha y\le_C x\le_C \beta y.
+\]
+Also
+\begin{equation}
+  m(x/y)=\sup\{\alpha>0:y\le_C \alpha^{-1}x\}=M(y/x)^{-1}.
+  \label{eq:LN-m-inverse-M}
+\end{equation}
+
+\section{Birkhoff's version of Hilbert's metric}
+For comparable points \(x\sim_C y\) with \(y\ne0\), define
+\begin{equation}
+  d(x,y)=\log\frac{M(x/y)}{m(x/y)}.
+  \label{eq:LN-hilbert-metric}
+\end{equation}
+Set \(d(0,0)=0\), and set \(d(x,y)=\infty\) when \(x\) and \(y\) are not comparable.
+
+\begin{lemma}[Lemma 2.1]
+Let \(C\) be a cone in \(V\).  If \(x\sim_C y\sim_C z\) with \(y\ne0\), then:
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+\item \(d(x,y)\ge0\);
+\item \(d(x,y)=d(y,x)\);
+\item \(d(x,z)\le d(x,y)+d(y,z)\);
+\item \(d(\lambda x,\mu y)=d(x,y)\) for all \(\lambda,\mu>0\).
+\end{enumerate}
+If \(C\) is a closed cone in a Banach space, then \(d(x,y)=0\) if and only if \(x=\lambda y\) for some \(\lambda\ge0\).
+\end{lemma}
+
+\begin{proof}
+For nonnegativity, take \(0<\alpha<m(x/y)\) and \(\beta>M(x/y)\).  Then
+\[
+  \alpha y\le_C x\le_C \beta y.
+\]
+Thus \((\beta-\alpha)y\in C\).  Since \(y\in C\setminus\{0\}\) and \(C\cap(-C)=\{0\}\), this forces \(\beta\ge\alpha\).  Letting \(\alpha\uparrow m(x/y)\) and \(\beta\downarrow M(x/y)\) yields \(M(x/y)/m(x/y)\ge1\), hence \(d(x,y)\ge0\).
+
+Symmetry follows from \eqref{eq:LN-m-inverse-M}:
+\[
+  d(x,y)=\log\bigl(M(x/y)M(y/x)\bigr)=d(y,x).
+\]
+For the triangle inequality, let \(0<\alpha<m(x/y)\) and \(0<\gamma<m(y/z)\).  Then \(\alpha y\le_C x\) and \(\gamma z\le_C y\), hence \(\alpha\gamma z\le_C x\).  Thus
+\[
+  m(x/z)\ge m(x/y)m(y/z).
+\]
+Similarly, if \(x\le_C \beta y\) and \(y\le_C \delta z\), then \(x\le_C\beta\delta z\), so
+\[
+  M(x/z)\le M(x/y)M(y/z).
+\]
+Divide and take logarithms to obtain (iii).
+
+For projective invariance, direct substitution gives
+\[
+  M(\lambda x/\mu y)=\frac{\lambda}{\mu}M(x/y),
+  \qquad
+  m(\lambda x/\mu y)=\frac{\lambda}{\mu}m(x/y),
+\]
+so the quotient in \eqref{eq:LN-hilbert-metric} is unchanged.
+
+Finally assume \(C\) is closed and \(x\sim_C y\).  Closedness implies the endpoint inequalities are attained:
+\[
+  m(x/y)y\le_C x\le_C M(x/y)y.
+\]
+If \(d(x,y)=0\), then \(M(x/y)=m(x/y)\).  Hence
+\[
+  x=m(x/y)y.
+\]
+Conversely, if \(x=\lambda y\) with \(\lambda>0\), projective invariance gives \(d(x,y)=0\).  If \(\lambda=0\), then \(x=0\), comparable only to \(0\), and the convention gives \(d(0,0)=0\).
+\end{proof}
+
+\section{Equivalence with Hilbert's cross-ratio metric}
+Let \(C\) be a closed cone with nonempty interior in an \((n+1)\)-dimensional real normed space \(V\).  Let \(H\subset V\) be an \(n\)-dimensional affine hyperplane such that
+\[
+  \Omega_C=H\cap C^\circ
+\]
+is a relatively open bounded convex set in \(H\).
+
+\begin{theorem}[Theorem 2.2]
+The restriction of \(d\) to \(\Omega_C\) equals Hilbert's cross-ratio metric \(\delta\) on \(\Omega_C\).
+\end{theorem}
+
+\begin{proof}
+Take distinct \(x,y\in\Omega_C\).  Put
+\[
+  \alpha=m(x/y)=M(y/x)^{-1},
+  \qquad
+  \beta=M(x/y).
+\]
+Closedness gives
+\[
+  u=x-\alpha y\in\partial C,
+  \qquad
+  w=y-x/\beta\in\partial C.
+\]
+Let \(\ell_{xy}\) be the affine line through \(x\) and \(y\).  Let \(x'\) and \(y'\) be the two boundary points in \(\partial\Omega_C\) ordered so that \(x\) lies between \(x'\) and \(y\), and \(y\) lies between \(x\) and \(y'\).  Then there exist parameters \(\sigma,\tau>1\) such that
+\[
+  x'=y+\sigma(x-y),
+  \qquad
+  y'=x+\tau(y-x).
+\]
+Let \(\varphi\) be an affine-normalizing linear functional with
+\[
+  H=\{z\in V:\varphi(z)=1\}.
+\]
+Since \(x,y\in H\), \(\varphi(u)=1-\alpha\), and the ray through \(u\) meets \(H\) at
+\[
+  \frac{u}{\varphi(u)}=\frac{x-\alpha y}{1-\alpha}.
+\]
+Equating this with \(x'=y+\sigma(x-y)=\sigma x+(1-
+\sigma)y\) gives
+\[
+  \frac1{1-\alpha}=\sigma,
+  \qquad
+  -\frac{\alpha}{1-\alpha}=1-\sigma.
+\]
+Thus \(\alpha=(\sigma-1)/\sigma\).  Similarly, using \(w=y-x/\beta\) and \(\varphi(w)=1-1/\beta\),
+\[
+  y'=\frac{w}{\varphi(w)}=\frac{y-x/\beta}{1-1/\beta}
+\]
+gives \(\beta=\tau/(\tau-1)\), up to the usual orientation convention.  Therefore the ratios of Euclidean lengths along the line satisfy
+\[
+  \frac{\|y-x'\|}{\|x-x'\|}=\frac{1}{\alpha}=M(y/x),
+  \qquad
+  \frac{\|x-y'\|}{\|y-y'\|}=\beta=M(x/y).
+\]
+Hilbert's cross-ratio formula is
+\[
+  \delta(x,y)=\log\left(
+  \frac{\|y-x'\|}{\|x-x'\|}
+  \frac{\|x-y'\|}{\|y-y'\|}
+  \right).
+\]
+Substituting the preceding identities yields
+\[
+  \delta(x,y)=\log(M(y/x)M(x/y))
+  =\log\frac{M(x/y)}{m(x/y)}=d(x,y),
+\]
+using \eqref{eq:LN-m-inverse-M}.
+\end{proof}
+
+\begin{remark}[Funk metric]
+The asymmetric quantity
+\[
+  F_C(x,y)=\log M(x/y)
+\]
+is the Funk weak metric.  Hilbert's metric is the symmetrization
+\[
+  d(x,y)=F_C(x,y)+F_C(y,x).
+\]
+\end{remark}
+
+\begin{remark}[Open convex sets in Banach spaces]
+If \(\Omega\subset V\) is open, convex, and contains no affine line, set
+\[
+  C_\Omega=\{(s,sv):s>0,\;v\in\Omega\}\subset \R\times V.
+\]
+The closure \(\overline{C_\Omega}\) is a cone.  If \(w=(0,u)\) and \(-w\) both belonged to the closure, then by approximating \(w\) and \(-w\) using points \((s_k,s_kv_k)\), convexity would imply \(v+tu\in\Omega\) for all \(t\in\R\), contradicting the no-line assumption.  Thus the cone construction gives Hilbert's metric on arbitrary open line-free convex sets by restricting to the slice \(s=1\).
+\end{remark}
+
+\section{Order-preserving homogeneous maps are nonexpansive}
+Let \(C\subset V\), \(K\subset W\) be cones.  A map \(f:C\to K\) is order-preserving if
+\[
+  x\le_C y\quad\Longrightarrow\quad f(x)\le_K f(y),
+\]
+and homogeneous of degree \(r\) if \(f(\lambda x)=\lambda^r f(x)\) for all \(\lambda>0\).
+
+\begin{proposition}[Proposition 2.6]
+If \(f:C\to W\) is order-preserving and homogeneous of degree \(r>0\), then for all \(x\sim_C y\),
 \[
   M(f(x)/f(y))\le M(x/y)^r,
   \qquad
   m(x/y)^r\le m(f(x)/f(y)).
 \]
-Therefore degree-one order-preserving maps are nonexpansive for \(d\).  Order-reversing homogeneous maps of degree \(-1\) are also nonexpansive after the corresponding inversion of inequalities.
+\end{proposition}
 
-\section*{Birkhoff contraction ratio}
-For a positive linear map \(L:C\to K\), define
+\begin{proof}
+If \(x\le_C \beta y\), then order preservation gives
 \[
-  \kappa(L)=\inf\{c: d(Lx,Ly)\le c\,d(x,y)\},\qquad
-  \Delta(L)=\sup\{d(Lx,Ly):x,y\in C\}.
+  f(x)\le_K f(\beta y)=\beta^r f(y).
 \]
-Birkhoff's theorem states
+Taking the infimum over \(\beta>M(x/y)\) yields
 \[
-  \kappa(L)=\tanh\bigl(\Delta(L)/4\bigr),
+  M(f(x)/f(y))\le M(x/y)^r.
 \]
-with \(\tanh(\infty)=1\).  Hence finite projective diameter implies strict contraction.
+Similarly, if \(\alpha y\le_C x\), then
+\[
+  \alpha^r f(y)=f(\alpha y)\le_K f(x),
+\]
+so \(m(f(x)/f(y))\ge \alpha^r\).  Taking the supremum over \(\alpha<m(x/y)\) gives the second inequality.
+\end{proof}
 
-For a strictly positive matrix \(A=(a_{ij})\), the survey records the explicit finite formula
+\begin{corollary}[Corollary 2.7]
+If \(f:C\to K\) is order-preserving and homogeneous of degree \(1\), then \(f\) is nonexpansive for Hilbert's metric on each part:
 \[
-  \Delta(A)=\log\max_{i,j,p,q}\frac{a_{pi}a_{qj}}{a_{pj}a_{qi}} < \infty.
+  d_K(f(x),f(y))\le d_C(x,y).
 \]
-This formula is especially useful for Lean because it avoids compactness of function spaces and reduces finite diameter to inequalities over finite index sets.
+\end{corollary}
 
-\section*{Distilled proof pattern for finite matrices}
+\begin{proof}
+Use Proposition 2.6 with \(r=1\):
+\[
+  \frac{M(f(x)/f(y))}{m(f(x)/f(y))}
+  \le \frac{M(x/y)}{m(x/y)}.
+\]
+Taking logarithms gives the result.
+\end{proof}
+
+Order-reversing homogeneous degree \(-1\) maps are also nonexpansive: the inequalities are reversed and inverted, but the quotient defining \(d\) is unchanged.  This is one reason the Hilbert metric is useful for alternating scaling maps, where one normalization can be order-reversing after reciprocation.
+
+\section{Birkhoff contraction ratio and the finite positive matrix formula}
+For a linear map \(L:V\to W\) with \(L(C)\subseteq K\), define
+\[
+  \kappa(L)=\inf\{c\ge0:d_K(Lx,Ly)\le c\,d_C(x,y)\text{ for all }x\sim_C y\},
+\]
+and
+\[
+  \Delta(L)=\sup\{d_K(Lx,Ly):x,y\in C,\;Lx\sim_K Ly\}.
+\]
+
+\begin{theorem}[Birkhoff, Theorem 2.9]
+For a linear map \(L:V\to W\) with \(L(C)\subseteq K\),
+\[
+  \kappa(L)=\tanh(\Delta(L)/4),
+\]
+where \(\tanh(\infty)=1\).
+\end{theorem}
+
+This theorem is the same theorem modernized in the Eveson--Nussbaum and Birkhoff notes.  The survey uses it as a black-box contraction theorem.  For a strictly positive \(m\times n\) matrix \(A=(a_{pi})\), the survey records the explicit formula
+\begin{equation}
+  \Delta(A)=\max_{i,j} d(Ae_i,Ae_j)
+  =\log\max_{i,j,p,q}\frac{a_{pi}a_{qj}}{a_{pj}a_{qi}}<\infty.
+  \label{eq:positive-matrix-diameter}
+\end{equation}
+
+\subsection{Proof of the matrix diameter formula}
+For \(x\in\R_+^n\setminus\{0\}\),
+\[
+  Ax=\sum_i x_i Ae_i.
+\]
+The image \(A(\R_+^n)\) is the cone generated by the columns \(Ae_i\).  Proposition 2.9 in the Eveson--Nussbaum notation, or the convex-hull invariance of projective diameter, gives that the diameter of the image cone is the diameter of its set of generating rays:
+\[
+  \Delta(A)=\max_{i,j}d(Ae_i,Ae_j).
+\]
+For two columns \(Ae_i=(a_{pi})_p\) and \(Ae_j=(a_{pj})_p\), the positive-orthant formula gives
+\[
+  d(Ae_i,Ae_j)=
+  \log\frac{\max_p a_{pi}/a_{pj}}{\min_q a_{qi}/a_{qj}}.
+\]
+The reciprocal of the minimum is a maximum, so
+\[
+  \frac{\max_p a_{pi}/a_{pj}}{\min_q a_{qi}/a_{qj}}
+  =\max_{p,q}\frac{a_{pi}/a_{pj}}{a_{qi}/a_{qj}}
+  =\max_{p,q}\frac{a_{pi}a_{qj}}{a_{pj}a_{qi}}.
+\]
+Taking the maximum over \(i,j\) gives \eqref{eq:positive-matrix-diameter}.  Strict positivity is exactly what makes every denominator positive and the maximum finite.
+
+\section{Cone-linear Perron--Frobenius theorem}
+A map \(L:C\to C\) is cone-linear if
+\[
+  L(\alpha x+\beta y)=\alpha Lx+\beta Ly
+\]
+for all \(\alpha,\beta\ge0\) and \(x,y\in C\).  The survey quotes the following theorem.
+
+\begin{theorem}[Theorem 2.11, quoted theorem seam]
+Let \(C\) be a closed normal cone in a Banach space \(V\), and let \(L:C\to C\) be cone-linear and continuous at \(0\).  If there exists \(p\ge1\) such that \(\Delta(L^p)<\infty\) and \(L^{p+1}(C)\ne\{0\}\), then \(L\) has a unique eigenvector \(v\in C\), \(\|v\|=1\), satisfying
+\[
+  Lv=r_C(L)v,
+\]
+where
+\[
+  r_C(L)=\lim_{k\to\infty}\|L^k\|_C^{1/k},
+  \qquad
+  \|L^k\|_C=\sup\{\|L^k x\|:x\in C,\|x\|=1\}.
+\]
+Moreover, if \(c=\tanh(\Delta(L^p)/4)<1\), then
+\[
+  d(L^{kp}x,v)\le c^k d(x,v)
+\]
+for all nonzero \(x\in C\) in the relevant part.
+\end{theorem}
+
+For finite positive matrices, this theorem collapses to Perron--Frobenius: strict positivity gives finite diameter for \(L\), hence a unique positive eigen-ray and geometric convergence in Hilbert metric.
+
+\section{Application to Perron--Frobenius operators}
+Let \((S,\rho)\) be a bounded complete metric space with diameter \(\Delta>0\).  Let \(C_b(S)\) be bounded continuous real-valued functions with the sup norm.  For \(0<\lambda\le1\) and \(M>0\), define
+\begin{equation}
+  K(M,\lambda)=\{f\in C_b(S): f(s)\le f(t)\exp(M\rho(s,t)^\lambda)\text{ for all }s,t\in S\}.
+  \label{eq:holder-cone}
+\end{equation}
+This is a closed normal cone.  If \(f\in K(M,\lambda)\), then either \(f\equiv0\) or \(f(s)>0\) for all \(s\), and
+\begin{equation}
+  \sup_s f(s)\le \exp(M\Delta^\lambda)\inf_s f(s).
+  \label{eq:holder-cone-sup-inf}
+\end{equation}
+
+Fix functions \(b_i\in K(M_0,\lambda)\) and Lipschitz maps \(\theta_i:S\to S\) with
+\[
+  \operatorname{Lip}(\theta_i)\le c<1.
+\]
+Assume \(\sum_i b_i(s_*)<\infty\) for some \(s_*\).  Define the Perron--Frobenius operator
+\begin{equation}
+  (Lf)(t)=\sum_i b_i(t)f(\theta_i(t)).
+  \label{eq:LN-PF-operator}
+\end{equation}
+Then \(L:C_b(S)\to C_b(S)\) is bounded, because
+\[
+  \|Lf\|\le \sum_i b_i(s_*)\exp(M_0\Delta^\lambda)\|f\|.
+\]
+
+\begin{lemma}[Lemma 2.12]
+Let \(d_2\) be Hilbert's metric on \(K(M_2,\lambda)\).  If \(0<M_1<M_2\), then \(K(M_1,\lambda)\setminus\{0\}\) lies in a single part of \(K(M_2,\lambda)\), and has finite \(d_2\)-diameter.
+\end{lemma}
+
+\begin{proof}
+Let \(\le_2\) be the order induced by \(K(M_2,\lambda)\).  It suffices, by projective invariance, to take \(f,g\in K(M_1,\lambda)\) with \(\|f\|=\|g\|=1\) and find uniform \(0<\alpha\le\beta\) such that
+\[
+  \alpha f\le_2 g\le_2 \beta f.
+\]
+By symmetry, it suffices to prove the lower inequality.  The inequality \(\alpha f\le_2 g\) means
+\begin{equation}
+  g(s)-\alpha f(s)
+  \le (g(t)-\alpha f(t))\exp(M_2\rho(s,t)^\lambda)
+  \label{eq:alpha-lower-holder}
+\end{equation}
+for all \(s,t\).
+
+Since \(f,g\in K(M_1,\lambda)\) and have sup norm \(1\), \eqref{eq:holder-cone-sup-inf} gives
+\[
+  \exp(-M_1\Delta^\lambda)
+  \le f(t),g(t)
+  \le1,
+\]
+and hence
+\begin{equation}
+  \exp(-M_1\Delta^\lambda)
+  \le \frac{g(t)}{f(t)}
+  \le \exp(M_1\Delta^\lambda).
+  \label{eq:ratio-holder-bound}
+\end{equation}
+Choose \(\alpha<\exp(-M_1\Delta^\lambda)\) so that all denominators below are positive.  Dividing \eqref{eq:alpha-lower-holder} by \(g(t)-\alpha f(t)\), it is enough to show
+\[
+  \frac{g(s)-\alpha f(s)}{g(t)-\alpha f(t)}
+  \le \exp(M_2\rho(s,t)^\lambda).
+\]
+Using the \(K(M_1,\lambda)\) inequalities for \(g\) and \(f\),
+\[
+  g(s)\le g(t)\e^{M_1 r_0},
+  \qquad
+  f(s)\ge f(t)\e^{-M_1 r_0},
+  \qquad r_0=\rho(s,t)^\lambda,
+\]
+so
+\[
+  \frac{g(s)-\alpha f(s)}{g(t)-\alpha f(t)}
+  \le
+  \frac{g(t)\,\e^{M_1r_0}-\alpha f(t)\e^{-M_1r_0}}{g(t)-\alpha f(t)}.
+\]
+Put \(r=M_2r_0\) and \(\mu=M_1/M_2<1\).  Using \eqref{eq:ratio-holder-bound}, the last ratio is bounded by \(\e^r\) provided
+\begin{equation}
+  \left(\frac{\alpha}{\e^{-M_1\Delta^\lambda}-\alpha}\right)
+  \left(\frac{\e^{\mu r}-\e^{-\mu r}}{\e^r-\e^{\mu r}}\right)
+  \le1.
+  \label{eq:LN-theta-condition}
+\end{equation}
+The second factor extends continuously to \(r=0\) with value \(2\mu/(1-\mu)\), tends to \(0\) as \(r\to\infty\), and has negative derivative on \((0,\infty)\).  Thus its maximum is \(2\mu/(1-\mu)\).
+Set
+\[
+  \kappa=\frac{M_2-M_1}{M_2+M_1}=\frac{1-\mu}{1+\mu},
+  \qquad
+  \alpha=\kappa\e^{-M_1\Delta^\lambda}.
+\]
+Then
+\[
+  \frac{\alpha}{\e^{-M_1\Delta^\lambda}-\alpha}
+  =\frac{\kappa}{1-\kappa}
+  =\frac{1-\mu}{2\mu},
+\]
+so \eqref{eq:LN-theta-condition} holds.  By symmetry one can take
+\[
+  \beta=\frac{M_2+M_1}{M_2-M_1}\e^{M_1\Delta^\lambda}.
+\]
+Consequently
+\[
+  d_2(f,g)\le \log(\beta/\alpha)
+  =2\log\frac{M_2+M_1}{M_2-M_1}+2M_1\Delta^\lambda,
+\]
+a finite bound independent of \(f,g\).
+\end{proof}
+
+\begin{lemma}[Lemma 2.13]
+Assume at least one \(b_i\) is not identically zero.  If \(M_2>M_0/(1-c^\lambda)\) and \(M_1=M_0+c^\lambda M_2\), then
+\[
+  L(K(M_2,\lambda)\setminus\{0\})\subseteq K(M_1,\lambda)\setminus\{0\}.
+\]
+\end{lemma}
+
+\begin{proof}
+For \(f\in K(M_2,\lambda)\), the composition \(f\circ\theta_i\) satisfies
+\[
+  f(\theta_i(s))
+  \le f(\theta_i(t))
+  \exp(M_2\rho(\theta_i(s),\theta_i(t))^\lambda)
+  \le f(\theta_i(t))
+  \exp(c^\lambda M_2\rho(s,t)^\lambda).
+\]
+Thus \(f\circ\theta_i\in K(c^\lambda M_2,\lambda)\).  Since \(b_i\in K(M_0,\lambda)\), multiplying inequalities gives
+\[
+  b_i(s)f(\theta_i(s))
+  \le b_i(t)f(\theta_i(t))
+  \exp((M_0+c^\lambda M_2)\rho(s,t)^\lambda).
+\]
+Hence each summand belongs to \(K(M_1,\lambda)\), and closedness of the cone gives \(Lf\in K(M_1,\lambda)\).
+
+If \(f\ne0\), then \(f>0\) everywhere.  At least one \(b_j\) is not zero, and a nonzero element of \(K(M_0,\lambda)\) is positive everywhere.  Thus
+\[
+  (Lf)(t)\ge b_j(t)f(\theta_j(t))>0
+\]
+for all \(t\), so \(Lf\ne0\).
+\end{proof}
+
+\begin{theorem}[Theorem 2.14]
+Under the preceding assumptions, for every \(M_2>M_0/(1-c^\lambda)\) there exists a unique \(v\in K(M_2,\lambda)\), \(\|v\|=1\), such that
+\[
+  Lv=\|Lv\|v.
+\]
+For every \(g\in K(M_2,\lambda)\setminus\{0\}\),
+\[
+  \lim_{k\to\infty}\left\|\frac{L^k g}{\|L^k g\|}-v\right\|=0.
+\]
+\end{theorem}
+
+\begin{proof}
+Let \(L_0\) be \(L\) restricted to \(K(M_2,\lambda)\).  By Lemma 2.13, \(L_0\) maps nonzero elements into \(K(M_1,\lambda)\setminus\{0\}\), where \(M_1=M_0+c^\lambda M_2<M_2\).  By Lemma 2.12, \(K(M_1,\lambda)\setminus\{0\}\) has finite diameter in the metric of \(K(M_2,\lambda)\).  Hence \(\Delta(L_0)<\infty\).  Also \(L_0^2(K(M_2,\lambda))\ne\{0\}\).  Apply Theorem 2.11.
+\end{proof}
+
+\section{Special cones}
+
+\subsection{Extreme functionals and a general formula}
+Let \(C\) be a closed cone with nonempty interior in a finite-dimensional vector space \(V\).  For \(u\in C^\circ\), define
+\[
+  \Sigma_u^*=\{\varphi\in C^*: \varphi(u)=1\}.
+\]
+This is compact convex.  Let \(E_u\) be the closure of its extreme points.  By Krein--Milman/Minkowski, \(\Sigma_u^*\) is the closed convex hull of its extreme points.
+
+\begin{lemma}[Lemma 3.1]
+For \(x\in V\) and \(y\in C^\circ\),
+\[
+  M(x/y)=\max_{\varphi\in E_u}\frac{\varphi(x)}{\varphi(y)},
+  \qquad
+  m(x/y)=\min_{\varphi\in E_u}\frac{\varphi(x)}{\varphi(y)}.
+\]
+\end{lemma}
+
+\begin{proof}
+Order is detected by the dual cone: \(x\le_C y\) if and only if \(\varphi(x)\le\varphi(y)\) for all \(\varphi\in C^*\).  If \(y-x\notin C\), Hahn--Banach separation gives a functional nonnegative on \(C\) but negative on \(y-x\), contradicting the dual inequalities.  Since every element of \(\Sigma_u^*\) is a convex combination/limit of extreme functionals, it suffices to test on \(E_u\).
+
+Now \(x\le_C \beta y\) is equivalent to
+\[
+  \varphi(x)\le \beta\varphi(y)
+\]
+for all \(\varphi\in E_u\).  Since \(y\in C^\circ\), \(\varphi(y)>0\).  Therefore the least admissible \(\beta\) is the displayed maximum.  The proof for \(m\) is the same with the inequality \(\alpha y\le_C x\).
+\end{proof}
+
+\subsection{Simplicial cones}
+For the standard positive cone \(\R_+^n\),
+\[
+  M(x/y)=\max_i\frac{x_i}{y_i},
+  \qquad
+  m(x/y)=\min_i\frac{x_i}{y_i}.
+\]
+The logarithmic coordinate map
+\[
+  \Log(x)=(\log x_1,\ldots,\log x_n)
+\]
+is an isometry from \(((\R_+^n)^\circ,d)\) to \(\R^n\) equipped with the variation seminorm
+\[
+  \|w\|_{\mathrm{var}}=\max_i w_i-\min_i w_i.
+\]
+Indeed,
+\[
+  d(x,y)=\max_i(\log x_i-\log y_i)-\min_j(\log x_j-\log y_j).
+\]
+On a cross-section, e.g. \(x_n=1\), this becomes a genuine norm on \(\R^{n-1}\):
+\[
+  \|z\|_H=\max\{z_1,
+\ldots,z_{n-1},0\}-\min\{z_1,
+\ldots,z_{n-1},0\}.
+\]
+Thus the Hilbert geometry on an open simplex is isometric to this normed vector space.
+
+\subsection{Polyhedral cones}
+If \(C\subset\R^n\) is a polyhedral cone with nonempty interior and facets defined by normalized functionals \(\psi_1,
+\ldots,\psi_m\), then \(E_u=\{\psi_1,
+\ldots,\psi_m\}\).  For \(x,y\in C^\circ\), Lemma 3.1 gives
+\[
+  d(x,y)=\log\max_{i,j}\frac{\psi_i(x)\psi_j(y)}{\psi_i(y)\psi_j(x)}.
+\]
+Define
+\[
+  \Psi_{ij}(x)=\log\frac{\psi_i(x)}{\psi_j(x)},
+  \qquad 1\le i<j\le m.
+\]
+Then
+\[
+  d(x,y)=\max_{1\le i<j\le m}|\Psi_{ij}(x)-\Psi_{ij}(y)|.
+\]
+Hence the Hilbert geometry on the interior of a polytope with \(m\) facets embeds isometrically into
+\[
+  (\R^{m(m-1)/2},\|\cdot\|_\infty).
+\]
+
+\subsection{Symmetric cones}
+Let \(V\) be a Euclidean Jordan algebra with symmetric cone \(C^\circ\).  For \(x\in C^\circ\), the quadratic representation \(P(x)\) is an automorphism of \(C\), and \(P(x^{-1/2})x=e\).  For \(w\in V\), define
+\[
+  \lambda_+(w,x)=\lambda_+(P(x^{-1/2})w),
+  \qquad
+  \lambda_-(w,x)=\lambda_-(P(x^{-1/2})w),
+\]
+where \(\lambda_+\) and \(\lambda_-\) are the largest and smallest Jordan eigenvalues.
+
+\begin{theorem}[Theorem 3.7]
+For \(w\in V\) and \(x\in C^\circ\),
+\[
+  M(w/x)=\lambda_+(w,x),
+  \qquad
+  m(w/x)=\lambda_-(w,x).
+\]
+Consequently
+\[
+  d(x,y)=\log\frac{\lambda_+(x,y)}{\lambda_-(x,y)}.
+\]
+\end{theorem}
+
+\begin{proof}
+Let \(z=P(x^{-1/2})w\), and write its spectral decomposition as
+\[
+  z=\lambda_1c_1+
+\cdots+\lambda_kc_k,
+\]
+where \(c_i\) are a complete system of orthogonal idempotents.  Since \(P(x^{-1/2})\in\Aut(C)\),
+\[
+  w\le_C \beta x
+  \quad\Longleftrightarrow\quad
+  z\le_C \beta e.
+\]
+Because \(e=c_1+
+\cdots+c_k\), this is equivalent to
+\[
+  \sum_i(\beta-
+\lambda_i)c_i\in C,
+\]
+which holds exactly when \(\beta\ge\max_i\lambda_i\).  Hence \(M(w/x)=\lambda_+(w,x)\).  The proof for \(m\) is identical with \(\alpha x\le_C w\), giving \(\alpha\le\min_i\lambda_i\).
+\end{proof}
+
+For positive definite matrices, this specializes to
+\[
+  \lambda_+(A,B)=\lambda_{\max}(B^{-1/2}AB^{-1/2}),
+  \qquad
+  \lambda_-(A,B)=\lambda_{\min}(B^{-1/2}AB^{-1/2}).
+\]
+
+\section{Later dynamics results recorded as theorem seams}
+The survey's final section concerns nonexpansive maps on Hilbert geometries, especially normalized order-preserving homogeneous maps
+\[
+  g(x)=\frac{f(x)}{\varphi(f(x))}
+\]
+on a base \(\Sigma_\varphi^\circ\).  The important formalization lesson is that order-preserving homogeneous maps are automatically Hilbert-nonexpansive, while finite projective diameter gives strict contraction.
+
+The survey records the following high-level results:
 \begin{enumerate}[leftmargin=2em]
-\item Strict positivity of all entries gives every image coordinate \((Ax)_p=\sum_i a_{pi}x_i\) positive for nonzero \(x\ge0\).
-\item For two rows \(p,q\), compare \((Ax)_p/(Ax)_q\) using the coordinatewise ratios \(a_{pi}/a_{qi}\).  The ratio of two image vectors is trapped between finite extrema over entries of \(A\).
-\item The logarithmic spread of these extrema gives finite projective diameter \(\Delta(A)\).
-\item Birkhoff's theorem turns finite diameter into a strict contraction of Hilbert distance.
+\item Nussbaum-type bounds on periods of periodic orbits for nonexpansive maps on finite-dimensional Hilbert geometries.
+\item Denjoy--Wolff type alternatives for fixed-point-free nonexpansive maps: orbits converge toward boundary faces or horofunctions under additional geometric hypotheses.
+\item For polytopal Hilbert geometries, the isometric embedding into \(\ell_\infty^N\) converts nonexpansive dynamics into finite-dimensional normed-space dynamics.
 \end{enumerate}
+These are not the main dependencies for finite Sinkhorn scaling, but they justify using Hilbert metric as a general nonlinear Perron--Frobenius tool.
 
-\section*{Lean comparison target}
-For \texttt{ProjectiveLag.lean}, the most directly formalizable lemma is not the full theorem \(\kappa=\tanh(\Delta/4)\), but the finite diameter estimate:
+\section{Lean comparison targets}
+The core finite-dimensional statements to carry into Lean are:
+\begin{enumerate}[leftmargin=2em]
+\item For positive vectors,
 \[
-  \forall x,y>0,\quad
-  d_H(Kx,Ky)\le
-  \log\max_{i,i',j,j'}\frac{G_{ij}G_{i'j'}}{G_{ij'}G_{i'j}}.
+  M(x/y)=\max_i x_i/y_i,
+  \quad
+  m(x/y)=\min_i x_i/y_i,
+  \quad
+  d(x,y)=\log(M/m).
 \]
-If the proof only needs uniqueness of projective cluster points, finite diameter plus monotonicity/nonexpansiveness may be enough.  If it needs convergence rate, import the strict contraction theorem as a separate theorem seam.
-
-\section*{Projective-lag relevance}
-The two remaining Lean targets are cross-product limits.  In a finite positive cone,
-\[
-  d_H(u_n,u_{n+1})\to 0
-\]
-implies for all \(i,j\),
-\[
-  \frac{u_{n+1,i}}{u_{n,i}}-\frac{u_{n+1,j}}{u_{n,j}}\to 0,
-\]
-and with positive box bounds this is equivalent to
-\[
-  u_{n+1,i}u_{n,j}-u_{n+1,j}u_{n,i}\to 0.
-\]
-The formalized finite-lag algebra already contains related bounded-denominator conversions; this file suggests the missing metric/diameter side.
+\item Order-preserving homogeneous degree-one maps are nonexpansive.
+\item Strictly positive matrices have finite projective diameter via \eqref{eq:positive-matrix-diameter}.
+\item Birkhoff's theorem turns finite diameter into a contraction factor \(\tanh(\Delta/4)<1\).
+\item If a proof only needs asymptotic regularity or uniqueness of projective cluster points, it may be enough to combine finite diameter with monotone/nonexpansive arguments, postponing the exact contraction coefficient as a theorem seam.
+\end{enumerate}
 
 \begin{thebibliography}{9}
 \bibitem{LemmensNussbaum2013} B. Lemmens and R. Nussbaum, \emph{Birkhoff's version of Hilbert's metric and its applications in analysis}, arXiv:1304.7921, 2013.
 \bibitem{Birkhoff1957} G. Birkhoff, \emph{Extensions of Jentzsch's theorem}, Trans. Amer. Math. Soc. 85(1):219--227, 1957.
+\bibitem{EvesonNussbaum1995} S. P. Eveson and R. D. Nussbaum, \emph{An elementary proof of the Birkhoff--Hopf theorem}, Math. Proc. Camb. Phil. Soc. 117:31--55, 1995.
+\bibitem{FranklinLorenz1989} J. Franklin and J. Lorenz, \emph{On the scaling of multidimensional matrices}, Linear Algebra Appl. 114/115:717--735, 1989.
 \end{thebibliography}
+
 \end{document}

@@ -1,93 +1,593 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb,amsthm}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
 \usepackage{enumitem}
 \usepackage[hidelinks]{hyperref}
+
 \newtheorem{theorem}{Theorem}
 \newtheorem{lemma}{Lemma}
+\newtheorem{corollary}{Corollary}
 \newtheorem{proposition}{Proposition}
-\title{Distillation: Birkhoff 1957, Extensions of Jentzsch's theorem}
+\newtheorem{remark}{Remark}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\e}{\mathrm{e}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\spanop}{\operatorname{span}}
+\newcommand{\supp}{\operatorname{supp}}
+
+\title{Modernized proof notes: Birkhoff 1957, Extensions of Jentzsch's theorem}
 \author{Generated for the AIQ DRSB formalization reference corpus}
 \date{2026-07-09}
+
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
+\section*{Reference being modernized}
 Garrett Birkhoff. ``Extensions of Jentzsch's theorem.'' \emph{Transactions of the American Mathematical Society} 85(1):219--227, 1957.
 Source PDF expected in the repo as
-\texttt{prose/papers/Birkhoff1957\_extensions\_jentzsch.pdf}.
+\path{prose/papers/Birkhoff1957_extensions_jentzsch.pdf}.
 
-\section*{Why this paper matters for the formalization}
-This is a primary source for the Hilbert projective metric contraction argument behind Perron--Frobenius and positive-kernel convergence.  It is directly relevant to the remaining finite Sinkhorn projective-lag obligations in
-\texttt{ProjectiveLag.lean}, especially the two open one-sided projective drift statements for \(\hat\varphi_0\) and \(\varphi_1\).  The useful content is not the full vector-lattice generality, but the finite positive-cone specialization: a positive linear map sends the simplex into a subset of finite projective diameter, hence is a strict contraction on rays after normalization.
+\section*{Purpose of this note}
+The previous distillation only recorded the high-level idea: Hilbert projective metric, line-wise contraction, and a Picard fixed-point argument.  That is not enough for formalization work.  This note rewrites Birkhoff's proof almost section-by-section, keeping the original mathematical steps while modernizing notation.
 
-\section*{Core definitions}
-In the positive quadrant, write a ray by homogeneous coordinates \(f=(f_1,f_2)\) with positive coordinates.  Birkhoff's one-dimensional projective distance is
-\[
-  \theta(f,g)=\left|\log\frac{f_2g_1}{f_1g_2}\right|.
-\]
-A projective transformation of the interval has the form
-\[
-  P(x)=\frac{ax+b}{cx+d}, \qquad a,b,c,d>0,
-\]
-and maps the positive interval into a smaller positive interval when the image has finite length.  If \(\lambda\) is the projective length of the image interval, Birkhoff obtains the contraction coefficient
-\[
-  N(P)=\tanh(\lambda/4).
-\]
-For a closed convex cone \(C\), the projective distance between two rays is defined by intersecting the projective line through the two rays with the cone and transporting the preceding cross-ratio metric.  A positive linear map \(P\) has projective norm
-\[
-  N(P;C)=\sup_{f,g\in C}\frac{\theta(fP,gP;C)}{\theta(f,g;C)}.
-\]
-
-\section*{Main argument distilled}
+The statements most relevant to the finite Sinkhorn/Schrodinger formalization are:
 \begin{enumerate}[leftmargin=2em]
-\item \textbf{Line calculation.}  On a one-dimensional projective interval, a positive fractional-linear map contracts the Hilbert distance by the explicit factor \(\tanh(\lambda/4)\), where \(\lambda\) is the projective diameter of its image.
-
-\item \textbf{Cone reduction to lines.}  For any two rays in a cone, restrict the map to the projective line spanned by them.  The image of this line lies in the image of the whole cone.  Therefore if \(PC\) has finite projective diameter \(\Delta\), then
+\item the exact one-dimensional projective-line computation leading to
 \[
-  \theta(fP,gP;C) \le \tanh(\Delta/4)\,\theta(f,g;C).
+  N(P)=\tanh(\lambda/4),
 \]
-
-\item \textbf{Picard fixed-point step.}  If some power \(P^r\) has contraction coefficient less than one and the projective part is complete, then \(fP^n\) is a Cauchy sequence in Hilbert's metric.  It converges geometrically to a unique characteristic ray \(c\), and uniqueness follows from
-\[
-  \theta(c,c^*) = \theta(cP^r,c^*P^r)
-       \le N(P^r;C)\theta(c,c^*).
-\]
-
-\item \textbf{Positive matrix specialization.}  For a matrix with strictly positive entries, the image of the positive simplex is compactly contained in the simplex interior.  Hence its projective diameter is finite.  The contraction theorem then gives existence and uniqueness of a positive eigenvector ray.
+where \(\lambda\) is the projective diameter of the image interval;
+\item the reduction from a cone to the projective line through two rays;
+\item the finite-diameter \(\Rightarrow\) strict-contraction \(\Rightarrow\) unique characteristic ray argument;
+\item the positive-matrix specialization: a strictly positive matrix maps the positive simplex into a compact subset of its interior, hence its image has finite projective diameter.
 \end{enumerate}
 
-\section*{Lean comparison target}
-For finite \(\iota\), the positive cone is \(\iota\to\mathbb{R}_{>0}\), and its projective metric can be expressed by coordinate cross ratios:
-\[
-  d_H(u,v)=\log\frac{\max_i u_i/v_i}{\min_i u_i/v_i}.
-\]
-The remaining Lean projective drift statements only need the consequence that strict positivity of the kernel \(G\) gives finite projective diameter for the positive integral/matrix operator
-\[
-  (Kx)_i=\sum_j G_{ij}x_j.
-\]
-The proof should specialize Birkhoff's argument to finite matrices:
-\[
-  \Delta(K)\le \log\max_{i,i',j,j'}\frac{G_{ij}G_{i'j'}}{G_{ij'}G_{i'j}} < \infty,
-\]
-then use the Sinkhorn alternating maps as order-reversing/projective nonexpansive steps whose two-step composition is a positive linear or projectively contracting map after the appropriate quotient normalization.
+\section{Translation of Birkhoff's notation}
+Birkhoff writes vectors on the right, so a linear operator is denoted \(fP\).  We keep that convention when following his proof.  For comparison with modern cone-metric notation, a modern left-acting operator \(Lx\) corresponds to Birkhoff's \(xP\).
 
-\section*{Action items for \texttt{ProjectiveLag.lean}}
-\begin{enumerate}[leftmargin=2em]
-\item Thread or recover the hypothesis \(hG : \forall i\,j, 0<G_{ij}\).  Birkhoff's finite-diameter step is not a consequence of phase box bounds alone.
-\item Add a finite positive-matrix lemma: strict positivity implies finite Hilbert diameter of the image of the positive cone/simplex.
-\item Add the contraction/nonexpansive lemma for the two Sinkhorn maps, or invoke an existing ratio/oscillation maximum-principle lemma if the repo already has it.
-\item Convert Hilbert diameter shrinkage or uniqueness of cluster rays into cross-product drift:
+Birkhoff writes \(\theta(f,g;C)\) for Hilbert's projective distance.  In current notes we usually write \(d_C(f,g)\).  The following table fixes the dictionary.
 \[
-  u_{n+1,i}u_{n,j}-u_{n+1,j}u_{n,i}\to 0.
+\begin{array}{c|c}
+\text{Birkhoff 1957} & \text{Modern notation}\\ \hline
+fP & Lf\\
+\theta(f,g;C) & d_C(f,g)\\
+N(P;C) & \kappa(L;C,C)\\
+CP & L(C)\\
+\text{diameter }A\text{ of }CP & \Delta(L)=\diam_C(L(C))
+\end{array}
 \]
+
+Birkhoff works with a projectivized cone: a ray is represented by the unique intersection with a hyperplane.  In finite positive cones this is the simplex cross-section \(\sum_i x_i=1\).  The metric is invariant under positive scalar multiplication, so all estimates are statements about rays.
+
+\section{Section 2: the projective-line calculation}
+
+\subsection{Positive quadrant as a projective interval}
+Consider the open first quadrant in \(\R^2\).  A positive ray is represented by homogeneous coordinates
+\[
+  f=(f_1,f_2),\qquad f_1>0,
+\]
+and by the affine/projective coordinate
+\[
+  x=\frac{f_2}{f_1}\in(0,\infty).
+\]
+Birkhoff maps this interval to the real line by
+\[
+  u=\log x=\log(f_2/f_1).
+\]
+The projective distance between rays \(f=(f_1,f_2)\) and \(g=(g_1,g_2)\) is therefore
+\begin{equation}
+  \theta(f,g)=\left|\log\frac{f_2/f_1}{g_2/g_1}\right|
+  =\left|\log\frac{f_2g_1}{f_1g_2}\right|.
+  \label{eq:birkhoff-line-metric}
+\end{equation}
+This is the logarithm of the cross-ratio with endpoints \(0\) and \(\infty\):
+\[
+  \frac{f_2g_1}{f_1g_2}=R(f_2/f_1,g_2/g_1;0,\infty).
+\]
+Thus any projective transformation preserving the interval \((0,\infty)\) preserves the form of the cross-ratio metric before restriction to a smaller interval.
+
+\subsection{A positive fractional-linear map}
+Birkhoff now considers a projective transformation
+\begin{equation}
+  y=xP=\frac{ax+b}{cx+d}.
+  \label{eq:fractional-linear}
+\end{equation}
+Assume it maps \((0,\infty)\) into a proper subinterval of \((0,\infty)\).  Composing with the isometry \(y\mapsto 1/y\) if necessary, one may assume the map preserves order.  Then its coefficients may be taken positive and
+\[
+  a,b,c,d>0,\qquad ad>bc.
+\]
+Here is Birkhoff's sign check in modern form.
+\begin{itemize}[leftmargin=2em]
+\item Since \(0P=b/d>0\), \(b\) and \(d\) have the same sign.
+\item Since \(xP=0\) has no solution with \(x>0\), \(a\) and \(b\) have the same sign.
+\item Since \(xP=\infty\) has no solution with \(x>0\), \(c\) and \(d\) have the same sign.
+\item Multiplying numerator and denominator by \(-1\), all four coefficients can be chosen positive.
+\item Order preservation is \(dy/dx>0\), i.e.
+\[
+  \frac{dy}{dx}=\frac{ad-bc}{(cx+d)^2}>0,
+\]
+so \(ad>bc\).
+\end{itemize}
+
+\subsection{Differential contraction factor}
+On the logarithmic coordinate, the infinitesimal distance is \(d\theta(x)=|d\log x|=|dx|/x\).  For \(y=y(x)\), the differential ratio is
+\begin{equation}
+  \frac{d\theta(y)}{d\theta(x)}
+  =\frac{|dy|/y}{|dx|/x}
+  =\frac{x}{y}\frac{dy}{dx}.
+\end{equation}
+Substitute \eqref{eq:fractional-linear} and its derivative:
+\[
+  \frac{x}{y}\frac{dy}{dx}
+  =x\frac{cx+d}{ax+b}\frac{ad-bc}{(cx+d)^2}
+  =\frac{(ad-bc)x}{(ax+b)(cx+d)}.
+\]
+Define
+\begin{equation}
+  r(x)=\frac{(ad-bc)x}{(ax+b)(cx+d)}.
+  \label{eq:differential-ratio}
+\end{equation}
+The operator norm on the projective line is the supremum of \(r(x)\) over \(x>0\).  Since the numerator is positive, maximize the reciprocal denominator relative to \(x\), or differentiate.  Write
+\[
+  (ax+b)(cx+d)=acx^2+(ad+bc)x+bd.
+\]
+Then
+\[
+  r'(x)=0
+  \quad\Longleftrightarrow\quad
+  (ax+b)(cx+d)-x\bigl(a(cx+d)+c(ax+b)\bigr)=0.
+\]
+Expanding and cancelling gives
+\[
+  acx^2+(ad+bc)x+bd-x(2acx+ad+bc)=0,
+\]
+hence
+\[
+  bd-acx^2=0,
+  \qquad x_*=\sqrt{\frac{bd}{ac}}.
+\]
+At this point,
+\[
+  ax_* = a\sqrt{\frac{bd}{ac}}=\sqrt{\frac{abd}{c}},
+  \qquad cx_* = c\sqrt{\frac{bd}{ac}}=\sqrt{\frac{bcd}{a}}.
+\]
+A cleaner simplification uses the projective invariant
+\[
+  v=\frac{ad}{bc}>1.
+\]
+At \(x=x_*\), one obtains
+\begin{equation}
+  N(P)=\sup_{x>0}r(x)=\frac{v-1}{v+2\sqrt v+1}
+       =\frac{\sqrt v-1}{\sqrt v+1}.
+  \label{eq:N-line-v}
+\end{equation}
+This is Birkhoff's formula (5), rewritten in the equivalent simplified form.
+
+\subsection{Composition submultiplicativity}
+Because \(N(P)\) is defined as the supremum of all distance ratios,
+\[
+  N(P)=\sup_{f,g}\frac{\theta(fP,gP)}{\theta(f,g)},
+\]
+we immediately have
+\begin{equation}
+  N(PP')\le N(P)N(P').
+  \label{eq:N-submultiplicative}
+\end{equation}
+Indeed,
+\[
+  \frac{\theta(fPP',gPP')}{\theta(f,g)}
+  =\frac{\theta((fP)P',(gP)P')}{\theta(fP,gP)}
+   \frac{\theta(fP,gP)}{\theta(f,g)}
+  \le N(P')N(P),
+\]
+whenever denominators are nonzero; degenerate cases follow by continuity or direct convention.
+
+\subsection{Image length and the hyperbolic tangent}
+The map sends the endpoints \(0,\infty\) to
+\[
+  P(0)=\frac{b}{d},\qquad P(\infty)=\frac{a}{c}.
+\]
+Thus the length of the image interval in the logarithmic metric is
+\begin{equation}
+  \lambda=\log\frac{a/c}{b/d}=\log\frac{ad}{bc}=\log v.
+\end{equation}
+Therefore \(v=\e^\lambda\), \(\sqrt v=\e^{\lambda/2}\), and \eqref{eq:N-line-v} becomes
+\[
+  N(P)=\frac{\e^{\lambda/2}-1}{\e^{\lambda/2}+1}
+       =\frac{\e^{\lambda/4}-\e^{-\lambda/4}}{\e^{\lambda/4}+\e^{-\lambda/4}}
+       =\tanh(\lambda/4).
+\]
+This is the exact source of the \(1/4\) in the Birkhoff--Hopf contraction coefficient.
+
+\section{Section 3: convex cones and the associated projective metric}
+
+\subsection{Projectivized cone}
+Let \(C\) be a closed convex cone in a real vector space \(L\).  Birkhoff assumes that one can choose a hyperplane \(H\) meeting each ray of \(C\) in exactly one point.  Then the cone can be identified with the convex cross-section
+\[
+  C\cap H.
+\]
+In finite positive cones this is the standard simplex.  In Banach-space examples this is often a normalized positive part such as \(\|f\|=1\) or \(\int f=1\), whenever it is available.
+
+Given two distinct points \(f,g\in C\cap H\), the affine line through them intersects the closed convex set \(C\cap H\) in a closed segment with endpoints \(a,b\).  There is a unique affine coordinate on this line carrying \(a\) to \(0\), \(b\) to \(\infty\), and the interior of the segment to \((0,\infty)\).  Birkhoff defines
+\begin{equation}
+  \theta(f,g;C)=\theta(fA,gA)
+  \label{eq:theta-cone}
+\end{equation}
+where \(A\) is that affine/projective coordinate and the right-hand side is the line metric \eqref{eq:birkhoff-line-metric}.  If either point lies on the boundary, Birkhoff sets the distance to \(\infty\) in this formulation.
+
+Modern order-unit notation gives the same distance for comparable interior points:
+\[
+  d_C(x,y)=\log\frac{M(x/y)}{m(x/y)},
+\]
+where
+\[
+  M(x/y)=\inf\{\beta:x\le_C \beta y\},
+  \qquad
+  m(x/y)=\sup\{\alpha:\alpha y\le_C x\}.
+\]
+
+\begin{lemma}[Birkhoff's metric-space lemma]
+Fix a ray \(a\in C\).  Let \(A\) be the set of rays \(f\in C\) such that \(\theta(a,f;C)<\infty\).  Then \(A\) is a metric space under \(\theta(\cdot,\cdot;C)\) after identifying scalar multiples.
+\end{lemma}
+
+\begin{proof}[Modern proof sketch retaining the original content]
+The projective line through any two comparable rays cuts the cone in a segment, so the distance between the two rays is the logarithm of the corresponding cross-ratio.  Positivity is immediate from the ordering of the four points on the segment.  Symmetry follows because the cross-ratio is inverted when the two interior points are interchanged, and the logarithm is taken in absolute value.  The triangle inequality is Hilbert's standard triangle inequality on a convex domain; in order notation it follows from
+\[
+  M(x/z)\le M(x/y)M(y/z),
+  \qquad
+  m(x/z)\ge m(x/y)m(y/z).
+\]
+Indeed, if \(x\le M(x/y)y\) and \(y\le M(y/z)z\), then \(x\le M(x/y)M(y/z)z\).  Similarly, if \(m(x/y)y\le x\) and \(m(y/z)z\le y\), then \(m(x/y)m(y/z)z\le x\).  Taking logarithms gives
+\[
+  d_C(x,z)\le d_C(x,y)+d_C(y,z).
+\]
+Zero distance identifies rays in the usual closed proper cone setting; Birkhoff is already working projectively, so this is exactly the metric assertion on rays.
+\end{proof}
+
+\subsection{Examples used by Birkhoff}
+Birkhoff lists three examples.
+
+\paragraph{Example 1: finite positive orthant.}
+Let
+\[
+  R_+^n=\{f\in\R^n:f_i\ge0\},
+  \qquad H=\{f:\sum_i f_i=1\}.
+\]
+The cross-section is the closed simplex.  The components for the projective metric are the relative interiors of faces.  On the strictly positive part,
+\[
+  d(f,g)=\log\frac{\max_i f_i/g_i}{\min_i f_i/g_i}.
+\]
+This is the finite formula used in the Lean formalization.
+
+\paragraph{Example 2: continuous positive functions.}
+Let \(L=C(S)\) with the Banach lattice norm \(\|f\|=\sup_x |f(x)|\), and let \(C=L_+\) be the cone of nonnegative functions.  The strictly positive functions form a component.  In that component,
+\[
+  d(f,g)=\log\frac{\sup_x f(x)/g(x)}{\inf_x f(x)/g(x)}.
+\]
+
+\paragraph{Example 3: bounded measurable functions with bounded oscillation ratio.}
+Let \(B\) be the Banach space of bounded measurable functions on the unit interval.  For fixed \(M>0\), Birkhoff considers the cone
+\[
+  C_M=\{f:0<\sup f\le M\inf f\}\cup\{0\}.
+\]
+This is adapted to integro-functional operators that preserve a uniform upper/lower bound ratio.
+
+\section{Section 4: the projective contraction theorem}
+Let \(P\) be a bounded linear map of a Banach space into itself with \(P(C)\subseteq C\).  Birkhoff defines the projective norm
+\begin{equation}
+  N(P;C)=\sup\left\{\frac{\theta(fP,gP;C)}{\theta(f,g;C)}:
+        f,g\in C,\;\theta(f,g;C)<\infty\right\}.
+\end{equation}
+
+\begin{lemma}[Birkhoff's finite-diameter contraction lemma]
+If \(CP=P(C)\) has finite projective diameter \(A\) in \((C,\theta)\), then
+\begin{equation}
+  N(P;C)=\tanh(A/4)<1.
+  \label{eq:birkhoff-diameter-contraction}
+\end{equation}
+If \(CP\) has infinite projective diameter, then \(N(P;C)=1\).
+\end{lemma}
+
+\begin{proof}
+Take \(f,g\in C\) with finite \(\theta(f,g;C)\).  The projective line segment through their rays is a cone interval \(s(a,b)\subseteq C\).  Under \(P\), this interval maps into the projective segment joining \(aP\) and \(bP\), and that segment is contained in \(CP\).  Hence
+\[
+  \theta(aP,bP;C)\le A.
+\]
+On this two-dimensional projective line, Section 2 applies.  A fractional-linear map whose image interval has length at most \(A\) contracts distances by at most \(\tanh(A/4)\).  Therefore
+\[
+  \theta(fP,gP;C)
+  \le \tanh(A/4)\theta(f,g;C).
+\]
+Taking the supremum over \((f,g)\) gives \(N(P;C)\le \tanh(A/4)\).
+
+For the reverse inequality, choose image pairs on line segments in \(CP\) whose projective distance tends to \(A\).  Pull those points back to preimage points \(f_n,g_n\in C\).  The one-dimensional calculation on the corresponding segment says that the best possible contraction ratio on that segment is \(\tanh(\lambda_n/4)\), where \(\lambda_n\to A\).  Hence
+\[
+  N(P;C)\ge \lim_n \tanh(\lambda_n/4)=\tanh(A/4).
+\]
+If \(A=\infty\), the same line-wise calculation gives ratios arbitrarily close to \(1\), while nonexpansiveness gives \(N(P;C)\le1\).  Thus \(N(P;C)=1\).
+\end{proof}
+
+\begin{theorem}[Birkhoff's projective contraction theorem]
+Assume \(N(P^r;C)<1\) for some integer \(r\ge1\), and assume the relevant projective component of \(C\) is complete under \(\theta\).  Then for every \(f\in C\) in that component, the sequence of rays \(fP^n\) converges geometrically to a unique fixed ray \(c\), i.e. a characteristic ray satisfying
+\[
+  cP=\gamma c
+\]
+for some scalar \(\gamma>0\).
+\end{theorem}
+
+\begin{proof}
+Let \(\rho=N(P^r;C)<1\).  Since \(P^r(C)\) has finite diameter, the distance
+\[
+  \theta(fP^r,fP^{r+1};C)
+\]
+is finite.  More generally, write \(q=\lfloor n/r\rfloor\).  Applying the contraction estimate for \(P^r\) repeatedly gives
+\begin{equation}
+  \theta(fP^n,fP^{n+1};C)
+  \le \rho^{q-1}\theta(fP^r,fP^{r+1};C).
+  \label{eq:successive-distance-geometric}
+\end{equation}
+The right-hand side is summable in \(n\).  Hence, for \(m>n\), the triangle inequality gives
+\[
+  \theta(fP^n,fP^m;C)
+  \le \sum_{k=n}^{m-1}\theta(fP^k,fP^{k+1};C)	o0.
+\]
+Thus \(\{fP^n\}\) is Cauchy in projective metric.  Completeness gives a projective limit ray \(c\in C\).
+
+Since \(P\) is bounded, the normalized representatives can be chosen so that applying \(P\) commutes with the limit.  Therefore the image of the limit ray is the limit of the shifted sequence:
+\[
+  cP=\lim_n fP^{n+1}.
+\]
+The shifted sequence has the same projective limit as \(fP^n\), because the successive distance tends to zero by \eqref{eq:successive-distance-geometric}.  Hence \(cP\) lies on the same ray as \(c\): there exists \(\gamma>0\) with \(cP=\gamma c\).
+
+For uniqueness, suppose \(c\) and \(c^*\) are fixed rays for \(P\).  Then they are fixed rays for \(P^r\), so
+\[
+  \theta(c,c^*)=\theta(cP^r,c^*P^r)
+  \le N(P^r;C)\theta(c,c^*)
+  =\rho\theta(c,c^*).
+\]
+Since \(\rho<1\), the only finite possibility is \(\theta(c,c^*)=0\), so the rays agree.
+\end{proof}
+
+\begin{corollary}
+If \(C P^r\) has finite projective diameter for some \(r\), then the conclusion of the projective contraction theorem holds.
+\end{corollary}
+
+\section{Section 5: applications}
+
+\subsection{Positive matrices}
+Let \(P=(p_{ij})\) be a matrix with strictly positive entries.  Acting on the positive cone \(R_+^n\), it maps the simplex
+\[
+  \Sigma=\{x\ge0:\sum_i x_i=1\}
+\]
+into a compact subset of the simplex interior.  Equivalently, for every \(i\),
+\[
+  (xP)_i=\sum_j x_jp_{ji}>0
+\]
+for nonzero \(x\ge0\), and compactness of \(\Sigma\) plus positivity of all entries gives uniform positive lower and upper coordinate bounds on the normalized image.
+
+Thus \(P(\Sigma)\) has finite projective diameter.  The contraction theorem gives a unique positive eigenvector ray \(c\in R_+^n\), with
+\[
+  cP=\gamma c,
+\]
+and iterates of every positive ray converge projectively to \(c\).  Birkhoff notes that it suffices for \(P\) to be nonnegative and for some power \(P^r\) to be strictly positive.
+
+For formalization, the compactness sentence can be replaced by the explicit finite matrix diameter bound.  If \(A=(a_{ij})\) is strictly positive, then for \(x,y>0\),
+\[
+  d(Ax,Ay)\le \log\max_{p,q,i,j}\frac{a_{pi}a_{qj}}{a_{pj}a_{qi}}.
+\]
+This bound is finite because the index sets are finite and all entries are positive.
+
+\subsection{Jentzsch-type integral operators}
+Birkhoff next considers
+\[
+  [fP](x)=\int_0^1 p(x,y)f(y)\,dy,
+\]
+where the kernel satisfies uniform two-sided bounds
+\begin{equation}
+  0<\gamma=\inf_{x,y}p(x,y)\le \sup_{x,y}p(x,y)=K\gamma=S.
+  \label{eq:birkhoff-kernel-bounds}
+\end{equation}
+Let \(e(x)=1\).  If \(f\ge0\) and
+\[
+  \varphi=\int_0^1 f(y)\,dy>0,
+\]
+then \eqref{eq:birkhoff-kernel-bounds} gives
+\[
+  \gamma\varphi\,e\le fP\le S\varphi\,e.
+\]
+Therefore the projective distance from \(fP\) to \(e\) is bounded by
+\[
+  \theta(e,fP;L_+)\le \log(S/\gamma)=\log K.
+\]
+Consequently \(P(L_+)\) has finite projective diameter, and the contraction theorem produces a unique positive characteristic function \(c\) satisfying
+\[
+  cP=\gamma_0 c
+\]
+for some scalar \(\gamma_0>0\).  This recovers the essence of Jentzsch's theorem without Fredholm theory.
+
+\subsection{Integro-functional equation}
+Birkhoff's Theorem 2 treats
+\begin{equation}
+  [fP](x)=\int_0^1 p(x,y)f(y)\,dy+
+          \sum_{i=1}^n a_i f(xT_i),
+  \label{eq:integro-functional}
+\end{equation}
+where \(p\) satisfies \eqref{eq:birkhoff-kernel-bounds}, the \(T_i\) are one-to-one Borel maps of the unit interval onto itself, and \(a_i>0\) with \(A=\sum_i a_i\).  Choose \(M>K\), and use the cone
+\[
+  C_M=\{f:0<\sup f\le M\inf f\}\cup\{0\}.
+\]
+For \(f\in C_M\), set \(g=fP\).  Then
+\[
+  \sup_x g(x)
+  \le S\int f(y)\,dy+MA\inf_x f(x),
+\]
+while
+\[
+  \inf_x g(x)
+  \ge \gamma\int f(y)\,dy+A\inf_x f(x).
+\]
+Using \(\int f\ge \inf f\), Birkhoff obtains
+\begin{equation}
+  \frac{\sup g}{\inf g}
+  \le \frac{K\int f+MA\inf f}{\int f+A\inf f}
+  \le M,
+  \label{eq:integro-functional-cone-invariance}
+\end{equation}
+provided \(K<M\).  Thus \(P(C_M)\subseteq C_M\).  Moreover the same estimate gives a bounded projective diameter of the image, so the contraction theorem yields a unique positive characteristic function \(c\) satisfying
+\[
+  \int_0^1 p(x,y)c(y)\,dy+
+  \sum_{i=1}^n a_i c(xT_i)=\gamma c(x).
+\]
+
+\section{Section 6: Banach lattices and uniform positivity}
+
+\subsection{Strong comparability in a vector lattice}
+Let \(L\) be a vector lattice and \(L_+\) its positive cone.  Birkhoff's Lemma 2 says that if \(f,g\) are in the same projective component of \(L_+\), then they are strongly comparable: there are scalars \(\lambda,\mu>0\) and a finite \(R\) such that
+\begin{equation}
+  \lambda f\le g\le R\lambda f,
+  \qquad
+  \mu g\le f\le R\mu g.
+  \label{eq:strong-comparable}
+\end{equation}
+The smallest such \(R\) is
+\[
+  R=\exp(\theta(f,g;L_+)).
+\]
+
+The proof is two-dimensional.  The plane \(\spanop\{f,g\}\) intersects \(L_+\) in a cone affine-equivalent to a quadrant.  In quadrant coordinates, if
+\[
+  f=(f_1,f_2),\qquad g=(g_1,g_2),
+\]
+then comparability gives positive coordinate ratios, and
+\[
+  R=\max\left\{\frac{g_1/f_1}{g_2/f_2},\frac{g_2/f_2}{g_1/f_1}\right\}
+  =\exp\left(\left|\log\frac{f_2g_1}{f_1g_2}\right|\right).
+\]
+This is exactly the exponential of the projective distance.
+
+\subsection{Norm consequence}
+On the unit sphere of a Banach lattice,
+\begin{equation}
+  \|f-g\|\le \e^\theta-1,
+  \qquad \theta=\theta(f,g;L_+).
+  \label{eq:norm-projective-control}
+\end{equation}
+Indeed, from \eqref{eq:strong-comparable} with \(R=\e^\theta\) and \(\|f\|=\|g\|=1\), monotonicity of the lattice norm gives \(\lambda\le1\).  Then the lattice positive and negative parts satisfy
+\[
+  |f-g|\le (R-1)\lambda |f|,
+\]
+so
+\[
+  \|f-g\|\le (R-1)\lambda\|f\|
+  \le \e^\theta-1.
+\]
+Consequently each projective component of the unit sphere is complete if the Banach lattice is norm complete.
+
+\subsection{Uniform positivity}
+Birkhoff calls a bounded linear map \(P:L\to L\) uniformly positive if there exist a fixed \(e>0\) in \(L\) and a finite constant \(K\) such that for each \(f>0\) there is a scalar \(\lambda=\lambda(f)>0\) with
+\begin{equation}
+  \lambda e\le fP\le K\lambda e.
+  \label{eq:uniform-positive}
+\end{equation}
+This says exactly that every image ray lies within projective distance at most \(\log K\) from the ray of \(e\).  Therefore \(P(L_+)\) has projective diameter at most \(\log K\).
+
+\begin{theorem}[Birkhoff's uniformly positive Banach-lattice theorem]
+A uniformly positive bounded linear map \(P\) on a Banach lattice \(L\) admits a unique positive unit eigenvector \(c\) and positive eigenvalue \(\gamma\):
+\[
+  cP=\gamma c.
+\]
+Moreover for every \(f>0\), normalized iterates converge geometrically:
+\[
+  \left\|\frac{fP^n}{\|fP^n\|}-c\right\| \le M\rho^n
+\]
+for some \(M<\infty\) and \(0<\rho<1\).
+\end{theorem}
+
+\begin{proof}
+Use \(C=L_+\).  The uniform positivity condition \eqref{eq:uniform-positive} gives finite projective diameter for \(P(C)\).  Hence the projective contraction theorem gives a unique eigen-ray and geometric convergence in projective metric.  The norm estimate \eqref{eq:norm-projective-control} converts projective convergence of normalized vectors into norm convergence on the unit sphere.
+\end{proof}
+
+\section{Section 7: complementary invariant subspace}
+After constructing the leading positive ray, Birkhoff proves a spectral-gap statement.
+Let \(c>0\) be the positive eigenvector and \(cP=\gamma c\).  For \(f>0\), define \(\lambda_n\) and \(\mu_n\) by
+\begin{equation}
+  \lambda_n\gamma^n c\le fP^n\le \mu_n\gamma^n c,
+  \label{eq:lambda-mu-bracket}
+\end{equation}
+where \(\lambda_n\) is maximal and \(\mu_n\) minimal.  Applying \(P\) gives
+\[
+  \lambda_n\le \lambda_{n+1}\le \mu_{n+1}\le \mu_n.
+\]
+Thus \(\lambda_n\) increases and \(\mu_n\) decreases.
+
+Set
+\[
+  r_n=fP^n-\lambda_n\gamma^n c,
+  \qquad
+  s_n=\mu_n\gamma^n c-fP^n.
+\]
+Then \(r_n,s_n\ge0\) and
+\[
+  r_n+s_n=(\mu_n-\lambda_n)\gamma^n c.
+\]
+Uniform positivity applied to \(r_n\) and \(s_n\) gives positive scalars \(a_n,b_n\) with
+\[
+  a_nc\le r_nP\le K a_nc,
+  \qquad
+  b_nc\le s_nP\le K b_nc.
+\]
+Combining these inequalities with the identity for \((r_n+s_n)P\) bounds \(a_n+b_n\) from below by a fixed fraction of \((\mu_n-\lambda_n)\gamma^{n+1}\).  Therefore
+\[
+  \mu_{n+1}-\lambda_{n+1}
+  \le (1-K^{-1})(\mu_n-\lambda_n).
+\]
+Consequently \(\lambda_n\uparrow M(f)\), \(\mu_n\downarrow M(f)\), and there are constants \(K_f<\infty\), \(0\le\rho<\gamma\) such that
+\begin{equation}
+  |fP^n-M(f)\gamma^n c|\le K_f\rho^n c.
+  \label{eq:birkhoff-spectral-gap-bound}
+\end{equation}
+Extending by lattice decomposition \(f=f^+-f^-\), the coefficient \(M(f)\) becomes a positive linear functional.  Its kernel is a complementary invariant subspace \(S\), and \eqref{eq:birkhoff-spectral-gap-bound} says that the spectral norm of \(P|_S\) is at most \((1-K^{-1})\gamma<\gamma\).
+
+\section{Section 8: multiplicative processes}
+For a semigroup \(\{P_t\}_{t>0}\) of nonnegative linear operators on a Banach lattice, Birkhoff assumes the Chapman--Kolmogorov rule
+\[
+  (fP_t)P_s=fP_{t+s}
+\]
+and positivity \(f>0\Rightarrow fP_t>0\).  If for some \(T>0\), \(P_T\) is uniformly positive, then the discrete theorem applied to \(P_T\) gives a leading eigenvector \(c\) and \(\gamma=\e^{\beta T}\).  For every \(f\),
+\[
+  fP_{nT}=\e^{\beta nT}m(f)c+O(\rho^n).
+\]
+Uniform boundedness of \(P_t\) for \(0\le t\le 2T\) fills in intermediate times and yields
+\[
+  \|fP_t-\e^{\beta t}m(f)c\|\le K^*\e^{\sigma t},
+  \qquad 0\le \sigma<\beta.
+\]
+This is Birkhoff's asymptotic-growth theorem for multiplicative processes.
+
+\section{Formalization notes for the finite Sinkhorn path}
+For the current finite-dimensional Lean work, the high-value extract is much smaller than the full Banach-lattice theorem:
+\begin{enumerate}[leftmargin=2em]
+\item Define the finite Hilbert metric on strictly positive vectors by
+\[
+  d_H(x,y)=\log\frac{\max_i x_i/y_i}{\min_i x_i/y_i}.
+\]
+\item Prove the two-dimensional line calculation or import it as the theorem seam:
+\[
+  \kappa(L)=\tanh(\Delta(L)/4).
+\]
+\item Prove strict positivity of a finite matrix gives finite projective image diameter, preferably by the explicit cross-ratio bound.
+\item Use projective contraction/nonexpansiveness to obtain uniqueness of cluster rays or asymptotic regularity.
 \end{enumerate}
 
-\section*{Caveat}
-Birkhoff proves convergence to a characteristic ray for repeated application of one positive map.  The Sinkhorn proof has an alternating nonlinear/projective map.  The formalization should avoid overclaiming: either identify a genuine two-step positive map on the relevant ray space, or use Birkhoff only as the contraction theorem behind a separately proved Sinkhorn-specific nonexpansive/contraction statement.
+The original Birkhoff paper does not prove Sinkhorn's alternating nonlinear scaling iteration.  It supplies the projective contraction tool and the positive-matrix fixed-ray mechanism.  For Sinkhorn convergence one should combine this note with Franklin--Lorenz and Sinkhorn--Knopp.
 
 \begin{thebibliography}{9}
 \bibitem{Birkhoff1957} G. Birkhoff, \emph{Extensions of Jentzsch's theorem}, Trans. Amer. Math. Soc. 85(1):219--227, 1957.
 \bibitem{LemmensNussbaum2013} B. Lemmens and R. Nussbaum, \emph{Birkhoff's version of Hilbert's metric and its applications in analysis}, arXiv:1304.7921, 2013.
+\bibitem{EvesonNussbaum1995} S. P. Eveson and R. D. Nussbaum, \emph{An elementary proof of the Birkhoff--Hopf theorem}, Math. Proc. Camb. Phil. Soc. 117:31--55, 1995.
+\bibitem{FranklinLorenz1989} J. Franklin and J. Lorenz, \emph{On the scaling of multidimensional matrices}, Linear Algebra Appl. 114/115:717--735, 1989.
 \end{thebibliography}
+
 \end{document}

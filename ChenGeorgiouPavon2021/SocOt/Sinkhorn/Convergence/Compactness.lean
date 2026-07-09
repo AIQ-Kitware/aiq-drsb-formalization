@@ -104,14 +104,39 @@ theorem sinkhorn_cluster_along_of_precluster_successor_eq {ι : Type*} [Fintype 
     positive := ⟨hpre.positive.1, hpre.positive.2.1,
       hpre.positive.2.2.2.1, hpre.positive.2.2.2.2.2⟩ }
 
-/-- Asymptotic-regularity seam for the two mixed phases.
+/-- Vanishing drift target for the two mixed phases in the phase-compatible cluster predicate. -/
+abbrev SinkhornPhaseDriftZeroAlong {ι : Type*}
+    (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+      (fun n => fun i => φhat0Iter (subseq n + 1) i - φhat0Iter (subseq n) i)
+      Filter.atTop (nhds 0) ∧
+    Filter.Tendsto
+      (fun n => fun j => φ1Iter (subseq n + 1) j - φ1Iter (subseq n) j)
+      Filter.atTop (nhds 0)
 
-This is the non-compactness part that was previously hidden in the bounded-subsequence theorem.  A
-follow-on agent should prove, from the Sinkhorn update equations and the chosen gauge, that the two
-phase streams appearing at both `n` and `n + 1` have vanishing drift along every raw precluster
-subsequence.  Once this is available, equality of the current and successor limits is a generic
-uniqueness-of-limits argument below. -/
-theorem sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fintype ι]
+/-- Lag-drift target for the denominator phases that control the mixed phases.
+
+For `k > 0`, the Sinkhorn normalization equations rewrite
+`φhat0Iter (k + 1)` and `φhat0Iter k` using the denominators `φ0Iter k` and
+`φ0Iter (k - 1)`, and similarly rewrite `φ1Iter (k + 1)` and `φ1Iter k` using
+`φhat1Iter k` and `φhat1Iter (k - 1)`.  Thus the phase-drift theorem naturally
+factors through vanishing lag drift for these denominator phases. -/
+abbrev SinkhornDenominatorLagDriftZeroAlong {ι : Type*}
+    (φ0Iter φhat1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  Filter.Tendsto
+      (fun n => fun i => φ0Iter (subseq n) i - φ0Iter ((subseq n).pred) i)
+      Filter.atTop (nhds 0) ∧
+    Filter.Tendsto
+      (fun n => fun j => φhat1Iter (subseq n) j - φhat1Iter ((subseq n).pred) j)
+      Filter.atTop (nhds 0)
+
+/-- Projective/asymptotic-regularity core for the denominator phases.
+
+This is now the genuinely hard Sinkhorn-dynamical seam.  It should be proved using the positive
+kernel, the fixed gauge, and the finite box bounds, for example via a Hilbert-projective contraction
+or equivalent monotone-diameter/energy argument.  The statement is deliberately about the denominator
+phases `φ0` and `φhat1`, because the mixed phases are quotient updates of these denominators. -/
+theorem sinkhorn_denominator_lag_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
@@ -119,15 +144,53 @@ theorem sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fint
     (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
-    Filter.Tendsto
-        (fun n => fun i => φhat0Iter (subseq n + 1) i - φhat0Iter (subseq n) i)
-        Filter.atTop (nhds 0) ∧
-      Filter.Tendsto
-        (fun n => fun j => φ1Iter (subseq n + 1) j - φ1Iter (subseq n) j)
-        Filter.atTop (nhds 0) := by
+    SinkhornDenominatorLagDriftZeroAlong φ0Iter φhat1Iter subseq := by
   sorry
+
+/-- Quotient-update algebra converting denominator lag drift into mixed-phase drift.
+
+Once the denominator phases have vanishing lag drift and remain in a uniform positive finite box,
+normalization equations
+`φhat0Iter (n + 1) * φ0Iter n = p` and
+`φ1Iter (n + 1) * φhat1Iter n = q` convert denominator lag drift into drift of the quotient-updated
+mixed phases.  This seam should be mostly finite-dimensional algebra and continuity of inversion on
+`[ε, B]`. -/
+theorem sinkhorn_phase_drift_zero_of_denominator_lag_drift {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (_hdenom : SinkhornDenominatorLagDriftZeroAlong φ0Iter φhat1Iter subseq) :
+    SinkhornPhaseDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  sorry
+
+/-- Asymptotic-regularity seam for the two mixed phases.
+
+The hard content is factored through two lower-level surfaces: first prove vanishing lag drift for
+the denominator phases from the positive Sinkhorn dynamics and gauge, then use the normalization
+quotient equations and the uniform finite box to transfer that drift to the mixed phases. -/
+theorem sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ) (ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 : ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
+      subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
+    SinkhornPhaseDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  have hdenom : SinkhornDenominatorLagDriftZeroAlong φ0Iter φhat1Iter subseq :=
+    sinkhorn_denominator_lag_drift_tendsto_zero_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
+  exact sinkhorn_phase_drift_zero_of_denominator_lag_drift p q G
+    φ0Iter φhat0Iter φ1Iter φhat1Iter subseq hiter hbounds hdenom
 
 /-- Vanishing phase drift identifies the current and successor limits in a raw precluster.
 
@@ -169,13 +232,14 @@ theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*}
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
     ψhat0Succ = ψhat0 ∧ ψ1Succ = ψ1 := by
   obtain ⟨hφhat0_drift, hφ1_drift⟩ :=
     sinkhorn_phase_drift_tendsto_zero_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
   exact sinkhorn_precluster_successor_limits_eq_of_phase_drift
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
     ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hφhat0_drift hφ1_drift
@@ -190,6 +254,7 @@ theorem sinkhorn_cluster_along_of_precluster_from_gauge_iterates {ι : Type*} [F
     (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (hpre : IsFiniteSinkhornPhasePreclusterAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1) :
     IsFiniteSinkhornClusterPointAlong φ0Iter φhat0Iter φ1Iter φhat1Iter
@@ -197,7 +262,7 @@ theorem sinkhorn_cluster_along_of_precluster_from_gauge_iterates {ι : Type*} [F
   obtain ⟨hψhat0, hψ1⟩ :=
     sinkhorn_precluster_successor_limits_eq_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hpre
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre
   exact sinkhorn_cluster_along_of_precluster_successor_eq
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq
     ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hpre hψhat0 hψ1
@@ -222,7 +287,7 @@ theorem sinkhorn_phase_compatible_subsequence_along_of_gauge_iterates_and_bounds
   exact ⟨subseq, ψ0, ψhat0, ψ1, ψhat1,
     sinkhorn_cluster_along_of_precluster_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
-      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hpre⟩
+      ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1 hiter hgauge hbounds hpre⟩
 
 /-- Bounded finite-dimensional sequences admit phase-compatible cluster subsequences after using the
 gauge-normalized Sinkhorn iterate structure to identify current and successor limits. -/
@@ -267,7 +332,7 @@ theorem sinkhorn_outer_subsequence_cluster_from_gauge_iterates_and_bounds {ι : 
     sinkhorn_cluster_along_of_precluster_from_gauge_iterates p q G
       φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       (fun n => subseq (subsub n)) ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1
-      hiter hgauge hpre⟩
+      hiter hgauge hbounds hpre⟩
 
 /-- Every outer subsequence has a further phase-compatible cluster subsequence.
 

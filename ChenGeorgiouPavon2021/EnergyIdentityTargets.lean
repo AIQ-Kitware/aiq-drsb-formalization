@@ -111,6 +111,7 @@ structure FiniteEnergyDiffusionEnergyIdentityData
       ((initialMarginal (d.pathLaw u ρ₀)) ⊗ₘ Kw)).toReal
       = energy u (d.pathLaw u ρ₀)
 
+omit [NormedSpace ℝ X] in
 /-- Projection-level conditional KLs converge to the conditional path-kernel KL.
 
 This is the KL-exhaustion half of the conditional Girsanov proof plan.  For a concrete standard
@@ -136,6 +137,7 @@ theorem conditional_gridKL_tendsto_kernelKL_of_finiteEnergyDiffusion
     exact hlimit.finite_projection_law n
   simpa [hseq] using hlimit.projectionKL_tendsto_kernelKL
 
+omit [NormedSpace ℝ X] in
 /-- Projection-level conditional KLs converge to the quadratic control energy.
 
 This is the finite-dimensional Girsanov/Riemann-sum half of the conditional proof plan: after

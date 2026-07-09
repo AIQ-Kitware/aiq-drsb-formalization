@@ -502,6 +502,67 @@ abbrev SinkhornMixedProjectiveRatioDriftZeroAlong {ι : Type*} [Fintype ι]
   SinkhornHattedLeftProjectiveRatioDriftZeroAlong φhat0Iter subseq ∧
     SinkhornRightProjectiveRatioDriftZeroAlong φ1Iter subseq
 
+/-- A scalar envelope for the two mixed ratio-displacement families.
+
+This is the right finite-dimensional interface for the remaining Hilbert/Birkhoff argument: prove a
+single nonnegative projective-oscillation modulus that tends to zero and bounds every coordinate
+ratio displacement.  The topology below then converts that scalar envelope into the product-space
+ratio-drift predicate. -/
+abbrev SinkhornMixedProjectiveRatioDriftEnvelopeAlong {ι : Type*} [Fintype ι]
+    (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
+  ∃ η : ℕ → ℝ,
+    Filter.Tendsto η Filter.atTop (nhds (0 : ℝ)) ∧
+      (∀ n i j,
+        |φhat0Iter (subseq n + 1) i / φhat0Iter (subseq n) i -
+          φhat0Iter (subseq n + 1) j / φhat0Iter (subseq n) j| ≤ η n) ∧
+      (∀ n i j,
+        |φ1Iter (subseq n + 1) i / φ1Iter (subseq n) i -
+          φ1Iter (subseq n + 1) j / φ1Iter (subseq n) j| ≤ η n)
+
+/-- A finite-function sequence tends to zero if all coordinates are bounded by a scalar envelope
+that tends to zero. -/
+theorem finite_function_tendsto_zero_of_abs_le_vanishing_envelope {ι : Type*} [Fintype ι]
+    (f : ℕ → ι → ℝ) (η : ℕ → ℝ)
+    (hη : Filter.Tendsto η Filter.atTop (nhds (0 : ℝ)))
+    (hbound : ∀ n i, |f n i| ≤ η n) :
+    Filter.Tendsto f Filter.atTop (nhds (0 : ι → ℝ)) := by
+  apply finite_function_tendsto_of_coordinate_tendsto
+  intro i
+  rw [Metric.tendsto_atTop]
+  rw [Metric.tendsto_atTop] at hη
+  intro δ hδ
+  obtain ⟨N, hN⟩ := hη δ hδ
+  refine ⟨N, fun n hn => ?_⟩
+  have hη_small : |η n| < δ := by
+    simpa [Real.dist_eq, sub_zero] using hN n hn
+  have hfi_le_absη : |f n i| ≤ |η n| :=
+    le_trans (hbound n i) (le_abs_self (η n))
+  have hdist : |f n i - 0| < δ := by
+    simpa [sub_zero] using lt_of_le_of_lt hfi_le_absη hη_small
+  simpa [Real.dist_eq] using hdist
+
+/-- Convert a scalar projective-oscillation envelope into the mixed ratio-drift predicate. -/
+theorem sinkhorn_mixed_projective_ratio_drift_zero_of_envelope {ι : Type*} [Fintype ι]
+    (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ)
+    (henv : SinkhornMixedProjectiveRatioDriftEnvelopeAlong φhat0Iter φ1Iter subseq) :
+    SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  rcases henv with ⟨η, hη, hhat0_bound, hφ1_bound⟩
+  constructor
+  · exact finite_function_tendsto_zero_of_abs_le_vanishing_envelope
+      (fun n => fun ij : ι × ι =>
+        φhat0Iter (subseq n + 1) ij.1 / φhat0Iter (subseq n) ij.1 -
+          φhat0Iter (subseq n + 1) ij.2 / φhat0Iter (subseq n) ij.2)
+      η hη (by
+        intro n ij
+        exact hhat0_bound n ij.1 ij.2)
+  · exact finite_function_tendsto_zero_of_abs_le_vanishing_envelope
+      (fun n => fun ij : ι × ι =>
+        φ1Iter (subseq n + 1) ij.1 / φ1Iter (subseq n) ij.1 -
+          φ1Iter (subseq n + 1) ij.2 / φ1Iter (subseq n) ij.2)
+      η hη (by
+        intro n ij
+        exact hφ1_bound n ij.1 ij.2)
+
 /-- Multiplying a real sequence that tends to zero by an eventually bounded real sequence still
 tends to zero.  This local at-top form is enough for the finite ratio-to-cross-product conversion
 below, and avoids importing asymptotic notation just for this elementary estimate. -/
@@ -649,12 +710,14 @@ theorem finite_mixed_projective_cross_drift_zero_of_ratio_drift_and_bounds {ι :
     rw [heq]
     exact hmul
 
-/-- Ratio-form mixed projective drift from the positive-kernel Sinkhorn dynamics.
+/-- Vanishing scalar envelope for mixed projective ratio drift from the positive-kernel
+Sinkhorn dynamics.
 
-This is the remaining genuinely dynamical Hilbert/Birkhoff contraction seam.  It should be proved by
-using strict positivity of `G`, the two Fortet/Sinkhorn update equations, and the uniform positive
-box bounds to show that the projective ratio displacement of the two mixed phases tends to zero. -/
-theorem sinkhorn_mixed_projective_ratio_drift_tendsto_zero_from_gauge_iterates
+This is now the single remaining genuinely dynamical Hilbert/Birkhoff contraction seam.  A proof
+should construct a scalar projective-oscillation modulus, usually from a finite positive-kernel
+Hilbert diameter / Birkhoff contraction estimate, and show that this modulus tends to zero along the
+selected absolute subsequence. -/
+theorem sinkhorn_mixed_projective_ratio_drift_envelope_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -665,8 +728,30 @@ theorem sinkhorn_mixed_projective_ratio_drift_tendsto_zero_from_gauge_iterates
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
     (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
-    SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq := by
+    SinkhornMixedProjectiveRatioDriftEnvelopeAlong φhat0Iter φ1Iter subseq := by
   sorry
+
+/-- Ratio-form mixed projective drift from the positive-kernel Sinkhorn dynamics.
+
+The dynamical content is isolated in the scalar-envelope theorem above; this wrapper is only the
+finite-topological conversion from a vanishing projective-oscillation envelope to product-space
+ratio drift. -/
+theorem sinkhorn_mixed_projective_ratio_drift_tendsto_zero_from_gauge_iterates
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (φ0 φhat0 φ1 φhat1 : ι → ℝ)
+    (subseq : ℕ → ℕ)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
+      φ0 φhat0 φ1 φhat1)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    SinkhornMixedProjectiveRatioDriftZeroAlong φhat0Iter φ1Iter subseq := by
+  exact sinkhorn_mixed_projective_ratio_drift_zero_of_envelope φhat0Iter φ1Iter subseq
+    (sinkhorn_mixed_projective_ratio_drift_envelope_from_gauge_iterates p q G
+      φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1 subseq
+      hG hiter hgauge hbounds)
 
 /-- Left mixed-phase projective drift from the Sinkhorn dynamics.
 

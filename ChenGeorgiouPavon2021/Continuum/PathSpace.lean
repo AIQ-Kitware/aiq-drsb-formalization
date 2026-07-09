@@ -43,28 +43,104 @@ theorem continuousAnchoredIntervalPath_ext_of_intervalPath_eq
     ω = η := by
   exact Subtype.ext h
 
-/-- Dyadic increment equality recovers equality at every finite dyadic grid point.
+/-- The zeroth dyadic grid point is the interval anchor. -/
+theorem intervalDyadicTime_zero (level : ℕ) :
+    intervalDyadicTime level 0 = unitIntervalZero := by
+  apply Subtype.ext
+  simp [intervalDyadicTime, dyadicTime, unitIntervalZero]
 
-This is the finite algebraic/telescoping part of path separation.  It should use the anchor at `0`
-and the equality of normalized increments to recover equality of cumulative dyadic sums at all grid
-vertices. -/
+/-- Anchored continuous interval paths agree at the zeroth dyadic grid point. -/
+theorem continuousAnchoredIntervalPath_dyadicGrid_zero_eq
+    (ω η : ContinuousAnchoredIntervalPath) (level : ℕ) :
+    continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level 0)
+      = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level 0) := by
+  rw [intervalDyadicTime_zero level]
+  calc
+    continuousAnchoredIntervalPathToIntervalPath ω unitIntervalZero = 0 := ω.2.1
+    _ = continuousAnchoredIntervalPathToIntervalPath η unitIntervalZero := (η.2.1).symm
+
+/-- One raw dyadic increment step transports equality from one grid vertex to the next. -/
+theorem continuousAnchoredIntervalPath_dyadicGrid_succ_eq_of_increment_eq
+    (ω η : ContinuousAnchoredIntervalPath) (level : ℕ) (i : Fin (2 ^ level))
+    (hinc : intervalDyadicIncrement level
+        (continuousAnchoredIntervalPathToIntervalPath ω) i
+      = intervalDyadicIncrement level
+        (continuousAnchoredIntervalPathToIntervalPath η) i)
+    (hbase : continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i.1)
+      = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i.1)) :
+    continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level (i.1 + 1))
+      = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level (i.1 + 1)) := by
+  unfold intervalDyadicIncrement at hinc
+  calc
+    continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level (i.1 + 1))
+        = (continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level (i.1 + 1))
+            - continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i.1))
+          + continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i.1) := by ring
+    _ = (continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level (i.1 + 1))
+            - continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i.1))
+          + continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i.1) := by
+            rw [hinc, hbase]
+    _ = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level (i.1 + 1)) := by ring
+
+/-- Normalized dyadic increment equality implies raw dyadic increment equality.
+
+This is the small nonzero-mesh algebra seam needed before the finite telescoping induction can use
+`continuousAnchoredIntervalPath_dyadicGrid_succ_eq_of_increment_eq`. -/
+theorem intervalDyadicIncrement_eq_of_normalizedContinuousAnchoredIntervalDyadicIncrement_eq
+    (ω η : ContinuousAnchoredIntervalPath) (level : ℕ) (i : Fin (2 ^ level))
+    (hN : normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
+      = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
+    intervalDyadicIncrement level
+        (continuousAnchoredIntervalPathToIntervalPath ω) i
+      = intervalDyadicIncrement level
+        (continuousAnchoredIntervalPathToIntervalPath η) i := by
+  sorry
+
+/-- Bounded finite telescoping target for dyadic grid values.
+
+After normalized increments are converted to raw increment equality, this is a pure finite induction
+from the anchor at `0`.  The unbounded wrapper below only uses this theorem at true grid vertices
+`i ≤ 2^level`; out-of-range clamped values should be handled separately as the right endpoint. -/
+theorem continuousAnchoredIntervalPath_dyadicGrid_eq_of_rawIncrements_eq
+    (ω η : ContinuousAnchoredIntervalPath) (level i : ℕ) (hi : i ≤ 2 ^ level)
+    (hinc : ∀ k : Fin (2 ^ level),
+      intervalDyadicIncrement level (continuousAnchoredIntervalPathToIntervalPath ω) k
+        = intervalDyadicIncrement level (continuousAnchoredIntervalPathToIntervalPath η) k) :
+    continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i)
+      = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i) := by
+  induction i with
+  | zero =>
+      exact continuousAnchoredIntervalPath_dyadicGrid_zero_eq ω η level
+  | succ i ih =>
+      have hi_pred : i ≤ 2 ^ level := Nat.le_trans (Nat.le_succ i) hi
+      have hi_fin : i < 2 ^ level := Nat.lt_of_succ_le hi
+      exact continuousAnchoredIntervalPath_dyadicGrid_succ_eq_of_increment_eq ω η level
+        ⟨i, hi_fin⟩ (hinc ⟨i, hi_fin⟩) (ih hi_pred)
+
+/-- Dyadic increment equality recovers equality at every true finite dyadic grid point.
+
+The bounded index `i ≤ 2^level` is the honest finite-grid statement; unbounded natural indices in
+`intervalDyadicTime` are merely a clamped implementation detail, not part of the mathematical grid. -/
 theorem continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncrements_eq
     (ω η : ContinuousAnchoredIntervalPath)
     (hN : ∀ level : ℕ,
       normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
         = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
-    ∀ level i,
+    ∀ level i, i ≤ 2 ^ level →
       continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i)
         = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i) := by
-  sorry
+  intro level i hi
+  exact continuousAnchoredIntervalPath_dyadicGrid_eq_of_rawIncrements_eq ω η level i hi
+    (fun k => intervalDyadicIncrement_eq_of_normalizedContinuousAnchoredIntervalDyadicIncrement_eq
+      ω η level k (hN level))
 
-/-- Equality on all dyadic grid points extends to equality of anchored continuous interval paths.
+/-- Equality on all true dyadic grid points extends to equality of anchored continuous interval paths.
 
-This is the topological/density part of path separation: dyadic times are dense in `[0,1]`, and two
-continuous functions agreeing on that dense set agree everywhere. -/
+This is the topological/density part of path separation: bounded dyadic grid points are dense in
+`[0,1]`, and two continuous functions agreeing on that dense set agree everywhere. -/
 theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq
     (ω η : ContinuousAnchoredIntervalPath)
-    (hgrid : ∀ level i,
+    (hgrid : ∀ level i, i ≤ 2 ^ level →
       continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i)
         = continuousAnchoredIntervalPathToIntervalPath η (intervalDyadicTime level i)) :
     continuousAnchoredIntervalPathToIntervalPath ω

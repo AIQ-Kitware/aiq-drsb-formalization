@@ -366,9 +366,23 @@ the coordinate cross-ratio is `1`, and compare it with the supremum. -/
 theorem finiteHilbertProjectiveLogSpread_nonneg_of_pos {κ : Type*}
     [Fintype κ] [Nonempty κ]
     (x y : κ → ℝ)
-    (_hx : ∀ j, 0 < x j) (_hy : ∀ j, 0 < y j) :
+    (hx : ∀ j, 0 < x j) (hy : ∀ j, 0 < y j) :
     0 ≤ finiteHilbertProjectiveLogSpread x y := by
-  sorry
+  classical
+  obtain ⟨j₀⟩ := (inferInstance : Nonempty κ)
+  unfold finiteHilbertProjectiveLogSpread
+  have hbdd : BddAbove (Set.range (fun ij : κ × κ =>
+      Real.log ((x ij.1 * y ij.2) / (x ij.2 * y ij.1)))) :=
+    (Set.finite_range _).bddAbove
+  have hmem : Real.log ((x j₀ * y j₀) / (x j₀ * y j₀)) ∈
+      Set.range (fun ij : κ × κ =>
+        Real.log ((x ij.1 * y ij.2) / (x ij.2 * y ij.1))) := by
+    exact ⟨(j₀, j₀), rfl⟩
+  have hle := le_csSup hbdd hmem
+  have hden_pos : 0 < x j₀ * y j₀ := mul_pos (hx j₀) (hy j₀)
+  have hdiag : Real.log ((x j₀ * y j₀) / (x j₀ * y j₀)) = 0 := by
+    rw [div_self (ne_of_gt hden_pos), Real.log_one]
+  simpa [hdiag] using hle
 
 /-- Every coordinate log-cross-ratio is bounded by the finite Hilbert log-spread.
 
@@ -379,7 +393,12 @@ theorem finiteHilbertProjectiveLogSpread_pair_le {κ : Type*}
     (x y : κ → ℝ) (j j' : κ) :
     Real.log ((x j * y j') / (x j' * y j)) ≤
       finiteHilbertProjectiveLogSpread x y := by
-  sorry
+  classical
+  unfold finiteHilbertProjectiveLogSpread
+  have hbdd : BddAbove (Set.range (fun ij : κ × κ =>
+      Real.log ((x ij.1 * y ij.2) / (x ij.2 * y ij.1)))) :=
+    (Set.finite_range _).bddAbove
+  exact le_csSup hbdd ⟨(j, j'), rfl⟩
 
 /-- Two-point weighted-average Birkhoff inequality.
 

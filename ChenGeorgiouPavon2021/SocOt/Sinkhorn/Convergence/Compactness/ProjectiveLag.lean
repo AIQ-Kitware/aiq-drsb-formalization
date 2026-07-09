@@ -6,6 +6,7 @@ Hilbert-projective contraction, monotone-diameter decay, or equivalent positive-
 It does not need to prove any scale/total-mass facts.
 -/
 
+import Mathlib.Analysis.SpecificLimits.Basic
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Convergence.Compactness.Precluster
 
 set_option autoImplicit false
@@ -1257,7 +1258,15 @@ theorem tendsto_nonnegative_atTop_zero_of_geometric_bound
     (hγ_lt_one : γ < 1)
     (hbound : ∀ k, s k ≤ C * γ ^ k) :
     Filter.Tendsto s Filter.atTop (nhds (0 : ℝ)) := by
-  sorry
+  have hpow : Filter.Tendsto (fun k : ℕ => γ ^ k) Filter.atTop (nhds (0 : ℝ)) :=
+    tendsto_pow_atTop_nhds_zero_of_lt_one hγ_nonneg hγ_lt_one
+  have hconst : Filter.Tendsto (fun _ : ℕ => C) Filter.atTop (nhds C) :=
+    tendsto_const_nhds
+  have henvelope : Filter.Tendsto (fun k : ℕ => C * γ ^ k) Filter.atTop (nhds (0 : ℝ)) := by
+    simpa [mul_zero] using hconst.mul hpow
+  exact tendsto_nonnegative_atTop_zero_of_vanishing_envelope
+    s (fun k : ℕ => C * γ ^ k) henvelope hs_nonneg
+    (fun k => mul_nonneg hC_nonneg (pow_nonneg hγ_nonneg k)) hbound
 
 /-- Harder/right-side Franklin--Lorenz core: geometric decay of the column-correction spread.
 

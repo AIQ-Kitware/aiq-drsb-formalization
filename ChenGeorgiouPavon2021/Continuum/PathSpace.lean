@@ -100,20 +100,54 @@ theorem boundedIntervalDyadicGridPoint_right_endpoint (level : ℕ) :
   unfold boundedIntervalDyadicGridPoint
   exact intervalDyadicTime_right_endpoint level
 
-/-- Closure form of bounded dyadic-grid density.
+/-- Every true finite dyadic vertex is in the range of the bounded-grid enumerator. -/
+theorem intervalDyadicTime_mem_range_boundedIntervalDyadicGridPoint
+    (level i : ℕ) (hi : i ≤ 2 ^ level) :
+    intervalDyadicTime level i ∈ Set.range boundedIntervalDyadicGridPoint := by
+  exact ⟨⟨(level, i), hi⟩, rfl⟩
 
-This is the remaining real-analysis seam for path separation: every `t ∈ [0,1]` lies in the
-closure of true vertices `i / 2^level` with `0 ≤ i ≤ 2^level`.  Keeping the seam in this
-pointwise closure form makes the eventual proof independent of the path-extensionality wrapper. -/
+/-- The left endpoint is one of the bounded dyadic grid points. -/
+theorem unitIntervalZero_mem_range_boundedIntervalDyadicGridPoint :
+    unitIntervalZero ∈ Set.range boundedIntervalDyadicGridPoint := by
+  rw [← intervalDyadicTime_zero 0]
+  exact intervalDyadicTime_mem_range_boundedIntervalDyadicGridPoint 0 0 (by simp)
+
+/-- The right endpoint is one of the bounded dyadic grid points. -/
+theorem unitIntervalOne_mem_range_boundedIntervalDyadicGridPoint :
+    unitIntervalOne ∈ Set.range boundedIntervalDyadicGridPoint := by
+  rw [← intervalDyadicTime_right_endpoint 0]
+  exact intervalDyadicTime_mem_range_boundedIntervalDyadicGridPoint 0 (2 ^ 0) le_rfl
+
+/-- The left endpoint belongs to the closure of the bounded dyadic grid. -/
+theorem unitIntervalZero_mem_closure_range_boundedIntervalDyadicGridPoint :
+    unitIntervalZero ∈ closure (Set.range boundedIntervalDyadicGridPoint) := by
+  exact subset_closure unitIntervalZero_mem_range_boundedIntervalDyadicGridPoint
+
+/-- The right endpoint belongs to the closure of the bounded dyadic grid. -/
+theorem unitIntervalOne_mem_closure_range_boundedIntervalDyadicGridPoint :
+    unitIntervalOne ∈ closure (Set.range boundedIntervalDyadicGridPoint) := by
+  exact subset_closure unitIntervalOne_mem_range_boundedIntervalDyadicGridPoint
+
+/-- Analytic density interface for bounded dyadic-grid vertices.
+
+The missing real-analysis fact is no longer hidden in a theorem body: every point of `[0,1]`
+should lie in the closure of true bounded dyadic vertices `i / 2^level`, `i ≤ 2^level`.  This is
+the precise density statement needed by the path-separation wrappers below. -/
+structure HasBoundedIntervalDyadicGridDensity : Prop where
+  mem_closure : ∀ t : UnitInterval,
+    t ∈ closure (Set.range boundedIntervalDyadicGridPoint)
+
+/-- Closure form of bounded dyadic-grid density from the explicit analytic interface. -/
 theorem unitInterval_mem_closure_range_boundedIntervalDyadicGridPoint
-    (t : UnitInterval) :
+    (hdense : HasBoundedIntervalDyadicGridDensity) (t : UnitInterval) :
     t ∈ closure (Set.range boundedIntervalDyadicGridPoint) := by
-  sorry
+  exact hdense.mem_closure t
 
 /-- The true bounded dyadic grid points are dense in the interval carrier. -/
-theorem denseRange_boundedIntervalDyadicGridPoint :
+theorem denseRange_boundedIntervalDyadicGridPoint
+    (hdense : HasBoundedIntervalDyadicGridDensity) :
     DenseRange boundedIntervalDyadicGridPoint := by
-  exact unitInterval_mem_closure_range_boundedIntervalDyadicGridPoint
+  exact unitInterval_mem_closure_range_boundedIntervalDyadicGridPoint hdense
 
 /-- Anchored continuous interval paths agree at the zeroth dyadic grid point. -/
 theorem continuousAnchoredIntervalPath_dyadicGrid_zero_eq
@@ -212,17 +246,43 @@ theorem continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncremen
     (fun k => intervalDyadicIncrement_eq_of_normalizedContinuousAnchoredIntervalDyadicIncrement_eq
       ω η level k (hN level))
 
+/-- Normalized dyadic increments force equality on every bounded dyadic-grid vertex. -/
+theorem continuousAnchoredIntervalPath_boundedDyadicGridPoint_eq_of_normalizedDyadicIncrements_eq
+    (ω η : ContinuousAnchoredIntervalPath)
+    (hN : ∀ level : ℕ,
+      normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
+        = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η)
+    (p : {p : ℕ × ℕ // p.2 ≤ 2 ^ p.1}) :
+    continuousAnchoredIntervalPathToIntervalPath ω (boundedIntervalDyadicGridPoint p)
+      = continuousAnchoredIntervalPathToIntervalPath η (boundedIntervalDyadicGridPoint p) := by
+  exact continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncrements_eq
+    ω η hN p.1.1 p.1.2 p.2
+
+/-- Normalized dyadic increments force equality on the range of bounded dyadic-grid vertices. -/
+theorem continuousAnchoredIntervalPath_eq_on_range_boundedDyadicGrid_of_normalizedDyadicIncrements_eq
+    (ω η : ContinuousAnchoredIntervalPath)
+    (hN : ∀ level : ℕ,
+      normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
+        = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
+    ∀ t ∈ Set.range boundedIntervalDyadicGridPoint,
+      continuousAnchoredIntervalPathToIntervalPath ω t
+        = continuousAnchoredIntervalPathToIntervalPath η t := by
+  rintro t ⟨p, rfl⟩
+  exact continuousAnchoredIntervalPath_boundedDyadicGridPoint_eq_of_normalizedDyadicIncrements_eq
+    ω η hN p
+
 /-- General interval-path density seam for dyadic-grid equality.
 
 This is the topological/density part of path separation, stated without the anchored subtype:
 bounded dyadic grid points are dense in `[0,1]`, and two continuous interval paths agreeing on that
 dense grid agree everywhere. -/
 theorem intervalPath_eq_of_continuous_of_dyadicGrid_eq
+    (hdense : HasBoundedIntervalDyadicGridDensity)
     (ω η : IntervalPath) (hω : Continuous ω) (hη : Continuous η)
     (hgrid : ∀ level i, i ≤ 2 ^ level →
       ω (intervalDyadicTime level i) = η (intervalDyadicTime level i)) :
     ω = η := by
-  refine Continuous.ext_on denseRange_boundedIntervalDyadicGridPoint hω hη ?_
+  refine Continuous.ext_on (denseRange_boundedIntervalDyadicGridPoint hdense) hω hη ?_
   rintro _ ⟨p, rfl⟩
   exact hgrid p.1.1 p.1.2 p.2
 
@@ -231,6 +291,7 @@ theorem intervalPath_eq_of_continuous_of_dyadicGrid_eq
 This wrapper now contains only subtype bookkeeping; the analytic density statement is isolated in
 `intervalPath_eq_of_continuous_of_dyadicGrid_eq`. -/
 theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq
+    (hdense : HasBoundedIntervalDyadicGridDensity)
     (ω η : ContinuousAnchoredIntervalPath)
     (hgrid : ∀ level i, i ≤ 2 ^ level →
       continuousAnchoredIntervalPathToIntervalPath ω (intervalDyadicTime level i)
@@ -241,31 +302,33 @@ theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq
     simpa [continuousAnchoredIntervalPathToIntervalPath] using ω.2.2
   have hηcont : Continuous (continuousAnchoredIntervalPathToIntervalPath η) := by
     simpa [continuousAnchoredIntervalPathToIntervalPath] using η.2.2
-  exact intervalPath_eq_of_continuous_of_dyadicGrid_eq
+  exact intervalPath_eq_of_continuous_of_dyadicGrid_eq hdense
     (continuousAnchoredIntervalPathToIntervalPath ω)
     (continuousAnchoredIntervalPathToIntervalPath η) hωcont hηcont hgrid
 
 /-- Point-separation target reduced to finite-grid recovery plus dyadic-density continuity. -/
 theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_normalizedDyadicIncrements_eq
+    (hdense : HasBoundedIntervalDyadicGridDensity)
     (ω η : ContinuousAnchoredIntervalPath)
     (hN : ∀ level : ℕ,
       normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
         = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
     continuousAnchoredIntervalPathToIntervalPath ω
       = continuousAnchoredIntervalPathToIntervalPath η := by
-  exact continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq ω η
+  exact continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq hdense ω η
     (continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncrements_eq ω η hN)
 
 /-- Point-separation wrapper: anchored continuous paths are determined by all normalized dyadic
 increment vectors. -/
 theorem continuousAnchoredIntervalPath_ext_of_normalizedDyadicIncrements_eq
+    (hdense : HasBoundedIntervalDyadicGridDensity)
     (ω η : ContinuousAnchoredIntervalPath)
     (hN : ∀ level : ℕ,
       normalizedContinuousAnchoredIntervalDyadicIncrementMap level ω
         = normalizedContinuousAnchoredIntervalDyadicIncrementMap level η) :
     ω = η := by
   exact continuousAnchoredIntervalPath_ext_of_intervalPath_eq ω η
-    (continuousAnchoredIntervalPath_toIntervalPath_eq_of_normalizedDyadicIncrements_eq ω η hN)
+    (continuousAnchoredIntervalPath_toIntervalPath_eq_of_normalizedDyadicIncrements_eq hdense ω η hN)
 
 /-- Normalized dyadic increment maps on the anchored-continuous carrier are measurable. -/
 theorem measurable_normalizedContinuousAnchoredIntervalDyadicIncrementMap (level : ℕ) :
@@ -284,26 +347,39 @@ theorem normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_le :
   intro level
   exact (measurable_normalizedContinuousAnchoredIntervalDyadicIncrementMap level).comap_le
 
-/-- Reverse generation seam for the canonical anchored continuous interval path space.
+/-- Explicit measurable-generation interface for the canonical anchored continuous interval path
+space.
 
-This is the corrected replacement for the discarded overstrong theorem that dyadic increments on
-`[0,1]` generate all of `RealPath := ℝ → ℝ`.  On the anchored continuous interval carrier, dyadic
-increments should generate the Borel/subtype measurable space. -/
-theorem continuousAnchoredIntervalPath_measurableSpace_le_iSup_comap_normalizedDyadicIncrementMap :
+This records the remaining path-space theorem without hiding it behind `sorry`: on the anchored
+continuous interval carrier, normalized dyadic increments should generate the default
+Borel/subtype measurable space.  The statement is intentionally about this narrow carrier only and
+does not revive the discarded overstrong theorem for arbitrary `RealPath := ℝ → ℝ`. -/
+structure HasContinuousAnchoredIntervalDyadicGeneration : Prop where
+  measurableSpace_le_iSup_comap :
+    (inferInstance : MeasurableSpace ContinuousAnchoredIntervalPath)
+      ≤ (⨆ level : ℕ,
+        MeasurableSpace.comap (normalizedContinuousAnchoredIntervalDyadicIncrementMap level)
+          (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ)))
+
+/-- Reverse generation from the explicit anchored-continuous path-space generation interface. -/
+theorem continuousAnchoredIntervalPath_measurableSpace_le_iSup_comap_normalizedDyadicIncrementMap
+    (hgen : HasContinuousAnchoredIntervalDyadicGeneration) :
     (inferInstance : MeasurableSpace ContinuousAnchoredIntervalPath)
       ≤ (⨆ level : ℕ,
         MeasurableSpace.comap (normalizedContinuousAnchoredIntervalDyadicIncrementMap level)
           (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ))) := by
-  sorry
+  exact hgen.measurableSpace_le_iSup_comap
 
-/-- Generation target for the canonical anchored continuous interval path space. -/
-theorem normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_eq :
+/-- Generation target for the canonical anchored continuous interval path space, conditional on the
+explicit anchored-continuous generation interface. -/
+theorem normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_eq
+    (hgen : HasContinuousAnchoredIntervalDyadicGeneration) :
     (⨆ level : ℕ,
         MeasurableSpace.comap (normalizedContinuousAnchoredIntervalDyadicIncrementMap level)
           (inferInstance : MeasurableSpace (Fin (2 ^ level) → ℝ)))
       = (inferInstance : MeasurableSpace ContinuousAnchoredIntervalPath) := by
   apply le_antisymm
   · exact normalizedContinuousAnchoredIntervalDyadicIncrementMap_iSup_comap_le
-  · exact continuousAnchoredIntervalPath_measurableSpace_le_iSup_comap_normalizedDyadicIncrementMap
+  · exact continuousAnchoredIntervalPath_measurableSpace_le_iSup_comap_normalizedDyadicIncrementMap hgen
 
 end ChenGeorgiouPavon2021

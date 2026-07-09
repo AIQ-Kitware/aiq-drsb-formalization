@@ -84,9 +84,18 @@ noncomputable def dyadicDerivativeSquareRiemannEnergy (level : ℕ)
   ∑ i : Fin (2 ^ level),
     dyadicMesh level * (2⁻¹ * hderiv (dyadicTime level i.1) ^ 2)
 
+/-- Dyadic mesh sizes are strictly positive. -/
+lemma dyadicMesh_pos (level : ℕ) : 0 < dyadicMesh level := by
+  unfold dyadicMesh
+  positivity
+
+/-- Dyadic mesh sizes are nonzero. -/
+lemma dyadicMesh_ne_zero (level : ℕ) : dyadicMesh level ≠ 0 :=
+  ne_of_gt (dyadicMesh_pos level)
+
 /-- The dyadic mesh tends to zero.
 
-This is the generic mesh-control seam needed before the analytic finite-difference and Riemann-sum
+This is the generic mesh-control fact needed before the analytic finite-difference and Riemann-sum
 arguments can be connected to the dyadic scaffold. -/
 theorem dyadicMesh_tendsto_zero :
     Filter.Tendsto dyadicMesh Filter.atTop (nhds (0 : ℝ)) := by
@@ -134,14 +143,31 @@ theorem dyadicDifferenceQuotientRiemannEnergy_tendsto_cameronMartinPathEnergy
       Filter.atTop (nhds (cameronMartinPathEnergy hderiv)) := by
   sorry
 
+/-- Squaring the normalized dyadic increment converts the Gaussian normalization into
+the mesh-weighted squared finite-difference quotient. -/
+lemma normalizedDyadicIncrement_sq_eq_mesh_mul_differenceQuotient_sq
+    (level : ℕ) (h : RealPath) (i : Fin (2 ^ level)) :
+    normalizedDyadicIncrementMap level h i ^ 2
+      = dyadicMesh level * dyadicDifferenceQuotient level h i ^ 2 := by
+  unfold normalizedDyadicIncrementMap normalizedDyadicIncrement dyadicDifferenceQuotient
+  have hmesh_nonneg : 0 ≤ dyadicMesh level := le_of_lt (dyadicMesh_pos level)
+  have hmesh_ne : dyadicMesh level ≠ 0 := dyadicMesh_ne_zero level
+  rw [div_pow, Real.sq_sqrt hmesh_nonneg]
+  field_simp [hmesh_ne]
+
 /-- The CGP normalized-increment dyadic energy is the pure finite-difference Riemann-sum energy.
 
-This is a finite algebra seam using positivity of the dyadic mesh and `Real.sq_sqrt`; it contains no
+This is a finite algebra bridge using positivity of the dyadic mesh and `Real.sq_sqrt`; it contains no
 continuum analysis. -/
 theorem dyadicPathEnergy_eq_dyadicDifferenceQuotientRiemannEnergy
     (level : ℕ) (h : RealPath) :
     dyadicPathEnergy level h = dyadicDifferenceQuotientRiemannEnergy level h := by
-  sorry
+  unfold dyadicPathEnergy dyadicDifferenceQuotientRiemannEnergy
+  rw [Finset.mul_sum]
+  refine Finset.sum_congr rfl ?_
+  intro i _
+  rw [normalizedDyadicIncrement_sq_eq_mesh_mul_differenceQuotient_sq]
+  ring
 
 /-- Sobolev/Riemann-sum capstone on the ambient scaffold.
 

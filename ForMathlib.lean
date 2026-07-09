@@ -27,6 +27,9 @@ One file per proposed Mathlib destination area:
 * `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf` — finite positive-matrix Hilbert
   projective contraction coefficient (Birkhoff--Hopf), the Franklin--Lorenz convergence engine.
   STAGING (placeholder); see `LITERATURE_REFERENCES.md`.
+* `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.PaperRoute` — Eveson--Nussbaum finite-matrix
+  proof spine: quadrant Hilbert formulas, convex-hull diameter, positive-matrix diameter,
+  normalized `2 × 2` calculus, and assembly. STAGING (paper-route fanout surface).
 * `ForMathlib.MeasureTheory.PathEmbedding` — a standard-Borel space with a countable
   point-separating measurable family embeds measurably into `ℕ→ℝ` with a measurable left
   inverse (Lusin–Souslin); the concrete continuous-path (`C(T,ℝ)`) instance and the resulting
@@ -40,6 +43,7 @@ import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
+import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.PaperRoute
 -- Vendored Kolmogorov extension theorem (Apache-2.0, RemyDegenne/kolmogorov_extension4);
 -- see ForMathlib/KolmogorovExtension/README.md. Supplies `projectiveLimit` for the
 -- continuum reference path measure.

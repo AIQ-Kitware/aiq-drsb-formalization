@@ -139,8 +139,9 @@ are intended to be exactly these named theorem statements:
 2. `hard_core_franklinLorenz_right_column_log_relative_error_geometric_bound`: the
    Franklin--Lorenz Section 3 step converting that coefficient into geometric decay of the
    logarithmic column marginal error.
-3. `ForMathlib.Analysis.relative_error_geometric_bound_of_log_relative_error_geometric_bound`:
-   the pure real-analysis conversion from log error to multiplicative relative error; the local
+3. `ForMathlib.Analysis.hard_core_relative_error_geometric_bound_explicit_constant_of_log_bound`:
+   the pure real-analysis conversion from log error to multiplicative relative error with the
+   explicit constant `exp C * C`; the local
    `hard_core_relative_error_geometric_bound_of_log_relative_error_geometric_bound_and_ratio_box`
    wrapper keeps the older Franklin--Lorenz-facing signature with the now-proved ratio-box input.
 4. `hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound`: the still-unmirrored left-side

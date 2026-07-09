@@ -1,40 +1,481 @@
+
 \input{preamble}
-\title{Distilled Mathematical Arguments from Carroll (2004)}
+\title{Step-by-step modernization of Carroll (2004): Birkhoff's contraction coefficient}
 \author{Generated proof-target note}
 \date{Source PDF: \texttt{BirkhoffHilbert-Carroll2005-carroll-birkoff.pdf}}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Carroll, \emph{Birkhoff's Contraction Coefficient}, Linear Algebra and its Applications 389, 227--234, 2004 \cite{Carroll2004}.
+\section*{Reference and role}
+This note modernizes Joseph E. Carroll, \emph{Birkhoff's Contraction Coefficient},
+Linear Algebra and its Applications 389:227--234, 2004 \cite{Carroll2004}.  Carroll
+proves Birkhoff's finite positive-matrix contraction theorem by elementary algebra,
+calculus, and a small linear-programming reduction.  This is a high-value companion
+to Eveson--Nussbaum because it avoids general cone topology and gives a finite
+coordinate proof of the exact contraction coefficient.
 
-\section*{Role in the formalization}
-This paper is a compact finite-dimensional proof source for the theorem that multiplication by a positive square matrix contracts Hilbert projective distance.  It is a useful proof-target source for any Lean helper lemmas converting positivity of $G$ into projective asymptotic regularity.
+The paper uses a multiplicative version of Hilbert's projective distance.  Taking
+logarithms converts it into the more common additive Hilbert metric and turns
+multiplicative powers into ordinary contraction inequalities.
 
-\begin{distillation}
-\item \textbf{Projective seminorm.}  For $x\in\R^n_{++}$ define the projective spread
+\section*{Definitions in modern notation}
+For $n\ge2$, let
 \[
-  \|x\|_{\rm proj}=\frac{\max_i x_i}{\min_i x_i},
+  \R^n_{++}:=\{x\in\R^n:x_i>0\text{ for all }i\}.
 \]
-or equivalently $\log\|x\|_{\rm proj}$.  The induced distance between rays is $d_H(x,y)=\log\|xy^{-1}\|_{\rm proj}$.
-\item \textbf{Diameter of a positive matrix.}  A positive matrix $A$ has finite projective diameter
+This is an abelian group under coordinatewise multiplication.  Carroll defines the
+multiplicative projective norm
 \[
-  \Delta(A)=\sup_{x,y>0} d_H(Ax,Ay)<\infty.
+  \|x\|:=\frac{\max_i x_i}{\min_i x_i}
+        =\max_{i,j}\frac{x_i}{x_j}
+  \qquad (x\in\R^n_{++}).
 \]
-Coordinatewise positivity is the essential hypothesis.
-\item \textbf{Contraction coefficient.}  Birkhoff's theorem gives
+It satisfies:
+\begin{enumerate}[leftmargin=2em]
+\item $\|x\|=1$ iff $x$ is a constant positive vector;
+\item $\|x^{-1}\|=\|x\|$;
+\item $\|xy\|\le \|x\|\|y\|$;
+\item $\|cx\|=\|x\|$ for every scalar $c>0$.
+\end{enumerate}
+The multiplicative projective distance is
 \[
-  d_H(Ax,Ay)\le \tanh(\Delta(A)/4)d_H(x,y).
+  d(x,y):=\|xy^{-1}\|.
 \]
-If $\Delta(A)<\infty$, the coefficient is strictly less than one.
-\item \textbf{Proof idea.}  The proof reduces the worst case to a two-dimensional face and verifies the contraction bound using elementary inequalities/linear programming.  This is substantially easier to distill into finite Lean inequalities than the full cone-theoretic Birkhoff-Hopf theorem.
-\end{distillation}
+Thus
+\[
+  d(x,y)=\frac{\max_i(x_i/y_i)}{\min_i(x_i/y_i)}.
+\]
+It satisfies the multiplicative triangle inequality
+\[
+  d(x,z)\le d(x,y)d(y,z),
+\]
+and it is projective:
+\[
+  d(ax,by)=d(x,y)\qquad(a,b>0).
+\]
+The additive Hilbert projective pseudometric is
+\[
+  \delta(x,y):=\log d(x,y).
+\]
 
-\section*{Lean comparison targets}
-For \texttt{ProjectiveLag.lean}, a useful helper theorem would be: if $G_{ij}>0$, then the positive linear maps $x\mapsto Gx$ and $y\mapsto G^Ty$ are strict contractions on positive projective space.  The remaining work is to connect the alternating quotient/Sinkhorn updates to iterates of these positive maps in a form where the contraction can be applied.
+For $r\ge1$, Carroll writes
+\[
+  \tau(r):=\frac{\sqrt r-1}{\sqrt r+1}.
+\]
+The map $\tau:[1,\infty)\to[0,1)$ is strictly increasing and onto.
 
-\section*{Distillation gaps}
-\TODO{Decide whether the formalization needs the exact Birkhoff coefficient or only existence of some $\tau<1$.  If only existence is needed, the Lean theorem can be much weaker than Carroll's full coefficient formula.}
+Let $A$ be a positive $m\times n$ matrix, with rows $a_1,\dots,a_m\in\R^n_{++}$.
+Carroll defines the multiplicative diameter of the row set by
+\[
+  d(A):=\max_{1\le i,j\le m}d(a_i,a_j).
+\]
+Written in coordinates,
+\[
+  d(A)=\max_{i,j,k,\ell}\frac{a_{ik}a_{j\ell}}{a_{i\ell}a_{jk}}.
+\]
+This is the same multiplicative cross-ratio diameter that appears in finite versions
+of Birkhoff--Hopf.  Its logarithm is the additive Hilbert diameter of the image.
+
+\section*{Theorem 1 in additive and multiplicative forms}
+Carroll's Theorem 1 says:
+
+\begin{quote}
+Let $m,n\ge2$, let $A$ be a positive $m\times n$ matrix, and assume $d(A)>1$.
+For all $x,y\in\R^n_{++}$ with $d(x,y)>1$,
+\[
+  d(Ax,Ay)<d(x,y)^{\tau(d(A))}.
+\]
+Moreover, if $\eta<\tau(d(A))$, then there exist $x,y\in\R^n_{++}$ such that
+\[
+  d(Ax,Ay)>d(x,y)^\eta.
+\]
+\end{quote}
+
+Taking logarithms gives the usual Hilbert-metric statement:
+\[
+  \delta(Ax,Ay)<\tau(d(A))\,\delta(x,y),
+\]
+and the second assertion says that the coefficient $\tau(d(A))$ is minimal.  If
+$D=\log d(A)$ is the additive diameter, then
+\[
+  \tau(d(A))=\frac{e^{D/2}-1}{e^{D/2}+1}=\tanh(D/4).
+\]
+
+The proof has four stages:
+\begin{enumerate}[leftmargin=2em]
+\item reduce the number of output rows to $2$;
+\item rewrite the $2\times n$ problem as an inequality for a scalar function $F$;
+\item reduce the $F$-inequality to the $2\times2$ case by linear programming;
+\item solve the $2\times2$ inequality and prove minimality.
+\end{enumerate}
+
+\section*{Step 1: reduction to two output rows}
+Assume the theorem is known for matrices with two rows.  Let $A$ be an arbitrary
+positive $m\times n$ matrix and take $x,y\in\R^n_{++}$ with $d(Ax,Ay)>1$.
+By the definition of $d(Ax,Ay)$, there are row indices $i,j$ such that
+\[
+  d(Ax,Ay)
+  =\frac{(a_i\cdot x)(a_i\cdot y)^{-1}}
+         {(a_j\cdot x)(a_j\cdot y)^{-1}}
+  = \frac{(a_i\cdot x)(a_j\cdot y)}{(a_i\cdot y)(a_j\cdot x)},
+\]
+after choosing the order so the displayed ratio is the maximum and is $>1$.
+Let $A'$ be the $2\times n$ submatrix whose rows are $a_i$ and $a_j$.  Then
+\[
+  d(A'x,A'y)=d(Ax,Ay)>1.
+\]
+Also
+\[
+  d(A')=d(a_i,a_j)\le d(A),
+\]
+and $\tau$ is increasing.  Applying the two-row theorem to $A'$ gives
+\[
+  d(Ax,Ay)=d(A'x,A'y)
+  <d(x,y)^{\tau(d(A'))}
+  \le d(x,y)^{\tau(d(A))}.
+\]
+So it remains to prove the theorem for $m=2$.
+
+\section*{Step 2: the two-row problem and the function $F$}
+Let the two rows of $A$ be $a,b\in\R^n_{++}$.  We must prove
+\[
+  d(Ax,Ay)<d(x,y)^{\tau(d(a,b))}.
+\]
+The distance $d(Ax,Ay)$ is the larger of the ratio
+\[
+  \frac{(a\cdot x)(a\cdot y)^{-1}}{(b\cdot x)(b\cdot y)^{-1}}
+\]
+and its reciprocal.  Swapping the labels $a$ and $b$ takes the reciprocal and leaves
+$d(a,b)$ unchanged.  Therefore it is enough to prove
+\[
+  \frac{(a\cdot x)(a\cdot y)^{-1}}{(b\cdot x)(b\cdot y)^{-1}}
+  <d(x,y)^{\tau(d(a,b))}
+\]
+for all $a,b,x,y$ with $d(a,b)>1$ and $d(x,y)>1$.
+
+Now use coordinatewise multiplication by $b^{-1}$.  This is an isometry for $d$, so
+$d(a,b)=\|ab^{-1}\|$.  Define
+\[
+  r:=ab^{-1},
+  \qquad
+  s:=xy^{-1}.
+\]
+Then $r$ and $s$ are nonconstant, $\|r\|=d(a,b)$, and $\|s\|=d(x,y)$.  Since
+$x=sy$,
+\begin{align*}
+  \frac{(a\cdot x)(a\cdot y)^{-1}}{(b\cdot x)(b\cdot y)^{-1}}
+  &=\frac{(ab^{-1}\cdot x)(ab^{-1}\cdot y)^{-1}}
+          {(1\cdot x)(1\cdot y)^{-1}}\\
+  &=\frac{(r\cdot sy)(1\cdot y)}{(r\cdot y)(1\cdot sy)}\\
+  &=\frac{(rs\cdot y)(1\cdot y)}{(r\cdot y)(s\cdot y)}.
+\end{align*}
+This motivates Carroll's function
+\[
+  F(r,s,y):=\frac{(rs\cdot y)(1\cdot y)}{(r\cdot y)(s\cdot y)}.
+\]
+The desired two-row inequality is therefore equivalent to
+\[
+  F(r,s,y)<\|s\|^{\tau(\|r\|)}
+\]
+for all nonconstant $r,s\in\R^n_{++}$ and all $y\in\R^n_{++}$.  If $F(r,s,y)\le1$,
+there is nothing to prove, since $\|s\|^{\tau(\|r\|)}>1$.  Hence Carroll restricts to
+$F(r,s,y)>1$.
+
+\section*{Step 3: properties of $F$ and reduction to two coordinates}
+Carroll broadens the $y$-domain temporarily from $\R^n_{++}$ to the closed cone
+$\R^n_+$ so that a linear-programming maximum may occur on the boundary.
+
+The function $F$ is homogeneous of degree zero in each variable:
+\[
+  F(\alpha r,\beta s,\gamma y)=F(r,s,y)
+  \qquad(\alpha,\beta,\gamma>0).
+\]
+The right-hand side $\|s\|^{\tau(\|r\|)}$ is also unchanged by positive rescaling of
+$r$ or $s$.  Therefore we may rescale $r$ and $s$ so that
+\[
+  r\cdot y=1,
+  \qquad
+  s\cdot y=1\cdot y.
+\]
+The second condition is equivalent to
+\[
+  (s-1)\cdot y=0.
+\]
+Under these two normalizations,
+\[
+  F(r,s,y)=rs\cdot y.
+\]
+Indeed,
+\[
+  F(r,s,y)=\frac{(rs\cdot y)(1\cdot y)}{1\cdot(1\cdot y)}=rs\cdot y.
+\]
+
+Now consider the linear program
+\[
+  \text{maximize } rs\cdot x
+\]
+subject to
+\[
+  x\in\R^n_+,
+  \qquad
+  r\cdot x=1,
+  \qquad
+  (s-1)\cdot x=0.
+\]
+The vector $y$ is feasible.  The feasible set is bounded because $r_i>0$ and
+$r\cdot x=1$ imply $0\le x_i\le 1/r_i$.  Hence a maximum exists.  By the fundamental
+basic-feasible-solution theorem of linear programming, a maximum is attained at a
+basic feasible solution $x^0$ with at most two nonzero coordinates, because there are
+two equality constraints.
+
+If $x^0$ had only one nonzero coordinate, then the corresponding one-dimensional
+version of $F$ would equal $1$, contradicting the case $F(r,s,y)>1$ after taking a
+maximizer that does at least as well as $y$.  Thus there are distinct indices $i,j$ and
+positive numbers $x_i,x_j$ such that
+\[
+  F(r,s,y)\le F((r_i,r_j),(s_i,s_j),(x_i,x_j)).
+\]
+Moreover,
+\[
+  \|(r_i,r_j)\|\le \|r\|,
+  \qquad
+  \|(s_i,s_j)\|\le \|s\|.
+\]
+Since $\tau$ is increasing, a proof of the desired inequality in dimension $2$ implies
+the desired inequality in dimension $n$.
+
+This is the key finite-dimensional reduction: the worst case lives on two coordinates.
+
+\section*{Step 4: the two-coordinate calculation}
+Let $r,s\in\R^2_{++}$ be nonconstant and $y\in\R^2_{++}$.  By permuting coordinates
+and rescaling each variable, assume
+\[
+  r=(1,r),\quad r>1,
+  \qquad
+  s=(1,s),\quad s\ne1,
+  \qquad
+  y=(1,y),\quad y>0.
+\]
+Assume again that $F(r,s,y)>1$.  Then
+\begin{align*}
+  F(r,s,y)
+  &=\frac{((1,rs)\cdot(1,y))((1,1)\cdot(1,y))}
+          {((1,r)\cdot(1,y))((1,s)\cdot(1,y))}\\
+  &=\frac{(1+rsy)(1+y)}{(1+ry)(1+sy)}\\
+  &=\frac{1+rsy^2+(1+rs)y}{1+rsy^2+(r+s)y}.
+\end{align*}
+If $s<1$, then
+\[
+  (1+rs)-(r+s)=(r-1)(s-1)<0,
+\]
+so the numerator is smaller than the denominator and $F(r,s,y)<1$, contrary to the
+standing assumption.  Hence $s>1$, and $\|s\|=s$.
+
+Use the square inequality
+\[
+  0\le (1-y\sqrt{rs})^2=1+rsy^2-2y\sqrt{rs}.
+\]
+Thus
+\[
+  1+rsy^2\ge 2y\sqrt{rs}.
+\]
+Since $1+rs<r+s$ is false when $r,s>1$; rather $1+rs-(r+s)=(r-1)(s-1)>0$, increasing
+the common term $1+rsy^2$ in the fraction
+\[
+  \frac{1+rsy^2+(1+rs)y}{1+rsy^2+(r+s)y}
+\]
+would decrease the fraction.  Therefore replacing $1+rsy^2$ by its lower bound gives
+an upper bound:
+\begin{align*}
+  F(r,s,y)
+  &\le
+  \frac{2y\sqrt{rs}+(1+rs)y}{2y\sqrt{rs}+(r+s)y}\\
+  &=\frac{2\sqrt{rs}+1+rs}{2\sqrt{rs}+r+s}\\
+  &=\left(\frac{1+\sqrt{rs}}{\sqrt r+\sqrt s}\right)^2.
+\end{align*}
+Equality occurs when $y\sqrt{rs}=1$.
+
+It remains to prove
+\[
+  \left(\frac{1+\sqrt{rs}}{\sqrt r+\sqrt s}\right)^2
+  < s^{\tau(r)}.
+\]
+Taking square roots and renaming $\sqrt r$ and $\sqrt s$ as $r$ and $s$, it is enough
+to prove, for all $r,s>1$,
+\[
+  f_1(r,s):=\frac{1+rs}{r+s}
+  < s^{(r-1)/(r+1)}=:g_1(r,s).
+\]
+At $s=1$ both sides equal $1$.  By the mean value theorem it suffices to show
+\[
+  \frac{\partial f_1}{\partial s}(r,s)
+  <
+  \frac{\partial g_1}{\partial s}(r,s)
+  \qquad(s>1).
+\]
+Compute
+\[
+  \frac{\partial f_1}{\partial s}
+  =\frac{r^2-1}{(r+s)^2},
+\]
+and
+\[
+  \frac{\partial g_1}{\partial s}
+  =\frac{r-1}{r+1}s^{-2/(r+1)}.
+\]
+Thus the desired derivative inequality is
+\[
+  \frac{r^2-1}{(r+s)^2}
+  <\frac{r-1}{r+1}s^{-2/(r+1)}.
+\]
+Canceling the positive factor $(r-1)/(r+1)$, this is equivalent to
+\[
+  \left(\frac{r+1}{r+s}\right)^2<s^{-2/(r+1)}.
+\]
+Taking positive square roots and rearranging, it is enough to show
+\[
+  f_2(r,s):=\frac{r+s}{r+1}>s^{1/(r+1)}=:g_2(r,s).
+\]
+Again $f_2(r,1)=g_2(r,1)=1$.  And
+\[
+  \frac{\partial f_2}{\partial s}=\frac{1}{r+1},
+  \qquad
+  \frac{\partial g_2}{\partial s}=\frac{1}{r+1}s^{-r/(r+1)}.
+\]
+For $s>1$, $s^{-r/(r+1)}<1$, hence
+\[
+  \frac{\partial f_2}{\partial s}>
+  \frac{\partial g_2}{\partial s}.
+\]
+Therefore $f_2>g_2$ for $s>1$, so the derivative inequality for $f_1,g_1$ holds,
+so $f_1<g_1$, and consequently
+\[
+  F(r,s,y)<\|s\|^{\tau(\|r\|)}.
+\]
+This proves that $\tau(d(A))$ is a contraction coefficient.
+
+\section*{Step 5: minimality of the coefficient}
+Carroll then proves that no smaller coefficient works.  The proof reverses the
+sharpness points in the two-coordinate calculation.
+
+First consider the $2\times2$ $F$-problem.  Let $r=(r_1,r_2)$ be nonconstant.  After
+rescaling and switching coordinates, assume
+\[
+  r=(1,R),\qquad R>1.
+\]
+Let $0<\eta<\tau(R)$.  Since $\tau$ is strictly increasing and onto $[0,1)$, choose
+$R'$ with
+\[
+  1<R'<R,
+  \qquad
+  \eta=\tau(R').
+\]
+In the proof above, equality in the AM--GM step is obtained by taking
+\[
+  y=(1,(Rs)^{-1/2})
+\]
+when $s=(1,s)$ with $s>1$.  The square-root inequality then compares
+\[
+  f_1(\sqrt R,\sqrt s)
+  \quad\text{with}\quad
+  (\sqrt s)^\eta.
+\]
+At $s=1$ the two sides agree, but the derivative of the left side is larger than the
+derivative corresponding to the smaller exponent $\eta=\tau(R')$.  Hence for all
+$s>1$ sufficiently close to $1$,
+\[
+  F\left((1,R),(1,s),(1,(Rs)^{-1/2})\right)>s^\eta.
+\]
+Since $\|(1,s)\|=s$, this says there are positive $s,y$ such that
+\[
+  F(r,s,y)>\|s\|^\eta.
+\]
+Thus any exponent smaller than $\tau(\|r\|)$ fails already in dimension $2$.
+
+For $n\ge3$, choose two coordinates where $r$ attains its minimum and maximum.
+After scaling and permuting, assume
+\[
+  r_1=1,
+  \qquad
+  r_2=\|r\|=R>1.
+\]
+Use the two-dimensional construction on the first two coordinates.  Initially put the
+remaining components of $y$ equal to $0$ so that the value of $F$ is exactly the
+$2$-coordinate value.  Then perturb those zero components to sufficiently small
+positive values.  The function $F$ is continuous in $y$ on the region where the
+denominator is nonzero, so the strict inequality
+\[
+  F(r,s,y)>\|s\|^\eta
+\]
+persists for a positive $y\in\R^n_{++}$.  This proves minimality for the $F$-problem
+in every dimension.
+
+Finally, for an arbitrary positive $m\times n$ matrix $A$, choose rows $a_i,a_j$ with
+\[
+  d(a_i,a_j)=d(A).
+\]
+The two-row minimality construction applied to these rows gives vectors $x,y$ for
+which the corresponding two-row image violates any exponent $\eta<\tau(d(A))$.
+The full matrix image has distance at least as large as the distance seen by this row
+pair, so the same $x,y$ prove minimality for $A$.
+
+\section*{Translation to the finite Birkhoff--Hopf formula}
+Let
+\[
+  \Theta(A):=d(A)=\max_{i,j,k,\ell}\frac{a_{ik}a_{j\ell}}{a_{i\ell}a_{jk}}.
+\]
+Then Carroll proves, in additive Hilbert metric,
+\[
+  \delta(Ax,Ay)
+  \le \frac{\sqrt{\Theta(A)}-1}{\sqrt{\Theta(A)}+1}\,\delta(x,y),
+\]
+with sharp coefficient.  If
+\[
+  \Delta(A):=\log\Theta(A),
+\]
+then
+\[
+  \frac{\sqrt{\Theta(A)}-1}{\sqrt{\Theta(A)}+1}
+  =\frac{e^{\Delta(A)/2}-1}{e^{\Delta(A)/2}+1}
+  =\tanh(\Delta(A)/4).
+\]
+This is exactly the finite positive-matrix Birkhoff contraction coefficient used by
+Franklin--Lorenz, just written in Carroll's multiplicative notation.
+
+\section*{Lean extraction checklist}
+For the current finite Sinkhorn/projective-lag formalization, Carroll suggests the
+following proof seams.
+\begin{formalizationnotes}
+\item Define the multiplicative spread of a positive finite vector:
+\[
+  \|x\|=\max_{i,j}x_i/x_j.
+\]
+\item Define the multiplicative Hilbert distance
+\[
+  d(x,y)=\|(x_i/y_i)_i\|.
+\]
+The additive version is its logarithm.
+\item Define the matrix cross-ratio diameter
+\[
+  \Theta(A)=\max_{i,j,k,\ell}\frac{a_{ik}a_{j\ell}}{a_{i\ell}a_{jk}}.
+\]
+\item Prove that positive diagonal row and column scalings preserve $\Theta(A)$.
+\item Prove the finite contraction theorem
+\[
+  \log d(Ax,Ay)
+  \le \tau(\Theta(A))\log d(x,y).
+\]
+For many Lean uses, the exact sharpness part can be postponed; existence of some
+$\rho<1$ follows from strict positivity and finiteness.
+\item Use Franklin--Lorenz Lemma 2 to apply this theorem twice per Sinkhorn cycle,
+producing the squared factor $\gamma=\tau(\Theta(A))^2$.
+\end{formalizationnotes}
+
+\paragraph{Why Carroll is high value.}
+Eveson--Nussbaum gives a very general cone-theoretic theorem.  Carroll gives a
+coordinate finite-dimensional proof, including the exact coefficient, with only one
+linear-programming reduction and elementary two-variable inequalities.  This makes it
+a natural source for a Lean theorem specialized to strictly positive finite kernels.
 
 \input{references_manual}
 \end{document}

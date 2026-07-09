@@ -1,244 +1,547 @@
 
 \input{preamble}
-\title{Improved Distillation of Franklin--Lorenz (1989), Section 3: Hilbert Metric Proof of Sinkhorn Iteration Convergence}
+\title{Step-by-step modernization of Franklin--Lorenz (1989), Section 3: Hilbert metric proof of Sinkhorn iteration convergence}
 \author{Generated proof-target note}
 \date{Source PDF: \texttt{FranklinLorenz1989-1-s2.0-0024379589904904-main.pdf}}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills the final part of Joel Franklin and Jens Lorenz,
-\emph{On the Scaling of Multidimensional Matrices}, Linear Algebra and its Applications
-114/115:717--735, 1989 \cite{FranklinLorenz1989}.  The exact source section is
-Section 3, ``Hilbert's Projective Metric and Sinkhorn's Iteration'', pp. 725--732
-of the article.  The core convergence result is Theorem 4 on pp. 729--731, preceded
-by the Hilbert metric setup and Lemmas 1--2 on pp. 726--729.
+\section*{Reference and scope}
+This note modernizes the final section of Joel Franklin and Jens Lorenz,
+\emph{On the Scaling of Multidimensional Matrices}, Linear Algebra and its
+Applications 114/115:717--735, 1989 \cite{FranklinLorenz1989}.  The portion
+expanded here is Section 3, ``Hilbert's Projective Metric and Sinkhorn's
+Iteration'', pp. 725--732 of the article.  Earlier sections prove existence of
+scaled multidimensional matrices by convex minimization.  Section 3 is narrower:
+it revisits Sinkhorn's original two-dimensional positive-matrix iteration and gives
+a quantitative geometric convergence estimate from Hilbert's projective metric and
+Birkhoff's contraction theorem.
 
-\section*{Purpose of this distillation}
-The surrounding formalization needs a finite positive-kernel asymptotic-regularity
-argument for Sinkhorn-type iterates.  Franklin--Lorenz do not merely cite Sinkhorn's
-iteration: in Section 3 they isolate the Hilbert-projective contraction mechanism,
-prove geometric contraction of row/column marginal errors, and convert those bounds
-into convergence in a metric on the diagonal-equivalence class of the matrix.  This is
-one of the closest literature sources to the remaining Lean projective-lag frontier.
+The goal of this writeup is not to compress the argument to its slogan.  It keeps
+the algebraic identities that make the proof work.  The key load-bearing pieces are:
+\begin{enumerate}[leftmargin=2em]
+\item the row/column normalization definitions;
+\item the Hilbert metric and Birkhoff contraction input;
+\item Lemma 2, which expresses one normalization cycle as two positive linear maps;
+\item Theorem 4, which turns Lemma 2 into a geometric Cauchy-tail bound in the
+      diagonal-equivalence metric $\Delta$;
+\item Lemma 3, which translates $\Delta$-smallness into entrywise multiplicative
+      error bounds.
+\end{enumerate}
 
-\section*{Exact source anchor}
-\begin{itemize}[leftmargin=2em]
-\item \textbf{Section 3, p. 725:} starts ``Hilbert's Projective Metric and Sinkhorn's
-Iteration''.  It defines the alternating row-normalized and column-normalized matrices
-$A'_k$ and $A_{k+1}$.
-\item \textbf{pp. 726--727:} defines Hilbert's projective metric on the positive cone,
-then states Birkhoff's contraction ratio for a positive matrix as Lemma 1.
-\item \textbf{p. 728--729:} Lemma 2 connects one full Sinkhorn cycle to Hilbert metric
-contraction of the row and column sum errors.
-\item \textbf{pp. 729--731:} Theorem 4 gives the geometric convergence estimate for
-$A_k$ and $A'_k$ in the metric $\Delta$ on the diagonal-equivalence class.
-\item \textbf{pp. 731--732:} Lemma 3 converts $\Delta$-error into entrywise multiplicative
-error bounds.
-\end{itemize}
-
-\section*{Notation normalized for formalization}
+\section*{Section 3 notation}
 Let $A=(a_{ij})$ be a strictly positive $m\times n$ matrix.  Let
-$p\in\mathbb{R}^m_{>0}$ and $q\in\mathbb{R}^n_{>0}$ have the same total mass.
-Write $e$ for the all-ones vector of the relevant dimension.
-
-The Sinkhorn row/column-normalization cycle is:
+$p\in\R^m_{>0}$ and $q\in\R^n_{>0}$ have the same total mass,
 \[
-  r^{(k)} := A_k e, \qquad
-  A'_k := S_k A_k, \qquad
-  S_k := \operatorname{diag}\left(\frac{p_i}{r^{(k)}_i}\right),
+  \sum_{i=1}^m p_i = \sum_{j=1}^n q_j.
 \]
-\[
-  c^{(k)} := (A'_k)^T e, \qquad
-  A_{k+1} := A'_k T_k, \qquad
-  T_k := \operatorname{diag}\left(\frac{q_j}{c^{(k)}_j}\right).
-\]
-Thus $A'_k$ has row sums $p$ and $A_{k+1}$ has column sums $q$.
-Franklin--Lorenz assume in Theorem 4 that the starting matrix is already column
-normalized, $A^T e=q$, so that $A_0^T e=q$.
+Write $e$ for the all-ones vector, with dimension inferred from context.  The
+iteration stays inside the positive diagonal-equivalence class of $A$.
 
-For $x,x'\in\mathbb{R}^m_{>0}$, Hilbert's projective metric is
+Starting from $A_0=A$, define two alternating sequences:
 \[
-  d_H(x,x') = \log \max_{i,k}\frac{x_i x'_k}{x'_i x_k}
-            = \log\frac{\max_i(x_i/x'_i)}{\min_i(x_i/x'_i)}.
+  r^{(k)} := A_k e \in \R^m_{>0},
+  \qquad
+  S_k := \operatorname{diag}\left(\frac{p_i}{r_i^{(k)}}\right),
+  \qquad
+  A'_k := S_k A_k,
 \]
-It is a metric on positive rays: $d_H(x,x')=0$ iff $x=\alpha x'$ for some
-$\alpha>0$.
+so $A'_k$ is row-normalized:
+\[
+  A'_k e = S_k A_k e = S_k r^{(k)} = p.
+\]
+Then define
+\[
+  c^{(k)} := (A'_k)^T e \in \R^n_{>0},
+  \qquad
+  T_k := \operatorname{diag}\left(\frac{q_j}{c_j^{(k)}}\right),
+  \qquad
+  A_{k+1} := A'_k T_k,
+\]
+so $A_{k+1}$ is column-normalized:
+\[
+  A_{k+1}^T e = T_k (A'_k)^T e = T_k c^{(k)} = q.
+\]
+Franklin--Lorenz's Theorem 4 assumes the initial matrix is already column-normalized:
+\[
+  A^T e=q.
+\]
+Consequently $A_k^T e=q$ for every $k\ge 0$ after the first column-normalized input,
+and $A'_k e=p$ for every $k\ge 0$ by construction.
 
-For a positive matrix $A$, Franklin--Lorenz use the multiplicative projective
-diameter
+\section*{Hilbert projective metric and the Birkhoff input}
+For positive vectors $x,x'\in\R^m_{>0}$ Franklin--Lorenz use Hilbert's projective
+metric
+\[
+  d(x,x')=
+  \log \max_{i,k}\frac{x_i x'_k}{x'_i x_k}.
+\]
+Equivalently,
+\[
+  d(x,x')=
+  \log\frac{\max_i(x_i/x'_i)}{\min_i(x_i/x'_i)}.
+\]
+This has the usual projective properties:
+\begin{align*}
+  d(x,x')=0 &\iff x=\alpha x'\text{ for some }\alpha>0,\\
+  d(x,x') &= d(x',x),\\
+  d(x,x'') &\le d(x,x')+d(x',x'').
+\end{align*}
+It is invariant under independent positive rescaling of either vector:
+\[
+  d(\alpha x,\beta x')=d(x,x')\qquad(\alpha,\beta>0).
+\]
+The simple quotient identity used repeatedly in the paper is
+\[
+  d(x/x',e)=d(x,x'),
+\]
+where $x/x'$ denotes coordinatewise quotient.  Indeed,
+\[
+  d(x/x',e)=\log\frac{\max_i(x_i/x'_i)}{\min_i(x_i/x'_i)}=d(x,x').
+\]
+
+For a positive matrix $A$, Franklin--Lorenz write a projective diameter parameter
+$\vartheta(A)$.  With the logarithmic convention above, the clean modern reading is
+that $\vartheta(A)$ is the multiplicative Hilbert diameter:
 \[
   \vartheta(A)
-  := \max_{i,j,k,\ell}\frac{a_{ik}a_{j\ell}}{a_{jk}a_{i\ell}}.
+  := \max_{i,j,k,\ell}\frac{a_{ik}a_{j\ell}}{a_{jk}a_{i\ell}}
+  = \exp\left(\sup_{y,y'>0} d(Ay,Ay')\right).
 \]
-Equivalently, the additive Hilbert diameter is $\log\vartheta(A)$.  Their Lemma 1
-states the contraction ratio
+The printed paper writes this immediately next to the additive metric $d$; the
+formula used in Lemma 1 is the multiplicative one, because the contraction coefficient
+is
 \[
   \kappa(A)
-  = \sup_{y\not\sim y'} \frac{d_H(Ay,Ay')}{d_H(y,y')}
-  = \frac{\sqrt{\vartheta(A)}-1}{\sqrt{\vartheta(A)}+1}
-  = \tanh\!\left(\frac{\log\vartheta(A)}{4}\right).
+  =\sup_{y\not\sim y'}\frac{d(Ay,Ay')}{d(y,y')}
+  =\frac{\vartheta(A)^{1/2}-1}{\vartheta(A)^{1/2}+1}.
 \]
-The formula is invariant under positive diagonal equivalence of $A$.
+Strict positivity and finite dimension give $1\le \vartheta(A)<\infty$, hence
+$0\le \kappa(A)<1$ unless the image is projectively a point.  The estimates below
+only need that $\kappa(A)<1$.
 
-\section*{Distilled proof of the Section 3 convergence argument}
-
-\begin{distillation}
-\item \textbf{Positive matrices are strict Hilbert contractions.}
-Because $A$ is strictly positive and finite dimensional, $\vartheta(A)<\infty$ and
-therefore $0\le \kappa(A)<1$.  This is the Birkhoff input.  Positive diagonal row or
-column scalings do not change $\vartheta(A)$, hence every matrix $A_k$ and $A'_k$ in
-the Sinkhorn iteration has the same contraction ratio as the original $A$.
-
-\item \textbf{One full Sinkhorn cycle contracts the row and column marginal errors.}
-Suppose $A_0$ is column normalized, so $A_0^T e=q$.  Let $\gamma:=\kappa(A)^2$.
-Franklin--Lorenz Lemma 2 proves
+Two invariance facts are used without ceremony in the paper.  If $B=XAY$ with
+$X,Y$ positive diagonal, then every cross-ratio in the entries is unchanged:
 \[
-  d_H(r^{(1)},p) \le \gamma\,d_H(r^{(0)},p),
+  \frac{(x_i a_{ik}y_k)(x_j a_{j\ell}y_\ell)}
+       {(x_j a_{jk}y_k)(x_i a_{i\ell}y_\ell)}
+  =\frac{a_{ik}a_{j\ell}}{a_{jk}a_{i\ell}}.
+\]
+Therefore
+\[
+  A\sim B \quad\Longrightarrow\quad
+  \vartheta(A)=\vartheta(B),\qquad \kappa(A)=\kappa(B).
+\]
+Also, transposition leaves the same set of cross-ratios, so
+\[
+  \vartheta(A^T)=\vartheta(A),\qquad \kappa(A^T)=\kappa(A).
+\]
+Finally, composition cannot increase contraction constants beyond the product:
+\[
+  \kappa(A_1A_2)\le \kappa(A_1)\kappa(A_2),
+\]
+whenever the product is defined and the matrices are positive.
+
+\section*{Lemma 2: one Sinkhorn cycle contracts marginal errors}
+Franklin--Lorenz's Lemma 2 is the central algebraic observation.  It states:
+
+\begin{quote}
+Assume $A=A_0$ is column-normalized, $A^T e=q$.  Let $A'_0=S_0A_0$ and
+$A_1=A'_0T_0$ be the first row and column normalization steps.  Then
+\[
+  d(r^{(1)},p)\le \gamma d(r^{(0)},p),
   \qquad
-  d_H(c^{(1)},q) \le \gamma\,d_H(c^{(0)},q).
+  d(c^{(1)},q)\le \gamma d(c^{(0)},q),
 \]
-The proof is two applications of Birkhoff contraction, one through $A'_0$ and one
-through $(A'_0)^T$.  The elementary identity
+where
 \[
-  d_H(x/x',e)=d_H(x,x')
+  \gamma:=\kappa(A)^2.
 \]
-turns the diagonal correction vectors $q/c^{(1)}$ and $p/r^{(0)}$ into marginal-error
-distances.  Iterating Lemma 2 gives
+\end{quote}
+
+The proof is short in the paper, but every identity matters.
+
+\subsection*{First half: row-error estimate}
+Set $A'=A'_0=S_0A$.  Since $A_1=A'T_0$ and $T_0e=q/c^{(0)}$, the next row-sum vector is
 \[
-  d_H(r^{(k)},p) \le \gamma^k d_H(r^{(0)},p),
-  \qquad
-  d_H(c^{(k)},q) \le \gamma^k d_H(c^{(0)},q).
+  r^{(1)}=A_1e=A'T_0e=A'\left(\frac{q}{c^{(0)}}\right).
+\]
+Since $A'$ is row-normalized,
+\[
+  A'e=p.
+\]
+Thus the row error after the full cycle is
+\[
+  d(r^{(1)},p)
+  =d\left(A'\frac{q}{c^{(0)}},A'e\right).
+\]
+Apply Birkhoff's contraction theorem to the positive matrix $A'$:
+\[
+  d\left(A'\frac{q}{c^{(0)}},A'e\right)
+  \le \kappa(A')d\left(\frac{q}{c^{(0)}},e\right).
+\]
+Use the quotient identity:
+\[
+  d\left(\frac{q}{c^{(0)}},e\right)=d(q,c^{(0)}).
+\]
+Because $A'$ is diagonally equivalent to $A$, $\kappa(A')=\kappa(A)$.  Hence
+\[
+  d(r^{(1)},p)\le \kappa(A)d(q,c^{(0)}).
+\]
+It remains to bound $d(q,c^{(0)})$ by another factor of $\kappa(A)$ times the old row
+error.  Compute the column sums of $A'=S_0A$:
+\[
+  c^{(0)}=(A')^Te=A^T S_0e.
+\]
+But $S_0e=p/r^{(0)}$, so
+\[
+  c^{(0)}=A^T\left(\frac{p}{r^{(0)}}\right).
+\]
+The initial column-normalization hypothesis is $A^Te=q$, hence
+\[
+  d(q,c^{(0)})
+  =d\left(A^Te,A^T\frac{p}{r^{(0)}}\right)
+  \le \kappa(A^T)d\left(e,\frac{p}{r^{(0)}}\right).
+\]
+Again use transposition invariance $\kappa(A^T)=\kappa(A)$ and the quotient identity:
+\[
+  d\left(e,\frac{p}{r^{(0)}}\right)=d\left(\frac{p}{r^{(0)}},e\right)=d(p,r^{(0)})=d(r^{(0)},p).
+\]
+Combining the two displayed inequalities gives
+\[
+  d(r^{(1)},p)
+  \le \kappa(A)^2 d(r^{(0)},p)
+  =\gamma d(r^{(0)},p).
 \]
 
-\item \textbf{The matrix-distance increment is exactly the sum of the two marginal-error
-corrections.}
-Let $E_A$ be the positive diagonal-equivalence class of $A$.  If
-$B=XB'Y$ with $X=\operatorname{diag}(x_i)$ and $Y=\operatorname{diag}(y_j)$,
+\subsection*{Second half: column-error estimate}
+The paper says that the column estimate follows similarly.  Here is the expanded
+version.
+
+After the first full cycle, $A_1$ is column-normalized:
+\[
+  A_1^Te=q.
+\]
+The next row-normalized matrix is
+\[
+  A'_1=S_1A_1,
+  \qquad
+  S_1e=\frac{p}{r^{(1)}}.
+\]
+Therefore its column sums are
+\[
+  c^{(1)}=(A'_1)^Te=A_1^T S_1e
+  =A_1^T\left(\frac{p}{r^{(1)}}\right).
+\]
+Since $A_1^Te=q$, Birkhoff contraction for $A_1^T$ gives
+\[
+  d(c^{(1)},q)
+  =d\left(A_1^T\frac{p}{r^{(1)}},A_1^Te\right)
+  \le \kappa(A_1^T)d\left(\frac{p}{r^{(1)}},e\right).
+\]
+Use diagonal-equivalence and transposition invariance:
+\[
+  \kappa(A_1^T)=\kappa(A_1)=\kappa(A).
+\]
+Use the quotient identity:
+\[
+  d\left(\frac{p}{r^{(1)}},e\right)=d(p,r^{(1)})=d(r^{(1)},p).
+\]
+Thus
+\[
+  d(c^{(1)},q)\le \kappa(A)d(r^{(1)},p).
+\]
+But the first part of the proof, stopping before the second application through
+$A^T$, already gave the sharper relation
+\[
+  d(r^{(1)},p)\le \kappa(A)d(c^{(0)},q).
+\]
+Therefore
+\[
+  d(c^{(1)},q)
+  \le \kappa(A)^2 d(c^{(0)},q)
+  =\gamma d(c^{(0)},q).
+\]
+This completes Lemma 2.
+
+\section*{Iterating Lemma 2}
+Every $A_k$ with $k\ge 1$ is column-normalized by construction.  Theorem 4 assumes
+$A_0$ is also column-normalized.  Therefore Lemma 2 can be restarted at each $A_k$.
+For all $k\ge 0$,
+\[
+  d(r^{(k+1)},p)\le \gamma d(r^{(k)},p),
+  \qquad
+  d(c^{(k+1)},q)\le \gamma d(c^{(k)},q).
+\]
+By induction,
+\[
+  d(r^{(k)},p)\le \gamma^k d(r^{(0)},p),
+  \qquad
+  d(c^{(k)},q)\le \gamma^k d(c^{(0)},q).
+\]
+The constant $\gamma$ is strictly less than $1$ because $A$ is strictly positive and
+finite-dimensional, so $\kappa(A)<1$.
+
+\section*{The metric $\Delta$ on the diagonal-equivalence class}
+Let
+\[
+  E_A:=\{B:B\sim A,\; b_{ij}>0\}
+\]
+be the positive diagonal-equivalence class of $A$.  If $B,B'\in E_A$ and
+\[
+  B=XB'Y,
+  \qquad
+  X=\operatorname{diag}(x_i),
+  \qquad
+  Y=\operatorname{diag}(y_j),
+\]
 Franklin--Lorenz define
 \[
-  \Delta(B,B') := d_H(x,e)+d_H(y,e).
+  \Delta(B,B'):=d(x,e)+d(y,e).
 \]
-For consecutive Sinkhorn matrices,
-\[
-  A_{k+1}=S_k A_k T_k,
-\]
-so
-\[
-  \Delta(A_k,A_{k+1})
-  = d_H(p/r^{(k)},e)+d_H(q/c^{(k)},e)
-  = d_H(r^{(k)},p)+d_H(c^{(k)},q).
-\]
-The last equality is exactly the quotient-to-Hilbert-metric identity above.
+The diagonal factors are not unique: replacing $X$ by $\lambda X$ and $Y$ by
+$\lambda^{-1}Y$ gives the same product.  But $d(\lambda x,e)=d(x,e)$ and
+$d(\lambda^{-1}y,e)=d(y,e)$, so $\Delta$ is independent of this scalar ambiguity.
+The paper states that this is a metric on $E_A$ and that $(E_A,\Delta)$ is complete.
+For the proof of Theorem 4 as printed, only the triangle inequality and the already
+known convergence of Sinkhorn's iteration are used.
 
-\item \textbf{The geometric tail gives convergence in $\Delta$.}
-Theorem 4 sums the previous increment estimate.  If $\widehat B$ is the unique
-matrix diagonally equivalent to $A$ with row sums $p$ and column sums $q$, then
+For consecutive Sinkhorn iterates,
+\[
+  A_{k+1}=S_kA_kT_k,
+  \qquad
+  S_ke=\frac{p}{r^{(k)}},
+  \qquad
+  T_ke=\frac{q}{c^{(k)}}.
+\]
+Therefore
+\begin{align*}
+  \Delta(A_k,A_{k+1})
+  &=d\left(\frac{p}{r^{(k)}},e\right)
+    +d\left(\frac{q}{c^{(k)}},e\right)\\
+  &=d(r^{(k)},p)+d(c^{(k)},q).
+\end{align*}
+This exact increment identity is the bridge from marginal errors to matrix convergence.
+
+\section*{Theorem 4: geometric convergence in $\Delta$}
+Let $\widehat B$ be the unique positive matrix diagonally equivalent to $A$ with
+row sums $p$ and column sums $q$:
+\[
+  \widehat B e=p,
+  \qquad
+  \widehat B^T e=q,
+  \qquad
+  \widehat B\sim A.
+\]
+Franklin--Lorenz's Theorem 4 states that if $A^Te=q$, then
 \[
   \Delta(A_k,\widehat B)
   \le \frac{1}{1-\gamma}
-      \left(d_H(r^{(k)},p)+d_H(c^{(k)},q)\right)
+        \{d(r^{(k)},p)+d(c^{(k)},q)\}
   \le \frac{\gamma^k}{1-\gamma}
-      \left(d_H(r^{(0)},p)+d_H(c^{(0)},q)\right).
+        \{d(r^{(0)},p)+d(c^{(0)},q)\},
 \]
-Franklin--Lorenz also state the analogous estimate for $A'_k$:
+and similarly
 \[
   \Delta(A'_k,\widehat B)
   \le \frac{1}{1-\gamma}
-      \left(d_H(r^{(k+1)},p)+d_H(c^{(k)},q)\right).
+        \{d(r^{(k+1)},p)+d(c^{(k)},q)\}
+  \le \frac{\gamma^k}{1-\gamma}
+        \{d(r^{(1)},p)+d(c^{(0)},q)\}.
 \]
-Thus $A_k$ and $A'_k$ converge geometrically to the same scaled matrix.
 
-\item \textbf{Completeness can replace a prior convergence theorem.}
-The paper notes that its displayed proof uses Sinkhorn's earlier convergence theorem
-for the existence of $\widehat B$, but also observes that if one proves completeness of
-$(E_A,\Delta)$, then the same geometric-tail argument independently gives the limit
-and convergence in $(E_A,\Delta)$.
+\subsection*{Proof for $A_k$}
+From the increment identity and the iterated Lemma 2 estimate,
+\begin{align*}
+  \Delta(A_k,A_{k+1})
+  &=d(r^{(k)},p)+d(c^{(k)},q)\\
+  &\le \gamma^k\{d(r^{(0)},p)+d(c^{(0)},q)\}.
+\end{align*}
+More generally, restarting the same estimate at index $k$ gives, for $\ell\ge k$,
+\[
+  d(r^{(\ell)},p)+d(c^{(\ell)},q)
+  \le \gamma^{\ell-k}\{d(r^{(k)},p)+d(c^{(k)},q)\}.
+\]
+By the triangle inequality,
+\[
+  \Delta(A_k,A_N)
+  \le \sum_{\ell=k}^{N-1}\Delta(A_\ell,A_{\ell+1}).
+\]
+Letting $N\to\infty$ and using the known convergence $A_N\to\widehat B$ in
+$E_A$ gives
+\begin{align*}
+  \Delta(A_k,\widehat B)
+  &\le \sum_{\ell=k}^{\infty}\Delta(A_\ell,A_{\ell+1})\\
+  &\le \sum_{j=0}^{\infty}\gamma^j
+       \{d(r^{(k)},p)+d(c^{(k)},q)\}\\
+  &=\frac{1}{1-\gamma}\{d(r^{(k)},p)+d(c^{(k)},q)\}.
+\end{align*}
+Applying the global estimates
+$d(r^{(k)},p)\le \gamma^kd(r^{(0)},p)$ and
+$d(c^{(k)},q)\le \gamma^kd(c^{(0)},q)$ gives the second displayed bound.
 
-\item \textbf{Entrywise error bounds are a consequence, not the main projective step.}
-Lemma 3 states that if $A\sim B$, $A^Te=B^Te$, and $\Delta(A,B)\le\epsilon$, then
+\subsection*{Proof for $A'_k$}
+The row-normalized matrix $A'_k$ differs from $A_{k+1}$ only by the column correction
+$T_k$:
 \[
-  e^{-\epsilon}\le \frac{b_{ij}}{a_{ij}}\le e^{\epsilon}.
+  A_{k+1}=A'_kT_k,
+  \qquad
+  T_ke=\frac{q}{c^{(k)}}.
 \]
-This converts the projective/diagonal-equivalence estimate into entrywise multiplicative
-control.  It is useful for numerical error bounds, but the formal compactness frontier
-mainly needs the preceding projective asymptotic regularity.
-\end{distillation}
+Thus
+\[
+  \Delta(A'_k,A_{k+1})=d\left(\frac{q}{c^{(k)}},e\right)=d(c^{(k)},q).
+\]
+Then
+\[
+  \Delta(A'_k,\widehat B)
+  \le d(c^{(k)},q)+\Delta(A_{k+1},\widehat B).
+\]
+Using the already proved $A_k$ bound from index $k+1$,
+\[
+  \Delta(A_{k+1},\widehat B)
+  \le \frac{1}{1-\gamma}
+      \{d(r^{(k+1)},p)+d(c^{(k+1)},q)\}.
+\]
+Since $d(c^{(k+1)},q)\le \gamma d(c^{(k)},q)$,
+\begin{align*}
+  \Delta(A'_k,\widehat B)
+  &\le d(c^{(k)},q)
+      +\frac{d(r^{(k+1)},p)+d(c^{(k+1)},q)}{1-\gamma}\\
+  &\le \frac{d(r^{(k+1)},p)+d(c^{(k)},q)}{1-\gamma}.
+\end{align*}
+Finally,
+\[
+  d(r^{(k+1)},p)\le \gamma^k d(r^{(1)},p),
+  \qquad
+  d(c^{(k)},q)\le \gamma^k d(c^{(0)},q),
+\]
+which gives Franklin--Lorenz's second estimate for $A'_k$.
 
-\section*{Formalization consequences}
-\paragraph{Useful theorem to port.}
-The exact statement most useful for Lean is not necessarily entrywise convergence.
-It is the geometric marginal-error contraction:
+\section*{Completeness note}
+The paper explicitly notes that the printed proof uses Sinkhorn's earlier convergence
+theorem to identify the limiting matrix $\widehat B$.  But the same estimates also give
+an independent route: if one proves that $(E_A,\Delta)$ is complete, then the finite-tail
+bound
 \[
-  d_H(r^{(k)},p) \to 0,\qquad d_H(c^{(k)},q)\to 0,
+  \Delta(A_k,A_N)\le
+  \frac{\gamma^k}{1-\gamma}
+  \{d(r^{(0)},p)+d(c^{(0)},q)\}
 \]
-and the increment identity
+shows that $(A_k)$ is Cauchy in $\Delta$, hence converges to some $B\in E_A$; the
+marginal-error convergence then forces $Be=p$ and $B^Te=q$, so $B=\widehat B$ by
+uniqueness of the scaled matrix.
+
+\section*{Lemma 3: entrywise multiplicative error from $\Delta$}
+Franklin--Lorenz's Lemma 3 is an error-bound conversion lemma.  It states:
+
+\begin{quote}
+Let $A\sim B$ and assume $A^Te=B^Te$.  If $\Delta(A,B)\le \varepsilon$, then for all
+entries
 \[
-  \Delta(A_k,A_{k+1}) = d_H(r^{(k)},p)+d_H(c^{(k)},q) \to 0.
+  \exp(-\varepsilon)\le \frac{b_{ij}}{a_{ij}}\le \exp(\varepsilon).
 \]
-Together these imply projective asymptotic regularity of the diagonal correction
-vectors:
+\end{quote}
+
+Here is the full proof.
+Since $A\sim B$, choose positive diagonal matrices
 \[
-  d_H(p/r^{(k)},e)\to 0,\qquad d_H(q/c^{(k)},e)\to 0.
+  X=\operatorname{diag}(x_i),\qquad Y=\operatorname{diag}(y_j)
 \]
-In coordinates, for a positive vector stream $u_k$, projective convergence to a ray is
-equivalent to cross-product collapse:
+such that
+\[
+  B=XAY.
+\]
+The condition $\Delta(A,B)\le \varepsilon$ says, after choosing diagonal factors,
+\[
+  d(x,e)\le \varepsilon,
+  \qquad
+  d(y,e)\le \varepsilon
+\]
+up to the harmless scalar ambiguity between $X$ and $Y$.  Franklin--Lorenz scale
+$X$ so that its smallest diagonal entry is $1$.  Then
+\[
+  1\le x_i\le \exp(\varepsilon)
+  \qquad(i=1,\dots,m),
+\]
+and therefore
+\[
+  \exp(-\varepsilon)e\le X^{-1}e\le e
+\]
+componentwise.
+
+The column-sum equality $A^Te=B^Te=q$ gives
+\[
+  Yq=YA^Te=(AY)^Te=(X^{-1}B)^Te=B^TX^{-1}e.
+\]
+Multiplying the componentwise bound on $X^{-1}e$ by the positive matrix $B^T$ yields
+\[
+  \exp(-\varepsilon)B^Te
+  \le B^TX^{-1}e
+  \le B^Te.
+\]
+Since $B^Te=q$, this is
+\[
+  \exp(-\varepsilon)q\le B^TX^{-1}e\le q.
+\]
+Using $Yq=B^TX^{-1}e$ and $q_j>0$ gives
+\[
+  \exp(-\varepsilon)\le y_j\le 1.
+\]
+Finally,
+\[
+  \frac{b_{ij}}{a_{ij}}=x_i y_j.
+\]
+Combining $1\le x_i\le \exp(\varepsilon)$ and
+$\exp(-\varepsilon)\le y_j\le 1$ gives
+\[
+  \exp(-\varepsilon)\le x_i y_j\le \exp(\varepsilon),
+\]
+which is the desired entrywise estimate.
+
+\section*{How this paper maps to the Lean projective-lag frontier}
+The most useful theorem shape for formalization is not the entrywise bound by itself.
+The load-bearing results are the vector-level contraction and the matrix increment
+identity:
+\[
+  d(r^{(k+1)},p)\le \gamma d(r^{(k)},p),
+  \qquad
+  d(c^{(k+1)},q)\le \gamma d(c^{(k)},q),
+\]
+\[
+  \Delta(A_k,A_{k+1})=d(r^{(k)},p)+d(c^{(k)},q).
+\]
+Together they imply asymptotic regularity of the diagonal correction vectors:
+\[
+  d\left(\frac{p}{r^{(k)}},e\right)\to 0,
+  \qquad
+  d\left(\frac{q}{c^{(k)}},e\right)\to 0.
+\]
+If a finite phase stream in Lean is identified with one of these correction vectors,
+then Hilbert-distance convergence to the constant ray gives the coordinate
+cross-product collapse usually needed for projective lag:
+\[
+  u_{k,i}u_{k,j}^{-1}\to 1
+  \quad\text{uniformly in }i,j,
+\]
+or, after clearing denominators in a bounded positive box,
 \[
   u_{k,i}u_{k-1,j}-u_{k,j}u_{k-1,i}\to 0
 \]
-after the stream is identified with the appropriate row or column diagonal scaling
-sequence.  This is the bridge to the current projective-lag predicates.
+for the appropriate consecutive phase streams.
 
-\paragraph{Hypotheses that must be present.}
-Franklin--Lorenz Section 3 requires a strictly positive finite matrix $A$ and positive
-prescribed marginals $p,q$.  The Birkhoff constant is strictly less than $1$ precisely
-because the multiplicative diameter $\vartheta(A)$ is finite.  In Lean, this suggests that
-any theorem trying to import this argument should have access to the positive-kernel
-hypothesis
-\[
-  \forall i j,\;0<G_{ij},
-\]
-not merely phase box bounds.  The phase bounds keep vectors in the positive cone, but
-the strict contraction input is a property of the kernel matrix.
+\paragraph{Hypotheses that cannot be dropped.}
+The argument uses strict positivity of the kernel matrix to obtain a finite
+multiplicative projective diameter and hence $\gamma<1$.  Bounds saying that the
+iterates remain in a positive box are not enough by themselves; the contraction input
+comes from the positive linear maps $A$ and $A^T$.
 
-\paragraph{What Franklin--Lorenz proves and what remains to adapt.}
-Franklin--Lorenz prove convergence of matrices in a diagonal-equivalence class.  The
-current finite Schr\"odinger/Sinkhorn formalization works with phase variables rather
-than explicitly with matrices $A_k=S_kAT_k$.  To use this source cleanly, the Lean proof
-should either:
-\begin{enumerate}[leftmargin=2em]
-\item build the implicit normalized matrices from the phase iterates and show that their
-row/column normalization cycle matches Franklin--Lorenz's $A_k,A'_k$; or
-\item port only the vector-level contraction lemma behind their Lemma 2, stated directly
-for the phase update maps.
-\end{enumerate}
-The second route is probably closer to the existing Lean files, while the first route is
-closer to the published theorem.
-
-\section*{Lean target checklist}
-For the remaining projective-lag file, this source suggests the following intermediate
-lemmas.
-\begin{formalizationnotes}
-\item Define a finite Hilbert projective seminorm/distance on positive finite functions:
-\[
-  d_H(u,v)=\log\max_{i,j}\frac{u_i v_j}{v_i u_j}.
-\]
-\item Prove the finite positive-kernel Birkhoff contraction bound, or import it from the
-Birkhoff/Carroll/Eveson--Nussbaum distillation.
-\item Show that positive diagonal row/column scalings leave the multiplicative diameter
-of the kernel unchanged.
-\item Express one full Sinkhorn two-step update as two positive linear maps, hence with
-contraction factor $\gamma=\kappa(G)^2$.
-\item Derive $d_H$-asymptotic regularity of the relevant denominator/mixed phase streams.
-\item Convert $d_H(u_{k+1},u_k)\to0$ into coordinate cross-product convergence.
-\end{formalizationnotes}
-
-\section*{Caution about the exact source theorem}
-Theorem 4 is a convergence theorem for full alternating normalized matrices, not a
-standalone theorem about arbitrary bounded positive sequences.  It cannot justify
-projective-lag collapse unless the formal streams are first shown to be generated by the
-same row/column normalization cycle.  This is precisely why the Sinkhorn iterate-system
-hypotheses and positive-kernel hypothesis are essential in the Lean theorem shape.
+\paragraph{Two formalization routes.}
+One can either formalize Franklin--Lorenz close to the paper by defining
+$A_k=S_kAT_k$ and proving the row/column normalization identities, or extract the
+vector-level content of Lemma 2 and state it directly for the phase update maps.
+The latter is closer to the existing Lean projective-lag files; the former is closer to
+the published theorem and gives a useful independent audit trail.
 
 \input{references_manual}
 \end{document}

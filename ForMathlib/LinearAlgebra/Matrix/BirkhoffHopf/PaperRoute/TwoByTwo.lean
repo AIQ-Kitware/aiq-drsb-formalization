@@ -44,7 +44,29 @@ Paper analogue: Eveson--Nussbaum Theorem 5.3, where `φ'(t) = 0` iff `t = 1`, an
 is `(α - 1) / (α + 1)`.  This should be attacked as a pure real-algebra/calculus lemma. -/
 theorem symmetricTwoByTwoPhi_le {α t : ℝ} (hα : 1 < α) (ht : 0 < t) :
     symmetricTwoByTwoPhi α t ≤ (α - 1) / (α + 1) := by
-  sorry
+  unfold symmetricTwoByTwoPhi
+  have hα_pos : 0 < α := lt_trans zero_lt_one hα
+  have hαm_pos : 0 < α - 1 := sub_pos.mpr hα
+  have hαp_pos : 0 < α + 1 := by linarith
+  have hden₁ : 0 < α + t := by linarith
+  have hden₂ : 0 < α * t + 1 := by nlinarith [mul_pos hα_pos ht]
+  have hden : 0 < (α + t) * (α * t + 1) := mul_pos hden₁ hden₂
+  have hmain : ((α ^ 2 - 1) * t) * (α + 1) ≤
+      (α - 1) * ((α + t) * (α * t + 1)) := by
+    have hdiff :
+        (α - 1) * ((α + t) * (α * t + 1)) -
+            ((α ^ 2 - 1) * t) * (α + 1) =
+          α * (α - 1) * (t - 1) ^ 2 := by
+      ring
+    have hnonneg : 0 ≤ α * (α - 1) * (t - 1) ^ 2 := by
+      exact mul_nonneg (mul_nonneg (le_of_lt hα_pos) (le_of_lt hαm_pos))
+        (sq_nonneg (t - 1))
+    nlinarith
+  have hscaled : (α ^ 2 - 1) * t ≤
+      ((α - 1) / (α + 1)) * ((α + t) * (α * t + 1)) := by
+    have hdiv := (le_div_iff₀ hαp_pos).2 hmain
+    simpa [div_eq_mul_inv, mul_assoc, mul_left_comm, mul_comm] using hdiv
+  exact (div_le_iff₀ hden).2 hscaled
 
 /-- Paper route Step 5: normalized two-by-two Birkhoff contraction.
 

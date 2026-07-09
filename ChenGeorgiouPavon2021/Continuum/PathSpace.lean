@@ -80,6 +80,26 @@ theorem coe_boundedIntervalDyadicGridPoint
     ((boundedIntervalDyadicGridPoint p : UnitInterval) : ℝ) = dyadicTime p.1.1 p.1.2 := by
   exact coe_intervalDyadicTime_of_le p.1.1 p.1.2 p.2
 
+/-- The final bounded dyadic vertex is the right endpoint of the interval. -/
+theorem intervalDyadicTime_right_endpoint (level : ℕ) :
+    intervalDyadicTime level (2 ^ level) = unitIntervalOne := by
+  apply Subtype.ext
+  rw [coe_intervalDyadicTime_of_le level (2 ^ level) le_rfl]
+  simpa [dyadicTime, unitIntervalOne, Nat.cast_pow] using
+    (div_self (show (2 : ℝ) ^ level ≠ 0 by positivity))
+
+/-- The first bounded dyadic grid point is the left endpoint. -/
+theorem boundedIntervalDyadicGridPoint_left_endpoint (level : ℕ) :
+    boundedIntervalDyadicGridPoint ⟨(level, 0), Nat.zero_le (2 ^ level)⟩ = unitIntervalZero := by
+  unfold boundedIntervalDyadicGridPoint
+  exact intervalDyadicTime_zero level
+
+/-- The last bounded dyadic grid point is the right endpoint. -/
+theorem boundedIntervalDyadicGridPoint_right_endpoint (level : ℕ) :
+    boundedIntervalDyadicGridPoint ⟨(level, 2 ^ level), le_rfl⟩ = unitIntervalOne := by
+  unfold boundedIntervalDyadicGridPoint
+  exact intervalDyadicTime_right_endpoint level
+
 /-- Closure form of bounded dyadic-grid density.
 
 This is the remaining real-analysis seam for path separation: every `t ∈ [0,1]` lies in the

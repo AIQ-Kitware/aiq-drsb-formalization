@@ -1896,3 +1896,29 @@ Two more notes, both compiling:
   **The source texts are not in `prose/papers/`.** Every theorem number in that note is recalled, not
   checked, and is tagged `unverified` in the text with a `TODO` forbidding citation until confirmed.
   Writing plausible-looking anchors from memory would be worse than writing none.
+
+## 2026-07-10 (literature baseline, cont.) — Gao–Kleywegt, and how far our hypotheses overshoot
+
+`GaoKleywegt2023_theorem1.tex`: Definitions 3–4 (the regularization operator `Φ` and the **growth rate**
+`κ`), Lemma 2 with its eq. (5), Proposition 1 (weak duality), Theorem 1, Remark 2, and Corollary 1.
+
+The headline of the diff: **Theorem 1 assumes only `Ψ ∈ L¹(ν)` measurable and `κ < ∞`.** No continuity,
+no upper semicontinuity, no boundedness. Upper semicontinuity enters only for the *worst-case
+distribution* results (Corollary 1). Our Lean requires `f` continuous *and* bounded and `c` continuous.
+
+Those hypotheses *imply* theirs — `f` bounded above forces `Φ(0,ζ) ≥ −sup f > −∞`, hence `κ = 0` — so
+what we proved is a genuine special case of Gao–Kleywegt's Theorem 1. The gap is exactly the price of
+the measurable ε-argmax selector, which wants continuity in the maximization variable; they instead
+control the inner infimum through the growth rate. Recorded as the natural next target on the
+Wasserstein side.
+
+Two smaller findings. Remark 2 licenses our arbitrary measurable `c ≥ 0`, asking only `c(ξ,ζ)=0` **if**
+`ξ=ζ` — weaker than Blanchet–Murthy's (A1), which asks *iff*. Either way it is the zero-diagonal clause
+that supplies our `hne0` interior point, and its absence on the entropic side is why Sinkhorn needs
+Slater; all three notes now cross-reference on this one point. And Corollary 1(i) gives a *necessary and
+sufficient* condition for a worst-case distribution to exist (`λ* > κ`, or `λ* = κ` with a
+`D₀`-sandwich); that is precisely the content our worst-case-existence edges and the four surviving
+`hbddP` hypotheses assume, and it is not formalized.
+
+Five of the six owed notes are now written. The one still missing is a citable reference for the KL
+*disintegration* chain rule (`klDiv_compProd_eq_lintegral`); `LITERATURE_REFERENCES.md` says so.

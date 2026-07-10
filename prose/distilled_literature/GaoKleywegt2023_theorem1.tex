@@ -1,0 +1,126 @@
+\input{preamble}
+\title{Gao--Kleywegt, \emph{DRSO with Wasserstein Distance}:\\ Theorem 1 (Strong Duality) and Corollary 1, in full}
+\author{Distilled literature note --- the baseline our Lean proof is compared against}
+\date{Source: \texttt{papers/GaoKleywegt2023-1604.02199.pdf}, \S2--3.1, Definitions 3--4, Lemma 2,
+Theorem 1, Remark 2, Corollary 1}
+\begin{document}
+\maketitle
+
+\section*{Purpose of this note}
+The mathematics \textbf{as it appears in \cite{GaoKleywegt2023}}.  Baseline for
+\texttt{GaoKleywegt2023.\{weak\_duality\_prop1, strong\_duality\_thm1, worstCase\_structure\_cor1\}}
+and, through them, for \texttt{Drsb.wdrsb\_strong\_duality\_of\_regularity}.  Compare with
+\texttt{BlanchetMurthy2019\_theorem1.tex}: the two papers prove the same duality, with different
+regularity hypotheses and different proofs.
+
+\section{Setting (paper's own)}
+$(\Xi,d)$ a Polish space, $\nu\in\Pcal(\Xi)$ the nominal distribution, $p\in[1,\infty)$, radius
+$\theta>0$, objective $\Psi\in L^1(\nu)$.  $W_p$ is the order-$p$ Wasserstein distance.
+\begin{align}
+  v_P &:= \sup_{\mu\in\Pcal(\Xi)}\Big\{\int_\Xi \Psi\dd\mu \;:\; W_p(\mu,\nu)\le\theta\Big\}, \tag{Primal}\\
+  v_D &:= \inf_{\lambda\ge0}\Big\{\lambda\theta^p - \int_\Xi \inf_{\xi\in\Xi}\big\{\lambda d^p(\xi,\zeta)-\Psi(\xi)\big\}\nu(d\zeta)\Big\}. \tag{Dual}
+\end{align}
+Rewriting the inner infimum, $(\mathrm{Dual})$ is
+$\inf_{\lambda\ge0}\{\lambda\theta^p+\int\sup_{\xi}\{\Psi(\xi)-\lambda d^p(\xi,\zeta)\}\nu(d\zeta)\}$ ---
+i.e.\ Blanchet--Murthy's eq.~(9) with $\delta=\theta^p$ and $c=d^p$.
+
+\paragraph{Definition 3 (regularization operator).}
+$\Phi(\lambda,\zeta):=\inf_{\xi\in\Xi}\{\lambda d^p(\xi,\zeta)-\Psi(\xi)\}\in\R\cup\{-\infty\}$.
+
+\paragraph{Definition 4 (growth rate) --- the paper's regularity hypothesis.}
+\[
+  \boxed{\;\kappa \;:=\; \inf\Big\{\lambda\ge0 \;:\; \int_\Xi \Phi(\lambda,\zeta)\,\nu(d\zeta) > -\infty\Big\},\;}
+\]
+with $\kappa:=\infty$ if the integral is $-\infty$ for every $\lambda\ge0$.  If $\Xi$ is bounded and
+$\Psi$ is bounded above then $\kappa=0$; if $\Xi$ is bounded and $\Psi$ is not bounded above then
+$\kappa=\infty$.
+
+\paragraph{Lemma 2 (properties of $\kappa$).}
+(i) For unbounded $\Xi$, $\limsup_{d^p(\xi,\zeta)\to\infty}\frac{\max\{0,\Psi(\xi)-\Psi(\zeta)\}}{d^p(\xi,\zeta)}$
+is independent of $\zeta$.
+(ii) For $\nu\in\Pcal_p(\Xi)$: $\kappa<\infty$ \emph{iff} there are $\zeta_0\in\Xi$ and $L,M>0$ with
+\begin{equation}\tag{5}
+  \Psi(\xi)-\Psi(\zeta_0)\;\le\; L\,d^p(\xi,\zeta_0) + M \qquad\forall\,\xi\in\Xi ,
+\end{equation}
+i.e.\ $\Psi$ grows no faster than the transport cost.
+(iii) For unbounded $\Xi$ with $\kappa<\infty$, $\kappa$ equals that $\limsup$.
+
+\section{The results, verbatim}
+
+\begin{quote}
+\textbf{Proposition 1 (Weak duality).}  For any $\nu\in\Pcal(\Xi)$, $\Psi\in L^1(\nu)$, $p\in[1,\infty)$
+and $\theta>0$: $v_P\le v_D$.  (An application of Lagrangian weak duality.)
+
+\medskip
+\textbf{Theorem 1 (Strong duality with finite optimal value).}  Consider any $p\in[1,\infty)$, any
+$\nu\in\Pcal(\Xi)$, any $\theta>0$, and any $\Psi\in L^1(\nu)$ \textbf{such that $\kappa<\infty$}.
+Then $v_P=v_D<\infty$.
+
+\medskip
+\textbf{Remark 2.}  All results and proofs of \S3.1 (except Lemma 2) continue to hold with $d^p$
+replaced by \emph{any} measurable, nonnegative cost $c(\cdot,\cdot)$ satisfying
+$c(\xi,\zeta)=0$ \emph{if} $\xi=\zeta$.
+\end{quote}
+
+\noindent\textbf{Note what Theorem 1 does \emph{not} assume.}  No continuity, no upper
+semicontinuity, no boundedness of $\Psi$ --- only $\Psi\in L^1(\nu)$ measurable and the growth
+condition $\kappa<\infty$.  Upper semicontinuity of $\Psi$ (and total boundedness of bounded sets)
+enters only for the \emph{worst-case-distribution} results.
+
+\paragraph{Corollary 1 (worst-case distribution).}  Assume additionally $\Psi$ upper semicontinuous and
+bounded subsets of $(\Xi,d)$ totally bounded.  Then a worst-case distribution exists \textbf{iff} one of
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item there is a dual minimizer $\lambda^*>\kappa$; or
+\item $\lambda^*=\kappa>0$ is the unique dual minimizer,
+      $\nu\{\zeta:\arg\min_\xi\{\kappa d^p(\xi,\zeta)-\Psi(\xi)\}=\emptyset\}=0$, and
+      $\int \underline{D}_0(\kappa,\zeta)\,\nu(d\zeta)\le\theta^p\le\int \overline{D}_0(\kappa,\zeta)\,\nu(d\zeta)$,
+\end{enumerate}
+where $\underline{D}_0,\overline{D}_0$ are the closest/furthest distances from $\zeta$ to
+$\arg\min_\xi\{\lambda d^p(\xi,\zeta)-\Psi(\xi)\}$.  The structure of $\mu^*$ (a two-map transport,
+eq.~(27)) follows.
+
+\section{Where our Lean development differs}\label{sec:diff}
+
+\begin{formalizationnotes}
+\item \textbf{Same dual, same $\ge$ proof as Blanchet--Murthy's eq.~(9).}  Our
+      \texttt{GaoKleywegt2023.strong\_duality\_thm1} is \texttt{le\_antisymm(weak\_duality\_prop1, hge)}
+      and \texttt{hge} is discharged by \texttt{ForMathlib.OT.dualValue\_le\_droValue}, shared with the
+      Blanchet--Murthy library.  So a single Lean theorem serves both papers' Theorem 1.
+\item \textbf{Our regularity is much stronger than $\kappa<\infty$.}  We require $f$
+      \emph{continuous and bounded} ($|f|\le C$) and $c$ \emph{continuous}, on a separable Borel space.
+      Gao--Kleywegt need $\Psi$ merely measurable and $L^1(\nu)$, with $\kappa<\infty$.  Our hypotheses
+      \emph{imply} theirs: $f$ bounded above gives $\Phi(0,\zeta)\ge-\sup f>-\infty$, hence $\kappa=0$.
+      So our theorem is a genuine \emph{special case} of theirs.  The gap is exactly the price of the
+      measurable $\varepsilon$-argmax selector, which wants continuity in the maximization variable;
+      Gao--Kleywegt instead control the inner infimum through the growth rate.  \textbf{Weakening our
+      hypotheses to $\kappa<\infty$ is the natural next target for the Wasserstein side.}
+\item \textbf{Their growth condition is the sharp form of our boundedness.}  Lemma 2(ii)'s eq.~(5),
+      $\Psi(\xi)\le \Psi(\zeta_0)+L\,d^p(\xi,\zeta_0)+M$, is what makes $\varphi_\lambda$ integrable.  We
+      instead assume \texttt{hbdd} (the conjugate is bounded above pointwise) and \texttt{h}$\varphi$
+      (it is $\nu$-integrable) as separate hypotheses.  Eq.~(5) is the checkable sufficient condition we
+      should be deriving them from.
+\item \textbf{Remark 2 licenses our general $c$.}  We state everything for an arbitrary measurable
+      $c\ge0$, not for $d^p$.  Remark 2 says this is exactly right, and asks only $c(\xi,\zeta)=0$ if
+      $\xi=\zeta$ --- note \emph{if}, not \emph{iff}, weaker than Blanchet--Murthy's (A1).  That
+      zero-diagonal clause is what supplies our \texttt{hne0} (a zero-cost feasible plan: the diagonal
+      coupling), which is the interior point the supergradient needs.  The entropic objective has no
+      zero, which is why the Sinkhorn theorem carries a Slater hypothesis and this one does not.
+\item \textbf{Corollary 1 is the attainment content we still assume.}  Our
+      \texttt{worstCase\_structure\_cor1} constructs $\mu^*$ and its transport plan explicitly and proves
+      the $\le$ half, but isolates the $\ge$ half and the ingredient facts (measurable a.e.-argmin maps,
+      the mixture weight) as named edges.  Corollary 1(i)'s \emph{necessary and sufficient} condition
+      --- $\lambda^*>\kappa$, or $\lambda^*=\kappa$ with the $\underline{D}_0/\overline{D}_0$ sandwich
+      --- is \textbf{not} formalized, and is what would discharge them.
+\item \textbf{Four \texttt{hbddP} hypotheses remain} on the worst-case-\emph{structure} theorems
+      (\texttt{cor1}, \texttt{cor2ii}, and the Mohajerin-Esfahani--Kuhn analogue), because those carry no
+      boundedness assumption on $\Psi$ to derive \texttt{BddAbove} from.  Under Theorem 1's hypotheses,
+      $\kappa<\infty$ plus eq.~(5) would supply it.
+\end{formalizationnotes}
+
+\TODO{Formalize Definition 4 ($\kappa$) and Lemma 2(ii), then re-prove \texttt{strong\_duality\_thm1}
+under $\kappa<\infty$ instead of $f$ bounded/continuous.  That requires replacing the
+$\varepsilon$-argmax selector with an argument that does not need continuity in $\xi$ --- read \S3.1's
+proof of Theorem 1 (Lemmas 3--4) and record which tool it uses in place of measurable selection.}
+
+\input{references_manual}
+\end{document}

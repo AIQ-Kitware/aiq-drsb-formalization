@@ -77,6 +77,7 @@ One file per proposed Mathlib destination area:
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.TiltedKernel
 import ForMathlib.MeasureTheory.DonskerVaradhanDual
+import ForMathlib.MeasureTheory.KLConvex
 import ForMathlib.MeasureTheory.MeasurableArgmax
 import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.MeasureTheory.GaussianEntropy

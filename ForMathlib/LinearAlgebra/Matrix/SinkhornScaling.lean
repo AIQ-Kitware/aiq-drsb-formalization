@@ -111,8 +111,8 @@ Construction-independent: it takes only the row relation `hrow`, never the objec
 `D2`, or the scaling `aa`. Extracted from `matrix_scaling_exists`; a self-contained
 mass-balance fact. -/
 private theorem common_column_residual_eq_zero
-    {ι : Type*} [Fintype ι]
-    (p q a b : ι → ℝ) (G : ι → ι → ℝ)
+    {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (p a : ι → ℝ) (q b : κ → ℝ) (G : ι → κ → ℝ)
     (hb_ne : ∀ j, b j ≠ 0)
     (hb_sum : ∑ j, b j = 1)
     (hmass : ∑ i, p i = ∑ j, q j)
@@ -140,8 +140,8 @@ private theorem common_column_residual_eq_zero
 `(∑ᵢ aᵢ Gᵢⱼ) − qⱼ/bⱼ = 0`, conclude `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`. Pure finite algebra;
 extracted from `matrix_scaling_exists`. -/
 private theorem column_scaling_of_zero_residual
-    {ι : Type*} [Fintype ι]
-    (q a b : ι → ℝ) (G : ι → ι → ℝ)
+    {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (q : κ → ℝ) (a : ι → ℝ) (b : κ → ℝ) (G : ι → κ → ℝ)
     (hb_ne : ∀ j, b j ≠ 0)
     (hresid : ∀ j, (∑ i, a i * G i j) - q j / b j = 0) :
     ∀ j, b j * ∑ i, G i j * a i = q j := by
@@ -163,27 +163,27 @@ restricted to the line `bs + t·(eⱼ − e_{j₀})`. `ψ` and the feasible set 
 reconstructed inline from the primary data `(p, q, G, δ)`; only the `IsMinOn` witness is
 assumed. No positivity of `p, q` is needed — they enter only as coefficients. -/
 private theorem stationarity_pairwise_residual_eq
-    {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ)
-    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j)
+    {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (p : ι → ℝ) (q : κ → ℝ)
+    (G : ι → κ → ℝ) (hG : ∀ i j, 0 < G i j)
     (δ : ℝ) (hδ_pos : 0 < δ)
-    (bs : ι → ℝ) (hbs_gt : ∀ l, δ < bs l) (hbs_sum : ∑ l, bs l = 1)
+    (bs : κ → ℝ) (hbs_gt : ∀ l, δ < bs l) (hbs_sum : ∑ l, bs l = 1)
     (hbs_min : IsMinOn
       (fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j))
       {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} bs)
-    (j j₀ : ι) :
+    (j j₀ : κ) :
     (∑ i, (p i / (∑ jj, G i jj * bs jj)) * G i j) - q j / bs j
       = (∑ i, (p i / (∑ jj, G i jj * bs jj)) * G i j₀) - q j₀ / bs j₀ := by
   classical
   have hbs_pos : ∀ l, 0 < bs l := fun l => lt_trans hδ_pos (hbs_gt l)
-  set ψ : (ι → ℝ) → ℝ :=
+  set ψ : (κ → ℝ) → ℝ :=
     fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j) with hψ
-  set K : Set (ι → ℝ) := {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} with hK
+  set K : Set (κ → ℝ) := {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} with hK
   set D2 : ι → ℝ := fun i => ∑ jj, G i jj * bs jj with hD2
   have hD2_pos : ∀ i, 0 < D2 i := fun i => by
     rw [hD2]; exact Finset.sum_pos (fun jj _ => mul_pos (hG i jj) (hbs_pos jj)) ⟨j, Finset.mem_univ j⟩
   set aa : ι → ℝ := fun i => p i / D2 i with haa
-  set w : ι → ℝ := fun l => (if l = j then (1:ℝ) else 0) - (if l = j₀ then (1:ℝ) else 0) with hw
+  set w : κ → ℝ := fun l => (if l = j then (1:ℝ) else 0) - (if l = j₀ then (1:ℝ) else 0) with hw
   have hwsum : ∑ l, w l = 0 := by simp [hw]
   have hc : ∀ i, ∑ j', G i j' * w j' = G i j - G i j₀ := by
     intro i
@@ -320,36 +320,36 @@ from the boundary (`δ < bs l` for all `l`). Packages exactly the data
 logarithmic barrier, and the M4c compactness plumbing. The interface returns the strict
 bound `δ < bs l` rather than the intermediate `δ0` (an internal construction detail). -/
 private theorem exists_sinkhorn_interior_minimizer
-    {ι : Type*} [Fintype ι] [Nonempty ι]
-    (p q : ι → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
-    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j) :
-    ∃ (δ : ℝ) (bs : ι → ℝ), 0 < δ ∧ (∀ l, 0 < bs l) ∧ (∑ l, bs l = 1) ∧
+    {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
+    (p : ι → ℝ) (q : κ → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
+    (G : ι → κ → ℝ) (hG : ∀ i j, 0 < G i j) :
+    ∃ (δ : ℝ) (bs : κ → ℝ), 0 < δ ∧ (∀ l, 0 < bs l) ∧ (∑ l, bs l = 1) ∧
       IsMinOn (fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j))
         {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} bs ∧
       (∀ l, δ < bs l) := by
   classical
   obtain ⟨gmin, hgmin_pos, hgmin⟩ : ∃ c, 0 < c ∧ ∀ i j, c ≤ G i j := by
-    obtain ⟨ij, -, hij⟩ := Finset.exists_min_image (Finset.univ : Finset (ι × ι))
+    obtain ⟨ij, -, hij⟩ := Finset.exists_min_image (Finset.univ : Finset (ι × κ))
       (fun ij => G ij.1 ij.2) Finset.univ_nonempty
     exact ⟨G ij.1 ij.2, hG _ _, fun i j => hij (i, j) (Finset.mem_univ _)⟩
   obtain ⟨qq, hqq_pos, hqq⟩ : ∃ c, 0 < c ∧ ∀ j, c ≤ q j := by
-    obtain ⟨j1, -, hj1⟩ := Finset.exists_min_image (Finset.univ : Finset ι) q Finset.univ_nonempty
+    obtain ⟨j1, -, hj1⟩ := Finset.exists_min_image (Finset.univ : Finset κ) q Finset.univ_nonempty
     exact ⟨q j1, hq _, fun j => hj1 j (Finset.mem_univ _)⟩
   set P := ∑ i, p i with hP
-  set N : ℝ := (Fintype.card ι : ℝ) with hN
+  set N : ℝ := (Fintype.card κ : ℝ) with hN
   have hN_pos : 0 < N := by rw [hN]; exact_mod_cast Fintype.card_pos
-  set u : ι → ℝ := fun _ => N⁻¹ with hu
+  set u : κ → ℝ := fun _ => N⁻¹ with hu
   have hu_pos : ∀ l, 0 < u l := fun l => by rw [hu]; positivity
   have hu_sum : ∑ l, u l = 1 := by
     rw [hu]; rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul]
     rw [hN]; field_simp
-  set ψ : (ι → ℝ) → ℝ :=
+  set ψ : (κ → ℝ) → ℝ :=
     fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j) with hψ
-  have hGb_ge : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, gmin ≤ ∑ j, G i j * b j :=
+  have hGb_ge : ∀ b : κ → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, gmin ≤ ∑ j, G i j * b j :=
     fun b hb0 hb1 i => lower_bound_le_weighted_sum (fun j => G i j) b gmin (hgmin i) hb0 hb1
-  have hGb_pos : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, 0 < ∑ j, G i j * b j :=
+  have hGb_pos : ∀ b : κ → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, 0 < ∑ j, G i j * b j :=
     fun b hb0 hb1 i => lt_of_lt_of_le hgmin_pos (hGb_ge b hb0 hb1 i)
-  have hlb_p : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) →
+  have hlb_p : ∀ b : κ → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) →
       P * Real.log gmin ≤ ∑ i, p i * Real.log (∑ j, G i j * b j) := by
     intro b hb0 hb1
     have h := hGb_ge b hb0 hb1
@@ -367,7 +367,7 @@ private theorem exists_sinkhorn_interior_minimizer
       apply mul_nonpos_of_nonneg_of_nonpos (le_of_lt (hq j))
       rw [hu, Real.log_inv, neg_nonpos]
       apply Real.log_nonneg
-      rw [hN]; have : (1:ℕ) ≤ Fintype.card ι := Fintype.card_pos; exact_mod_cast this
+      rw [hN]; have : (1:ℕ) ≤ Fintype.card κ := Fintype.card_pos; exact_mod_cast this
     have hψu : ψ u = (∑ i, p i * Real.log (∑ j, G i j * u j)) - ∑ j, q j * Real.log (u j) := by
       simp only [hψ]
     linarith [hlb, hq_part, hψu]
@@ -384,7 +384,7 @@ private theorem exists_sinkhorn_interior_minimizer
     have h2 : (0:ℝ) ≤ N⁻¹ := by positivity
     linarith
   -- objective-specific wrapper: the Sinkhorn sublevel supplies the M4b `hlogsum` premise
-  have hsublevel : ∀ b : ι → ℝ, (∀ l, 0 < b l) → (∑ l, b l = 1) → ψ b ≤ ψ u → ∀ j, δ0 ≤ b j := by
+  have hsublevel : ∀ b : κ → ℝ, (∀ l, 0 < b l) → (∑ l, b l = 1) → ψ b ≤ ψ u → ∀ j, δ0 ≤ b j := by
     intro b hbpos hbsum hble
     have hb0 : ∀ l, 0 ≤ b l := fun l => le_of_lt (hbpos l)
     have hlb := hlb_p b hb0 hbsum
@@ -424,28 +424,29 @@ private theorem exists_sinkhorn_interior_minimizer
   have hbs_ge_δ0 : ∀ j, δ0 ≤ bs j := hsublevel bs hbs_pos hbs_sum hbs_le_u
   exact ⟨δ, bs, hδ_pos, hbs_pos, hbs_sum, hbs_min, fun l => lt_of_lt_of_le hδ_lt_δ0 (hbs_ge_δ0 l)⟩
 
-/-- **Matrix scaling / Sinkhorn existence.** For a strictly positive kernel `G` on a
-finite index set and strictly positive marginals `p, q` of equal total mass, there exist
-strictly positive scalings `a, b` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
+/-- **Rectangular matrix scaling / Sinkhorn existence.** For a strictly positive kernel
+`G : ι → κ → ℝ` on nonempty finite row and column index sets and strictly positive
+marginals `p : ι → ℝ`, `q : κ → ℝ` of equal total mass, there exist strictly positive
+scalings `a : ι → ℝ`, `b : κ → ℝ` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
 
-Proved via log-domain minimization; see the module docstring. Dependency-clean; a genuine
+This is the natural home of the log-domain minimization argument (see the module docstring):
+the objective and simplex live on the *column* type `κ`, while the row marginals index `ι`.
+The square `matrix_scaling_exists` is the `κ := ι` specialization. Dependency-clean; a genuine
 Mathlib gap (Sinkhorn/matrix scaling is not in Mathlib). -/
-theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
+theorem matrix_scaling_exists_rectangular
+    {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
+    (p : ι → ℝ) (q : κ → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
     (hsum : ∑ i, p i = ∑ j, q j)
-    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j) :
-    ∃ a b : ι → ℝ, (∀ i, 0 < a i) ∧ (∀ j, 0 < b j) ∧
+    (G : ι → κ → ℝ) (hG : ∀ i j, 0 < G i j) :
+    ∃ a : ι → ℝ, ∃ b : κ → ℝ,
+      (∀ i, 0 < a i) ∧ (∀ j, 0 < b j) ∧
       (∀ i, a i * ∑ j, G i j * b j = p i) ∧
       (∀ j, b j * ∑ i, G i j * a i = q j) := by
   classical
-  rcases isEmpty_or_nonempty ι with hempty | hne
-  · exact ⟨fun _ => 1, fun _ => 1, fun i => isEmptyElim i, fun j => isEmptyElim j,
-      fun i => isEmptyElim i, fun j => isEmptyElim j⟩
-  -- nonempty case: obtain the strict interior minimizer (M4d), then read off the scalings
-  haveI := hne
+  -- obtain the strict interior minimizer on the column simplex (M4d), then read off the scalings
   obtain ⟨δ, bs, hδ_pos, hbs_pos, hbs_sum, hbs_min, hbs_gt⟩ :=
     exists_sinkhorn_interior_minimizer p q hp hq G hG
-  obtain ⟨j0⟩ := hne
+  obtain ⟨j0⟩ : Nonempty κ := inferInstance
   -- row marginals `D2 i = ∑ⱼ Gᵢⱼ bsⱼ > 0` and the scaling `aa := p / D2`
   set D2 : ι → ℝ := fun i => ∑ j, G i j * bs j with hD2
   have hD2_pos : ∀ i, 0 < D2 i := fun i => by
@@ -470,13 +471,67 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
     exact div_mul_cancel₀ (p i) (ne_of_gt (hD2_pos i))
   -- mass conservation forces the residual to vanish (M1)
   have hμ : μ = 0 :=
-    common_column_residual_eq_zero p q aa bs G
+    common_column_residual_eq_zero p aa q bs G
       (fun j => ne_of_gt (hbs_pos j)) hbs_sum hsum hrow μ hresid
   -- assemble: row equation is `hrow`; column equation is M2 on the `μ = 0` residual
   refine ⟨aa, bs, haa_pos, hbs_pos, hrow, ?_⟩
   have hzero : ∀ j, (∑ i, aa i * G i j) - q j / bs j = 0 := by
     intro j; rw [hresid j, hμ]; ring
   exact column_scaling_of_zero_residual q aa bs G (fun j => ne_of_gt (hbs_pos j)) hzero
+
+/-- **Matrix scaling / Sinkhorn existence.** For a strictly positive kernel `G` on a
+finite index set and strictly positive marginals `p, q` of equal total mass, there exist
+strictly positive scalings `a, b` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
+
+The `κ := ι` specialization of `matrix_scaling_exists_rectangular`; the empty-index case is
+handled separately (the rectangular theorem assumes nonempty index types). -/
+theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
+    (hsum : ∑ i, p i = ∑ j, q j)
+    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j) :
+    ∃ a b : ι → ℝ, (∀ i, 0 < a i) ∧ (∀ j, 0 < b j) ∧
+      (∀ i, a i * ∑ j, G i j * b j = p i) ∧
+      (∀ j, b j * ∑ i, G i j * a i = q j) := by
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hne
+  · exact ⟨fun _ => 1, fun _ => 1, fun i => isEmptyElim i, fun j => isEmptyElim j,
+      fun i => isEmptyElim i, fun j => isEmptyElim j⟩
+  · haveI := hne
+    exact matrix_scaling_exists_rectangular p q hp hq hsum G hG
+
+/-- **Sinkhorn / matrix scaling — rectangular discrete Schrödinger potentials exist.**
+For nonempty finite row/column index sets `ι, κ`, strictly positive marginals
+`p : ι → ℝ`, `q : κ → ℝ` with equal total mass, and a strictly positive kernel
+`G : ι → κ → ℝ`, there are strictly positive potential vectors `φ0, φ̂0 : ι → ℝ`,
+`φ1, φ̂1 : κ → ℝ` solving the discrete Schrödinger system
+`φ0 = G · φ1`, `φ̂1 = Gᵀ · φ̂0`, `φ0 ⊙ φ̂0 = p`, `φ1 ⊙ φ̂1 = q`.
+
+The `κ := ι` specialization is `sinkhorn_potentials_exist`. Proved by reduction to
+`matrix_scaling_exists_rectangular`. -/
+theorem sinkhorn_potentials_exist_rectangular
+    {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
+    (p : ι → ℝ) (q : κ → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
+    (hsum : ∑ i, p i = ∑ j, q j)                    -- mass conservation (NECESSARY)
+    (G : ι → κ → ℝ) (hG : ∀ i j, 0 < G i j) :
+    ∃ φ0 φhat0 : ι → ℝ, ∃ φ1 φhat1 : κ → ℝ,
+      (∀ i, 0 < φ0 i) ∧ (∀ i, 0 < φhat0 i) ∧ (∀ j, 0 < φ1 j) ∧ (∀ j, 0 < φhat1 j) ∧
+      (∀ i, φ0 i = ∑ j, G i j * φ1 j) ∧            -- (8.4a)
+      (∀ j, φhat1 j = ∑ i, G i j * φhat0 i) ∧      -- (8.4b)
+      (∀ i, φ0 i * φhat0 i = p i) ∧                -- (8.4c)
+      (∀ j, φ1 j * φhat1 j = q j) := by            -- (8.4d)
+  classical
+  obtain ⟨a, b, ha_pos, hb_pos, hrow, hcol⟩ :=
+    matrix_scaling_exists_rectangular p q hp hq hsum G hG
+  obtain ⟨i0⟩ : Nonempty ι := inferInstance
+  obtain ⟨j0⟩ : Nonempty κ := inferInstance
+  refine ⟨fun i => ∑ j, G i j * b j, a, b, fun j => ∑ i, G i j * a i,
+    fun i => Finset.sum_pos (fun j _ => mul_pos (hG i j) (hb_pos j)) ⟨j0, Finset.mem_univ j0⟩,
+    ha_pos, hb_pos,
+    fun j => Finset.sum_pos (fun i _ => mul_pos (hG i j) (ha_pos i)) ⟨i0, Finset.mem_univ i0⟩,
+    fun _ => rfl, fun _ => rfl, ?_, hcol⟩
+  intro i
+  show (∑ j, G i j * b j) * a i = p i
+  linear_combination hrow i
 
 /-- **Sinkhorn / matrix scaling — discrete Schrödinger potentials exist.** For a
 finite index set, strictly positive marginals `p, q` with equal total mass, and a

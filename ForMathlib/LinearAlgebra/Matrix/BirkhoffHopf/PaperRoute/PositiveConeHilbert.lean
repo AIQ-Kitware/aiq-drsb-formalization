@@ -28,7 +28,7 @@ Paper analogue: the standard-quadrant formula in Section 6,
 `d_C(x,y) = log max_{p,q} x_p y_q / (x_q y_p)`.
 
 This wrapper exposes the already-staged finite-`sSup` lemma under a paper-route name. -/
-theorem quadrant_hilbert_pair_le {ι : Type*} [Fintype ι] [Nonempty ι]
+theorem quadrant_hilbert_pair_le {ι : Type*} [Fintype ι]
     (x y : ι → ℝ) (i i' : ι) :
     Real.log ((x i * y i') / (x i' * y i)) ≤
       finiteHilbertProjectiveLogSpread x y := by
@@ -49,7 +49,7 @@ theorem quadrant_hilbert_nonneg {ι : Type*} [Fintype ι] [Nonempty ι]
 Paper analogue: Eveson--Nussbaum Lemma 3.12, cone-isomorphism invariance.  In the finite
 standard cone, positive diagonal maps are cone automorphisms, so Hilbert projective distances are
 unchanged after multiplying both vectors coordinatewise by the same positive scale. -/
-theorem quadrant_hilbert_coordScale_eq {ι : Type*} [Fintype ι]
+theorem quadrant_hilbert_coordScale_eq {ι : Type*}
     (x y d : ι → ℝ) (hd : ∀ i, 0 < d i) :
     finiteHilbertProjectiveLogSpread (fun i => d i * x i) (fun i => d i * y i) =
       finiteHilbertProjectiveLogSpread x y := by
@@ -70,7 +70,7 @@ theorem quadrant_hilbert_coordScale_eq {ι : Type*} [Fintype ι]
 /-- Paper route Step 2: invariance under permutation of finite coordinates.
 
 Paper analogue: cone-isomorphism invariance for permutation matrices. -/
-theorem quadrant_hilbert_equivPerm_eq {ι ι' : Type*} [Fintype ι] [Fintype ι']
+theorem quadrant_hilbert_equivPerm_eq {ι ι' : Type*}
     (e : ι ≃ ι') (x y : ι' → ℝ) :
     finiteHilbertProjectiveLogSpread (fun i : ι => x (e i)) (fun i : ι => y (e i)) =
       finiteHilbertProjectiveLogSpread x y := by

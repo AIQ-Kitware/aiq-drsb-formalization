@@ -318,7 +318,7 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X]
 
 /-- Under any coupling of `μ` with `ν`, the first coordinate's square-norm is integrable
 as soon as `μ` has a finite second moment. -/
-theorem integrable_normSq_fst_of_mem_couplings [OpensMeasurableSpace X]
+theorem integrable_normSq_fst_of_mem_couplings
     (μ ν : ProbabilityMeasure X) (π : ProbabilityMeasure (X × X)) (hπ : π ∈ couplings μ ν)
     (hμ2 : Integrable (fun x => ‖x‖ ^ 2) (μ : Measure X)) :
     Integrable (fun z : X × X => ‖z.1‖ ^ 2) (π : Measure (X × X)) := by
@@ -329,7 +329,7 @@ theorem integrable_normSq_fst_of_mem_couplings [OpensMeasurableSpace X]
 
 /-- Under any coupling of `μ` with `ν`, the second coordinate's square-norm is integrable
 as soon as `ν` has a finite second moment. -/
-theorem integrable_normSq_snd_of_mem_couplings [OpensMeasurableSpace X]
+theorem integrable_normSq_snd_of_mem_couplings
     (μ ν : ProbabilityMeasure X) (π : ProbabilityMeasure (X × X)) (hπ : π ∈ couplings μ ν)
     (hν2 : Integrable (fun x => ‖x‖ ^ 2) (ν : Measure X)) :
     Integrable (fun z : X × X => ‖z.2‖ ^ 2) (π : Measure (X × X)) := by
@@ -367,7 +367,6 @@ This is what makes the second-moment hypotheses *no stronger* than an optimal-tr
 edge: any hypothesis supplying an integrable-cost plan between `μ` and a nominal `ν` of
 finite second moment already entails that `μ` has one. -/
 theorem integrable_normSq_of_mem_couplings_of_integrable_cost [OpensMeasurableSpace X]
-    [MeasurableSub₂ X]
     (μ ν : ProbabilityMeasure X) (π : ProbabilityMeasure (X × X)) (hπ : π ∈ couplings μ ν)
     (hcost : Integrable (fun z : X × X => ‖z.1 - z.2‖ ^ 2) (π : Measure (X × X)))
     (hν2 : Integrable (fun x => ‖x‖ ^ 2) (ν : Measure X)) :

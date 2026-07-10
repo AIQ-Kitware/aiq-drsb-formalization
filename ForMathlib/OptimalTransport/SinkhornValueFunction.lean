@@ -24,7 +24,6 @@ import Mathlib
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Convexity
 import ForMathlib.OptimalTransport.DroValue
-import ForMathlib.MeasureTheory.KLConvex
 
 set_option autoImplicit false
 
@@ -33,56 +32,6 @@ open scoped ENNReal NNReal
 
 namespace ForMathlib.OT
 
-section KLMix
-
-variable {α : Type*} [MeasurableSpace α]
-
-/-- `klDiv_mix_le` in the `mix` vocabulary of `ForMathlib.OT.Convexity`. -/
-theorem klDiv_mix_le' (a : ℝ) (ha : a ∈ Set.Icc (0:ℝ) 1) (μ₁ μ₂ : ProbabilityMeasure α)
-    (ν : Measure α) [IsFiniteMeasure ν]
-    (hac₁ : (μ₁ : Measure α) ≪ ν) (hac₂ : (μ₂ : Measure α) ≪ ν) :
-    klDiv (mix a ha μ₁ μ₂ : Measure α) ν
-      ≤ ENNReal.ofReal a * klDiv (μ₁ : Measure α) ν
-        + ENNReal.ofReal (1 - a) * klDiv (μ₂ : Measure α) ν := by
-  haveI : IsFiniteMeasure (μ₁ : Measure α) := inferInstance
-  haveI : IsFiniteMeasure (μ₂ : Measure α) := inferInstance
-  have h1a : (0:ℝ) ≤ 1 - a := by linarith [ha.2]
-  have hab : a.toNNReal + (1 - a).toNNReal = 1 := by
-    rw [← Real.toNNReal_add ha.1 h1a]
-    simp
-  have key := klDiv_mix_le a.toNNReal (1 - a).toNNReal hab
-    (μ₁ : Measure α) (μ₂ : Measure α) ν hac₁ hac₂
-  rw [mix_coe]
-  simpa only [ENNReal.smul_def, ENNReal.ofReal] using key
-
-theorem klDiv_mix_ne_top' (a : ℝ) (ha : a ∈ Set.Icc (0:ℝ) 1) (μ₁ μ₂ : ProbabilityMeasure α)
-    (ν : Measure α) [IsFiniteMeasure ν]
-    (hac₁ : (μ₁ : Measure α) ≪ ν) (hac₂ : (μ₂ : Measure α) ≪ ν)
-    (h₁ : klDiv (μ₁ : Measure α) ν ≠ ⊤) (h₂ : klDiv (μ₂ : Measure α) ν ≠ ⊤) :
-    klDiv (mix a ha μ₁ μ₂ : Measure α) ν ≠ ⊤ :=
-  ne_top_of_le_ne_top (by finiteness) (klDiv_mix_le' a ha μ₁ μ₂ ν hac₁ hac₂)
-
-theorem klReal_mix_le (a : ℝ) (ha : a ∈ Set.Icc (0:ℝ) 1) (μ₁ μ₂ : ProbabilityMeasure α)
-    (ν : Measure α) [IsFiniteMeasure ν]
-    (hac₁ : (μ₁ : Measure α) ≪ ν) (hac₂ : (μ₂ : Measure α) ≪ ν)
-    (h₁ : klDiv (μ₁ : Measure α) ν ≠ ⊤) (h₂ : klDiv (μ₂ : Measure α) ν ≠ ⊤) :
-    klReal (mix a ha μ₁ μ₂ : Measure α) ν
-      ≤ a * klReal (μ₁ : Measure α) ν + (1 - a) * klReal (μ₂ : Measure α) ν := by
-  have h1a : (0:ℝ) ≤ 1 - a := by linarith [ha.2]
-  have hfin : ENNReal.ofReal a * klDiv (μ₁ : Measure α) ν
-      + ENNReal.ofReal (1 - a) * klDiv (μ₂ : Measure α) ν ≠ ⊤ := by finiteness
-  have hle := klDiv_mix_le' a ha μ₁ μ₂ ν hac₁ hac₂
-  calc klReal (mix a ha μ₁ μ₂ : Measure α) ν
-      ≤ (ENNReal.ofReal a * klDiv (μ₁ : Measure α) ν
-          + ENNReal.ofReal (1 - a) * klDiv (μ₂ : Measure α) ν).toReal :=
-        ENNReal.toReal_mono hfin hle
-    _ = a * klReal (μ₁ : Measure α) ν + (1 - a) * klReal (μ₂ : Measure α) ν := by
-        rw [ENNReal.toReal_add (by finiteness) (by finiteness), ENNReal.toReal_mul,
-          ENNReal.toReal_mul, ENNReal.toReal_ofReal ha.1, ENNReal.toReal_ofReal h1a]
-        rfl
-
-
-end KLMix
 
 section ValueFunction
 

@@ -48,7 +48,7 @@ This is the Mathlib-style metric target for the eventual Birkhoff--Hopf theorem.
 files currently use the log-free `finitePairwiseRatioSpread`; the Franklin--Lorenz bridge should
 transport between this Hilbert spread and the concrete finite ratio-spread under the existing box
 bounds. -/
-noncomputable def finiteHilbertProjectiveLogSpread {ι : Type*} [Fintype ι]
+noncomputable def finiteHilbertProjectiveLogSpread {ι : Type*}
     (x y : ι → ℝ) : ℝ :=
   sSup (Set.range (fun ij : ι × ι =>
     Real.log ((x ij.1 * y ij.2) / (x ij.2 * y ij.1))))
@@ -169,7 +169,7 @@ theorem positive_kernel_pointwise_crossRatioBounded {ι κ : Type*}
   simpa [mul_assoc, mul_left_comm, mul_comm] using hmul
 
 /-- Predicate saying that `γ` contracts Hilbert projective spread for a positive kernel. -/
-def IsBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype ι] [Fintype κ]
+def IsBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype κ]
     (G : ι → κ → ℝ) (γ : ℝ) : Prop :=
   ∀ x y : κ → ℝ,
     (∀ j, 0 < x j) → (∀ j, 0 < y j) →
@@ -179,7 +179,7 @@ def IsBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype ι] [Fintype �
 /-- A strict Birkhoff--Hopf contraction coefficient packages both the analytic contraction fact and
 its range as a usable geometric rate.  This is the coefficient shape downstream Franklin--Lorenz
 arguments need: a bare number `γ < 1` is not enough unless it is known to contract Hilbert spread. -/
-def IsStrictBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype ι] [Fintype κ]
+def IsStrictBirkhoffHopfContractionCoefficient {ι κ : Type*} [Fintype κ]
     (G : ι → κ → ℝ) (γ : ℝ) : Prop :=
   0 ≤ γ ∧ γ < 1 ∧ IsBirkhoffHopfContractionCoefficient G γ
 
@@ -286,7 +286,7 @@ theorem positive_kernel_apply_crossRatioBounded {ι κ : Type*}
 This is a small finite-`sSup` bridge.  The nonemptiness assumption is the natural one for
 Hilbert's projective metric; the empty coordinate type is not a positive cone. -/
 theorem finiteHilbertProjectiveLogSpread_le_of_forall_pair {ι : Type*}
-    [Fintype ι] [Nonempty ι]
+    [Nonempty ι]
     (x y : ι → ℝ) (Δ : ℝ)
     (h : ∀ i i' : ι, Real.log ((x i * y i') / (x i' * y i)) ≤ Δ) :
     finiteHilbertProjectiveLogSpread x y ≤ Δ := by
@@ -334,7 +334,7 @@ theorem positive_kernel_apply_log_crossratio_le_of_apply_crossratio_bound {ι κ
 
 This is the projective-diameter half of Birkhoff--Hopf: it is weaker than contraction, but it is
 the exact bridge from the cross-multiplicative image estimate to the analytic oscillation lemma. -/
-def PositiveKernelApplyHilbertLogDiameterBounded {ι κ : Type*} [Fintype ι] [Fintype κ]
+def PositiveKernelApplyHilbertLogDiameterBounded {ι κ : Type*} [Fintype κ]
     (G : ι → κ → ℝ) (Δ : ℝ) : Prop :=
   ∀ x y : κ → ℝ,
     (∀ j, 0 < x j) → (∀ j, 0 < y j) →
@@ -389,7 +389,7 @@ theorem finiteHilbertProjectiveLogSpread_nonneg_of_pos {κ : Type*}
 This is the second finite-`sSup` bookkeeping lemma needed before the scalar Birkhoff inequality can
 be stated with an abstract diameter parameter `D`. -/
 theorem finiteHilbertProjectiveLogSpread_pair_le {κ : Type*}
-    [Fintype κ] [Nonempty κ]
+    [Fintype κ]
     (x y : κ → ℝ) (j j' : κ) :
     Real.log ((x j * y j') / (x j' * y j)) ≤
       finiteHilbertProjectiveLogSpread x y := by
@@ -685,7 +685,7 @@ nontrivial proof debt is no longer matrix bookkeeping: it is the finite weighted
 Birkhoff--Hopf inequality
 `finite_weighted_average_log_crossratio_contraction_of_crossratio_bound`. -/
 theorem positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_apply_hilbert_log_diameter_bound
-    {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
+    {ι κ : Type*} [Fintype ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)
     (hG : ∀ i j, 0 < G i j)
     (_hdiam : PositiveKernelApplyHilbertLogDiameterBounded G
@@ -873,7 +873,7 @@ theorem positive_kernel_strict_birkhoff_contraction_coefficient_transpose {ι κ
 /-- Every coordinate log-cross-ratio is dominated in absolute value by the finite Hilbert log-spread.
 
 The defining supremum ranges over *ordered* pairs, so it dominates both `log r` and `log r⁻¹`. -/
-theorem finiteHilbertProjectiveLogSpread_abs_pair_le {ι : Type*} [Fintype ι] [Nonempty ι]
+theorem finiteHilbertProjectiveLogSpread_abs_pair_le {ι : Type*} [Fintype ι]
     (x y : ι → ℝ) (hx : ∀ i, 0 < x i) (hy : ∀ i, 0 < y i) (i j : ι) :
     |Real.log ((x i * y j) / (x j * y i))| ≤ finiteHilbertProjectiveLogSpread x y := by
   have h1 := finiteHilbertProjectiveLogSpread_pair_le x y i j
@@ -890,7 +890,7 @@ theorem finiteHilbertProjectiveLogSpread_abs_pair_le {ι : Type*} [Fintype ι] [
 
 The reciprocal map is a projective isometry: it sends the `(i,j)` cross-ratio to the `(j,i)` one, and
 the defining supremum ranges over all ordered pairs. -/
-theorem finiteHilbertProjectiveLogSpread_div_left {ι : Type*} [Fintype ι]
+theorem finiteHilbertProjectiveLogSpread_div_left {ι : Type*}
     (c x y : ι → ℝ) (hc : ∀ i, 0 < c i) (hx : ∀ i, 0 < x i) (hy : ∀ i, 0 < y i) :
     finiteHilbertProjectiveLogSpread (fun i => c i / x i) (fun i => c i / y i)
       = finiteHilbertProjectiveLogSpread x y := by

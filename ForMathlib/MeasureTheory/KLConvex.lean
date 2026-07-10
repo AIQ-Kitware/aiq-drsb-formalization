@@ -11,12 +11,18 @@ inherits convexity pointwise from `klFun`, through the Radon–Nikodym derivativ
 
 ## Why the `ℝ≥0∞` form is the one to have
 
-`ForMathlib.MeasureTheory.toReal_klDiv_mix_le` (proved from the Donsker–Varadhan dual formula, as a
-supremum of affine functionals) states the same inequality after `toReal` — but it must **assume**
-the mixture's KL is finite, because `toReal` sends `⊤` to the junk value `0` and the inequality is
-false without that. The `ℝ≥0∞` statement below has no bad branch, and it *derives* the finiteness:
-`klDiv_mix_ne_top` is an immediate corollary. That is what the entropic-DRO value function needs, to
-know its constraint set `{γ : 𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν) ≤ t}` is convex.
+The `toReal` form of this inequality is *false* without knowing the mixture's KL is finite: `toReal`
+sends `⊤` to the junk value `0`. Stating it in `ℝ≥0∞` removes the bad branch, so finiteness need not
+be hypothesised — it is **derived** (`klDiv_mix_ne_top`), and the `toReal` form
+(`toReal_klDiv_mix_le`) falls out as a corollary rather than carrying the extra assumptions.
+
+(The same inequality is also a two-line consequence of the Donsker–Varadhan *dual* variational
+formula — `KL(·‖ν)` is a supremum of affine functionals, and a supremum of affine functions is
+convex; see `ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`. That route yields only the
+`toReal` statement, and only under the mixture's finiteness, so it does not supersede this one.)
+
+This is what the entropic-DRO value function needs, to know its constraint set
+`{γ : 𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν) ≤ t}` is convex.
 -/
 import Mathlib
 
@@ -94,9 +100,9 @@ theorem klDiv_mix_ne_top (a b : ℝ≥0) (hab : a + b = 1)
     klDiv (a • μ₁ + b • μ₂) ν ≠ ⊤ :=
   ne_top_of_le_ne_top (by finiteness) (klDiv_mix_le a b hab μ₁ μ₂ ν hac₁ hac₂)
 
-/-- The `toReal` form of `klDiv_mix_le`, with the mixture's finiteness *derived* rather than
-assumed. Compare `ForMathlib.MeasureTheory.toReal_klDiv_mix_le`, which takes it as a hypothesis. -/
-theorem toReal_klDiv_mix_le_of_ne_top (a b : ℝ≥0) (hab : a + b = 1)
+/-- **Relative entropy is convex in its first argument** (`ℝ`-valued). The `toReal` form of
+`klDiv_mix_le`, with the mixture's finiteness *derived* rather than assumed. -/
+theorem toReal_klDiv_mix_le (a b : ℝ≥0) (hab : a + b = 1)
     (μ₁ μ₂ ν : Measure α) [IsFiniteMeasure μ₁] [IsFiniteMeasure μ₂] [IsFiniteMeasure ν]
     (hac₁ : μ₁ ≪ ν) (hac₂ : μ₂ ≪ ν)
     (h₁ : klDiv μ₁ ν ≠ ⊤) (h₂ : klDiv μ₂ ν ≠ ⊤) :

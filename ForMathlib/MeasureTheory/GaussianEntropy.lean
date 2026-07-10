@@ -279,7 +279,7 @@ on `[0,1]` with step `Δt` and (with `ε = 1`) standard-Gaussian increments, the
 increment at step `k` has mean `u_k · Δt` and standard deviation `√Δt`, i.e. the *whitened*
 increment `= √Δt · u_k + N(0,I)`.  So the controlled path law is the reference standard
 Gaussian on the whole `Fin N × ι`-indexed increment space shifted by `emShift Δt u`. -/
-noncomputable def emShift {ι : Type*} [Fintype ι] {N : ℕ} (Δt : ℝ) (u : Fin N → ι → ℝ) :
+noncomputable def emShift {ι : Type*} {N : ℕ} (Δt : ℝ) (u : Fin N → ι → ℝ) :
     (Fin N × ι) → ℝ :=
   fun p => Real.sqrt Δt * u p.1 p.2
 

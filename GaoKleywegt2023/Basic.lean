@@ -53,7 +53,7 @@ natural next `ForMathlib.OT` extraction (a small dedup follow-up). -/
 
 /-- **Total mass of the weighted Dirac double-sum is 1** (a probability measure), given
 nonnegative weights summing to `1` over `k` for each `i`, and `0 < N`. -/
-theorem isProbabilityMeasure_wsum {Z : Type*} [MeasurableSpace Z] [MeasurableSingletonClass Z]
+theorem isProbabilityMeasure_wsum {Z : Type*} [MeasurableSpace Z]
     {N K : ℕ} (hN : 0 < N) (a : Fin N → Fin K → ℝ) (z : Fin N → Fin K → Z)
     (ha : ∀ i k, 0 ≤ a i k) (hsum : ∀ i, ∑ k, a i k = 1) :
     IsProbabilityMeasure ((N : ℝ≥0∞)⁻¹ • ∑ i : Fin N, ∑ k : Fin K,

@@ -58,7 +58,7 @@ The intended proof is one-variable calculus:
 This is a genuinely reusable Mathlib-style real-analysis lemma; it is independent of matrix
 scaling. -/
 theorem hard_core_relative_error_geometric_bound_explicit_constant_of_log_bound
-    {ι : Type*} [Fintype ι]
+    {ι : Type*}
     (r : ℕ → ι → ℝ) (C γ : ℝ)
     (hC_nonneg : 0 ≤ C)
     (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
@@ -89,7 +89,7 @@ relative error.
 This wrapper packages the explicit-constant hard core above into the existential form needed by the
 Franklin--Lorenz development. -/
 theorem relative_error_geometric_bound_of_log_relative_error_geometric_bound
-    {ι : Type*} [Fintype ι]
+    {ι : Type*}
     (r : ℕ → ι → ℝ) (γ : ℝ)
     (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
     (hr_pos : ∀ k j, 0 < r k j)
@@ -119,7 +119,7 @@ The remaining estimate is the elementary identity
 
 and the uniform bound on `|r_j|`. -/
 theorem pairwise_error_geometric_bound_of_pairwise_log_ratio_bound_and_box
-    {ι : Type*} [Fintype ι]
+    {ι : Type*}
     (r : ℕ → ι → ℝ) (γ : ℝ)
     (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
     (hr_pos : ∀ k j, 0 < r k j)

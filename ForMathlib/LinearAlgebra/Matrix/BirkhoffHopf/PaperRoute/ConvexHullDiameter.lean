@@ -70,7 +70,7 @@ The estimate is termwise: `hD` gives the generator cross-multiplicative bound
 `v k i * v l i' ≤ exp D * (v k i' * v l i)`, and summing it against the nonnegative weights
 `w₁ k * w₂ l` bounds the cross-ratio of the two combinations. -/
 theorem hilbert_diameter_nonnegativeHull_le_generator_diameter {ι κ : Type*}
-    [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
+    [Fintype ι] [Nonempty ι] [Fintype κ]
     (v : κ → ι → ℝ) (hv : ∀ k i, 0 < v k i) (D : ℝ)
     (hD : ∀ k l : κ, finiteHilbertProjectiveLogSpread (v k) (v l) ≤ D)
     (w₁ w₂ : κ → ℝ)
@@ -114,7 +114,7 @@ Paper analogue: Eveson--Nussbaum Proposition 2.9(b).  If all generator rays `v k
 Hilbert distance at most `D`, then any two positive convex combinations of them also have Hilbert
 distance at most `D`.  This is the `∑ w = 1` case of the cone statement above. -/
 theorem hilbert_diameter_convexHull_le_generator_diameter {ι κ : Type*}
-    [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
+    [Fintype ι] [Nonempty ι] [Fintype κ]
     (v : κ → ι → ℝ) (hv : ∀ k i, 0 < v k i) (D : ℝ)
     (hD : ∀ k l : κ, finiteHilbertProjectiveLogSpread (v k) (v l) ≤ D)
     (w₁ w₂ : κ → ℝ)

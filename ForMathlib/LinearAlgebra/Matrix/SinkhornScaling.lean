@@ -40,6 +40,57 @@ open Real Finset
 
 namespace ForMathlib
 
+/-- **[M1] Common column residual vanishes by mass conservation.** If a positive `b`
+normalizes to `1`, the row relation `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` holds, the marginals have
+equal total mass, and the column residual `(∑ᵢ aᵢ Gᵢⱼ) − qⱼ/bⱼ` is a single constant `μ`
+independent of `j`, then `μ = 0`.
+
+Construction-independent: it takes only the row relation `hrow`, never the objective,
+`D2`, or the scaling `aa`. Extracted from `matrix_scaling_exists`; a self-contained
+mass-balance fact. -/
+private theorem common_column_residual_eq_zero
+    {ι : Type*} [Fintype ι]
+    (p q a b : ι → ℝ) (G : ι → ι → ℝ)
+    (hb_ne : ∀ j, b j ≠ 0)
+    (hb_sum : ∑ j, b j = 1)
+    (hmass : ∑ i, p i = ∑ j, q j)
+    (hrow : ∀ i, a i * ∑ j, G i j * b j = p i)
+    (μ : ℝ)
+    (hresid : ∀ j, (∑ i, a i * G i j) = μ + q j / b j) :
+    μ = 0 := by
+  have step : ∀ j, b j * (∑ i, a i * G i j) = μ * b j + q j := by
+    intro j
+    rw [hresid j, mul_add, mul_comm (b j) (q j / b j), div_mul_cancel₀ (q j) (hb_ne j)]
+    ring
+  have hsumL : ∑ j, b j * (∑ i, a i * G i j) = ∑ i, p i := by
+    have e1 : ∀ j, b j * (∑ i, a i * G i j) = ∑ i, a i * (G i j * b j) := by
+      intro j; rw [Finset.mul_sum]; apply Finset.sum_congr rfl; intro i _; ring
+    rw [Finset.sum_congr rfl (fun j _ => e1 j), Finset.sum_comm]
+    apply Finset.sum_congr rfl
+    intro i _
+    rw [← hrow i, Finset.mul_sum]
+  have hsumR : ∑ j, b j * (∑ i, a i * G i j) = μ * (∑ j, b j) + ∑ j, q j := by
+    rw [Finset.sum_congr rfl (fun j _ => step j), Finset.sum_add_distrib, ← Finset.mul_sum]
+  rw [hb_sum, mul_one] at hsumR
+  linarith [hsumL, hsumR, hmass]
+
+/-- **[M2] Zero column residual gives the column scaling equation.** From `bⱼ ≠ 0` and
+`(∑ᵢ aᵢ Gᵢⱼ) − qⱼ/bⱼ = 0`, conclude `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`. Pure finite algebra;
+extracted from `matrix_scaling_exists`. -/
+private theorem column_scaling_of_zero_residual
+    {ι : Type*} [Fintype ι]
+    (q a b : ι → ℝ) (G : ι → ι → ℝ)
+    (hb_ne : ∀ j, b j ≠ 0)
+    (hresid : ∀ j, (∑ i, a i * G i j) - q j / b j = 0) :
+    ∀ j, b j * ∑ i, G i j * a i = q j := by
+  intro j
+  have hbne : b j ≠ 0 := hb_ne j
+  have hval : (∑ i, a i * G i j) = q j / b j := by linarith [hresid j]
+  rw [show (∑ i, G i j * a i) = (∑ i, a i * G i j) from
+    Finset.sum_congr rfl (fun i _ => mul_comm _ _)]
+  rw [hval]
+  field_simp
+
 /-- **Matrix scaling / Sinkhorn existence.** For a strictly positive kernel `G` on a
 finite index set and strictly positive marginals `p, q` of equal total mass, there exist
 strictly positive scalings `a, b` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
@@ -68,8 +119,6 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
     obtain ⟨j1, -, hj1⟩ := Finset.exists_min_image (Finset.univ : Finset ι) q Finset.univ_nonempty
     exact ⟨q j1, hq _, fun j => hj1 j (Finset.mem_univ _)⟩
   set P := ∑ i, p i with hP
-  set Q := ∑ j, q j with hQ
-  have hPQ : P = Q := hsum
   set N : ℝ := (Fintype.card ι : ℝ) with hN
   have hN_pos : 0 < N := by rw [hN]; exact_mod_cast Fintype.card_pos
   set u : ι → ℝ := fun _ => N⁻¹ with hu
@@ -309,48 +358,26 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
       simp
     rw [e1, e2] at hval0
     linarith [hval0]
-  -- μ = 0 via mass conservation
-  set μ := (∑ i, aa i * G i j0) - q j0 / bs j0 with hμdef
-  have hμ : μ = 0 := by
-    have step : ∀ j, bs j * (∑ i, aa i * G i j) = μ * bs j + q j := by
-      intro j
-      have hk := key j
-      have hbne : bs j ≠ 0 := ne_of_gt (hbs_pos j)
-      have h2 : (∑ i, aa i * G i j) = μ + q j / bs j := by linarith [hk]
-      rw [h2, mul_add, mul_comm (bs j) (q j / bs j), div_mul_cancel₀ (q j) hbne]
-      ring
-    have hsumL : ∑ j, bs j * (∑ i, aa i * G i j) = P := by
-      have e1 : ∀ j, bs j * (∑ i, aa i * G i j) = ∑ i, aa i * (G i j * bs j) := by
-        intro j; rw [Finset.mul_sum]; apply Finset.sum_congr rfl; intro i _; ring
-      rw [Finset.sum_congr rfl (fun j _ => e1 j), Finset.sum_comm]
-      have e2 : ∀ i, ∑ j, aa i * (G i j * bs j) = aa i * (∑ j, G i j * bs j) := by
-        intro i; rw [Finset.mul_sum]
-      rw [Finset.sum_congr rfl (fun i _ => e2 i), hP]
-      apply Finset.sum_congr rfl
-      intro i _
-      simp only [haa]
-      show p i / D2 i * D2 i = p i
-      exact div_mul_cancel₀ (p i) (ne_of_gt (hD2_pos i))
-    have hsumR : ∑ j, bs j * (∑ i, aa i * G i j) = μ * (∑ j, bs j) + Q := by
-      rw [Finset.sum_congr rfl (fun j _ => step j), Finset.sum_add_distrib, ← Finset.mul_sum, ← hQ]
-    rw [hbs_sum, mul_one] at hsumR
-    linarith [hsumL, hsumR, hPQ]
-  -- assemble
-  refine ⟨aa, bs, haa_pos, hbs_pos, ?_, ?_⟩
-  · intro i
-    show aa i * (∑ j, G i j * bs j) = p i
+  -- the common column residual `μ`, constant in `j` by `key`, packaged as `∑ = μ + q/bs`
+  set μ := (∑ i, aa i * G i j0) - q j0 / bs j0
+  have hresid : ∀ j, (∑ i, aa i * G i j) = μ + q j / bs j := fun j => by
+    have hk := key j; linarith [hk]
+  -- row marginals `aaᵢ·(∑ⱼ Gᵢⱼ bsⱼ) = pᵢ`, by construction of `aa := p / D2`
+  have hrow : ∀ i, aa i * ∑ j, G i j * bs j = p i := by
+    intro i
+    show aa i * D2 i = p i
     rw [haa]
     show p i / D2 i * D2 i = p i
     exact div_mul_cancel₀ (p i) (ne_of_gt (hD2_pos i))
-  · intro j
-    have hk := key j
-    rw [hμ] at hk  -- (∑ i, aa i * G i j) - q j / bs j = 0
-    have hbne : bs j ≠ 0 := ne_of_gt (hbs_pos j)
-    have hval : (∑ i, aa i * G i j) = q j / bs j := by linarith [hk]
-    rw [show (∑ i, G i j * aa i) = (∑ i, aa i * G i j) from
-      Finset.sum_congr rfl (fun i _ => mul_comm _ _)]
-    rw [hval]
-    field_simp
+  -- mass conservation forces the residual to vanish (M1)
+  have hμ : μ = 0 :=
+    common_column_residual_eq_zero p q aa bs G
+      (fun j => ne_of_gt (hbs_pos j)) hbs_sum hsum hrow μ hresid
+  -- assemble: row equation is `hrow`; column equation is M2 on the `μ = 0` residual
+  refine ⟨aa, bs, haa_pos, hbs_pos, hrow, ?_⟩
+  have hzero : ∀ j, (∑ i, aa i * G i j) - q j / bs j = 0 := by
+    intro j; rw [hresid j, hμ]; ring
+  exact column_scaling_of_zero_residual q aa bs G (fun j => ne_of_gt (hbs_pos j)) hzero
 
 /-- **Sinkhorn / matrix scaling — discrete Schrödinger potentials exist.** For a
 finite index set, strictly positive marginals `p, q` with equal total mass, and a

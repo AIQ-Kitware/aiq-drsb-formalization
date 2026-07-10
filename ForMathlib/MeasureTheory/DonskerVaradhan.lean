@@ -116,4 +116,57 @@ theorem log_integral_exp_eq_sSup
           r = ∫ x, f x ∂μ - (klDiv μ ν).toReal } :=
   (isGreatest_donskerVaradhan hfν hf_tilted).csSup_eq.symm
 
+/-- **A tilted measure has finite KL against its base.** `klDiv (ν.tilted g) ν ≠ ⊤` as soon as
+`exp ∘ g` is `ν`-integrable and `g` is integrable against the tilt.
+
+`klDiv ≠ ⊤` is `≪` plus integrability of the log-likelihood ratio, and `llr (ν.tilted g) ν` is
+a.e. `g − log Z`. Needed to feed the KL chain rule, whose `h_fin` hypothesis is not optional. -/
+theorem klDiv_tilted_ne_top {ν : Measure α} [IsProbabilityMeasure ν] {g : α → ℝ}
+    (hexp : Integrable (fun x => Real.exp (g x)) ν) (hg : Integrable g (ν.tilted g)) :
+    klDiv (ν.tilted g) ν ≠ ⊤ := by
+  haveI : IsProbabilityMeasure (ν.tilted g) := isProbabilityMeasure_tilted hexp
+  have hac : ν.tilted g ≪ ν := tilted_absolutelyContinuous ν g
+  refine klDiv_ne_top hac ?_
+  have hae : llr (ν.tilted g) ν
+      =ᵐ[ν.tilted g] fun x => g x - Real.log (∫ x, Real.exp (g x) ∂ν) :=
+    hac.ae_le (log_rnDeriv_tilted_left_self (μ := ν) hexp)
+  exact (hg.sub (integrable_const _)).congr hae.symm
+
+/-- **The entropic Lagrangian's Gibbs supremum is attained at the tilted measure.**
+
+For `λ, κ > 0`, cost slice `cx`, and `P = ν.tilted ((f − λ·cx)/(λκ))`,
+
+`λκ · log ∫ exp((f − λ·cx)/(λκ)) dν  =  ∫ f dP − λ·(∫ cx dP + κ·KL(P‖ν))`.
+
+This is the **pointwise converse Lagrangian bound** of Sinkhorn/entropic DRO duality, and unlike
+its Wasserstein counterpart it is an *equality*, not an `ε`-approximation: the Donsker–Varadhan
+supremum over measures (the Gibbs form) is attained, whereas the supremum over *functions* (the
+dual form) is not. The left side is the per-point log-partition of the Wang–Gao–Xie dual.
+
+Proof: rescale `integral_tilted_sub_klDiv_tilted` at `A = (f − λ·cx)/(λκ)` by `λκ`, then split
+`λκ · ∫A dP = ∫f dP − λ ∫cx dP`. -/
+theorem entropic_gibbs_attained_tilted {ν : Measure α} [IsProbabilityMeasure ν] {f cx : α → ℝ}
+    {κ lam : ℝ} (hκ : 0 < κ) (hlam : 0 < lam)
+    (hexp : Integrable (fun y => Real.exp ((f y - lam * cx y) / (lam * κ))) ν)
+    (hf : Integrable f (ν.tilted fun y => (f y - lam * cx y) / (lam * κ)))
+    (hc : Integrable cx (ν.tilted fun y => (f y - lam * cx y) / (lam * κ))) :
+    lam * κ * Real.log (∫ y, Real.exp ((f y - lam * cx y) / (lam * κ)) ∂ν)
+      = (∫ y, f y ∂(ν.tilted fun y => (f y - lam * cx y) / (lam * κ)))
+        - lam * ((∫ y, cx y ∂(ν.tilted fun y => (f y - lam * cx y) / (lam * κ)))
+          + κ * (klDiv (ν.tilted fun y => (f y - lam * cx y) / (lam * κ)) ν).toReal) := by
+  set A : α → ℝ := fun y => (f y - lam * cx y) / (lam * κ) with hAdef
+  set P : Measure α := ν.tilted A with hPdef
+  have hlamκ : (0:ℝ) < lam * κ := mul_pos hlam hκ
+  have hA_P : Integrable A P := (hf.sub (hc.const_mul lam)).div_const _
+  have hkey := integral_tilted_sub_klDiv_tilted (ν := ν) (f := A) hexp hA_P
+  have hAint : ∫ y, A y ∂P = (lam * κ)⁻¹ * ((∫ y, f y ∂P) - lam * ∫ y, cx y ∂P) := by
+    simp only [hAdef, div_eq_mul_inv]
+    rw [integral_mul_const, integral_sub hf (hc.const_mul lam), integral_const_mul]
+    ring
+  rw [hAint] at hkey
+  have hmul := congrArg (fun r : ℝ => lam * κ * r) hkey
+  rw [mul_sub, ← mul_assoc, mul_inv_cancel₀ (ne_of_gt hlamκ), one_mul] at hmul
+  rw [← hmul]
+  ring
+
 end ForMathlib.MeasureTheory

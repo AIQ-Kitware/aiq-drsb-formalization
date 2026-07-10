@@ -53,6 +53,14 @@ of the WDRSB card: it is what makes `W₂²` a genuine constraint rather than a 
 abbrev HasSecondMoment (μ : ProbabilityMeasure X) : Prop :=
   Integrable (fun x => ‖x‖ ^ 2) (μ : Measure X)
 
+omit [MeasurableSpace X] in
+theorem sqCost_nonneg (x y : X) : 0 ≤ sqCost x y := by
+  simp only [sqCost]; positivity
+
+theorem measurable_sqCost [OpensMeasurableSpace X] [MeasurableSub₂ X] :
+    Measurable fun z : X × X => sqCost z.1 z.2 :=
+  ((measurable_fst.sub measurable_snd).norm).pow_const 2
+
 /-! ## The DRSB value function
 
 The DRSB value function is the Chen–Georgiou–Pavon stochastic-optimal-control value
@@ -339,7 +347,7 @@ Everything the old edge asked you to assert about `P` is now derived:
 
 * `P := γ.condKernel`, and `p₀ ⊗ₘ P = γ` because `γ.fst = p₀` (`γ` is a coupling);
 * `expect μ V = ∫∫ V dP dp₀` because `γ.snd = μ` (`Measure.integral_compProd`);
-* the disintegrated budget equals `sinkhornObjective κ p₀ ν γ`, by `integral_compProd` on the
+* the disintegrated budget equals `sinkhornObjective sqCost κ p₀ ν γ`, by `integral_compProd` on the
   cost and `ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_integral` (the chain rule with
   `η := Kernel.const X ν`, whose `p₀`-marginal term vanishes) on the entropy;
 * `P x ≪ ν` and `Integrable (llr (P x) ν) (P x)` hold `p₀`-**a.e.**, because a finite conditional
@@ -348,23 +356,22 @@ Everything the old edge asked you to assert about `P` is now derived:
 * `hI_kl` is `integrable_toReal_klDiv_kernel`, and the two slice-integrability facts are
   `Measure.integrable_compProd_iff`.
 
-Residual hypotheses are the log-partition conditions on `ν`/`V`, which concern the dual and not
-the transport, plus `hV` and the finite second moments — the latter giving the transport cost's
-integrability exactly as in `wdrsb_cost_bound`. The plan itself comes from ball membership
+Residual hypotheses are the log-partition conditions on `ν`/`V`, which concern the dual and not the
+transport, plus `hV`. **No second moments are needed**: `IsSinkhornPlan.integrable_cost` is derived
+from the finiteness of the plan's `ℝ≥0∞` cost. The plan itself comes from ball membership
 (`ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall`), so no edge survives. -/
 theorem hasSinkhornDisintegration_of_isSinkhornPlan
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
     {p₀ ν μ : ProbabilityMeasure X} {κ b : ℝ} {γ : ProbabilityMeasure (X × X)}
-    (hplan : ForMathlib.OT.IsSinkhornPlan κ p₀ ν μ b γ) (V : X → ℝ)
+    (hplan : ForMathlib.OT.IsSinkhornPlan sqCost κ p₀ ν μ b γ) (V : X → ℝ)
     (hV : Integrable V (μ : Measure X))
-    (hp2 : HasSecondMoment p₀) (hμ2 : HasSecondMoment μ)
     (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
         (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X)) :
     HasSinkhornDisintegration p₀ ν V κ μ b := by
   classical
-  obtain ⟨hγ, hac, hfin, hbudget⟩ := hplan
+  obtain ⟨hγ, hac, hfin, hcγ, hbudget⟩ := hplan
   have hfstγ : Measure.map Prod.fst (γ : Measure (X × X)) = (p₀ : Measure X) := hγ.1
   have hsndγ : Measure.map Prod.snd (γ : Measure (X × X)) = (μ : Measure X) := hγ.2
   -- the conditional family is the coupling's conditional kernel
@@ -408,8 +415,6 @@ theorem hasSinkhornDisintegration_of_isSinkhornPlan
   have hVae : AEStronglyMeasurable V (Measure.map Prod.snd (γ : Measure (X × X))) := hsndγ ▸ hV.1
   have hVγ : Integrable (fun z : X × X => V z.2) (γ : Measure (X × X)) :=
     (integrable_map_measure hVae measurable_snd.aemeasurable).mp (hsndγ ▸ hV)
-  have hcγ : Integrable (fun z : X × X => sqCost z.1 z.2) (γ : Measure (X × X)) :=
-    ForMathlib.OT.integrable_normSq_sub_of_mem_couplings p₀ μ γ hγ hp2 hμ2
   have hVcp : Integrable (fun z : X × X => V z.2) ((p₀ : Measure X) ⊗ₘ P) := by rw [hdis]; exact hVγ
   have hccp : Integrable (fun z : X × X => sqCost z.1 z.2) ((p₀ : Measure X) ⊗ₘ P) := by
     rw [hdis]; exact hcγ
@@ -500,9 +505,11 @@ expected cost bounded by the Sinkhorn-DRO dual worst-case value.
   `Measure.condKernel` and the KL chain rule;
 * `sdrsb_cost_bound_of_disintegrations` runs the Donsker–Varadhan bound and lets `η ↓ 0`.
 
-The surviving hypotheses are checkable regularity: `hV`, the finite second moments (which give
-the transport cost's integrability, exactly as in `wdrsb_cost_bound`), and `h_exp`/`hI_lp`, which
-constrain the *dual* — the log-partition of `V` against `ν` — and say nothing about transport.
+The surviving hypotheses are checkable regularity: `hV`, and `h_exp`/`hI_lp`, which constrain the
+*dual* — the log-partition of `V` against `ν` — and say nothing about transport. **No second
+moments**: the plan's cost-integrability is a *field* of `IsSinkhornPlan`, derived from the
+finiteness of its `ℝ≥0∞` cost. (Contrast `wdrsb_cost_bound`, whose `otCost` is still real-valued
+and so must exclude infinite-second-moment junk by hypothesis.)
 
 **`0 < lam`** in the dual set (not `0 ≤ lam`): at `lam = 0` the Lean `logPartition` degenerates
 to `0` (junk from `0/0`) rather than the paper's `λ↓0` ess-sup limit, so the `λ=0` term is
@@ -510,9 +517,8 @@ excluded (documented limitation — the ess-sup convention is unencoded). -/
 theorem sdrsb_cost_bound
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
-    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ ν κ ε)
+    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall sqCost p₀ ν κ ε)
     (hV : Integrable V (μ : Measure X))
-    (hp2 : HasSecondMoment p₀) (hμ2 : HasSecondMoment μ)
     (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
         (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
@@ -521,9 +527,9 @@ theorem sdrsb_cost_bound
       ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } :=
   sdrsb_cost_bound_of_disintegrations p₀ ν V κ ε hκ μ fun η hη => by
-    obtain ⟨γ, hplan⟩ :=
-      ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall p₀ ν μ κ ε η hκ hη hμ
-    exact hasSinkhornDisintegration_of_isSinkhornPlan hplan V hV hp2 hμ2 h_exp hI_lp
+    obtain ⟨γ, hplan⟩ := ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall
+      sqCost sqCost_nonneg measurable_sqCost p₀ ν μ κ ε η hκ hη hμ
+    exact hasSinkhornDisintegration_of_isSinkhornPlan hplan V hV h_exp hI_lp
 
 /-- **The SDRSB relaxation strengthened nothing.** The old edge — an *attained* disintegration of
 budget `≤ ε` — implies the near-optimal one (`b = ε ≤ ε + η`), so the card bound still follows
@@ -551,29 +557,27 @@ conjugate term to read `hVbdd` off; it is stated explicitly. -/
 theorem sdrsb_strong_duality
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
-    (hV : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε → Integrable V (μ : Measure X))
-    (hp2 : HasSecondMoment p₀)
-    (hmom : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε → HasSecondMoment μ)
+    (hV : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall sqCost p₀ ν κ ε → Integrable V (μ : Measure X))
     (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
         (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
     (hVbdd : BddAbove (Set.range V))
-    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε ∧
+    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall sqCost p₀ ν κ ε ∧
         expect μ V = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam }) :
-    droValue (sinkhornBall p₀ ν κ ε) V
+    droValue (sinkhornBall sqCost p₀ ν κ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
   -- the `BddAbove` gate is a consequence of `V` being bounded above
   have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-      μ ∈ sinkhornBall p₀ ν κ ε ∧ r = expect μ V } :=
+      μ ∈ sinkhornBall sqCost p₀ ν κ ε ∧ r = expect μ V } :=
     ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ V hVbdd hV
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
     · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ V, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
-      exact sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ (hV μ hμ) hp2 (hmom μ hμ) h_exp hI_lp
+      exact sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ (hV μ hμ) h_exp hI_lp
   · obtain ⟨μ, hμ, hμeq⟩ := hattain
     rw [← hμeq]
     exact le_csSup hbddP ⟨μ, hμ, rfl⟩

@@ -69,6 +69,7 @@ noncomputable def sinkhornDualObjective
 
 -- `strong_duality` (Theorem 1(II)) is proved below, after the weak-duality kernel it uses.
 
+omit [NormedAddCommGroup X] in
 /-- **Theorem 1(I) (Feasibility), necessity direction.** For a nonnegative regularizer
 `κ`, feasibility of `(Primal)` *requires* a nonnegative radius: if the Sinkhorn ball is
 nonempty then `0 ≤ ε`. Dependency-clean.
@@ -99,9 +100,9 @@ fidelity, `_`-prefixed per AGENTS.md.) This is also exactly why `sinkhornBall` i
 "`W_{κ,ν}` finite ∧ `toReal ≤ ε`" and not "`W_{κ,ν} ≤ ENNReal.ofReal ε`": the latter sends every
 negative radius to `0`, making the negative-radius ball `{μ | W_{κ,ν} = 0}`, which is nonempty
 when `μ̂ = ν = μ = δₐ` — and this theorem would be **false**. -/
-theorem primal_feasible_radius_nonneg
+theorem primal_feasible_radius_nonneg (c : X → X → ℝ)
     (μhat ν : ProbabilityMeasure X) (κ ε : ℝ) (_hκ : 0 ≤ κ)
-    (h : (sinkhornBall μhat ν κ ε).Nonempty) : 0 ≤ ε := by
+    (h : (sinkhornBall c μhat ν κ ε).Nonempty) : 0 ≤ ε := by
   obtain ⟨μ, -, hle⟩ := h
   exact le_trans ENNReal.toReal_nonneg hle
 
@@ -298,6 +299,7 @@ theorem sinkhorn_weak_duality_kernel
           rw [integral_add hI_c (hI_kl.const_mul κ), integral_const_mul]
         rw [e1, e2]; ring
 
+omit [NormedAddCommGroup X] in
 /-- **Theorem 1 (Strong Duality), part (II)** — `V = V_D`: the Sinkhorn-DRO worst-case
 value over the ball equals the log-partition dual. `le_antisymm` of `droValue ≤ dual`
 (each source's Sinkhorn cost bound, inlined from `sinkhorn_weak_duality_kernel` + `le_csInf`,
@@ -313,7 +315,7 @@ The `BddAbove` gate is **not** a hypothesis: `hfbdd` (`f` bounded above) gives i
 over `0 < lam` only, so there is no `lam = 0` conjugate term to read `hfbdd` off; it is explicit. -/
 theorem strong_duality
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
-    (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε →
+    (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε →
         ∃ P : X → Measure X,
           (∀ x, IsProbabilityMeasure (P x)) ∧ (∀ x, P x ≪ (ν : Measure X)) ∧
           expect μ f = (∫ x, (∫ y, f y ∂(P x)) ∂(μhat : Measure X)) ∧
@@ -329,10 +331,10 @@ theorem strong_duality
           (∀ lam, 0 < lam → Integrable
               (fun x => logPartition ν c f κ lam x) (μhat : Measure X)))
     (hfbdd : BddAbove (Set.range f))
-    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε ∧
+    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε ∧
         expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = sinkhornDualObjective μhat ν c f κ ε lam }) :
-    droValue (sinkhornBall μhat ν κ ε) f
+    droValue (sinkhornBall c μhat ν κ ε) f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = sinkhornDualObjective μhat ν c f κ ε lam } := by
   -- the `BddAbove` gate is a consequence of `f` being bounded above, not an assumption.
@@ -342,7 +344,7 @@ theorem strong_duality
   obtain ⟨M, hM⟩ := hfbdd
   have hfM : ∀ x, f x ≤ M := fun x => hM ⟨x, rfl⟩
   have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-      μ ∈ sinkhornBall μhat ν κ ε ∧ r = expect μ f } := by
+      μ ∈ sinkhornBall c μhat ν κ ε ∧ r = expect μ f } := by
     refine ⟨M, ?_⟩
     rintro r ⟨μ, hμ, rfl⟩
     obtain ⟨P, hP, -, hfdis, -, hf_P, -, -, -, hI_f, -, -, -⟩ := hSinkAll μ hμ

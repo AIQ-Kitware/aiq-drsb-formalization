@@ -67,7 +67,13 @@ noncomputable def prodMeasure (μ ν : ProbabilityMeasure X) : Measure (X × X) 
 
 /-- **Sinkhorn (entropic-OT) objective** for a coupling `γ` of the nominal `μhat` (first
 marginal) with a candidate, at regularizer `κ`, against an **external reference `νref`**:
-`𝔼_γ[‖x − y‖²] + κ · KL(γ ‖ μ̂ ⊗ νref)`.
+`𝔼_γ[c(x, y)] + κ · KL(γ ‖ μ̂ ⊗ νref)`.
+
+⚠ **Parametrized by the transport cost `c`, and it must be.** Wang–Gao–Xie Definition 1 states the
+entropic ball for a general cost. Hard-wiring `‖x − y‖²` here while a downstream theorem quantifies
+over its own `c` silently couples a *quadratic* ball to a *`c`*-budget, and the resulting hypothesis
+is not jointly satisfiable in the real problem — an edge that fails AGENTS.md §6's honesty test.
+`Drsb` instantiates `c := sqCost`.
 
 ⚠ The entropic reference is `μ̂ ⊗ νref` — the **nominal times an EXTERNAL reference `νref`**
 (the measure the worst-case is a.c. wrt: Lebesgue/Gaussian/counting), exactly as
@@ -76,9 +82,9 @@ the two coupling marginals; the external `νref` is what appears in the dual's
 log-partition `𝔼_{z∼νref}[e^{(f−λc)/(λκ)}]`, so ball and dual must share it. (An earlier
 version used `μ ⊗ μ̂` — the product of marginals — which mismatched the dual; see the audit
 note in `prose/sinkhorn-dro-duality.md` / AGENTS.md §6.) -/
-noncomputable def sinkhornObjective (κ : ℝ) (μhat νref : ProbabilityMeasure X)
+noncomputable def sinkhornObjective (c : X → X → ℝ) (κ : ℝ) (μhat νref : ProbabilityMeasure X)
     (γ : ProbabilityMeasure (X × X)) : ℝ :=
-  couplingCost2 γ + κ * klReal (γ : Measure (X × X)) (prodMeasure μhat νref)
+  couplingCost c γ + κ * klReal (γ : Measure (X × X)) (prodMeasure μhat νref)
 
 /-! ### The `ℝ≥0∞`-valued Sinkhorn objective
 
@@ -102,11 +108,11 @@ noncomputable def couplingCostENN (c : X → X → ℝ) (π : ProbabilityMeasure
 noncomputable def couplingCost2ENN (π : ProbabilityMeasure (X × X)) : ℝ≥0∞ :=
   couplingCostENN (fun x y => ‖x - y‖ ^ 2) π
 
-/-- **Sinkhorn objective, `ℝ≥0∞`-valued** — `𝔼_γ[‖x−y‖²] + κ·KL(γ ‖ μ̂⊗ν)` with no `toReal`.
+/-- **Sinkhorn objective, `ℝ≥0∞`-valued** — `𝔼_γ[c(x,y)] + κ·KL(γ ‖ μ̂⊗ν)` with no `toReal`.
 A singular `γ` scores `⊤` here, as it must. -/
-noncomputable def sinkhornObjectiveENN (κ : ℝ) (μhat νref : ProbabilityMeasure X)
+noncomputable def sinkhornObjectiveENN (c : X → X → ℝ) (κ : ℝ) (μhat νref : ProbabilityMeasure X)
     (γ : ProbabilityMeasure (X × X)) : ℝ≥0∞ :=
-  couplingCost2ENN γ
+  couplingCostENN c γ
     + ENNReal.ofReal κ * InformationTheory.klDiv (γ : Measure (X × X)) (prodMeasure μhat νref)
 
 /-- **Sinkhorn discrepancy** `W_{κ,ν}(μ̂, μ) = inf_{γ ∈ Π(μ̂, μ)} 𝔼_γ[‖x−y‖²] + κ·KL(γ ‖ μ̂⊗ν)`
@@ -116,8 +122,8 @@ disintegration/conditioning variable) and `μ` as second.
 
 `ℝ≥0∞`-valued, over `sinkhornObjectiveENN`: the infimum must not be reachable by singular
 couplings, whose real objective is the junk value `0`. -/
-noncomputable def Wkappa (κ : ℝ) (νref μhat μ : ProbabilityMeasure X) : ℝ≥0∞ :=
-  ⨅ γ ∈ couplings μhat μ, sinkhornObjectiveENN κ μhat νref γ
+noncomputable def Wkappa (c : X → X → ℝ) (κ : ℝ) (νref μhat μ : ProbabilityMeasure X) : ℝ≥0∞ :=
+  ⨅ γ ∈ couplings μhat μ, sinkhornObjectiveENN c κ μhat νref γ
 
 /-- **Sinkhorn ambiguity ball** `𝓑^ν_{ε,κ}(μ̂) = { μ : W_{κ,ν}(μ̂, μ) ≤ ε }` around the
 nominal `μhat`, with external reference `νref` (`κ` = regularizer, `ε` = radius).
@@ -127,9 +133,9 @@ The two agree for `ε ≥ 0`, but `ENNReal.ofReal` sends every negative radius t
 `ofReal` form would make the ball of a *negative* radius equal `{μ | W_{κ,ν} = 0}` — nonempty in
 the degenerate case `μ̂ = ν = μ = δₐ`, which would falsify
 `WangGaoXie2023.primal_feasible_radius_nonneg`. This form keeps a negative-radius ball empty. -/
-def sinkhornBall (μhat νref : ProbabilityMeasure X) (κ ε : ℝ) :
+def sinkhornBall (c : X → X → ℝ) (μhat νref : ProbabilityMeasure X) (κ ε : ℝ) :
     Set (ProbabilityMeasure X) :=
-  { μ | Wkappa κ νref μhat μ ≠ ⊤ ∧ (Wkappa κ νref μhat μ).toReal ≤ ε }
+  { μ | Wkappa c κ νref μhat μ ≠ ⊤ ∧ (Wkappa c κ νref μhat μ).toReal ≤ ε }
 
 /-- The DRO worst-case value of an objective `f` over an ambiguity set `𝓐`:
 `sup_{μ ∈ 𝓐} 𝔼_μ[f]`. -/

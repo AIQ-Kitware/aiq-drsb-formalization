@@ -58,8 +58,15 @@ REQUIRED_TEXT = {
     "README.md": (
         "Drsb.wdrsb_cost_bound",
         "Drsb.sdrsb_cost_bound",
+        "## Notable reusable formalization",
+        "ForMathlib.OT.dualValue_le_droValue",
+        "ForMathlib.Matrix.matrix_scaling_exists",
+        "ForMathlib.MeasureTheory.log_integral_exp_eq_sSup",
         "AI-discovered Doeblin/weighted-average",
         "Eveson--Nussbaum",
+        "## Critical vendored foundations",
+        "RemyDegenne/kolmogorov_extension4",
+        "mrdouglasny/gibbs-variational",
     ),
     "STATUS.md": (
         "Named capstone dependency reports",

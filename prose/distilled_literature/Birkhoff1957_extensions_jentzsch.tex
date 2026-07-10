@@ -25,16 +25,22 @@
 \maketitle
 
 \section*{Source map and scope}
+\begin{sloppypar}
 \begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{Birkhoff 1957 - Extensions of Jentzsch theorem - S0002-9947-1957-0087058-6.pdf}}
+\item[Primary source] \path{Birkhoff1957_extensions_jentzsch.pdf}
 \item[Coverage] The projective metric construction, contraction theorem, fixed-ray theorem, and the Jentzsch-type spectral-gap argument in Sections 2--8.
 \item[Source anchors]
 \begin{itemize}[leftmargin=2em]
-  \item Sections 2--4
-  \item Theorems 1--3
-  \item Sections 5--8
+  \item Section 2, equations (2)--(7)
+  \item Section 3, equation (8), Lemma 1, and Examples 1--3
+  \item Section 4, equations (9)--(9a), Theorem 1, and its two corollaries
+  \item Section 5, equations (10)--(12) and Theorem 2
+  \item Section 6, equations (13)--(15), Lemma 2, its two corollaries, and Theorem 3
+  \item Section 7, equations (16a)--(17), Lemma 3, its corollary, and Theorem 4
+  \item Section 8, equations (18)--(22), Theorem 5, and Lemma 4
 \end{itemize}
 \end{description}
+\end{sloppypar}
 
 The exposition below preserves the source proof order and proof technique.  Notation is normalized
 and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
@@ -248,7 +254,10 @@ where
 Fix a ray \(a\in C\).  Let \(A\) be the set of rays \(f\in C\) such that \(\theta(a,f;C)<\infty\).  Then \(A\) is a metric space under \(\theta(\cdot,\cdot;C)\) after identifying scalar multiples.
 \end{lemma}
 
-\begin{proof}[Modern proof sketch retaining the original content]
+\begin{proof}[Expansion of a proof omitted by the source]
+Birkhoff calls this fact well known and gives no proof.  The following order-theoretic expansion, in the standard modern formulation used by
+Lemmens--Nussbaum~\cite{LemmensNussbaum2013}, supplies the cited Hilbert-metric argument without
+changing any later source step.
 The projective line through any two comparable rays cuts the cone in a segment, so the distance between the two rays is the logarithm of the corresponding cross-ratio.  Positivity is immediate from the ordering of the four points on the segment.  Symmetry follows because the cross-ratio is inverted when the two interior points are interchanged, and the logarithm is taken in absolute value.  The triangle inequality is Hilbert's standard triangle inequality on a convex domain; in order notation it follows from
 \[
   M(x/z)\le M(x/y)M(y/z),
@@ -347,7 +356,7 @@ is finite.  More generally, write \(q=\lfloor n/r\rfloor\).  Applying the contra
 The right-hand side is summable in \(n\).  Hence, for \(m>n\), the triangle inequality gives
 \[
   \theta(fP^n,fP^m;C)
-  \le \sum_{k=n}^{m-1}\theta(fP^k,fP^{k+1};C)	o0.
+  \le \sum_{k=n}^{m-1}\theta(fP^k,fP^{k+1};C)\longrightarrow0.
 \]
 Thus \(\{fP^n\}\) is Cauchy in projective metric.  Completeness gives a projective limit ray \(c\in C\).
 
@@ -522,65 +531,196 @@ for some \(M<\infty\) and \(0<\rho<1\).
 \end{theorem}
 
 \begin{proof}
-Use \(C=L_+\).  The uniform positivity condition \eqref{eq:uniform-positive} gives finite projective diameter for \(P(C)\).  Hence the projective contraction theorem gives a unique eigen-ray and geometric convergence in projective metric.  The norm estimate \eqref{eq:norm-projective-control} converts projective convergence of normalized vectors into norm convergence on the unit sphere.
+Use $C=L_+$.  By the completeness corollary to Lemma 2, it remains only to prove that $CP$ has
+finite projective diameter.  For $f,g>0$, choose the scalars in the uniform-positivity condition so
+that
+\[
+ e\le fP\le Ke,
+ \qquad
+ e\le gP\le Ke.
+\]
+The four positive elements
+\[
+ KfP-gP,\qquad (K-1)fP,\qquad (K-1)gP,\qquad KgP-fP
+\]
+lie in the cone.  On the two-dimensional projective line through $fP$ and $gP$, these four points
+are perspective to the scalar quadruple
+\[
+ -1,\quad 0,\quad K-1,\quad K.
+\]
+Projective invariance of the cross-ratio therefore gives
+\[
+ \theta(fP,gP;L_+)\le\log K.
+\]
+Thus $CP$ has diameter at most $\log K$.  Theorem 1 yields the unique characteristic ray and
+geometric convergence in projective distance.  Equation \eqref{eq:norm-projective-control} converts
+that convergence, after normalization to the unit sphere, into the asserted Banach-lattice norm
+convergence.
 \end{proof}
 
 \section{Section 7: complementary invariant subspace}
-After constructing the leading positive ray, Birkhoff proves a spectral-gap statement.
-Let \(c>0\) be the positive eigenvector and \(cP=\gamma c\).  For \(f>0\), define \(\lambda_n\) and \(\mu_n\) by
-\begin{equation}
-  \lambda_n\gamma^n c\le fP^n\le \mu_n\gamma^n c,
-  \label{eq:lambda-mu-bracket}
-\end{equation}
-where \(\lambda_n\) is maximal and \(\mu_n\) minimal.  Applying \(P\) gives
+Let $P$ be uniformly positive, let $c>0$ be its normalized characteristic vector, and write
 \[
-  \lambda_n\le \lambda_{n+1}\le \mu_{n+1}\le \mu_n.
+ cP=\gamma c,
+ \qquad \gamma>0.
 \]
-Thus \(\lambda_n\) increases and \(\mu_n\) decreases.
+For $f>0$, Birkhoff defines $\lambda_n$ and $\mu_n$ as the largest and smallest scalars for which
+\begin{equation}
+ \lambda_n\gamma^n c\le fP^n\le\mu_n\gamma^n c.
+ \tag{16a}
+\end{equation}
+Applying $P$ and using $cP=\gamma c$ gives
+\begin{equation}
+ \lambda_n\le\lambda_{n+1}\le\mu_{n+1}\le\mu_n.
+ \tag{16b}
+\end{equation}
+Thus $(\lambda_n)$ increases and $(\mu_n)$ decreases.
 
 Set
 \[
-  r_n=fP^n-\lambda_n\gamma^n c,
-  \qquad
-  s_n=\mu_n\gamma^n c-fP^n.
+ r_n=fP^n-\lambda_n\gamma^n c,
+ \qquad
+ s_n=\mu_n\gamma^n c-fP^n.
 \]
-Then \(r_n,s_n\ge0\) and
+Then $r_n,s_n\ge0$ and
 \[
-  r_n+s_n=(\mu_n-\lambda_n)\gamma^n c.
+ r_n+s_n=(\mu_n-\lambda_n)\gamma^n c.
 \]
-Uniform positivity applied to \(r_n\) and \(s_n\) gives positive scalars \(a_n,b_n\) with
-\[
-  a_nc\le r_nP\le K a_nc,
-  \qquad
-  b_nc\le s_nP\le K b_nc.
-\]
-Combining these inequalities with the identity for \((r_n+s_n)P\) bounds \(a_n+b_n\) from below by a fixed fraction of \((\mu_n-\lambda_n)\gamma^{n+1}\).  Therefore
-\[
-  \mu_{n+1}-\lambda_{n+1}
-  \le (1-K^{-1})(\mu_n-\lambda_n).
-\]
-Consequently \(\lambda_n\uparrow M(f)\), \(\mu_n\downarrow M(f)\), and there are constants \(K_f<\infty\), \(0\le\rho<\gamma\) such that
+Uniform positivity, together with Lemma 2, gives $\alpha_n,\beta_n>0$ and a projective diameter
+bound $A$ such that
 \begin{equation}
-  |fP^n-M(f)\gamma^n c|\le K_f\rho^n c.
-  \label{eq:birkhoff-spectral-gap-bound}
+ \alpha_nc\le r_nP\le e^A\alpha_nc,
+ \qquad
+ \beta_nc\le s_nP\le e^A\beta_nc.
+ \tag{16c}
 \end{equation}
-Extending by lattice decomposition \(f=f^+-f^-\), the coefficient \(M(f)\) becomes a positive linear functional.  Its kernel is a complementary invariant subspace \(S\), and \eqref{eq:birkhoff-spectral-gap-bound} says that the spectral norm of \(P|_S\) is at most \((1-K^{-1})\gamma<\gamma\).
+Adding the inequalities and using $(r_n+s_n)P=(\mu_n-\lambda_n)\gamma^{n+1}c$ yields
+\begin{equation}
+ (\alpha_n+\beta_n)c
+ \le(\mu_n-\lambda_n)\gamma^{n+1}c
+ \le e^A(\alpha_n+\beta_n)c.
+ \tag{16d}
+\end{equation}
+On the other hand,
+\begin{align*}
+ fP^{n+1}
+ &=\lambda_n\gamma^{n+1}c+r_nP
+ \ge(\lambda_n\gamma^{n+1}+\alpha_n)c,\\
+ fP^{n+1}
+ &=\mu_n\gamma^{n+1}c-s_nP
+ \le(\mu_n\gamma^{n+1}-\beta_n)c.
+\end{align*}
+By extremality of $\lambda_{n+1}$ and $\mu_{n+1}$,
+\[
+ \lambda_{n+1}\ge\lambda_n+\gamma^{-n-1}\alpha_n,
+ \qquad
+ \mu_{n+1}\le\mu_n-\gamma^{-n-1}\beta_n.
+\]
+Subtracting and applying the right-hand inequality in (16d) gives
+\[
+ \mu_{n+1}-\lambda_{n+1}
+ \le(1-e^{-A})(\mu_n-\lambda_n).
+\]
+Hence both monotone sequences converge to a common limit $M(f)$, and
+\[
+ \mu_n-\lambda_n
+ \le(1-e^{-A})^{n-1}(\mu_1-\lambda_1).
+\]
+Returning to (16a) gives Birkhoff's Lemma 3: for each $f>0$ there are constants $M(f)>0$ and
+$K(f)<\infty$ such that
+\begin{equation}
+ |fP^n-M(f)\gamma^n c|\le K(f)\rho^n c,
+ \qquad
+ \rho=(1-e^{-A})\gamma<\gamma.
+ \tag{17}
+\end{equation}
+
+Every $f\in L$ has the lattice decomposition $f=f^+-f^-$.  Applying (17) to $f^+$ and $f^-$
+extends $M$ to a positive linear functional on $L$.  Let
+\[
+ S=\ker M.
+\]
+Equation (17) implies $SP\subseteq S$.  Moreover, on $S$ the spectral radius of $P$ is at most
+$(1-e^{-A})\gamma<\gamma$.  This is Theorem 4: the space decomposes into the leading positive axis
+$\R c$ and a complementary invariant subspace with strictly smaller spectral growth.
+
+\begin{remark}
+The source calls the bound in Theorem 4 the ``spectral norm.''  In modern terminology the proof
+controls the asymptotic growth/spectral radius on the invariant complement; it does not construct an
+orthogonal decomposition or claim that $P$ is normal.
+\end{remark}
 
 \section{Section 8: multiplicative processes}
-For a semigroup \(\{P_t\}_{t>0}\) of nonnegative linear operators on a Banach lattice, Birkhoff assumes the Chapman--Kolmogorov rule
+Let $(P_t)_{t>0}$ be a semigroup of nonnegative bounded linear maps on a Banach lattice:
+\begin{equation}
+ f>0\Longrightarrow fP_t>0,
+ \qquad
+ (fP_t)P_s=fP_{t+s}. \tag{18}
+\end{equation}
+The motivating kernel form is
+\begin{equation}
+ f(x;t+\tau)=\int p(x,y;\tau)f(y;t)\,dR(y),
+ \qquad p(x,y;\tau)>0. \tag{19}
+\end{equation}
+Assume $P_T$ is uniformly positive for some $T>0$.  Apply Theorem 4 to the discrete operator
+$P_T$.  There are $c>0$, $\gamma=e^{\beta T}>0$, a positive linear functional $m$, and
+$0\le\rho<\gamma$ such that
 \[
-  (fP_t)P_s=fP_{t+s}
+ \|fP_{nT}-m(f)\gamma^n c\|\le K(f)\rho^n.
 \]
-and positivity \(f>0\Rightarrow fP_t>0\).  If for some \(T>0\), \(P_T\) is uniformly positive, then the discrete theorem applied to \(P_T\) gives a leading eigenvector \(c\) and \(\gamma=\e^{\beta T}\).  For every \(f\),
+
+For $t>nT$, semigroup monotonicity of image diameter gives
+\begin{equation}
+ \Delta(CP_t)
+ =\Delta((CP_{t-nT})P_{nT})
+ \le\Delta(CP_{nT})\longrightarrow0. \tag{21}
+\end{equation}
+Therefore the characteristic ray selected by every $P_t$ is the same ray $c$.  The corresponding
+multiplicative eigenvalues form a positive scalar semigroup, hence are $e^{\beta t}$ for a unique
+real growth coefficient $\beta$.
+
+Write $f=m(f)c+r$ with $r\in\ker m$.  For $t=nT+s$ with $s$ in a bounded interval,
+\begin{align*}
+ \|fP_t-e^{\beta t}m(f)c\|
+ &=\|(fP_{nT}-m(f)\gamma^nc)P_s\|\\
+ &\le K(f)\rho^n\|P_s\|.
+\end{align*}
+The source obtains uniform boundedness of $\|P_s\|$ for $s$ in the required compact interval from
+the order bounds underlying (16d).  Choose $\sigma<\beta$ with $e^{\sigma T}=\rho$.  Absorbing the
+bounded remainder interval into the constant gives Theorem 5:
+\begin{equation}
+ \|fP_t-e^{\beta t}m(f)c\|
+ \le K^*(f)e^{\sigma t},
+ \qquad 0\le\sigma<\beta. \tag{20,22}
+\end{equation}
+
+The final Lemma 4 extends the completeness input from Banach lattices to complete vector lattices.
+From a projective Cauchy sequence one extracts a subsequence $(f_n)$ with
+$\theta(f_n,f_{n+1})<2^{-n}$.  Strong comparability gives
 \[
-  fP_{nT}=\e^{\beta nT}m(f)c+O(\rho^n).
+ |f_{n+1}-f_n|
+ \le(e^{2^{-n}}-1)|f_n|<2^{-n}|f_n|.
 \]
-Uniform boundedness of \(P_t\) for \(0\le t\le 2T\) fills in intermediate times and yields
-\[
-  \|fP_t-\e^{\beta t}m(f)c\|\le K^*\e^{\sigma t},
-  \qquad 0\le \sigma<\beta.
-\]
-This is Birkhoff's asymptotic-growth theorem for multiplicative processes.
+Induction bounds all $f_n$ by a common order interval.  Order completeness then produces the
+supremum/limit, and the same estimates show relative-uniform and intrinsic convergence.  Hence
+each projective component is complete.
+
+\section{Source-faithfulness notes}
+\begin{itemize}[leftmargin=2em]
+\item Birkhoff does not prove the general Hilbert-metric triangle inequality in Section 3; he calls
+it well known and cites projective-geometry sources.  The explicit order proof above is additional
+exposition, not a source step.
+\item Equality in the finite-diameter contraction formula is justified in the source by taking
+preimages of nearby image pairs on segments whose lengths approach the diameter.  The argument is
+brief and presupposes that the supremal diameter can be approximated in this way.
+\item In Theorem 1 the source writes $cP=c$ after passing to projective representatives.  The
+mathematical conclusion is a fixed ray, equivalently $cP=\gamma c$ before normalization.
+\item Theorem 2's printed estimate contains typography that is difficult to parse in scanned copies.
+The invariant-cone conclusion uses exactly the displayed upper and lower estimates and the choice
+$M>K$; no sharper ratio is needed.
+\item The source's use of ``spectral norm'' in Theorem 4 predates current operator-norm terminology.
+The proof is an asymptotic spectral-gap estimate on $\ker M$.
+\end{itemize}
 
 \section{Finite-dimensional specialization and relation to Sinkhorn iteration}
 The finite-dimensional core of the argument is:
@@ -597,7 +737,7 @@ The finite-dimensional core of the argument is:
 \item Use projective contraction/nonexpansiveness to obtain uniqueness of cluster rays or asymptotic regularity.
 \end{enumerate}
 
-The original Birkhoff paper does not prove Sinkhorn's alternating nonlinear scaling iteration.  It supplies the projective contraction tool and the positive-matrix fixed-ray mechanism.  For Sinkhorn convergence one should combine this note with Franklin--Lorenz and Sinkhorn--Knopp.
+The original Birkhoff paper does not prove Sinkhorn's alternating nonlinear scaling iteration.  It supplies the projective contraction tool and the positive-matrix fixed-ray mechanism.  Eveson--Nussbaum give a later elementary proof of the Birkhoff--Hopf theorem~\cite{EvesonNussbaum1995}, while Franklin--Lorenz apply projective contraction to matrix scaling~\cite{FranklinLorenz1989}.  Those later arguments are supplementary references, not steps attributed to Birkhoff.
 
 \begin{thebibliography}{9}
 \bibitem{Birkhoff1957} G. Birkhoff, \emph{Extensions of Jentzsch's theorem}, Trans. Amer. Math. Soc. 85(1):219--227, 1957.

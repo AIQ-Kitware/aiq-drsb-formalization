@@ -1,224 +1,676 @@
 \input{preamble}
-\title{Optimal-Transport Distributional Model Risk: The Complete Duality Argument}
+\title{Quantifying Distributional Model Risk by Optimal Transport: Core Theorems and Proofs}
 \author{}
 \date{Blanchet and Murthy (2019)}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
-\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{blanchet-murthy-2019_quantifying-distributional-model-risk-OT__arXiv-1604.01446.pdf}}
-\item[Coverage] Theorem 1, its proof in Section 4, complementary slackness, and the primal-attainment criteria in Section 5.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Section 2, equations (2)--(9)
-  \item Theorem 1
-  \item Section 4, Propositions 5--7
-  \item Section 4, Lemma 8
-  \item Section 5, Proposition 9 and Corollary 1
-\end{itemize}
-\end{description}
+\begin{sloppypar}
+\begin{sourceguide}
+\item[Primary source] \path{BlanchetMurthy2019-1604.01446.pdf}
+\item[Target result] Theorem 1, including the universal-measurability step, dual attainment, and complementary slackness.
+\item[Proof route] Section 4 exactly: compact continuous-cost duality by Fenchel duality; compact lower-semicontinuous costs by monotone continuous approximation; noncompact localization by compact truncation and stitching; minimax; measurable near-maximizers; scalar dual attainment.
+\item[Additional result] Section 5, Proposition 9 and Corollary 1, giving sufficient conditions for existence of a primal optimizer.
+\item[Anchors] Equations (2)--(9), Propositions 5--7, equations (26)--(36), Lemma 8 and equations (37)--(38), proof of Theorem 1(b), Proposition 9, and Corollary 1.
+\end{sourceguide}
+\end{sloppypar}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+The reconstruction follows the source order and uses the source proof techniques.  It separates
+steps that the paper delegates to cited functional analysis or descriptive set theory from steps
+proved directly in the paper.  Notation is modernized, but the logical route is unchanged.
 
-\section{Setting}
-Let $S$ be a Polish space, let $\mu\in\Pcal(S)$, and let $\delta>0$.  The transportation cost
-$c:S\times S\to[0,\infty)$ and the payoff $f:S\to\R$ satisfy:
-\begin{enumerate}[label=(A\arabic*)]
-\item $c$ is lower semicontinuous, $c(x,y)=0$ exactly when $x=y$;
-\item $f$ is upper semicontinuous and $f\in L^1(\mu)$.
-\end{enumerate}
-For probability measures $\mu_1,\mu_2$ define
+\section{Primal and dual problems}
+Let $S$ be a Polish space with Borel sigma-algebra $\mathcal B(S)$, let $\mu\in\Pcal(S)$ be the
+baseline law, and let $\delta>0$.  The paper uses the universal sigma-algebra
 \[
+ \mathcal U(S)=\bigcap_{\nu\in\Pcal(S)}\mathcal B_\nu(S)
+\]
+to make the pointwise supremum in the dual measurable for every probability measure.
+
+\begin{assumption}[A1: transport cost]
+The cost $c:S\times S\to[0,\infty)$ is lower semicontinuous and
+$c(x,y)=0$ if and only if $x=y$.
+\end{assumption}
+
+\begin{assumption}[A2: payoff]
+The payoff $f:S\to\R$ is upper semicontinuous and belongs to $L^1(\mu)$.
+\end{assumption}
+
+For $\mu_1,\mu_2\in\Pcal(S)$ define the transport cost
+\begin{equation}
  d_c(\mu_1,\mu_2)
  :=\inf_{\pi\in\Pi(\mu_1,\mu_2)}\int c(x,y)\,\pi(dx,dy).
-\]
-Equivalently, optimize directly over couplings having first marginal $\mu$:
-\[
- \Phi_{\mu,\delta}
- :=\left\{\pi\in\Pcal(S\times S):\pi_1=\mu,
-        \ \int c\,d\pi\le\delta\right\},
- \qquad
- I:=\sup_{\pi\in\Phi_{\mu,\delta}}\int f(y)\,d\pi(x,y).
-\]
-A dual pair is a scalar $\lambda\ge0$ and a universally measurable function $\varphi$ satisfying
-\[
- f(y)-\lambda c(x,y)\le\varphi(x),\qquad x,y\in S.
-\]
-Let
-\[
- J:=\inf_{(\lambda,\varphi)}\left\{\lambda\delta+\int\varphi\,d\mu\right\}.
-\]
-For fixed $\lambda$ the least admissible majorant is the $c$-transform
-\[
- \varphi_\lambda(x):=\sup_{y\in S}\{f(y)-\lambda c(x,y)\}.
-\]
-
-\section{The strong-duality theorem}
-\begin{theorem}[Blanchet--Murthy]
-Under the assumptions above:
-\begin{enumerate}[label=(\alph*)]
-\item $I=J$;
-\item the dual infimum is attained by $(\lambda^*,\varphi_{\lambda^*})$ for some $\lambda^*\ge0$;
-\item a feasible coupling $\pi^*$ and a dual optimizer $(\lambda^*,\varphi_{\lambda^*})$ are optimal exactly when
-\begin{align}
- f(y)-\lambda^*c(x,y)&=\varphi_{\lambda^*}(x)
-       &&\pi^*\text{-a.s.},\label{eq:BM-contact}\\
- \lambda^*\left(\int c\,d\pi^*-\delta\right)&=0.\label{eq:BM-slack}
-\end{align}
-Consequently,
-\begin{equation}\label{eq:BM-univariate}
- I=\inf_{\lambda\ge0}
- \left\{\lambda\delta+\int
-       \sup_{y\in S}\bigl(f(y)-\lambda c(x,y)\bigr)\,\mu(dx)\right\}.
+ \tag{2}
 \end{equation}
+Lower semicontinuity and nonnegativity ensure that the infimum is attained~\cite[Theorem~4.1]{Villani2008}.  Hence the worst-case
+expectation can be written directly over couplings with prescribed first marginal:
+\begin{align}
+ I
+ &:=\sup\left\{\int f\,d\nu:d_c(\mu,\nu)\le\delta\right\}\\
+ &=\sup\left\{\int f(y)\,\pi(dx,dy):
+       \pi_X=\mu,\ \int c\,d\pi\le\delta\right\}. \tag{3}
+\end{align}
+Write this feasible set as $\Phi_{\mu,\delta}$ and its objective as $I(\pi)$.
+
+A dual pair consists of $\lambda\ge0$ and a universally measurable extended-real function
+$\phi$ satisfying
+\begin{equation}
+ \phi(x)+\lambda c(x,y)\ge f(y),\qquad x,y\in S. \tag{4}
+\end{equation}
+The dual objective and value are
+\[
+ J(\lambda,\phi)=\lambda\delta+\int\phi\,d\mu,
+ \qquad
+ J=\inf_{(\lambda,\phi)\in\Lambda_{c,f}}J(\lambda,\phi).
+\]
+Because $c(x,x)=0$, every feasible $\phi$ satisfies $\phi(x)\ge f(x)$; therefore the integral does
+not contain an indeterminate $\infty-\infty$.
+
+\subsection{Weak duality}
+For $\pi\in\Phi_{\mu,\delta}$ and $(\lambda,\phi)\in\Lambda_{c,f}$,
+\begin{align*}
+ J(\lambda,\phi)
+ &=\lambda\delta+\int\phi(x)\,d\pi\\
+ &\ge\lambda\delta+\int(f(y)-\lambda c(x,y))\,d\pi\\
+ &=\int f(y)\,d\pi+
+   \lambda\left(\delta-\int c\,d\pi\right)\\
+ &\ge I(\pi).
+\end{align*}
+Taking the infimum and supremum yields
+\begin{equation}
+ I\le J. \tag{5}
+\end{equation}
+
+For fixed $\lambda$, the least feasible majorant is
+\begin{equation}
+ \phi_\lambda(x)=\sup_{y\in S}\{f(y)-\lambda c(x,y)\}. \tag{7}
+\end{equation}
+Indeed, every feasible $\phi$ dominates $\phi_\lambda$, while
+$\phi_\lambda(x)+\lambda c(x,y)\ge f(y)$ by definition.
+
+\begin{theorem}[Theorem 1 of the source]\label{thm:BM-main}
+Under Assumptions A1--A2:
+\begin{enumerate}[label=(\alph*)]
+\item $I=J$.
+\item There exists $\lambda^*\ge0$ such that $(\lambda^*,\phi_{\lambda^*})$ is dual optimal.
+A primal-feasible $\pi^*$ and this dual pair are both optimal if and only if
+\begin{align}
+ f(y)-\lambda^*c(x,y)
+ &=\sup_{z\in S}\{f(z)-\lambda^*c(x,z)\}
+ &&\pi^*\text{-a.s.}, \tag{8a}\\
+ \lambda^*\left(\int c\,d\pi^*-\delta\right)&=0. \tag{8b}
+\end{align}
 \end{enumerate}
+Consequently,
+\begin{equation}
+ I=\inf_{\lambda\ge0}
+ \left\{\lambda\delta+
+ \int\sup_{y\in S}(f(y)-\lambda c(x,y))\,\mu(dx)\right\}. \tag{9}
+\end{equation}
 \end{theorem}
 
-\section{Weak duality and the least majorant}
-For every feasible $\pi$ and every dual pair,
+\section{Compact spaces with continuous cost: Proposition 5}
+\sourceanchor{Section 4.1, Proposition 5 and equations (26)--(27).}
+Assume first that $S$ is compact and $c$ is continuous.  Then $f$ is bounded above.
+Following the source, apply Fenchel duality in the form cited from Luenberger~\cite[Chapter~7]{Luenberger1997} on
 \[
- \int f(y)\,d\pi
- \le \int\varphi(x)\,d\pi+\lambda\int c\,d\pi
- \le \int\varphi\,d\mu+\lambda\delta.
+ X=C_b(S\times S),\qquad X^*=\Mcal(S\times S),
 \]
-Thus $I\le J$.  Moreover every admissible $\varphi$ dominates $\varphi_\lambda$ pointwise, so once
-$\varphi_\lambda$ is known to be universally measurable, the two-variable dual reduces to
-\eqref{eq:BM-univariate}.
+with the supremum and total-variation norms.
 
-\section{The compact continuous-cost case}
-Assume first that $S$ is compact and $c$ is continuous.  Put $X=C(S\times S)$ and identify
-$X^*$ with finite signed Borel measures.  Introduce convex functionals whose common variable is a
-continuous test function on $S\times S$:
+Let
+\[
+ \mathcal C=\{g:g(x,y)=\phi(x)+\lambda c(x,y),\
+       \phi\in C_b(S),\ \lambda\ge0\}
+\]
+and
+\[
+ \mathcal D=\{g\in C_b(S\times S):g(x,y)\ge f(y)\}.
+\]
+For $g=\phi+\lambda c$ set
+\[
+ \Phi(g)=\lambda\delta+\int\phi\,d\mu,
+ \qquad \Gamma(g)=0\quad(g\in\mathcal D).
+\]
+The primal quantity on the functional-analytic side is
+\begin{equation}
+ \inf_{g\in\mathcal C\cap\mathcal D}[\Phi(g)-\Gamma(g)]. \tag{26}
+\end{equation}
+
+\subsection{Conjugate of $\Phi$}
+For a signed finite measure $\pi$,
 \begin{align*}
- \Theta(u)&:=
- \begin{cases}
- 0,&u(x,y)\ge f(y)\text{ for all }x,y,\\
- +\infty,&\text{otherwise},
- \end{cases}\\
- \Xi(u)&:=
- \begin{cases}
- \displaystyle\int\varphi\,d\mu+\lambda\delta,
- &u(x,y)=\varphi(x)+\lambda c(x,y),\quad \lambda\ge0,\\
- +\infty,&\text{otherwise}.
- \end{cases}
+ \Phi^*(\pi)
+ &=\sup_{\lambda\ge0,\phi\in C_b(S)}
+ \left\{\int(\phi(x)+\lambda c(x,y))\,d\pi
+       -\lambda\delta-\int\phi\,d\mu\right\}\\
+ &=\sup_{\lambda\ge0,\phi\in C_b(S)}
+ \left\{\lambda\left(\int c\,d\pi-\delta\right)
+       +\int\phi(x)\,[\pi_X-\mu](dx)\right\}.
 \end{align*}
-The Fenchel duality theorem applies because one functional is continuous at a point in the effective
-domain of the other.  Computing conjugates gives:
-\begin{itemize}[leftmargin=2em]
-\item the dual variable must be a nonnegative measure $\pi$;
-\item finiteness in the $\varphi$ direction forces $\pi_1=\mu$;
-\item finiteness in the $\lambda$ direction forces $\int c\,d\pi\le\delta$;
-\item the resulting dual objective is $\int f(y)\,d\pi$.
-\end{itemize}
-Hence the Fenchel identity is precisely $I=J$.  Compactness of the feasible set and upper
-semicontinuity of $\pi\mapsto\int f(y)\,d\pi$ also yield a maximizing coupling.
+The supremum is finite exactly when
+\[
+ \pi_X=\mu,
+ \qquad \int c\,d\pi\le\delta,
+\]
+and then it equals $0$.  The equality of first marginals follows because bounded continuous
+functions separate finite measures on a Polish space; the budget condition follows by sending
+$\lambda$ to infinity when the coefficient is positive.
 
-\section{Compact spaces and lower semicontinuous costs}
-On a compact metric space, a nonnegative lower semicontinuous function is the pointwise increasing
-limit of continuous functions $c_n$.  Define the corresponding primal and dual values $I_n,J_n$.
-The continuous-cost result gives $I_n=J_n$.
+\subsection{Conjugate of $\Gamma$}
 
-Because $c_n\uparrow c$, every $c$-feasible coupling is $c_n$-feasible, so $I\le I_n$.  Conversely,
-choose nearly optimal $c_n$-feasible couplings.  Compactness gives a weakly convergent subnet or
-subsequence.  Lower semicontinuity and monotone approximation imply that any limit coupling is
-$c$-feasible, while upper semicontinuity of $f$ gives the required upper bound on the limiting
-payoff.  Therefore $I_n\downarrow I$.  The dual envelopes also decrease to the envelope for $c$,
-and monotone convergence gives $J_n\downarrow J$.  Thus $I=J$ for compact $S$ and lower
-semicontinuous $c$.
+\begin{lemma}[Appendix Lemma 15: signed measures cannot enter the dual domain]
+Let $S\times S$ be compact, let $f$ be upper semicontinuous, and let
+$\pi=\pi^+-\pi^-$ be the Jordan decomposition of a finite signed measure.  If $\pi^-$ is nonzero,
+then
+\[
+ \inf\left\{\int g\,d\pi:g\in C_b(S\times S),\ g(x,y)\ge f(y)\right\}=-\infty.
+\]
+\end{lemma}
+\begin{proof}
+Choose a Borel set $A$ with $\pi^+(A)=0<\pi^-(A)$.  By regularity of finite Borel measures on a
+Polish space, for every $\varepsilon>0$ there are a compact $K_\varepsilon$ and an open
+$O_\varepsilon$ such that
+\[
+ K_\varepsilon\subseteq A\subseteq O_\varepsilon,
+ \qquad
+ \pi^-(O_\varepsilon)-\varepsilon\le \pi^-(A)
+ \le \pi^-(K_\varepsilon)+\varepsilon,
+ \qquad
+ \pi^+(O_\varepsilon)\le\varepsilon.
+\]
+Urysohn's lemma gives $h:S\times S\to[0,1]$ continuous, equal to one on $K_\varepsilon$ and zero
+outside $O_\varepsilon$.  Hence
+\[
+ \int h\,d\pi
+ =\int h\,d\pi^+-\int h\,d\pi^-
+ \le \pi^+(O_\varepsilon)-\pi^-(K_\varepsilon)
+ \le 2\varepsilon-\pi^-(A).
+\]
+Choose $\varepsilon<\pi^-(A)/2$.  Since compactness and upper semicontinuity make
+$M:=\sup_S f$ finite, the continuous functions
+\[
+ g_n(x,y)=M+n h(x,y)
+\]
+satisfy $g_n(x,y)\ge f(y)$, while
+\[
+ \int g_n\,d\pi=M\pi(S\times S)+n\int h\,d\pi\longrightarrow-\infty.
+\]
+This is the regularity--Urysohn construction used in the source appendix.
+\end{proof}
 
-\section{Localization on a general Polish space}
-The family $\Phi_{\mu,\delta}$ need not be tight because its second marginals are not fixed.  The
-proof therefore localizes the maximization rather than invoking compactness of the whole feasible
-set.
+The lemma shows that if $\pi$ has a negative part, then
+$\inf_{g\in\mathcal D}\int g\,d\pi=-\infty$.  If $\pi\ge0$, then
+\[
+ \Gamma^*(\pi)=\inf_{g\in\mathcal D}\int g\,d\pi
+ =\int f(y)\,d\pi.
+\]
+The nontrivial direction approximates the bounded-above upper-semicontinuous function $f$ from
+above by a decreasing sequence of continuous functions.  One explicit approximation cited by the
+paper is
+\[
+ f_n(y)=\sup_{z\in S}\{f(z)-n d(y,z)\},
+ \qquad f_n\downarrow f.
+\]
+Monotone convergence then gives the stated infimum.
 
-Choose compact sets $K_n\uparrow S$ carrying asymptotically all of $\mu$ and on which the relevant
-integrals are controlled.  For any finite collection of candidate couplings, enlarge $K_n$ so that the
-supports needed by those couplings are contained in a common $\sigma$-compact set.  On such a
-localized support the compact-space duality theorem applies after one-point compactification and
-truncation.  The resulting statement is the following finite-family reduction: for every finite convex
-combination of localized candidates and every error tolerance, there is a feasible coupling whose
-payoff is within that tolerance of the corresponding localized robust envelope.
+Thus
+\begin{equation}
+ \sup_{\pi\in\dom\Phi^*\cap\dom\Gamma^*}
+ [\Gamma^*(\pi)-\Phi^*(\pi)]
+ =I. \tag{27}
+\end{equation}
 
-The localized couplings form a convex set $E$.  For a coupling parameter $\pi\in E$ let $S_\pi$ be
-its localized second-coordinate support and define
+\subsection{Fenchel qualification and attainment}
+The source chooses a point in the relative interiors of both constraint sets, for example
+\[
+ h(x,y)=c(x,y)+\sup_{z\in S}f(z),
+\]
+which is continuous and strictly dominates $f(y)$ away from the diagonal as needed for the
+qualification.  The epigraph of $\Gamma$ has nonempty interior.  Fenchel duality therefore equates
+(26) and (27), and the dual functional theorem also gives attainment on the measure side.  Hence
+there exists $\pi^*\in\Phi_{\mu,\delta}$ with
+\[
+ I(\pi^*)=I=J.
+\]
+The source first obtains the infimum over continuous $\phi$; since continuous functions are
+universally measurable, this infimum is at least the full dual infimum, and weak duality forces
+equality.
+
+\section{Compact spaces with lower-semicontinuous cost: Proposition 6}
+\sourceanchor{Section 4.1, Proposition 6 and equation (28).}
+Keep $S$ compact but allow merely lower-semicontinuous $c$.  Choose a nondecreasing sequence of
+continuous nonnegative costs $c_n\uparrow c$.  The paper cites the infimal-convolution construction
+\[
+ c_n(z)=\inf_{\tilde z\in S\times S}
+       \{c(\tilde z)+n d(z,\tilde z)\},
+\]
+where $d$ metrizes $S\times S$.
+
+Let $I_n,J_n$ be the primal and dual values with $c_n$.  Proposition 5 gives
+\begin{equation}
+ I(\pi_n)=I_n=J_n \tag{28}
+\end{equation}
+for some primal optimizer $\pi_n$.  Compactness of $S\times S$ yields a weakly convergent
+subsequence $\pi_{n_k}\Rightarrow\pi^*$.
+
+The first marginal passes to the limit.  For the cost,
+\begin{align*}
+ \int c\,d\pi^*
+ &=\lim_m\int c_m\,d\pi^*\\
+ &=\lim_m\lim_k\int c_m\,d\pi_{n_k}\\
+ &\le\liminf_k\int c_{n_k}\,d\pi_{n_k}\le\delta.
+\end{align*}
+The second line uses continuity of each fixed $c_m$ and weak convergence; the inequality uses
+$c_m\le c_{n_k}$ for $n_k\ge m$.  Thus $\pi^*$ is feasible.
+
+Because $f$ is upper semicontinuous and bounded above on compact $S$, the Portmanteau theorem gives
+\[
+ I(\pi^*)\ge\limsup_k I(\pi_{n_k})=
+ \limsup_k J_{n_k}.
+\]
+Since $c_n\le c$, every dual constraint for $c_n$ is stronger than the corresponding constraint for
+$c$, so $J_n\ge J$.  Hence $I(\pi^*)\ge J$.  Weak duality gives the reverse inequality, and therefore
+\[
+ I(\pi^*)=I=J.
+\]
+
+\section{Universal measurability of the least majorant}
+\sourceanchor{Section 4.2, equation (29).}
+For a closed $K\subseteq S$, let $\Lambda(K\times K)$ be the dual pairs satisfying the majorization
+constraint only on $K\times K$.  For fixed $\lambda$ and $u\in\R$,
+\[
+ \{x:\phi_\lambda(x)>u\}
+ =\proj_1\{(x,y):f(y)-\lambda c(x,y)>u\}.
+\]
+The set inside the projection is Borel because $f(y)-\lambda c(x,y)$ is upper semicontinuous.
+Its projection is analytic, and analytic subsets of a Polish space belong to the universal
+sigma-algebra~\cite[Chapter~7]{BertsekasShreve1978}.  Thus $\phi_\lambda$ is universally measurable.  This is why the source formulates
+the dual over $\mathcal U(S)$ rather than only the Borel sigma-algebra.
+
+\section{Localization to a sigma-compact support: Proposition 7}
+\sourceanchor{Section 4.3, Proposition 7 and equations (30)--(35).}
+Let $\pi$ have first marginal $\mu$, finite transport cost, and finite payoff integral.  Define
+\[
+ S_\pi=\supp(\pi_X)\cup\supp(\pi_Y).
+\]
+The proposition proves
+\begin{equation}
+ \inf_{(\lambda,\phi)\in\Lambda(S_\pi\times S_\pi)}J(\lambda,\phi)
+ \le I. \label{eq:BM-prop7}
+\end{equation}
+
+\subsection{Compact exhaustion}
+Because probability measures on Polish spaces have sigma-compact support, choose increasing compact
+sets $S_n\subseteq S_\pi$ with union $S_\pi$ and, after enlarging them if necessary,
+\begin{align}
+ p_n:=\pi(S_n\times S_n)&\ge1-1/n, \tag{30a}\\
+ \int_{(S_n\times S_n)^c}c\,d\pi&\le\delta/n, \tag{30b}\\
+ \int_{(S_n\times S_n)^c}|f(y)|\,d\pi&\le1/n. \tag{30c}
+\end{align}
+Normalize the restriction
+\[
+ \pi_n=\frac{\pi|_{S_n\times S_n}}{p_n},
+ \qquad \mu_n=(\pi_n)_X,
+ \qquad \delta_n=\delta(1-1/n).
+\]
+On the compact space $S_n$, define the restricted primal and dual values $I_n,J_n$ as in source
+equations (31)--(32).  Proposition 6 gives a compact optimizer $\gamma_n^*$ with
+\begin{equation}
+ \int f(y)\,d\gamma_n^*=I_n=J_n. \tag{33}
+\end{equation}
+
+\subsection{Stitching}
+Construct a measure on the original space by
+\[
+ \widetilde\pi_n
+ =p_n\gamma_n^*+\pi|_{(S_n\times S_n)^c}.
+\]
+The first marginal is $\mu$: the first marginal of the first term is precisely the part of $\mu$
+coming from $S_n\times S_n$, while the second term restores the omitted part.  Its cost obeys
+\[
+ \int c\,d\widetilde\pi_n
+ \le p_n\delta_n+\frac{\delta}{n}\le\delta.
+\]
+Hence $\widetilde\pi_n$ is primal feasible.  The payoff tail bound yields
+\[
+ I\ge I(\widetilde\pi_n)\ge p_n I_n-1/n,
+\]
+and consequently
+\begin{equation}
+ J_n\le p_n^{-1}(I+1/n). \tag{34}
+\end{equation}
+
+\subsection{Passage to a limiting multiplier}
+Choose an $\varepsilon$-optimal dual pair on $S_n$.  Replacing its potential by the least majorant
+on $S_n$ gives
+\[
+ \lambda_n\delta_n+
+ \int_{S_n}\sup_{z\in S_n}\{f(z)-\lambda_n c(x,z)\}\,\mu_n(dx)
+ \le J_n+\varepsilon.
+\]
+Writing $\mu_n$ in terms of $\pi$ gives source equation (35).  Since $c(x,x)=0$, the integrand is bounded below by $f(x)$ on $S_n$.  More explicitly,
+for all sufficiently large $n$, $p_n\ge1/2$, and therefore the integral term in (35) is bounded
+below by
+\[
+ -\frac1{p_n}\int f^-(x)\,\mu(dx)
+ \ge -2\int f^-\,d\mu.
+\]
+Together with (34), this gives
+\[
+ \lambda_n\delta_n
+ \le I+\varepsilon+2\int f^-\,d\mu+o(1).
+\]
+Since $\delta_n\to\delta>0$, the multipliers are bounded.  Select a subsequence
+$\lambda_{n_k}\to\lambda^*$.
+
+Fatou's lemma, $p_{n_k}\to1$, $\delta_{n_k}\to\delta$, and Appendix Lemma 16 below yield
+\[
+ I+\varepsilon\ge
+ \lambda^*\delta+
+ \int\sup_{z\in S_\pi}\{f(z)-\lambda^*c(x,z)\}\,\mu(dx).
+\]
+The right-hand side is a feasible restricted dual value, and $\varepsilon\downarrow0$ proves
+\eqref{eq:BM-prop7}.
+
+
+\subsection{Appendix Lemma 16: expanding compact sets and varying multipliers}
+\sourceanchor{Appendix B.3, Lemma 16 and equation (54).}
+The limit passage above uses the following lower-limit inequality.  Let $S_n$ increase, let
+$\lambda_n\to\lambda^*\ge0$, fix $x\in S$, and write
+\[
+ g_x(z,\lambda)=f(z)-\lambda c(x,z),
+ \qquad
+ \overline\lambda_N=\sup_{m\ge N}\lambda_m.
+\]
+Then
+\begin{equation}
+ \liminf_{n\to\infty}\sup_{z\in S_n}g_x(z,\lambda_n)
+ \ge
+ \sup_{z\in\bigcup_nS_n}g_x(z,\lambda^*).
+ \label{eq:BM-lemma16}
+\end{equation}
+Indeed,
+\begin{align*}
+ \liminf_n\sup_{z\in S_n}g_x(z,\lambda_n)
+ &=\sup_N\inf_{m\ge N}\sup_{z\in S_m}g_x(z,\lambda_m)\\
+ &\ge\sup_N\inf_{m\ge N}\sup_{z\in S_N}g_x(z,\lambda_m)\\
+ &\ge\sup_N\sup_{z\in S_N}\inf_{m\ge N}g_x(z,\lambda_m)\\
+ &=\sup_N\sup_{z\in S_N}g_x(z,\overline\lambda_N). \tag{54}
+\end{align*}
+The first inequality uses $S_N\subseteq S_m$ for $m\ge N$; the second is the elementary
+$\inf\sup\ge\sup\inf$ inequality; and the last equality uses $c\ge0$, which makes $g_x$ decreasing
+in its second argument.
+
+It remains to identify the last supremum.  Because $\overline\lambda_N\downarrow\lambda^*$,
+\[
+ \sup_N\sup_{z\in S_N}g_x(z,\overline\lambda_N)
+ \le \sup_{z\in\cup_nS_n}g_x(z,\lambda^*).
+\]
+For the reverse inequality, first suppose the right-hand side is finite.  Given $\eta>0$, choose
+$z_\eta\in\cup_nS_n$ with
+\[
+ g_x(z_\eta,\lambda^*)\ge
+ \sup_{z\in\cup_nS_n}g_x(z,\lambda^*)-\eta/2.
+\]
+For all large $N$, one has $z_\eta\in S_N$ and, by continuity in $\lambda$,
+$g_x(z_\eta,\overline\lambda_N)\ge g_x(z_\eta,\lambda^*)-\eta/2$.  This gives the reverse
+inequality after $\eta\downarrow0$.
+
+If the right-hand side is $+\infty$, lower semicontinuity of the pointwise supremum in $\lambda$ and $\overline\lambda_N\to\lambda^*$ allow us to choose $N_k$ so that
+$\sup_{z\in\cup_nS_n}g_x(z,\overline\lambda_{N_k})>k$, then choose $z_k$ in the union with value at
+least $k/2$.  Let $M_k$ be large enough that $z_k\in S_{M_k}$ and put $L_k=N_k\vee M_k$.  Since
+$S_{M_k}\subseteq S_{L_k}$ and $\overline\lambda_{L_k}\le\overline\lambda_{N_k}$,
+\[
+ \sup_{z\in S_{L_k}}g_x(z,\overline\lambda_{L_k})\ge k/2.
+\]
+Thus the left side is also infinite, proving \eqref{eq:BM-lemma16}.
+
+\begin{remark}
+The source statement is typeset with an unqualified limit, while its displayed proof is a
+lower-limit argument.  The lower-limit form above is exactly what is used with Fatou's lemma and
+requires no existence claim for the ordinary limit.
+\end{remark}
+
+\section{Minimax step for Theorem 1(a)}
+\sourceanchor{Proof of Theorem 1(a), equation (36), and Sion's minimax theorem.}
+Assume $I<\infty$; if $I=\infty$, weak duality already gives $J=\infty$.  Let $\mathcal E$ be the
+convex set of probability measures satisfying the three hypotheses of Proposition 7.  For
+$\pi\in\mathcal E$ define
 \[
  T(\lambda,\pi)
- :=\lambda\delta+
-   \int\sup_{y\in S_\pi}\{f(y)-\lambda c(x,y)\}\,\mu(dx).
+ =\lambda\delta+
+ \int\sup_{y\in S_\pi}\{f(y)-\lambda c(x,y)\}\,\mu(dx).
 \]
-For fixed $\pi$, $T$ is convex and lower semicontinuous in $\lambda$; for fixed $\lambda$, its
-localized construction is concave in the coupling parameter.  An a priori upper bound on the useful
-multipliers restricts $\lambda$ to a compact interval $[0,L]$.  Sion's minimax theorem then gives
+Proposition 7 gives
 \[
- \inf_{0\le\lambda\le L}\sup_{\pi\in E}T(\lambda,\pi)
- =\sup_{\pi\in E}\inf_{0\le\lambda\le L}T(\lambda,\pi).
+ I\ge\sup_{\pi\in\mathcal E}\inf_{\lambda\ge0}T(\lambda,\pi).
 \]
-The compact localized duality result identifies the inner infima with attainable localized primal
-values.  Letting the localization expand and the errors vanish gives $J\le I$.  Together with weak
-duality this proves $I=J$ on the original Polish space.
+The source first restricts $\lambda$ to a compact interval.  Since the integrand is at least $f(x)$,
+\[
+ T(\lambda,\pi)\ge\lambda\delta+\int f\,d\mu.
+\]
+Choose $\lambda_{\max}$ so large that the latter lower bound exceeds $I+1$.  Then no minimizing
+multiplier lies above $\lambda_{\max}$, uniformly in $\pi$.
 
-\section{Measurability and near-maximizing selectors}
-For fixed $\lambda$, the function
-\[
- (x,y)\longmapsto f(y)-\lambda c(x,y)
-\]
-is upper semicontinuous.  Its pointwise supremum over $y$ is upper semianalytic, hence universally
-measurable.  More concretely, for each $n$ the set
-\[
- A_n:=\left\{(x,y):f(y)-\lambda c(x,y)
-                 \ge\varphi_\lambda(x)-\frac1n\right\}
-\]
-is analytic and has nonempty sections.  The Jankov--von Neumann selection theorem yields a
-universally measurable map $T_n$ with $(x,T_n(x))\in A_n$.  Therefore
-\[
- f(T_n(x))-\lambda c(x,T_n(x))
- \ge \varphi_\lambda(x)-\frac1n.
-\]
-The coupling $(\Id,T_n)_\#\mu$ realizes the pointwise envelope up to $1/n$.  Truncation and Fatou's
-lemma handle the possible lack of a common integrable lower bound.  This selection argument is the
-mechanism by which pointwise robust responses are converted into admissible transport plans.
-
-\section{Dual attainment}
-Define the one-dimensional objective
-\[
- g(\lambda):=\lambda\delta+\int\varphi_\lambda\,d\mu.
-\]
-It is convex as a supremum of affine functions followed by integration.  It is lower semicontinuous:
-if $\lambda_n\to\lambda$, upper semicontinuity of $f-\lambda c$ and the measurable-envelope
-construction yield the required liminf inequality.  Also
-\[
- \varphi_\lambda(x)\ge f(x)
-\]
-because $c(x,x)=0$, so
-\[
- g(\lambda)\ge \lambda\delta+\int f\,d\mu\longrightarrow+\infty
- \qquad(\lambda\to\infty).
-\]
-Thus $g$ attains its minimum at some finite $\lambda^*\ge0$, and
-$(\lambda^*,\varphi_{\lambda^*})$ is a dual optimizer.
-
-\section{Complementary slackness}
-For any feasible $\pi$ and dual optimizer,
+For fixed $\pi$, $T(\lambda,\pi)$ is convex and lower semicontinuous in $\lambda$: it is an integral
+of pointwise suprema of affine functions, with an integrable lower bound.  For fixed $\lambda$ it is
+concave in $\pi$.  Indeed, if $\pi=\alpha\pi_1+(1-\alpha)\pi_2$, then
+$S_\pi$ contains both $S_{\pi_1}$ and $S_{\pi_2}$, hence
 \begin{align*}
- 0&\le \int\bigl(\varphi_{\lambda^*}(x)+\lambda^*c(x,y)-f(y)\bigr)\,d\pi,\\
- 0&\le \lambda^*\left(\delta-\int c\,d\pi\right).
+ T(\lambda,\pi)
+ &\ge \lambda\delta+
+ \int\max_{i=1,2}
+ \sup_{y\in S_{\pi_i}}(f(y)-\lambda c(x,y))\,d\mu\\
+ &\ge\alpha T(\lambda,\pi_1)+(1-\alpha)T(\lambda,\pi_2).
 \end{align*}
-The sum of these two nonnegative quantities is exactly the dual objective minus the primal
-objective.  Equality of the primal and dual values therefore holds if and only if each term vanishes.
-The first integrand is nonnegative, so its integral is zero exactly when the contact condition
-\eqref{eq:BM-contact} holds $\pi$-almost surely.  The second term is precisely
-\eqref{eq:BM-slack}.  This proves the optimizer characterization.
+Sion's minimax theorem~\cite{Sion1958} therefore gives
+\begin{equation}
+ \sup_{\pi\in\mathcal E}\inf_{\lambda\in[0,\lambda_{\max}]}T(\lambda,\pi)
+ =\inf_{\lambda\in[0,\lambda_{\max}]}
+   \sup_{\pi\in\mathcal E}T(\lambda,\pi). \tag{36}
+\end{equation}
+The remaining task is to replace the supremum over the support $S_\pi$ by a supremum over all of
+$S$ inside the integral.  This is Lemma 8.
 
-\section{Interpretation}
-At a positive optimal multiplier, an optimal coupling spends the full transport budget and is
-concentrated on pairs $(x,y)$ for which $y$ maximizes the penalized payoff
-$f(y)-\lambda^*c(x,y)$.  If the optimal multiplier is zero, the budget may be slack and the coupling
-is supported on global maximizers of $f$.  Thus the theorem is both a scalar duality formula and a
-structural description of worst-case transport.
+\section{Measurable near-maximizers: Lemma 8}
+\sourceanchor{Lemma 8 and equations (37)--(38).}
+Fix $\lambda\ge0$ and set
+\[
+ g(x,y)=f(y)-\lambda c(x,y),
+ \qquad \phi_\lambda(x)=\sup_{y\in S}g(x,y).
+\]
+The claim is
+\begin{equation}
+ \sup_{\pi\in\mathcal E}
+ \int\sup_{y\in S_\pi}g(x,y)\,d\mu
+ =\int\phi_\lambda(x)\,d\mu. \label{eq:BM-lemma8}
+\end{equation}
+The ``$\le$'' direction is immediate because $S_\pi\subseteq S$.
 
-\input{references_manual}
+For the reverse inequality, the paper discretizes the range of $g$.  For $n\ge1$ and integers
+$k\le n^2$, set
+\[
+ A_{k,n}=\{(x,y):(k-1)/n\le g(x,y)\le k/n\}
+\]
+and remove projections of higher bins:
+\[
+ B_{k,n}=\proj_1(A_{k,n})\setminus
+          \bigcup_{j>k}\proj_1(A_{j,n}).
+\]
+The $B_{k,n}$ are disjoint analytic sets.  By the Jankov--von Neumann selection theorem~\cite[Chapter~7]{BertsekasShreve1978}, for each
+nonempty bin there is a universally measurable selector $\gamma_k$ on $\proj_1(A_{k,n})$ with
+\begin{equation}
+ (k-1)/n\le g(x,\gamma_k(x))\le k/n. \tag{37}
+\end{equation}
+Define the pasted selector
+\[
+ \Gamma_n(x)=
+ \begin{cases}
+  \gamma_k(x),&x\in B_{k,n}\text{ for some }k\le n^2,\\
+  x,&\text{otherwise}.
+ \end{cases}
+\]
+It is universally measurable.  Because $g(x,x)=f(x)$, the fallback point guarantees
+\[
+ \sup\{g(x,y):g(x,y)\le n\}-1/n
+ \le g(x,\Gamma_n(x))\le f(x)\vee n.
+\]
+Therefore
+\begin{equation}
+ \phi_\lambda(x)\le\liminf_{n\to\infty}g(x,\Gamma_n(x))\le\infty. \tag{38}
+\end{equation}
+
+Let
+\[
+ \pi_n(dx,dy)=\mu(dx)\delta_{\Gamma_n(x)}(dy).
+\]
+The truncation bounds make $c$ and $f(y)$ integrable under $\pi_n$, so $\pi_n\in\mathcal E$, and
+$S_{\pi_n}$ contains $\supp\mu$.  Fatou's lemma gives
+\begin{align*}
+ \liminf_n\int\sup_{y\in S_{\pi_n}}g(x,y)\,d\mu
+ &\ge\int\liminf_n g(x,\Gamma_n(x))\,d\mu\\
+ &\ge\int\phi_\lambda\,d\mu.
+\end{align*}
+This proves \eqref{eq:BM-lemma8}.  Substitution into the minimax identity yields $I\ge J$; together
+with weak duality this proves Theorem \ref{thm:BM-main}(a).
+
+\section{Dual attainment and complementary slackness}
+\sourceanchor{Proof of Theorem 1(b).}
+Define the scalar objective
+\[
+ G(\lambda)=\lambda\delta+\int\phi_\lambda\,d\mu.
+\]
+If $\lambda_n\to\lambda$, pointwise lower semicontinuity of the supremum of affine functions and
+Fatou's lemma with lower bound $f$ give
+\[
+ G(\lambda)\le\liminf_nG(\lambda_n).
+\]
+Also $G(\lambda)\ge\lambda\delta+\int f\,d\mu$, so $G(\lambda)\to\infty$ as
+$\lambda\to\infty$.  Thus $G$ has compact sublevel sets and attains its minimum at some
+$\lambda^*\ge0$.  The pair $(\lambda^*,\phi_{\lambda^*})$ is dual optimal.
+
+For primal-feasible $\pi^*$, the duality gap decomposes into two nonnegative terms:
+\begin{align*}
+ J(\lambda^*,\phi_{\lambda^*})-I(\pi^*)
+ &=\int[\phi_{\lambda^*}(x)+\lambda^*c(x,y)-f(y)]\,d\pi^*\\
+ &\quad+\lambda^*\left(\delta-\int c\,d\pi^*\right).
+\end{align*}
+The gap vanishes if and only if each term vanishes.  Since the first integrand is nonnegative, its
+integral is zero precisely when the contact condition (8a) holds almost surely.  The second term is
+(8b).  Conversely, those two equalities force equality of primal and dual objectives.
+
+\section{Existence of a primal optimizer: Proposition 9}
+\sourceanchor{Section 5, Proposition 9.}
+The source emphasizes that strong duality does not by itself imply primal attainment on a
+noncompact space.  Let $\Phi^0_{\mu,\delta}$ be the feasible plans satisfying in addition
+$f(x)\le f(y)$ almost surely; Appendix Corollary 3 shows that the supremum can be restricted to
+this class without changing its value.
+
+Fix a dual optimizer $(\lambda^*,\phi_{\lambda^*})$ with $\lambda^*>0$.  Proposition 9 assumes:
+\begin{description}[style=nextline,leftmargin=3cm]
+\item[(P-Compactness)] For each $\varepsilon>0$ there are a compact $K_\varepsilon\subseteq S$
+and $\gamma>0$ such that $\mu(K_\varepsilon)\ge1-\varepsilon$ and the closure of
+\[
+ \Gamma_\varepsilon=
+ \{(x,y):x\in K_\varepsilon,
+   f(y)-\lambda^*c(x,y)\ge\phi_{\lambda^*}(x)-\gamma\}
+\]
+is compact.
+\item[(P-USC)] If $\pi_n\in\Phi^0_{\mu,\delta}$ and $\pi_n\Rightarrow\pi$, then
+$\limsup_n I(\pi_n)\le I(\pi)$.
+\end{description}
+Under these properties there exists a primal optimizer.
+
+Choose $\pi_n\in\Phi^0_{\mu,\delta}$ with $I(\pi_n)\uparrow I$.  By the dual-gap identity,
+\[
+ \int[\phi_{\lambda^*}(x)-f(y)+\lambda^*c(x,y)]\,d\pi_n\to0.
+\]
+Markov's inequality and (P-Compactness) show that, for large $n$, all but an arbitrarily small mass
+of $\pi_n$ lies in a fixed compact set.  Hence $(\pi_n)$ is tight.  Prokhorov gives a weakly
+convergent subsequence $\pi_{n_k}\Rightarrow\pi^*$.  The first marginal passes to the limit, and
+lower semicontinuity of $c$ gives
+\[
+ \int c\,d\pi^*\le\liminf_k\int c\,d\pi_{n_k}\le\delta.
+\]
+Thus $\pi^*$ is feasible.  Property (P-USC) yields
+\[
+ I=\lim_kI(\pi_{n_k})\le I(\pi^*)\le I,
+\]
+so $\pi^*$ is optimal.
+
+\section{Concrete growth assumptions: Corollary 1}
+\sourceanchor{Section 5, Assumptions A3--A4 and Corollary 1.}
+Suppose $S$ is locally compact under a norm and:
+\begin{enumerate}[label=(A\arabic*),start=3]
+\item $c(x,y)\ge g(\|x-y\|)$ outside a bounded set, where $g(r)\uparrow\infty$;
+\item $f(y)-f(x)$ has controlled growth relative to an increasing function $h(\|x-y\|)$ and,
+for every $\varepsilon>0$, satisfies
+\[
+ f(y)-f(x)\le\varepsilon(1+c(x,y))
+\]
+for sufficiently large $\|x-y\|$.
+\end{enumerate}
+If $\lambda^*>0$, these conditions imply Proposition 9.
+
+For (P-Compactness), choose a compact $K_\varepsilon$ carrying most of $\mu$.  Pick
+$\varepsilon_0<\lambda^*$.  At large distance,
+\[
+ f(y)-f(x)-\lambda^*c(x,y)
+ \le(\varepsilon_0-\lambda^*)c(x,y),
+\]
+which tends uniformly to $-\infty$ for $x\in K_\varepsilon$.  Hence the near-contact set is contained
+in $K_\varepsilon$ times a bounded set, and local compactness makes its closure compact.
+
+For (P-USC), split the region into $\|x-y\|>C_\varepsilon$ and its complement.  The first part is
+controlled by $\varepsilon(1+c)$ and the uniform transport budget; the second by the bounded value
+of $h(C_\varepsilon)$.  The restriction $f(x)\le f(y)$ and the fixed first marginal control the
+negative tail.  This proves asymptotic uniform integrability of $f(y)$ under $\pi_n$.  Upper
+semicontinuity plus weak convergence then yields the desired upper-semicontinuity of the objective.
+
+\section{Source-faithfulness notes}
+\begin{commentarynotes}
+\item The proof genuinely uses universal measurability.  Replacing $\phi_\lambda$ by a Borel
+function without an additional measurable-envelope theorem would change the statement.
+\item The compact continuous-cost proof is not a direct measurable-selection proof; it is a
+Fenchel-duality argument on $C_b(S\times S)$ and finite signed measures.
+\item The noncompact proof does not pass directly to a limit of primal optimizers.  It first proves
+Proposition 7 for an arbitrary finite-cost plan by compact restriction and stitching, and only then
+uses minimax plus Lemma 8.
+\item The source writes several extended-real integrals informally.  Its footnote after Assumption A2
+explains why the primal supremum may be restricted to plans for which the negative part is finite.
+The reconstruction keeps that convention rather than silently imposing global integrability under
+all feasible second marginals.
+\item Proposition 9 is a separate attainment result.  Theorem 1 guarantees a dual optimizer but
+not, on a noncompact space, a primal optimizer.
+\end{commentarynotes}
+
+\begin{thebibliography}{9}
+\bibitem{BM2019}
+J. Blanchet and K. Murthy,
+\emph{Quantifying Distributional Model Risk via Optimal Transport},
+Mathematics of Operations Research 44(2):565--600, 2019.
+
+\bibitem{Luenberger1997}
+D. G. Luenberger,
+\emph{Optimization by Vector Space Methods},
+John Wiley \& Sons, 1997.
+
+\bibitem{BertsekasShreve1978}
+D. P. Bertsekas and S. E. Shreve,
+\emph{Stochastic Optimal Control: The Discrete-Time Case},
+Academic Press, 1978.
+
+\bibitem{Sion1958}
+M. Sion,
+``On general minimax theorems,''
+\emph{Pacific Journal of Mathematics} 8(1):171--176, 1958.
+
+\bibitem{Villani2008}
+C. Villani,
+\emph{Optimal Transport: Old and New},
+Springer, 2008.
+\end{thebibliography}
+
 \end{document}

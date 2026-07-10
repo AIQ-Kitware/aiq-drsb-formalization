@@ -7,15 +7,23 @@
       "source_files": [
         "domingoenrich-etal-2025_adjoint-matching-soc-finetuning__arXiv-2409.08861.pdf"
       ],
-      "scope": "Sections 3--5 and the appendices proving Proposition 1, Theorem 1, Proposition 2, and the critical-point guarantees for basic and practical Adjoint Matching.",
+      "scope": "Sections 2--5 and Appendices B.1--B.4, C.4, D.1--D.2, and E.1--E.3: the unified Flow-Matching/DDIM sampler, forward/backward schedule invariance, the memoryless-noise characterization, the SOC fine-tuning theorem, the continuous-adjoint identity, and critical-point uniqueness for basic and lean Adjoint Matching.",
       "anchors": [
-        "Section 3, equations (10)--(11)",
-        "Section 4, equations (16)--(26)",
-        "Proposition 1",
-        "Theorem 1",
-        "Section 5, equations (27)--(31)",
-        "Proposition 2",
-        "Appendix E, Propositions 6--8"
+        "Sections 2--3, equations (1)--(15)",
+        "Section 4, equations (16)--(26), Definition 1, Proposition 1, and Theorem 1",
+        "Section 5, equations (27)--(42) and Proposition 2",
+        "Appendix B.1--B.4, equations (44)--(109), Lemmas 1--2, and Propositions 3--4",
+        "Appendix C.4, equations (132)--(138) and Theorem 2 (Girsanov)",
+        "Appendix D.1--D.2, equations (139)--(179) and Theorem 3 (HJB)",
+        "Appendix E.1--E.3, equations (180)--(218), Proposition 6, Lemmas 5--6, and Propositions 7--8"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 single-document pass.",
+      "source_issues_recorded": [
+        "Proposition 4 is derived through a discrete Euler--Maruyama approximation and is explicitly described by the source as not completely formal.",
+        "The necessity direction of Proposition 1 is argued only in a generic/heuristic sense.",
+        "The terminal sign printed in source equation (166) conflicts with equations (165), (167), and the target tilt.",
+        "Source equations (216)--(218) switch from X^v to X^* and omit the control Jacobian unless the control is state-independent.",
+        "Classical PDE, differentiation, and conditional-Gronwall steps require regularity and integrability assumptions not collected in the source theorem statements."
       ]
     },
     "Birkhoff1957_extensions_jentzsch.tex": {
@@ -23,11 +31,25 @@
       "source_files": [
         "Birkhoff 1957 - Extensions of Jentzsch theorem - S0002-9947-1957-0087058-6.pdf"
       ],
-      "scope": "The projective metric construction, contraction theorem, fixed-ray theorem, and the Jentzsch-type spectral-gap argument in Sections 2--8.",
+      "scope": "Sections 2--8: the line calculation, Hilbert metric on cones, exact finite-diameter contraction coefficient, fixed-ray theorem, positive matrix and integral-operator applications, uniformly positive Banach-lattice spectral gap, complementary invariant subspace, and multiplicative semigroups.",
       "anchors": [
-        "Sections 2--4",
-        "Theorems 1--3",
-        "Sections 5--8"
+        "Equations (2)--(9a)",
+        "Theorem 1 and corollaries",
+        "Equations (10)--(15), Theorems 2--3",
+        "Equations (16a)--(17), Lemma 3 and Theorem 4",
+        "Equations (18)--(22), Theorem 5 and Lemma 4"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 three-paper pass.",
+      "source_issues_recorded": [
+        "The general Hilbert-metric lemma is cited as well known rather than proved in the source.",
+        "The fixed-point statement is projective; a scalar normalization is needed to write cP=c rather than cP=gamma c.",
+        "Theorem 4 uses the historical phrase spectral norm for an asymptotic spectral-gap estimate.",
+        "The scanned typography in the Theorem 2 ratio estimate is ambiguous; the reconstruction preserves the inequalities sufficient for cone invariance."
+      ],
+      "supplementary_references": [
+        "LemmensNussbaum2013",
+        "EvesonNussbaum1995",
+        "FranklinLorenz1989"
       ]
     },
     "BlanchetMurthy2019_model_risk_ot.tex": {
@@ -35,13 +57,26 @@
       "source_files": [
         "blanchet-murthy-2019_quantifying-distributional-model-risk-OT__arXiv-1604.01446.pdf"
       ],
-      "scope": "Theorem 1, its proof in Section 4, complementary slackness, and the primal-attainment criteria in Section 5.",
+      "scope": "Theorem 1 and its full Section 4 proof: compact Fenchel duality, monotone approximation of lower-semicontinuous costs, sigma-compact localization and stitching, Sion minimax, Jankov--von Neumann near-maximizers, scalar dual attainment, and complementary slackness; plus Proposition 9 and Corollary 1 on primal attainment.",
       "anchors": [
-        "Section 2, equations (2)--(9)",
-        "Theorem 1",
-        "Section 4, Propositions 5--7",
-        "Section 4, Lemma 8",
-        "Section 5, Proposition 9 and Corollary 1"
+        "Equations (2)--(9)",
+        "Propositions 5--7 and equations (26)--(36)",
+        "Lemma 8 and equations (37)--(38)",
+        "Proof of Theorem 1(b)",
+        "Proposition 9 and Corollary 1"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 three-paper pass.",
+      "source_issues_recorded": [
+        "The dual majorant is universally measurable through analytic-set projection; Borel measurability is not automatic.",
+        "The source uses an extended-real convention for primal objectives and explains the finite-negative-part reduction in a footnote.",
+        "Strong duality does not imply primal attainment on noncompact spaces; Proposition 9 adds separate compactness and upper-semicontinuity conditions.",
+        "Appendix Lemma 16 is printed with an unqualified limit, while its proof establishes the lower-limit inequality used in the main argument."
+      ],
+      "supplementary_references": [
+        "Luenberger1997",
+        "BertsekasShreve1978",
+        "Sion1958",
+        "Villani2008"
       ]
     },
     "BlanchetMurthy2019_theorem1.tex": {
@@ -49,13 +84,26 @@
       "source_files": [
         "blanchet-murthy-2019_quantifying-distributional-model-risk-OT__arXiv-1604.01446.pdf"
       ],
-      "scope": "A line-by-line reconstruction of Theorem 1(a)--(b), including the compact minimax reduction, exhaustion of the general Polish space, measurable selection, and complementary slackness.",
+      "scope": "Theorem 1 and its full Section 4 proof: compact Fenchel duality, monotone approximation of lower-semicontinuous costs, sigma-compact localization and stitching, Sion minimax, Jankov--von Neumann near-maximizers, scalar dual attainment, and complementary slackness; plus Proposition 9 and Corollary 1 on primal attainment.",
       "anchors": [
-        "Theorem 1",
-        "equations (7)--(9)",
-        "Propositions 5--7",
-        "Lemma 8",
-        "proof of Theorem 1(b)"
+        "Equations (2)--(9)",
+        "Propositions 5--7 and equations (26)--(36)",
+        "Lemma 8 and equations (37)--(38)",
+        "Proof of Theorem 1(b)",
+        "Proposition 9 and Corollary 1"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 three-paper pass.",
+      "source_issues_recorded": [
+        "The dual majorant is universally measurable through analytic-set projection; Borel measurability is not automatic.",
+        "The source uses an extended-real convention for primal objectives and explains the finite-negative-part reduction in a footnote.",
+        "Strong duality does not imply primal attainment on noncompact spaces; Proposition 9 adds separate compactness and upper-semicontinuity conditions.",
+        "Appendix Lemma 16 is printed with an unqualified limit, while its proof establishes the lower-limit inequality used in the main argument."
+      ],
+      "supplementary_references": [
+        "Luenberger1997",
+        "BertsekasShreve1978",
+        "Sion1958",
+        "Villani2008"
       ]
     },
     "CGP2021_sinkhorn_schrodinger_bridge.tex": {
@@ -64,14 +112,38 @@
         "CGP2021-2005.10963v3.pdf",
         "CGP2021-arXiv-2005.10963v3.tar.gz"
       ],
-      "scope": "The paper's central equivalences: dynamic and static Schrödinger problems, stochastic control, entropic transport/free energy, the Schrödinger system, and the finite Fortet--IPF--Sinkhorn convergence theorem.",
+      "scope": "Sections 5--8 core theorem chain: path-space entropy decomposition and dynamic/static reduction, Schrödinger factorization, Brownian and general-prior stochastic control, generalized HJB/Hopf--Cole verification, entropic optimal transport, the continuous Fortet fixed-point formulation, and the finite Hilbert-metric Sinkhorn theorem.",
       "anchors": [
-        "Sections 5.2--5.5",
-        "Section 6",
-        "Sections 7.1--7.3",
-        "Section 8.1--8.4",
-        "Theorem labeled Fundtheorem",
-        "Lemmas Linear, inversion, and compothm"
+        "Sections 5.2--5.5 and equations decomposition, staticindex, representation, optimaljoint, opt1--BConestep, girsanov, eq:regularizedOT",
+        "Section 6 and equations FDProblem, Lagrangian2, prioroptcond, HJB, generalizedschrodinger, optlaw",
+        "Sections 7.1 and 7.3",
+        "Sections 8.1--8.4, Theorem Fundtheorem, Lemmas Linear, inversion, compothm"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 three-paper pass.",
+      "source_issues_recorded": [
+        "The entropy disintegration and Girsanov formulas are cited rather than proved in the survey.",
+        "The variational and PDE calculations are formal unless the required regularity and boundary decay are supplied.",
+        "The generalized Schrödinger theorem is a verification theorem and does not prove PDE existence.",
+        "The continuous Fortet subsection states and interprets Fortet’s theorem but does not reproduce Fortet’s three-sequence proof.",
+        "The discrete proof first obtains a fixed ray and then uses total-mass conservation to show the ray multiplier is one; raw-vector convergence requires normalization control.",
+        "The source contains a repeated/incorrect discrete-system cross-reference."
+      ],
+      "supplementary_references": [
+        "Girsanov1960",
+        "KaratzasShreve1988",
+        "Fortet1940",
+        "Beurling1960",
+        "Jamison1974",
+        "Jamison1975",
+        "Follmer1988",
+        "Birkhoff1957",
+        "Bushell1973Projective",
+        "Bushell1973Hilbert",
+        "Sinkhorn1964",
+        "SinkhornKnopp1967",
+        "FranklinLorenz1989",
+        "EssidPavon2019",
+        "Leonard2019"
       ]
     },
     "CameronMartin1945_wiener_transformations.tex": {

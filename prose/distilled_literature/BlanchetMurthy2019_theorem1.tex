@@ -1,0 +1,143 @@
+\input{preamble}
+\title{Blanchet--Murthy, \emph{Quantifying Distributional Model Risk via Optimal Transport}:\\
+Theorem 1 (Strong Duality), in full}
+\author{Distilled literature note --- the baseline our Lean proof is compared against}
+\date{Source: \texttt{papers/BlanchetMurthy2019-1604.01446.pdf}, \S2.2--2.3 (pp.~4--7), \S4 (pp.~17--26)}
+\begin{document}
+\maketitle
+
+\section*{Purpose of this note}
+The mathematics \textbf{as it appears in \cite{BlanchetMurthy2019}}.  It is the independent baseline
+for \texttt{ForMathlib.OT.dualValue\_le\_droValue} (which discharges the Wasserstein \texttt{hge}),
+\texttt{BlanchetMurthy2019.wdro\_strong\_duality} and \texttt{GaoKleywegt2023.strong\_duality\_thm1}.
+Our Lean proof of the same theorem takes a \emph{completely different route} (\S\ref{sec:diff}); this
+note records theirs so the two can be diffed.
+
+\section{Setting (paper's own)}
+
+$S$ is a Polish space, $\mu\in\Pcal(S)$ the baseline measure, $\delta>0$ the radius.
+
+\paragraph{Assumption (A1).}  $c:S\times S\to\R_+$ is nonnegative, lower semicontinuous, and
+\[
+  \boxed{\;c(x,y)=0 \iff x=y.\;}
+\]
+
+\paragraph{Assumption (A2).}  $f\in L^1(d\mu)$ is upper semicontinuous.
+
+\paragraph{Optimal transport cost.}  $d_c(\mu_1,\mu_2):=\inf\{\int c\dd\pi : \pi\in\Pi(\mu_1,\mu_2)\}$.
+For nonnegative lower semicontinuous $c$ the infimum \textbf{is attained} (Villani (2008), Thm 4.1).
+
+\paragraph{Primal and dual.}  With
+$\Phi_{\mu,\delta}:=\{\pi\in\Pcal(S\times S): \text{first marginal }\mu,\ \int c\dd\pi\le\delta\}$ and
+$\Lambda_{c,f}:=\{(\lambda,\varphi):\lambda\ge0,\ \varphi\in mU(S;\R),\ f(y)-\lambda c(x,y)\le\varphi(x)\ \forall x,y\}$,
+\[
+  I:=\sup\Big\{\textstyle\int f(y)\dd\pi(x,y) : \pi\in\Phi_{\mu,\delta}\Big\},
+  \qquad
+  J:=\inf\Big\{\lambda\delta+\textstyle\int\varphi\dd\mu : (\lambda,\varphi)\in\Lambda_{c,f}\Big\}.
+\]
+
+\section{Theorem 1, verbatim}
+\begin{quote}
+Under (A1) and (A2):
+\begin{enumerate}[label=(\alph*)]
+\item $I=J$.
+\item For $\lambda\ge0$ define $\varphi_\lambda(x):=\sup_{y\in S}\{f(y)-\lambda c(x,y)\}$.  There exists a
+      dual optimizer of the form $(\lambda,\varphi_\lambda)$ for some $\lambda\ge0$.  Moreover feasible
+      $\pi^*\in\Phi_{\mu,\delta}$ and $(\lambda^*,\varphi_{\lambda^*})\in\Lambda_{c,f}$ are primal/dual
+      optimizers, $I(\pi^*)=J(\lambda^*,\varphi_{\lambda^*})$, \emph{iff}
+      \begin{align}
+        f(y)-\lambda^*c(x,y) &= \sup_{z\in S}\{f(z)-\lambda^*c(x,z)\}, \qquad \pi^*\text{-a.s.} \tag{8a}\\
+        \lambda^*\Big(\int c(x,y)\dd\pi^*(x,y)-\delta\Big) &= 0. \tag{8b}
+      \end{align}
+\end{enumerate}
+\end{quote}
+
+\paragraph{Remark 1 (the univariate dual, eq.~(9)) --- the form we formalize.}
+\begin{equation}\tag{9}
+  I \;=\; \inf_{\lambda\ge0}\Big\{\lambda\delta + \E_\mu\Big[\sup_{y\in S}\{f(y)-\lambda c(X,y)\}\Big]\Big\}.
+\end{equation}
+This follows from (a) together with $J(\lambda,\varphi_\lambda)\le J(\lambda,\varphi)$ for every
+$(\lambda,\varphi)\in\Lambda_{c,f}$: among all $\varphi$ dominating $f(y)-\lambda c(x,y)$, the
+$c$-transform $\varphi_\lambda$ is the pointwise least.  Measurability of $\varphi_\lambda$ (indeed
+$\varphi_\lambda\in mU(S;\R)$) is not immediate and is proved in \S4.
+
+\section{The paper's proof of Theorem 1(a)}
+
+\begin{distillation}
+\item \textbf{Weak duality} $I\le J$ is immediate from the definition of $\Lambda_{c,f}$: integrate
+      $f(y)\le \varphi(x)+\lambda c(x,y)$ against any $\pi\in\Phi_{\mu,\delta}$.
+\item \textbf{Compact $S$, continuous $c$ (Proposition 5).}  Take $X=C_b(S\times S)$, $X^*=M(S\times S)$
+      (bounded continuous functions, finite Borel measures; sup and total-variation norms).  Apply the
+      \textbf{Fenchel duality theorem} (Luenberger (1997), Ch.~7 Thm 1), exactly as in the standard
+      proof of Kantorovich duality on compact spaces (Villani (2003)).  This yields $I=J$ \emph{and}
+      existence of a primal optimizer $\pi^*$.
+\item \textbf{Compact $S$, lower semicontinuous $c$ (Proposition 6).}  Approximate $c$ from below by
+      continuous costs and pass to the limit.
+\item \textbf{General Polish $S$.}  The obstruction is that $\Phi_{\mu,\delta}$ is \emph{not tight}
+      when $S$ is non-compact --- unlike $\Pi(\mu,\nu)$ in Kantorovich duality.  Exhaust $S$ by compacts
+      $S_n$, let $E$ be the convex set of $\pi$ satisfying Proposition 7's conditions, and put
+      \[
+        T(\lambda,\pi) \;:=\; \lambda\delta + \int \sup_{y\in S_\pi}\{f(y)-\lambda c(x,y)\}\dd\mu(x).
+      \]
+      $T$ is \emph{concave in $\pi$} for fixed $\lambda$ and convex (indeed affine plus a sup of affines)
+      in $\lambda$.  Apply \textbf{Sion's minimax theorem} (Sion (1958)) on $E\times[0,\lambda_{\max}]$
+      to interchange $\sup_\pi\inf_\lambda = \inf_\lambda\sup_\pi$, and conclude $J\le I$.  With weak
+      duality, $J=I=\max\{I(\pi):\pi\in\Phi_{\mu,\delta}\}$.
+\item \textbf{Theorem 1(b)} then identifies the optimizer: the dual optimum is attained at some finite
+      $\lambda^*\ge0$ with $\varphi_{\lambda^*}$ the $c$-transform, and (8a)/(8b) are the
+      complementary-slackness characterisation.
+\end{distillation}
+
+\section{Where our Lean development differs}\label{sec:diff}
+
+\begin{formalizationnotes}
+\item \textbf{We formalize eq.~(9), not $I=J$ in the $(\lambda,\varphi)$ form.}  Our
+      \texttt{droValue \{m : otCost c m nu <= d\} f = sInf \{lam*d + expect nu phi\_lam : lam > 0\}} is the
+      univariate reformulation.  The reduction from $J$ to the $c$-transform (``$\varphi_\lambda$ is
+      pointwise least'') is folded into the statement rather than proved.
+\item \textbf{Entirely different proof.}  The paper uses \emph{Fenchel duality} on $C_b(S\times S)$ and
+      then \emph{Sion's minimax} after a compact exhaustion.  Mathlib has neither in usable form.  Our
+      \texttt{ForMathlib.OT.dualValue\_le\_droValue} instead proves the $\ge$ direction by
+      \begin{enumerate}[label=(\arabic*),leftmargin=2em]
+      \item a \emph{converse Lagrangian bound}: push $\nu$ forward along a \emph{measurable
+            $\varepsilon$-argmax} of the $c$-transform (\texttt{exists\_measurable\_eps\_argmax\_of\_separable});
+      \item \emph{supergradient existence} for a concave function on $\R$ (\texttt{exists\_nonneg\_multiplier'});
+      \item \emph{concavity and monotonicity of the DRO value function} $h(t)=\sup\{\E_\mu[f]: \exists\pi,\ \E_\pi[c]\le t\}$,
+            from convexity of the coupling set.
+      \end{enumerate}
+      Assembled by running (1) at $\lambda=\lambda^*+\eta$, never at $\lambda^*$.  So this is an
+      \emph{independent} verification of Theorem 1(a)/eq.~(9), not a transcription of the paper's argument.
+\item \textbf{No attainment anywhere.}  Theorem 1(b) asserts a dual optimizer $(\lambda^*,\varphi_{\lambda^*})$
+      \emph{exists}, and $\Phi_{\mu,\delta}$ is defined using the fact that $d_c$'s infimum is attained
+      (Villani Thm 4.1).  We deliberately use neither: \texttt{otCost} is an \texttt{sInf} with no
+      attainment, and an \texttt{sInf} never hands you a minimizer.  Hence the $\lambda^*+\eta$ trick.
+      \textbf{Theorem 1(b) --- existence of the dual optimizer and the complementary slackness (8a)/(8b)
+      --- is \emph{not} formalized.}  It is the natural next target, and is what the deferred
+      worst-case-measure existence theorems (\texttt{GaoKleywegt2023.worstCase\_structure\_cor1},
+      \texttt{MohajerinEsfahaniKuhn2018.worstCase\_exists}) still assume.
+\item \textbf{Our regularity is stronger; theirs is sharper.}  (A1) asks $c$ lower semicontinuous; we ask
+      $c$ \emph{continuous} (\texttt{hcc}), because the $\varepsilon$-argmax selector needs continuity in
+      the maximization variable on a separable domain.  (A2) asks $f$ upper semicontinuous and
+      $L^1(\mu)$; we ask $f$ continuous and \emph{bounded} ($|f|\le C$).  Both are strictly stronger.
+      Weakening $c$ to lsc would require a measurable-selection theorem we deliberately avoided.
+\item \textbf{(A1)'s second clause is exactly why Wasserstein needs no Slater.}  We never invoke
+      ``$c(x,y)=0\iff x=y$'' by name, but our assembly needs
+      \texttt{hne0 : (droValueSet c f nu 0).Nonempty} --- a \emph{zero-cost} feasible plan --- and the
+      diagonal coupling supplies it precisely because $c$ vanishes on the diagonal.  With $\delta>0$ the
+      radius is then automatically interior to the value function's domain $[0,\infty)$.
+      \emph{The entropic objective has no such zero}, which is the whole reason
+      \texttt{WangGaoXie2023.strong\_duality} carries a Slater hypothesis and this one does not.  See
+      \texttt{WangGaoXie2025\_sinkhorn\_dro\_theorem1.tex}.
+\item \textbf{$\lambda\ge0$ vs.\ $\lambda>0$.}  The paper's dual infimum ranges over $\lambda\ge0$; ours
+      over $\lambda>0$.  They agree: $\varphi_\lambda\uparrow \sup_y f$ as $\lambda\downarrow0$ by
+      monotone convergence, so the $\lambda=0$ value is the limit of the $\lambda>0$ values and cannot
+      lower the infimum.  We take $\lambda>0$ because the cost-integrability step needs $\lambda\ne0$.
+\end{formalizationnotes}
+
+\TODO{Formalize Theorem 1(b): existence of a finite dual optimizer $\lambda^*$ and the complementary
+slackness (8a)/(8b).  This is the missing ingredient behind the deferred worst-case-measure existence
+theorems.  Also read \S5 (sufficient conditions for a primal optimizer $\pi^*$) and record which of
+those conditions our \texttt{hattain}-style edges correspond to.}
+
+\input{references_manual}
+\end{document}

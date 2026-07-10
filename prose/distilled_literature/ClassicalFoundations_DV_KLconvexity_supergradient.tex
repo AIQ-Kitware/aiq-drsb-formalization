@@ -1,0 +1,170 @@
+\input{preamble}
+\title{Classical baselines for the \texttt{ForMathlib} upstream candidates:\\
+Donsker--Varadhan, convexity of relative entropy, supergradient existence,\\ and measurable selection}
+\author{Distilled literature note --- the baselines our Lean proofs are compared against}
+\date{Anchors marked \textsc{unverified} are stated from standard knowledge; the cited book is
+\emph{not} in \texttt{prose/papers/} and the theorem number has \textbf{not} been checked against it.}
+\begin{document}
+\maketitle
+
+\section*{Purpose and an honesty note}
+Four reusable results were proved in the course of the DRSB work and are now staged as Mathlib
+candidates (\texttt{Challenge/README.md}).  Each is classical, and each therefore needs a citable
+baseline to diff the Lean against.  \textbf{The source texts for this note are not in
+\texttt{prose/papers/}.}  The mathematics below is standard and stated with care; the \emph{theorem
+numbers} are recalled, not checked.  Every such anchor is tagged \textsc{unverified} and must be
+confirmed against the book before this note is used as a citation.  See
+\texttt{LITERATURE\_REFERENCES.md} \S1b.
+
+\section{Donsker--Varadhan / the Gibbs variational formula}
+
+\paragraph{The statement in the literature.}
+Let $\nu$ be a probability measure on a measurable space $(\Omega,\Fcal)$ and $f:\Omega\to\R$
+measurable with $\E_\nu[e^f]<\infty$.  Then
+\begin{equation}\label{eq:dv-gibbs}
+  \log \E_\nu\big[e^{f}\big]
+  \;=\; \sup_{\substack{\mu\in\Pcal(\Omega)\\ \mu\ll\nu}}
+        \Big\{\, \int f\dd\mu \;-\; \KL(\mu\,\|\,\nu) \,\Big\},
+\end{equation}
+and the supremum is \textbf{attained}, uniquely, at the \emph{Gibbs (tilted, exponentially twisted)}
+measure
+\[
+  \frac{d\nu_f}{d\nu} \;=\; \frac{e^{f}}{\E_\nu[e^{f}]}.
+\]
+\textsc{unverified anchor:} Dupuis--Ellis, \emph{A Weak Convergence Approach to the Theory of Large
+Deviations} (Wiley, 1997), Prop.~1.4.2; the change-of-measure inequality is Lemma~1.4.3(a).  Originally
+Donsker--Varadhan, CPAM 1975--1983.
+
+\paragraph{The literature's proof (one line).}  For $\mu\ll\nu$,
+\[
+  \int f\dd\mu - \KL(\mu\|\nu)
+  \;=\; \log\E_\nu[e^f] \;-\; \KL(\mu\,\|\,\nu_f),
+\]
+because $\log\frac{d\mu}{d\nu} = \log\frac{d\mu}{d\nu_f} + f - \log\E_\nu[e^f]$.  Since $\KL\ge0$ with
+equality iff $\mu=\nu_f$, \eqref{eq:dv-gibbs} and the attainment follow at once.
+
+\paragraph{Two different formulas, routinely conflated.}
+\begin{enumerate}[leftmargin=2em]
+\item \textbf{Gibbs form} \eqref{eq:dv-gibbs}: a supremum \emph{over measures}, \emph{attained} at
+      $\nu_f$.
+\item \textbf{Dual form}: $\KL(\mu\|\nu)=\sup_{g}\{\int g\dd\mu-\log\E_\nu[e^{g}]\}$, a supremum
+      \emph{over functions}, \emph{not} attained in general.
+\end{enumerate}
+They are Legendre transforms of each other, and only the first is an attainment statement.
+
+\begin{formalizationnotes}
+\item Lean: \texttt{ForMathlib.MeasureTheory.isGreatest\_donskerVaradhan} (Gibbs form, as an
+      \texttt{IsGreatest}) and \texttt{log\_integral\_exp\_eq\_sSup} (its \texttt{sSup} corollary).  The
+      dual form is \texttt{toReal\_klDiv\_eq\_sSup\_dvDualSet}.
+\item \textbf{We assume more than $\E_\nu[e^f]<\infty$}: our hypotheses are
+      \texttt{hf\_nu : Integrable (exp $\circ$ f) $\nu$} \emph{and}
+      \texttt{hf\_tilted : Integrable f ($\nu$.tilted f)}.  The second is needed because $\int f\dd\nu_f$
+      is a Bochner integral, which returns the junk value $0$ on a non-integrable function; the informal
+      statement quietly assumes it is well defined.
+\item \textbf{This distinction is load-bearing for us.}  The Sinkhorn converse Lagrangian bound is an
+      \emph{equality with an explicit witness} precisely because the \emph{Gibbs} supremum is attained;
+      the Wasserstein converse bound loses an $\varepsilon$ because the \emph{dual} supremum is not.
+      Confusing the two cost this project a wrong prediction.
+\item Mathlib has \texttt{Measure.tilted}, \texttt{llr}, \texttt{klDiv} and
+      \texttt{integral\_llr\_tilted\_right}, but \textbf{no Donsker--Varadhan statement}
+      (\texttt{grep -ril donsker Mathlib} returns nothing, checked 2026-07-10).
+\end{formalizationnotes}
+
+\section{Convexity of the relative entropy}
+
+\paragraph{The statement in the literature.}
+$\KL$ is \emph{jointly} convex: for $a\in[0,1]$ and probability measures $\mu_1,\mu_2,\nu_1,\nu_2$,
+\[
+  \KL\big(a\mu_1+(1-a)\mu_2 \,\big\|\, a\nu_1+(1-a)\nu_2\big)
+  \;\le\; a\,\KL(\mu_1\|\nu_1) + (1-a)\,\KL(\mu_2\|\nu_2).
+\]
+\textsc{unverified anchor:} Cover--Thomas, \emph{Elements of Information Theory} (2nd ed.), Thm~2.7.2
+(finite alphabets, via the log-sum inequality).  On a general measurable space the statement is the
+joint convexity of an $f$-divergence with $f(t)=t\log t$ (Csisz\'ar), equivalently convexity of the
+\emph{perspective} $(p,q)\mapsto p\log(p/q)$ on $\R_{>0}^2$.
+
+\paragraph{The literature's proof.}  The perspective function of a convex $f$ is jointly convex; apply
+it pointwise to the Radon--Nikodym derivatives and integrate.  Equivalently, on finite alphabets, the
+log-sum inequality
+$\sum_i a_i\log\frac{a_i}{b_i}\ \ge\ \big(\sum_i a_i\big)\log\frac{\sum_i a_i}{\sum_i b_i}$
+applied termwise.
+
+\begin{formalizationnotes}
+\item Lean: \texttt{ForMathlib.MeasureTheory.klDiv\_mix\_le}, \emph{convexity in the first argument
+      only}, with $\nu$ fixed --- which is all that distributionally robust optimization needs (the
+      reference measure $\hat\mu\otimes\nu$ does not move).  Joint convexity is strictly stronger and is
+      \textbf{not} formalized.
+\item \textbf{Stated in $\R_{\ge0}^\infty$, with no finiteness hypotheses.}  The $\R$-valued statement is
+      \emph{false} without knowing the mixture's KL is finite, since \texttt{toReal} sends $\infty$ to
+      the junk value $0$.  The $\R_{\ge0}^\infty$ form has no bad branch and \emph{derives} finiteness:
+      \texttt{klDiv\_mix\_ne\_top} and \texttt{toReal\_klDiv\_mix\_le} are its corollaries.
+\item Our proof is the perspective/$f$-divergence route in Mathlib's idiom:
+      \texttt{klDiv\_eq\_lintegral\_klFun\_of\_ac} writes
+      $\KL(\mu\|\nu)=\int^-\!\!\texttt{ofReal}(\texttt{klFun}(\tfrac{d\mu}{d\nu}))\dd\nu$ with
+      $\texttt{klFun}(x)=x\log x+1-x$, and \texttt{convexOn\_klFun} compares the integrands pointwise.
+\item Mathlib has \texttt{klDiv\_smul\_same} and \texttt{klDiv\_smul\_right\_eq\_smul\_left} but
+      \textbf{no convexity of \texttt{klDiv} in either argument}, in $\R$ or $\R_{\ge0}^\infty$ (checked
+      2026-07-10).
+\end{formalizationnotes}
+
+\section{Supergradient existence for a concave function on $\R$}
+
+\paragraph{The statement in the literature.}
+If $g:\R^n\to\R\cup\{+\infty\}$ is proper convex, then $\partial g(x)\neq\emptyset$ for every
+$x\in\operatorname{ri}(\operatorname{dom} g)$.  \textsc{unverified anchor:} Rockafellar, \emph{Convex
+Analysis} (Princeton, 1970), Thm~23.4.
+
+In one dimension this is elementary: for convex $g$ on an interval and $x$ interior, the one-sided
+derivatives $g'_-(x)\le g'_+(x)$ exist (monotonicity of difference quotients) and \emph{any}
+$m\in[g'_-(x),g'_+(x)]$ satisfies $g(t)\ge g(x)+m(t-x)$ for all $t$.  For concave $h$ apply this to
+$g=-h$: there is $m$ with $h(t)\le h(x)+m(t-x)$ --- a \emph{supergradient}.
+
+\begin{formalizationnotes}
+\item Lean: \texttt{ForMathlib.Analysis.exists\_supergradient\_of\_concaveOn} (on \texttt{Icc a b}) and
+      \texttt{exists\_supergradient\_of\_concaveOn'} (on an arbitrary convex $s\subseteq\R$, which is
+      what the DRO value function needs since it lives on \texttt{Ici t0}).  We take $m$ to be the
+      supremum of the right-hand slopes at $\delta$; concavity
+      (\texttt{ConcaveOn.slope\_anti\_adjacent}) makes every left-hand slope an upper bound for that
+      set, which handles $t<\delta$.
+\item \texttt{exists\_nonneg\_multiplier(')} adds monotonicity of $h$ to conclude $m\ge0$ --- the
+      \emph{nonnegative} Lagrange multiplier the DRO dual ranges over.
+\item We prove only the one-dimensional concave case, which is all the duality argument uses.  The
+      finite-dimensional, relative-interior statement is strictly stronger and is not formalized.
+\item Mathlib has \texttt{ConcaveOn}, \texttt{ConvexOn} and the slope lemmas, but \textbf{no
+      sub/supergradient existence at all} (\texttt{grep -rn 'supergradient\textbackslash|subgradient'
+      Mathlib} returns nothing, checked 2026-07-10).
+\end{formalizationnotes}
+
+\section{Measurable selection: the baseline we deliberately avoid}
+
+\paragraph{The statement in the literature.}
+\emph{Kuratowski--Ryll-Nardzewski selection theorem.}  A weakly measurable correspondence from a
+measurable space into a Polish space with nonempty closed values admits a measurable selector.
+\textsc{unverified anchor:} Aliprantis--Border, \emph{Infinite Dimensional Analysis} (3rd ed.),
+Thm~18.13 (KRN) and Thm~18.19 (measurable maximum theorem).
+
+The standard route to the Wasserstein converse Lagrangian bound is: for each $y$ pick a maximizer
+$x(y)\in\arg\max_x\{f(x)-\lambda c(x,y)\}$, and invoke the measurable maximum theorem to make
+$y\mapsto x(y)$ measurable, so that the push-forward of $\nu$ along it is a measure.
+
+\begin{formalizationnotes}
+\item \textbf{We do not use KRN, and Mathlib does not have it.}  Instead
+      \texttt{ForMathlib.MeasureTheory.exists\_measurable\_eps\_argmax\_of\_separable} selects only an
+      \emph{$\varepsilon$-}maximizer, which is enough: on a separable domain with an integrand
+      continuous in the maximization variable, $\sup_x$ equals the supremum over a \emph{countable
+      dense} subset (\texttt{sSup\_image\_dense\_eq}), and on a countable index set ``the first index
+      that beats $\sup - \varepsilon$'' is a measurable selector by \texttt{Nat.find}.
+\item The cost of this trade is the $\varepsilon$, which is absorbed by
+      \texttt{le\_of\_forall\_pos\_le\_add}, and the strengthened continuity hypothesis on $c$
+      (Blanchet--Murthy need only lower semicontinuity; see
+      \texttt{BlanchetMurthy2019\_theorem1.tex} \S3).
+\item An early prediction in this project --- that the Wasserstein \texttt{hge} would need KRN --- was
+      \textbf{wrong}, and was corrected only by attempting the proof.
+\end{formalizationnotes}
+
+\TODO{Obtain Dupuis--Ellis (1997), Rockafellar (1970), Cover--Thomas (2nd ed.) and Aliprantis--Border
+(3rd ed.); confirm or correct every \textsc{unverified} theorem number above, then drop the tags.
+Until then this note must not be cited as establishing an anchor.}
+
+\input{references_manual}
+\end{document}

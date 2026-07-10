@@ -1866,3 +1866,33 @@ over `ν` with `ρ`, and (Dual) over `Q_{x,ϵ}` with `ρ̄` — agree "only when
 The lesson generalises: the distilled prose is worth writing precisely because it is the *literature's*
 argument, independent of ours. Three of my beliefs died on contact with it, and none would have died
 by re-reading our Lean.
+
+## 2026-07-10 (literature baseline, cont.) — Blanchet–Murthy and the classical foundations
+
+Two more notes, both compiling:
+
+* `BlanchetMurthy2019_theorem1.tex` — Assumptions (A1)/(A2), the primal `I` and dual `J`, Theorem 1(a)
+  `I = J`, Theorem 1(b) (existence of a dual optimizer `(λ*, φ_{λ*})` plus complementary slackness
+  (8a)/(8b)), Remark 1 eq. (9), and the proof architecture: **Fenchel duality** on `C_b(S×S)` in the
+  compact case (Props 5–6), then compact exhaustion and **Sion's minimax** on `T(λ,π)` in general.
+
+  Our Lean proves the same eq. (9) by an entirely different route — measurable ε-argmax, supergradient
+  existence, concavity of the DRO value function — so it is an *independent* verification, not a
+  transcription. Mathlib has neither Fenchel duality on `C_b` nor Sion.
+
+  Two things the diff surfaced. **(A1)'s second clause, `c(x,y) = 0 ⟺ x = y`, is exactly why the
+  Wasserstein assembly needs no Slater**: it makes the diagonal coupling free, which is our `hne0`
+  interior point. The entropic objective has no zero, hence the Slater hypothesis on the Sinkhorn side.
+  The two notes now cross-reference on this. And **Theorem 1(b) is not formalized** — dual-optimizer
+  existence and complementary slackness are precisely the content the deferred worst-case-measure
+  theorems still assume.
+
+* `ClassicalFoundations_DV_KLconvexity_supergradient.tex` — the baselines for the four ForMathlib
+  candidates: Donsker–Varadhan (Gibbs form, attained at the tilt) with the one-line proof and the
+  Gibbs-vs-dual distinction that cost me a wrong prediction; joint convexity of relative entropy (we
+  prove first-argument convexity only, in `ℝ≥0∞`); supergradient existence (we prove the 1-D concave
+  case only); and Kuratowski–Ryll-Nardzewski, the selection theorem we deliberately avoid.
+
+  **The source texts are not in `prose/papers/`.** Every theorem number in that note is recalled, not
+  checked, and is tagged `unverified` in the text with a `TODO` forbidding citation until confirmed.
+  Writing plausible-looking anchors from memory would be worse than writing none.

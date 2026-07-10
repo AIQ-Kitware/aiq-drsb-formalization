@@ -19,13 +19,19 @@ The remaining finite Sinkhorn compactness work needs a proof that strict positiv
 
 \section*{DRO and entropy-duality sources}
 \begin{enumerate}
-\item \texttt{BlanchetMurthy2019\_model\_risk\_ot.tex}, distilled from \cite{BlanchetMurthy2019}.
+\item \texttt{BlanchetMurthy2019\_model\_risk\_ot.tex}, distilled from \cite{BlanchetMurthy2019} (architecture only).
+\item \texttt{BlanchetMurthy2019\_theorem1.tex}, the \textbf{full} distillation of Theorem 1 (Strong Duality) from \cite{BlanchetMurthy2019}: Assumptions (A1)/(A2), $I$ and $J$, Theorem 1(a)/(b) with the complementary-slackness conditions (8a)/(8b), Remark 1 eq.~(9), the Fenchel/Sion proof architecture, and an explicit record of where the Lean development differs (our proof is an independent route).
 \item \texttt{GaoKleywegt2023\_wasserstein\_drso.tex}, distilled from \cite{GaoKleywegt2023}.
 \item \texttt{MohajerinEsfahaniKuhn2018\_data\_driven\_wdro.tex}, distilled from \cite{MohajerinEsfahaniKuhn2018}.
 \item \texttt{WangGaoXie2025\_sinkhorn\_dro.tex}, distilled from \cite{WangGaoXie2025} (architecture only).
 \item \texttt{WangGaoXie2025\_sinkhorn\_dro\_theorem1.tex}, the \textbf{full} distillation of Theorem 1 (Strong Duality) from \cite{WangGaoXie2025}: Definition 1, eq.~(2)--(3), Assumption 1, Condition 1, Theorem 1(I)--(IV) in the shifted radius $\overline\rho$, Lemmas 1--2, and an explicit record of where the Lean development differs.
 \item \texttt{Alquier2024\_pac\_bayes.tex}, distilled from \cite{Alquier2024}.
 \end{enumerate}
+\section*{Classical baselines for the \texttt{ForMathlib} upstream candidates}
+\begin{enumerate}
+\item \texttt{ClassicalFoundations\_DV\_KLconvexity\_supergradient.tex}: Donsker--Varadhan / the Gibbs variational formula; joint convexity of relative entropy; supergradient existence for concave functions; and Kuratowski--Ryll-Nardzewski measurable selection (the baseline we deliberately avoid).  \textbf{Theorem anchors in that note are tagged \textsc{unverified}} --- the source texts are not in \texttt{prose/papers/}.
+\end{enumerate}
+
 
 \section*{Path-space and stochastic-control sources}
 \begin{enumerate}

@@ -31,6 +31,7 @@ import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.MeasureTheory.KLChainRule
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.Normalization
+import ForMathlib.OptimalTransport.SinkhornConverse
 set_option autoImplicit false
 open MeasureTheory
 open scoped ProbabilityTheory
@@ -263,6 +264,49 @@ The log-partition term is the `Real.log (∫ ζ, Real.exp …)` inside `logParti
 noncomputable def sinkhornDualObjective
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε lam : ℝ) : ℝ :=
   lam * ε + expect μhat (fun xhat => logPartition ν c f κ lam xhat)
+
+
+/-! ## The converse Lagrangian bound (ingredient (1) of `hge`)
+
+The entropic dual's inner term is *attained*: for each `λ > 0` there is a coupling whose Lagrangian
+equals `𝔼_μ̂[v_x(λ)]` exactly. This is `ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq`
+restated in this file's `logPartition` vocabulary (the two agree definitionally), so that the link
+between the general lemma and the Wang–Gao–Xie dual is checked by the compiler. -/
+
+omit [NormedAddCommGroup X] in
+/-- **The Sinkhorn converse Lagrangian bound**, in `logPartition` form: for every `λ, κ > 0` there
+is a coupling `γ ∈ Π(μ̂, μ)` with
+
+`𝔼_μ[f] − λ·(𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)) = 𝔼_μ̂[v_x(λ)]`.
+
+The witness is `γ = μ̂ ⊗ₘ P` for the tilted kernel `P x = ν.tilted ((f − λ c(x,·))/(λκ))`; the
+equality (rather than an `ε`-approximation) is because the Gibbs–Donsker–Varadhan supremum over
+*measures* is attained. This is ingredient (1) of the `hge` hypothesis carried by `strong_duality`
+below; see `SURVEY_LEADS.md` for what still stands between it and a discharged `hge`. -/
+theorem exists_coupling_lagrangian_eq_logPartition
+    [MeasurableSpace.CountableOrCountablyGenerated X X]
+    (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
+    (hκ : 0 < κ) (hlam : 0 < lam)
+    (hfm : Measurable f) (hcm : Measurable fun z : X × X => c z.1 z.2)
+    (hexp : ∀ x, Integrable (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
+    (hf_P : ∀ x, Integrable f ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)))
+    (hc_P : ∀ x, Integrable (fun y => c x y)
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)))
+    (hf_norm : Integrable (fun x => ∫ y, ‖f y‖
+      ∂((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ))) (μhat : Measure X))
+    (hc_norm : Integrable (fun x => ∫ y, ‖c x y‖
+      ∂((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ))) (μhat : Measure X))
+    (hkl : Integrable (fun x => klReal
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)) (ν : Measure X))
+      (μhat : Measure X)) :
+    ∃ (μ : ProbabilityMeasure X) (γ : ProbabilityMeasure (X × X)),
+      γ ∈ couplings μhat μ ∧ Integrable f (μ : Measure X) ∧
+      Integrable (fun z : X × X => c z.1 z.2) (γ : Measure (X × X)) ∧
+      InformationTheory.klDiv (γ : Measure (X × X)) (prodMeasure μhat ν) ≠ ⊤ ∧
+      expect μ f - lam * sinkhornObjective c κ μhat ν γ
+        = expect μhat (fun xhat => logPartition ν c f κ lam xhat) :=
+  ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq μhat ν c f κ lam hκ hlam hfm hcm
+    hexp hf_P hc_P hf_norm hc_norm hkl
 
 /-! ## Theorem 1 (Strong Duality) -/
 

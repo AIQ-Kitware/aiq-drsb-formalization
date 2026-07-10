@@ -324,3 +324,23 @@ Sion, Kantorovich, Wasserstein, coupling, cTransform, Ito, Girsanov, FeynmanKac)
 The 🔁 items (flow-sinkhorn, the PF PR cluster, brownian-motion, formal-mathfin) are
 active — re-sweep before starting the corresponding chain, and again at PR-prep time
 (Mathlib master moves; a gap may have closed). Update **Last swept** above when you do.
+
+
+## Sinkhorn `hge` — what is left (2026-07-10)
+
+Ingredient (1), the converse Lagrangian bound, is **proved** and landed
+(`ForMathlib/OptimalTransport/SinkhornConverse.lean`). Two concrete gaps remain, both now named:
+
+1. **`klDiv_mix_ne_top`** (Lean gap, no known source). `klDiv (a•μ₁ + b•μ₂) ν ≠ ⊤` from
+   `klDiv μᵢ ν ≠ ⊤`. Mathlib has neither this nor the ENNReal-valued convexity
+   `klDiv (a•μ₁+b•μ₂) ν ≤ a·klDiv μ₁ ν + b·klDiv μ₂ ν` it would follow from. Route: joint convexity
+   of `x ↦ x log x` on the Radon–Nikodym derivatives, or `fDiv` convexity if Mathlib grows it.
+   Our `toReal_klDiv_mix_le` is *not* enough — it takes the mixture's finiteness as a hypothesis.
+
+2. **A Slater (strict-feasibility) hypothesis** for the entropic ball. Unlike the Wasserstein cost,
+   the Sinkhorn objective `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)` has no zero, so `ε` interior to the value
+   function's domain means `ε > inf_γ obj(γ)`, strictly. This is a *statement* change, not a proof
+   gap: `hge` will be derived from `hslater : ∃ γ, sinkhornObjective c κ μ̂ ν γ < ε` rather than from
+   `hfeas`. Literature check still owed: Wang–Gao–Xie's own regularity conditions (prose
+   `sinkhorn-dro-duality.md` §3) should be re-read against this, since a paper stating duality under
+   mere feasibility would be overclaiming at the boundary.

@@ -114,38 +114,53 @@ worst-case-measure-*existence* statements (`GaoKleywegt2023.worstCase_structure_
 `MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment — a strictly stronger
 statement than `hge`, and one the cards never need.
 
-### The Sinkhorn `hge` — the recipe, and the one piece left
+### The Sinkhorn `hge` — ingredient (1) proved; two obstacles now named
 
-`WangGaoXie2023.strong_duality` and `Drsb.sdrsb_strong_duality` still carry `hge`. The same
-three-ingredient recipe applies, and **two of the three ingredients are already proved**:
+`WangGaoXie2023.strong_duality` and `Drsb.sdrsb_strong_duality` still carry `hge`.
+
+* **(1) the converse Lagrangian bound — ✅ PROVED (2026-07-10).**
+  `ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq`, restated in this repo's dual vocabulary as
+  `WangGaoXie2023.exists_coupling_lagrangian_eq_logPartition` (a `rfl`-thin wrapper, so the link to
+  `logPartition` is compiler-checked, not asserted). For every `λ, κ > 0`,
+
+  `𝔼_μ[f] − λ·(𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)) = 𝔼_μ̂[v_x(λ)]`,   `γ = μ̂ ⊗ₘ P`,  `P x = ν.tilted ((f − λc(x,·))/(λκ))`.
+
+  Unlike the Wasserstein converse bound this is an **equality with an explicit witness**: the Gibbs
+  (over-measures) DV supremum is attained at the tilted measure, so there is no `ε` and no
+  measurable ε-argmax selection. New supporting API: `ForMathlib.MeasureTheory.tiltedKernel` (+
+  `tiltedKernel_apply`, `isMarkovKernel_tiltedKernel`), `klDiv_tilted_ne_top`,
+  `entropic_gibbs_attained_tilted`, and `ForMathlib.OT.integrable_integral_compProd` (the
+  measure-level `Integrable.integral_compProd`; Mathlib has only the kernel-level one).
 
 * **(2) the optimal multiplier** — `ForMathlib.Analysis.exists_nonneg_multiplier'`, unchanged.
-* **(3) concavity of the entropic value function** — the Sinkhorn objective
-  `𝔼_γ[c] + κ·KL(γ ‖ μ̂⊗ν)` is *convex* in `γ`: `couplingCost` is affine (`couplingCost_mix`) and
-  **`klDiv` is convex in its first argument** (`ForMathlib.MeasureTheory.toReal_klDiv_mix_le`,
-  proved 2026-07-10 — Mathlib has the `smul` lemmas but no convexity). Convex objective ⇒ the
-  constraint set `{γ : obj γ ≤ t}` is convex ⇒ the value function is concave, exactly as in the
-  Wasserstein case.
-* **(1) the converse Lagrangian bound** — ⚠ **the one piece left**, and it is *easier* than the
-  Wasserstein version because it is **exact, not `ε`-approximate**: the Gibbs/Donsker–Varadhan
-  supremum *is attained*, at the tilted measure (`ForMathlib.MeasureTheory.isGreatest_donskerVaradhan`,
-  `integral_tilted_sub_klDiv_tilted`). Per nominal point `x`,
-  `∫f dP_x − λ(∫c(x,·) dP_x + κ·KL(P_x‖ν)) = logPartition ν c f κ λ x` when `P_x = ν.tilted A_x`,
-  `A_x = (f − λ c(x,·))/(λκ)`.
 
-  What must be *built* is the tilted family as a **kernel**: `P = Kernel.withDensity (Kernel.const _ ν) g`
-  with `g x y = ENNReal.ofReal (exp (A x y) / Z x)`, `IsMarkovKernel` from `∫ g x dν = 1`. Then
-  `γ = μ̂ ⊗ₘ P`, `μ = γ.snd`, `couplingCost` and (by `toReal_klDiv_compProd_eq_integral`) the entropic
-  term disintegrate, and the per-`x` identity integrates to
-  `𝔼_μ[f] − λ·sinkhornObjective(γ) = 𝔼_μ̂[logPartition λ]` — the converse bound, with equality.
+* **(3) concavity of the entropic value function — NOT yet proved.** `klDiv` *is* now known convex
+  in its first argument (`ForMathlib.MeasureTheory.toReal_klDiv_mix_le`), but that lemma **assumes
+  the mixture's KL is finite** (`hac`, `hllr` for the mixed measure) — it does not derive it. So the
+  value function's concavity is blocked on a missing lemma:
 
-  Measurability of `g` is the only real obstacle, and it is standard: `A` is jointly measurable and
-  `Z x = ∫ exp (A x ·) dν` is measurable in `x`.
+  > **`klDiv_mix_ne_top`** — `klDiv (a•μ₁ + b•μ₂) ν ≠ ⊤` given `klDiv μᵢ ν ≠ ⊤`. True by convexity
+  > of `x ↦ x log x` pointwise on the Radon–Nikodym derivatives, but absent from Mathlib and not a
+  > corollary of the DV dual formula (which gives the `toReal` inequality only *after* finiteness).
+
+  An earlier revision of this file claimed ingredient (3) was finished. It is not; the claim was
+  made before the proof was attempted, and the `hllr` hypothesis is exactly what it missed.
+
+* **(4) a Slater / strict-feasibility hypothesis — newly identified, and unavoidable.** The
+  Wasserstein assembly takes the supergradient at `δ > 0` with the value set nonempty at `t = 0`,
+  because the *diagonal* coupling has zero cost. The Sinkhorn objective has **no zero**: it is
+  `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)`, minimized over couplings at some `t_min > 0` in general (already
+  `γ = μ̂⊗ν` costs `∫∫c dμ̂dν`). So `ε` is an interior point of the value function's domain only when
+  `ε > t_min`, i.e. when some coupling is **strictly** feasible. `hfeas` (the ball is nonempty) gives
+  only `ε ≥ t_min`. The Sinkhorn `hge` will therefore be stated from
+  `hslater : ∃ γ, sinkhornObjective c κ μ̂ ν γ < ε`, not from `hfeas`. Whether duality survives at
+  the boundary `ε = t_min` is *not* established here either way.
+
+  This is a strictly better assumption surface than `hge` itself: Slater is checkable, `hge` is the
+  conclusion.
 
 Also proved on the entropic side: the DV **dual** variational formula
 (`toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv` (`toReal_klDiv_le_of_tendsto_integral`).
-The dual formula pays for itself twice — the convexity above is a two-line corollary of it, since a
-supremum of affine functionals is convex.
 
 ### Tier 2 — Schrödinger-bridge structure (`ChenGeorgiouPavon2021.SocOt`)
 

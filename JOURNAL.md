@@ -1672,3 +1672,51 @@ Given my record on predicting the difficulty of `hge` — wrong three times — 
 that "easy" until it compiles.
 
 Build green, zero warnings, sorry-free, axiom-clean.
+
+## 2026-07-10 — the Sinkhorn converse Lagrangian bound, proved
+
+Landed ingredient (1) of the Sinkhorn `hge`, in three commits:
+
+* `59372e4` — `ForMathlib/MeasureTheory/TiltedKernel.lean` (`tiltedKernel`, `tiltedKernel_apply`,
+  `isMarkovKernel_tiltedKernel`) and, in `DonskerVaradhan.lean`, `klDiv_tilted_ne_top` and
+  `entropic_gibbs_attained_tilted` (the pointwise identity).
+* `c40d872` — `ForMathlib/OptimalTransport/SinkhornConverse.lean`:
+  `exists_coupling_sinkhorn_lagrangian_eq`, plus the measure-level `integrable_integral_compProd`.
+* this commit — `WangGaoXie2023.exists_coupling_lagrangian_eq_logPartition`, the `rfl`-thin receipt
+  tying the general lemma to this repo's `logPartition`. It compiled on the first attempt, which is
+  the only evidence worth having that the two statements really are the same one.
+
+The mathematical content: the Gibbs/Donsker–Varadhan supremum over *measures* is attained, at the
+tilted measure, whereas the dual supremum over *functions* — the one the Wasserstein path uses — is
+not. So where `exists_coupling_lagrangian_ge` loses an `ε` and needs a measurable ε-argmax selector,
+the entropic version is an **equality with an explicit witness**, `γ = μ̂ ⊗ₘ P`. Everything else is
+disintegration: `Measure.integral_compProd` for the transport term, the KL chain rule for the
+entropic one.
+
+### Two claims of mine, corrected
+
+**(a) I had recorded ingredient (3), concavity of the entropic value function, as *proved*.** It is
+not. `toReal_klDiv_mix_le` gives convexity of `klDiv` in its first argument only *after* assuming the
+mixture's KL is finite (`hac`, `hllr` on the mixed measure). Deriving that finiteness needs
+`klDiv_mix_ne_top`, which Mathlib does not have and which does **not** follow from the DV dual
+formula. I wrote the claim before attempting the proof. STATUS.md now says so.
+
+**(b) A hypothesis I had not seen at all: Slater.** The Wasserstein assembly gets its interior point
+free, because the diagonal coupling has zero cost, so the value set is nonempty at `t = 0` and any
+`δ > 0` is interior. The Sinkhorn objective `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)` **has no zero** — even `γ = μ̂⊗ν`
+costs `∫∫c dμ̂dν`. So `ε` is interior to the domain only if some coupling is *strictly* feasible, and
+`hfeas` (ball nonempty) gives only `ε ≥ t_min`. The Sinkhorn `hge` must be stated from
+`hslater : ∃ γ, sinkhornObjective … γ < ε`. This is a statement change, not a proof gap: no amount of
+proving would have produced `hge` from `hfeas`, and I would have discovered it only by getting stuck.
+
+That makes my running record on predicting the difficulty of `hge` 0 for 4. Each error was caught the
+same way — by trying to write the proof — and each is recorded rather than quietly fixed.
+
+### What is left
+
+`klDiv_mix_ne_top` (a genuine Lean/Mathlib gap; route is convexity of `x log x` on the RN
+derivatives, needing `klDiv`'s integral representation), then the value-function file and the
+assembly, which mirror `DroValueFunction.lean` / `StrongDualityGe.lean` line for line. Both are
+written up in SURVEY_LEADS.md. I am not going to estimate the effort.
+
+Build green (8758 jobs), zero warnings, zero `sorry`, all new declarations axiom-clean.

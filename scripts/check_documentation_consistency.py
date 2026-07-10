@@ -24,8 +24,35 @@ LIVE_FILES = (
     "prose/README.md",
     "Challenge/README.md",
     "audits/PROOF_AUDIT_2026-07-10.md",
+    "audits/REMEDIATION_PLAN_2026-07-10.md",
     "ForMathlib.lean",
     "ChenGeorgiouPavon2021/ProjectTheoremTargets.lean",
+)
+
+# Live status/documentation set for name-correctness ratchets. This deliberately
+# EXCLUDES the historical audit and remediation plan, which may legitimately mention
+# corrected or deleted names when recording resolved findings.
+STATUS_DOCS = (
+    "README.md",
+    "STATUS.md",
+    "PROOF_PIPELINE.md",
+    "FOUNDATIONS.md",
+    "EXTERNAL_AUDIT.md",
+    "formalization.yaml",
+    "LITERATURE_REFERENCES.md",
+    "prose/README.md",
+)
+
+# The fully-qualified matrix-scaling theorem lives in `namespace ForMathlib`, so the
+# correct name is `ForMathlib.matrix_scaling_exists`. The `.Matrix.` form is wrong.
+WRONG_MATRIX_SCALING_RE = re.compile(r"ForMathlib\.Matrix\.matrix_scaling_exists")
+
+# Continuum tautology declarations deleted in A4. They must not reappear in live status
+# documents as implemented/live declarations (historical audit discussion is exempt via
+# the STATUS_DOCS exclusion above).
+DELETED_CONTINUUM_DECLS = (
+    "dyadicNormalizedIncrementMap_generates_standardWienerRealPathMeasure",
+    "cameronMartinDyadicDensity_uniformIntegrability_of_isCameronMartinPath",
 )
 
 ALL_DOC_SUFFIXES = {".md", ".yaml", ".yml", ".txt", ".lean"}
@@ -60,7 +87,7 @@ REQUIRED_TEXT = {
         "Drsb.sdrsb_cost_bound",
         "## Notable reusable formalization",
         "ForMathlib.OT.dualValue_le_droValue",
-        "ForMathlib.Matrix.matrix_scaling_exists",
+        "ForMathlib.matrix_scaling_exists",
         "ForMathlib.MeasureTheory.log_integral_exp_eq_sSup",
         "AI-discovered Doeblin/weighted-average",
         "Eveson--Nussbaum",
@@ -72,6 +99,9 @@ REQUIRED_TEXT = {
         "Named capstone dependency reports",
         "Neither card inequality accepts `hge`",
         "not dependencies of",
+        "two independent proof routes",
+        "Doeblin/weighted-average",
+        "Eveson--Nussbaum",
     ),
     "PROOF_PIPELINE.md": (
         "Decompose `matrix_scaling_exists`",
@@ -85,12 +115,16 @@ REQUIRED_TEXT = {
 }
 
 
+# Vendored/third-party trees whose internal prose we do not police.
+EXCLUDED_PARTS = {".git", ".lake", "reference", ".reference-clones"}
+
+
 def iter_documentation(root: Path):
     checker = Path(__file__).resolve()
     for path in root.rglob("*"):
         if not path.is_file() or path.suffix.lower() not in ALL_DOC_SUFFIXES:
             continue
-        if ".git" in path.parts or ".lake" in path.parts:
+        if EXCLUDED_PARTS.intersection(path.parts):
             continue
         try:
             if path.resolve() == checker:
@@ -140,6 +174,26 @@ def main() -> int:
         for needle in needles:
             if needle not in text:
                 failures.append(f"{rel}: missing required consistency marker: {needle!r}")
+
+    # Name-correctness ratchets over the live status set (historical audit exempt).
+    for rel in STATUS_DOCS:
+        path = root / rel
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for match in WRONG_MATRIX_SCALING_RE.finditer(text):
+            failures.append(
+                f"{rel}:{line_number(text, match.start())}: wrong matrix-scaling name; "
+                "use ForMathlib.matrix_scaling_exists (the theorem is in namespace ForMathlib)"
+            )
+        for name in DELETED_CONTINUUM_DECLS:
+            idx = text.find(name)
+            if idx >= 0:
+                failures.append(
+                    f"{rel}:{line_number(text, idx)}: deleted continuum declaration "
+                    f"{name!r} must not appear in a live status document as an implemented "
+                    "result; describe the future target in roadmap prose instead"
+                )
 
     if failures:
         print("Documentation consistency check failed:", file=sys.stderr)

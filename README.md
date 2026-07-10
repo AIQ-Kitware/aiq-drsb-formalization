@@ -127,7 +127,7 @@ Dupuis--Ellis; see the exact-reference ledger in
 proves
 
 ```lean
-ForMathlib.Matrix.matrix_scaling_exists
+ForMathlib.matrix_scaling_exists
 ```
 
 for a strictly positive finite kernel with prescribed positive marginals. The proof uses a

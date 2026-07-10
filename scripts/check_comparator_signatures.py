@@ -41,9 +41,27 @@ import glob
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
 import tempfile
+
+
+def require_lake() -> None:
+    """Exit with a concise prerequisite message if the `lake` toolchain is absent.
+
+    Without this guard the first `subprocess.run(["lake", ...])` raises an
+    unhandled `FileNotFoundError`; this turns that into a controlled exit.
+    """
+    if shutil.which("lake") is None:
+        print(
+            "error: `lake` executable not found on PATH. This pre-flight check "
+            "requires the Lean toolchain (install via elan and run from the "
+            "project root, or use `--no-build` only after the modules are built "
+            "by an environment that has `lake`).",
+            file=sys.stderr,
+        )
+        raise SystemExit(3)
 
 
 def git_root() -> str:
@@ -160,6 +178,8 @@ def main() -> int:
     ap.add_argument("--no-build", action="store_true",
                     help="skip `lake build` of the modules (assume already built)")
     args = ap.parse_args()
+
+    require_lake()
 
     root = git_root()
     os.chdir(root)

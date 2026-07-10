@@ -30,6 +30,10 @@ to a command + commit.
 
 ## Reviewer-agreed overlay sequence
 
+**Status: A0–A4 and A6 are complete** (see the execution log at the end of this file for
+commit hashes and validation); **A5 remains explicitly deferred**. The bullets below record
+the originally agreed scope of each overlay.
+
 Priority is by upstream mathematical value, not card-path urgency (the card is closed).
 
 - **A0 — documentation truthfulness.** Record the card axiom reports with commit +
@@ -127,8 +131,9 @@ explicit first. Do **not** start M4 in the M3 overlay.
   `δ < bs l` and drops `δ0` from the interface). `matrix_scaling_exists` is now **47 lines**
   (empty case → M4d → D2/aa → M3a → M1 → M2 → assemble). `lake env lean` exit 0.
 - **The `matrix_scaling_exists` decomposition (A1) is complete.** Public statement
-  unchanged across M1–M4d. Remaining audit overlays: A0 (docs), A2 (hypothesis min),
-  A3 (ProjectiveLag), A4 (continuum honesty).
+  unchanged across M1–M4d. Commit sequence: M1/M2 `3791d88`, M3a `1c9054b`,
+  M4a/M4b `3ba1d17`, M4c/M4d `36265ff`; `matrix_scaling_exists` is a 47-line assembly
+  over eight private lemmas.
 - 2026-07-10: reviewer directed **A2 before A0** (README/STATUS/EXTERNAL_AUDIT/formalization.yaml
   already carry the essential corrections; a final docs sweep comes after the proof changes
   settle). One theorem family per commit; `_core` with minimal hypotheses + retained public
@@ -154,4 +159,55 @@ explicit first. Do **not** start M4 in the M3 overlay.
     calls core directly, still using `hbox` for the box-ratio lemma and `hγ_lt_one` for the
     log-to-error conversion — the correct dependency split. `lake env lean` exit 0.
   - No proof-body change beyond binder removal in any of the three; heartbeat overrides untouched
-    (none added, none removed). Full `lake build` + axiom reports pending.
+    (none added, none removed). Full `lake build` 8761 jobs exit 0; the five named axiom reports
+    (`matrix_scaling_exists`, both Birkhoff capstones, both card inequalities) all
+    `[propext, Classical.choice, Quot.sound]`. Route-independence re-sweep clean.
+
+### A3–A6 execution log (2026-07-10)
+
+Reviewer accepted A2 and directed the remaining batch A3 → A4 → A6 → A0, separate
+bisectable commits, no mid-batch review.
+
+- **A3** (commit `8356468`, `ProjectiveLag.lean`): body-only rewire of the production
+  wrapper `..._drift_envelopes_atTop_from_gauge_iterates` to obtain its two convergence
+  facts directly from `..._spreads_tendsto_zero_from_franklin_lorenz` (skipping the
+  no-subsequence round trip). Theorem statement unchanged. Alternate compactness seam
+  retained (`eventually_lt_of_tendsto_zero`, `no_positive_subsequence_of_pair_tendsto_zero`,
+  `tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence`, and the two
+  `..._from_gauge_iterates` theorems). Docstrings corrected: the no-subsequence theorem is
+  a derived alternate characterization (not the single hard theorem; the described
+  contradiction proof is not what the body does); the reconstructed convergence theorem is
+  neither the production route nor an independent proof. Obsolete Carroll/Birkhoff--Hopf
+  implemented-route reference removed (implemented direct route is Doeblin/weighted-average;
+  published comparison route is Eveson--Nussbaum). Reference sweep: production wrapper now
+  calls the direct Franklin--Lorenz theorem; reconstructed convergence theorem has no
+  production client; all seam decls retained; no external file depended on the old round trip.
+  `lake env lean` exit 0; full build 8761 jobs exit 0.
+- **A4** (commit `d7866bb`, `KLExhaustion.lean`, `QuasiInvariance.lean`, `PROOF_PIPELINE.md`):
+  deleted the two `: True := by trivial` tautologies
+  (`dyadicNormalizedIncrementMap_generates_standardWienerRealPathMeasure` — no clients;
+  `cameronMartinDyadicDensity_uniformIntegrability_of_isCameronMartinPath` — fed an ignored
+  `True` arg) and removed the `(_hui : True)` binder from
+  `absCont_of_finiteDyadic_absCont_and_density_closure`, updating its caller. Retained the
+  proved one-sided measurability bound, the finite-dyadic AC theorem, the explicit
+  density-closure theorem, and the assembly wrappers; docstrings now state the closure is
+  supplied by `hac` and the finite-dyadic family is source-facing context. No premature
+  `Prop` interface. Module header + PROOF_PIPELINE A4 section describe the future work in
+  prose (canonical anchored-interval carrier). Both files `lake env lean` exit 0; full build
+  8761 jobs exit 0.
+- **A6** (commit `c0c0495`, `scripts/`, `README.md`): added
+  `scripts/check_nonvacuous_scaffolds.py` (textual ratchet against `True`-shaped theorem
+  scaffolds and ignored `(_h.. : True)`/`(h.. : True)` binders; excludes `.git/`, `.lake/`,
+  `reference/`, `.reference-clones/`, `Challenge/`; explicit empty allowlist). Extended
+  `check_documentation_consistency.py` (remediation plan added to live set; require correct
+  `ForMathlib.matrix_scaling_exists` + flag wrong `.Matrix.` form; STATUS two-route
+  pluralism markers; flag deleted continuum names in live status docs, audit exempt; align
+  slogan-scan exclusions with the rest of the tooling). Fixed README namespace error.
+  Hardened `check_comparator_signatures.py` (missing `lake` → concise message, exit 3).
+  Validation: py_compile clean ×4; nonvacuous check passes (fixture confirms it catches both
+  patterns); doc consistency passes; audit_proof_shape exit 0; comparator lake-missing guard
+  exits 3.
+- **A0** (this commit): remediation plan reconciled to final code state with commit hashes;
+  `PROOF_AUDIT_2026-07-10.md` findings marked resolved; live status docs reviewed for the
+  final-tree invariants. **A5 remains explicitly deferred** until a real client consumes a
+  verification-data interface.

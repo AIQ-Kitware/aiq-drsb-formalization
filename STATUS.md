@@ -37,6 +37,11 @@ audit/helper and removed unrelated prose material.
 This document does not turn that report into a repository-wide theorem claim. Re-run `lake build`
 after applying any overlay.
 
+**Post-batch re-verification (2026-07-10, A3–A6 remediation).** After the A3 ProjectiveLag
+rewire (`8356468`) and the A4 continuum-scaffold deletions (`d7866bb`), `lake build` completed
+with 8761 jobs, exit 0; the A6 tooling/docs commit (`c0c0495`) changed no Lean file. The five
+named axiom reports below were re-run at this state and are unchanged.
+
 ### Named capstone dependency reports
 
 The maintainer reported:

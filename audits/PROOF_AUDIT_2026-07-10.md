@@ -222,7 +222,69 @@ If an agent cannot state the intended replacement proposition precisely, it shou
 
 # Remediation tasks
 
+## Resolution status (2026-07-10)
+
+The findings below are preserved as originally written. This section records how each was
+resolved; per-task headings also carry a short `**Resolution:**` line. The historical
+observations are **not** rewritten. See `REMEDIATION_PLAN_2026-07-10.md` for the full
+execution log.
+
+- **P2 / Overlay A1 — decompose `matrix_scaling_exists`.** Resolution: completed in
+  `3791d88` (M1/M2), `1c9054b` (M3a), `3ba1d17` (M4a/M4b), `36265ff` (M4c/M4d).
+  Implementation: `matrix_scaling_exists` became a **47-line assembly over eight private
+  lemmas**; public statement byte-for-byte unchanged. Deviations from the recommendation:
+  (i) **M3a did not require marginal positivity** — `p`, `q` enter only as coefficients, so
+  no `hp`/`hq` were needed; (ii) **M4c required `0 ≤ δ`** for its chosen unit-ball
+  boundedness proof (a genuine hypothesis of that lemma's approach, not of the theorem);
+  (iii) the **`maxHeartbeats 1000000` override became unnecessary** and was removed — the
+  module compiles under default heartbeats. Validation: `lake env lean` exit 0; full build
+  8761 jobs exit 0; `#print axioms` `[propext, Classical.choice, Quot.sound]`.
+- **A1 (task) / Overlay A2 — minimize reusable theorem assumptions.** Resolution: completed
+  in `9161fa1` (A2.1), `1e4c003` (A2.2), `893192a` (A2.3). Implementation: extracted a
+  `_core` theorem carrying the existing body and retained each original public theorem as a
+  one-line source-facing wrapper; **A2 exposed four body-unused hypotheses** (`0 ≤ D` and the
+  Hilbert-log-diameter bound in `BirkhoffHopf.lean`; the box-bounds and `γ < 1` in
+  `FranklinLorenz.lean`), all dropped from the cores. No public declaration deleted or
+  renamed; no proof-body change beyond binder removal. Validation: `lake env lean` exit 0 per
+  file; full build 8761 jobs exit 0; five named axiom reports clean.
+- **P1 / Overlay A3 — ProjectiveLag dependency truthfulness.** Resolution: completed in
+  `8356468`. Implementation: body-only rewire of the production drift-envelope wrapper to the
+  direct Franklin--Lorenz convergence theorem. Deviation: none — **the alternate compactness
+  seam was retained but removed from the production route** exactly as recommended; docstrings
+  corrected and the obsolete Carroll/Birkhoff--Hopf implemented-route reference removed.
+  Validation: `lake env lean` exit 0; full build 8761 jobs exit 0; reference sweep confirms
+  the reconstructed convergence theorem has no production client.
+- **S1 / Overlay A4 — continuum honesty.** Resolution: completed in `d7866bb`. Implementation:
+  **the two tautological `True`-valued scaffolds were deleted rather than replaced with
+  premature interfaces** (S1.1 generation theorem — no clients; S1.2 uniform-integrability
+  marker — fed an ignored `True`), and the ignored `(_hui : True)` binder (S1.3) was removed
+  with its caller updated. Retained: the one-sided measurability bound, finite-dyadic AC
+  theorem, explicit density-closure theorem, assembly wrappers. Future targets moved to
+  roadmap prose on the canonical anchored-interval carrier. Validation: both files
+  `lake env lean` exit 0; full build 8761 jobs exit 0.
+- **D2 — proof pluralism as a feature.** Resolution: the two Birkhoff routes are documented as
+  intentional independent developments in README/STATUS (direct = Doeblin/weighted-average;
+  paper = Eveson--Nussbaum with the sharper coefficient); route-independence is re-swept each
+  batch and now enforced textually by `check_documentation_consistency.py`.
+- **D1 / D3 — status language and stale roadmap.** Resolution: the global-completion-slogan
+  prohibition is preserved and enforced by `check_documentation_consistency.py`; stale
+  A0/A2/A3/A4 "pending" lines removed from the live docs and remediation plan; the README
+  matrix-scaling namespace error was corrected to `ForMathlib.matrix_scaling_exists`.
+- **T1 — audit tooling prerequisites.** Resolution: completed in `c0c0495`. A missing `lake`
+  executable in `check_comparator_signatures.py` now yields a concise prerequisite message and
+  controlled exit code 3 instead of an unhandled `FileNotFoundError`; a new
+  `check_nonvacuous_scaffolds.py` ratchet guards against reintroducing `True`-shaped scaffolds.
+- **P3 — internal Birkhoff-route refactors:** not in this batch; no change. The two routes
+  remain independent; internal restructuring is optional future API cleanup.
+- **S2 / Overlay A5 — verification-data interfaces:** **explicitly deferred** until a real
+  client consumes such an interface.
+- **M1 (ENNReal Wasserstein), M2 (continuum path-space closure), M3 (worst-case optimizer
+  attainment):** longer-horizon research overlays, out of scope for this remediation batch.
+
 ## D1. Replace completion slogans with scoped evidence
+
+> **Resolution:** the slogan prohibition is preserved and now enforced by
+> `scripts/check_documentation_consistency.py`; see the Resolution status section above.
 
 **Class:** H / repository-wide documentation
 **Risk:** low
@@ -298,6 +360,8 @@ The audit helper reports the current occurrences in:
 ---
 
 ## D2. Document proof pluralism as a repository feature
+
+> **Resolution:** documented as an intentional feature in README/STATUS and enforced by the doc-consistency ratchet; see the Resolution status section above.
 
 **Class:** R / U
 **Risk:** low for docs; medium for later refactors
@@ -429,6 +493,8 @@ The second grep is heuristic; comments and qualified names must be inspected man
 ---
 
 ## S1. Preserve continuum scaffolding while removing vacuous theorem encodings
+
+> **Resolution:** completed in `d7866bb` — the two `True`-valued scaffolds were deleted (not replaced with premature interfaces) and the ignored `True` binder removed; see the Resolution status section above.
 
 **Class:** S
 **Risk:** medium
@@ -598,6 +664,8 @@ Do not remove `HasDyadicKLExhaustion`, `HasIntervalDyadicKLExhaustion`, or the c
 
 ## S2. Preserve PDE/SDE targets while separating verification data from analytic derivation
 
+> **Resolution:** explicitly deferred (Overlay A5) until a real client consumes a verification-data interface; no change in this batch.
+
 **Class:** S / U
 **Risk:** medium
 **Card impact:** low for current abstract card capstones; high for a concrete CGP model
@@ -684,6 +752,8 @@ The target concept is valuable. The current theorem names merely blur the distin
 ---
 
 ## P1. Make the ProjectiveLag dependency graph truthful without discarding alternate-route scaffolding
+
+> **Resolution:** completed in `8356468` — production wrapper rewired to the direct Franklin--Lorenz theorem, alternate seam retained; see the Resolution status section above.
 
 **Class:** C / R
 **Risk:** medium
@@ -782,6 +852,8 @@ lake build
 ---
 
 ## P2. Decompose `matrix_scaling_exists` conservatively
+
+> **Resolution:** completed in `3791d88`/`1c9054b`/`3ba1d17`/`36265ff` — a 47-line assembly over eight private lemmas, public statement unchanged; see the Resolution status section above.
 
 **Class:** U
 **Risk:** high
@@ -935,6 +1007,8 @@ Also check the public statements have not changed with `#check` or the comparato
 
 ## P3. Refactor each Birkhoff route internally without merging them
 
+> **Resolution:** not in this batch; the two routes remain independent. Optional future API cleanup.
+
 **Class:** R / U
 **Risk:** medium to high
 **Card impact:** indirect through Franklin–Lorenz
@@ -1002,6 +1076,8 @@ Do not share between routes:
 ---
 
 ## A1. Minimize reusable theorem assumptions while preserving paper-facing wrappers
+
+> **Resolution:** completed in `9161fa1`/`1e4c003`/`893192a` (Overlay A2) — `_core` lemmas + retained wrappers, four body-unused hypotheses dropped; see the Resolution status section above.
 
 **Class:** U / H
 **Risk:** medium
@@ -1087,6 +1163,8 @@ Large source-facing theorems in `GaoKleywegt2023/Basic.lean` and `MohajerinEsfah
 
 ## D3. Correct stale status and roadmap contradictions
 
+> **Resolution:** completed across the A0/A6 docs sweep — stale pending lines removed, namespace error fixed, ratchets added; see the Resolution status section above.
+
 **Class:** H
 **Risk:** low
 **Card impact:** none
@@ -1127,6 +1205,8 @@ Large source-facing theorems in `GaoKleywegt2023/Basic.lean` and `MohajerinEsfah
 ---
 
 ## T1. Improve repository audit tooling prerequisite errors
+
+> **Resolution:** completed in `c0c0495` — missing `lake` now exits 3 with a concise message; see the Resolution status section above.
 
 **Class:** tooling
 **Risk:** low

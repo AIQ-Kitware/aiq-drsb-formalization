@@ -1,12 +1,31 @@
 \input{preamble}
 \title{Modernized Proof Notes for Cameron--Martin (1945): Linear Transformations of Wiener Integrals}
-\author{Generated proof-target note for the AIQ DRSB formalization corpus}
+\author{}
 \date{Source PDF: \texttt{S0002-9947-1945-0013240-1.pdf}}
 \begin{document}
 \maketitle
 
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{S0002-9947-1945-0013240-1.pdf}}
+\item[Coverage] Theorem I, Theorem Ia, Theorem II, the polygonal-kernel reduction, convergence lemmas, and the final quadratic-functional example.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Theorem I
+  \item Theorem Ia
+  \item Lemmas 1--7
+  \item Theorem II
+  \item final example
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
+
 \section*{Reference and purpose}
-This note expands R. H. Cameron and W. T. Martin, ``Transformations of Wiener Integrals under a General Class of Linear Transformations,'' \emph{Transactions of the American Mathematical Society}, 58(2):184--219, 1945 \cite{CameronMartin1945}.  The paper is not an arXiv source.  It is a primary source for quasi-invariance/transformation formulae on classical Wiener space.
+This reconstruction follows R. H. Cameron and W. T. Martin, ``Transformations of Wiener Integrals under a General Class of Linear Transformations,'' \emph{Transactions of the American Mathematical Society}, 58(2):184--219, 1945 \cite{CameronMartin1945}.  The paper is not an arXiv source.  It is a primary source for quasi-invariance/transformation formulae on classical Wiener space.
 
 \paragraph{Scope warning.}
 This paper is not only the familiar Cameron--Martin translation theorem.  It treats homogeneous linear transformations
@@ -80,7 +99,7 @@ The exponent is a quadratic/Stieltjes functional:
 \end{align}
 The second and third terms are Riemann--Stieltjes type terms under the bounded-variation hypotheses.  The paper explicitly warns that the two Stieltjes terms cannot simply be merged into one informal stochastic integral; the diagonal values of $K$ matter through the determinant and through $J$.
 
-\section{Theorem Ia: the proof target}
+\section{Theorem Ia: statement and proof}
 The authors first prove a narrower functional version.
 
 \begin{distilled}[Theorem Ia]
@@ -227,13 +246,8 @@ Analytic continuation then yields the characteristic function formula
 \]
 with the branch convention specified in the paper.
 
-\section{Formalization relevance}
-\begin{formalizationnotes}
-\item This source supports continuum quasi-invariance under linear transformations of Wiener measure, not finite Sinkhorn compactness.
-\item The proof decomposes into finite-dimensional Gaussian change-of-variables plus approximation.  That is the important formalization moral: a path-space theorem can be reduced to cylinder approximations, determinant convergence, and dominated/monotone convergence.
-\item The notation in the paper differs from the now-standard stochastic-calculus normalization.  Do not mix the exponent constants from this paper with modern $\frac12\|h'\|_2^2$ Cameron--Martin conventions without checking the Wiener-measure normalization.
-\item If only translations are required, cite the translation theorem directly or a modern Cameron--Martin theorem.  Use this paper when a linear integral transformation or the historical determinant formula is relevant.
-\end{formalizationnotes}
+\section{Scope and normalization cautions}
+The argument reduces the infinite-dimensional transformation formula to finite-dimensional Gaussian change of variables for polygonal kernels, followed by determinant convergence, convergence of the quadratic exponent, and monotone-class extension.  The Wiener normalization in the paper differs from the now-standard stochastic-calculus convention; the constants in the exponential density must therefore be read in the paper's normalization.  For pure translations the earlier Cameron--Martin theorem is sufficient, whereas this paper is needed for the Fredholm-determinant formula for linear integral transformations.
 
 \section*{Checklist of details retained}
 \begin{itemize}[leftmargin=2em]

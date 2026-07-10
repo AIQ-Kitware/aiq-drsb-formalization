@@ -4,16 +4,29 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{enumitem}
+\usepackage{booktabs,longtable,array}
 \usepackage{hyperref}
 \usepackage{xcolor}
+\usepackage{microtype}
 \hypersetup{colorlinks=true, linkcolor=blue!50!black, citecolor=blue!50!black, urlcolor=blue!50!black}
-\newtheorem{distilled}{Distilled claim}
-\newtheorem{lemma}{Lemma}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{claim}[theorem]{Claim}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}[theorem]{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
 \newcommand{\KL}{\mathrm{KL}}
 \newcommand{\Ent}{\mathrm{Ent}}
 \newcommand{\Prob}{\mathsf{P}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\R}{\mathbb{R}}
+\newcommand{\N}{\mathbb{N}}
 \newcommand{\Pcal}{\mathcal{P}}
 \newcommand{\Mcal}{\mathcal{M}}
 \newcommand{\Qcal}{\mathcal{Q}}
@@ -23,6 +36,36 @@
 \newcommand{\W}{\mathcal{W}}
 \newcommand{\one}{\mathbf{1}}
 \newcommand{\dd}{\,d}
-\newcommand{\TODO}[1]{\par\smallskip\noindent\textcolor{red!65!black}{\textbf{TODO.} #1}\par\smallskip}
-\newenvironment{formalizationnotes}{\paragraph{Formalization notes.}\begin{itemize}[leftmargin=2em]}{\end{itemize}}
-\newenvironment{distillation}{\paragraph{Distilled argument.}\begin{enumerate}[leftmargin=2em]}{\end{enumerate}}
+\newcommand{\supp}{\operatorname{supp}}
+\newcommand{\argmin}{\operatorname*{arg\,min}}
+\newcommand{\argmax}{\operatorname*{arg\,max}}
+\newcommand{\esssup}{\operatorname*{ess\,sup}}
+\newcommand{\ri}{\operatorname{ri}}
+\newcommand{\dom}{\operatorname{dom}}
+\newcommand{\Law}{\operatorname{Law}}
+\newcommand{\Var}{\operatorname{Var}}
+\newcommand{\Cov}{\operatorname{Cov}}
+\newcommand{\diag}{\operatorname{diag}}
+\newcommand{\Id}{\mathrm{Id}}
+\newcommand{\Lip}{\operatorname{Lip}}
+\newcommand{\osc}{\operatorname{osc}}
+\newcommand{\diam}{\operatorname{diam}}
+\newcommand{\proj}{\operatorname{proj}}
+\newcommand{\e}{\mathrm{e}}
+
+\newenvironment{argument}{\paragraph{Argument.}\begin{enumerate}[leftmargin=2em]}{\end{enumerate}}
+\newenvironment{proofoutline}{\paragraph{Proof architecture.}\begin{enumerate}[leftmargin=2em]}{\end{enumerate}}
+
+
+% Source-faithfulness apparatus used by the paper reconstructions.
+\newcommand{\sourceanchor}[1]{\par\smallskip\noindent\textbf{Source anchor.} #1\par\smallskip}
+\newcommand{\sourcecomment}[1]{\begin{remark}#1\end{remark}}
+\newenvironment{sourceguide}
+  {\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]}
+  {\end{description}}
+
+% Backward-compatible environments used by some of the older reconstructions.
+\newenvironment{distilled}[1][]{\begin{theorem}[#1]}{\end{theorem}}
+\newenvironment{distillation}{\begin{enumerate}[leftmargin=2em]}{\end{enumerate}}
+
+\newenvironment{commentarynotes}{\begin{remark}\begin{enumerate}[leftmargin=2em]}{\end{enumerate}\end{remark}}

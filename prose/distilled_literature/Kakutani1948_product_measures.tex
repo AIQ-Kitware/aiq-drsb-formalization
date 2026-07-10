@@ -1,12 +1,30 @@
 \input{preamble}
 \title{Modernized Proof Notes for Kakutani Product-Measure Equivalence}
-\author{Generated proof-target note for the AIQ DRSB formalization corpus}
+\author{}
 \date{Local source: \texttt{Undergrad.2023S - Kakutani measure equivalence.pdf}; primary citation: Kakutani 1948}
 \begin{document}
 \maketitle
 
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{Undergrad.2023S - Kakutani measure equivalence.pdf}}
+\item[Coverage] The equivalence/singularity dichotomy for infinite product measures through Hellinger affinities, martingale densities, and infinite products.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Kakutani product-measure theorem
+  \item finite-product affinity identity
+  \item martingale-density argument
+  \item singularity direction
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
+
 \section*{Reference and purpose}
-The local source is a modern exposition of Kakutani's criterion for equivalence of product measures, based on Shizuo Kakutani, ``On Equivalence of Infinite Product Measures,'' \emph{Annals of Mathematics}, 49(1):214--224, 1948 \cite{Kakutani1948}.  The uploaded exposition is not an arXiv paper and is useful because it supplies details omitted in the original article.  This note expands the terse project distillation into a proof-level map.
+The local source is a modern exposition of Kakutani's criterion for equivalence of product measures, based on Shizuo Kakutani, ``On Equivalence of Infinite Product Measures,'' \emph{Annals of Mathematics}, 49(1):214--224, 1948 \cite{Kakutani1948}.  The uploaded exposition is not an arXiv paper and is useful because it supplies details omitted in the original article.  This note gives a proof-level reconstruction of the equivalence/singularity dichotomy.
 
 \section{Hellinger affinity}
 Let $\mu$ and $\nu$ be probability measures on the same measurable space.  Choose a dominating measure $\lambda$ with $\mu,\nu\ll\lambda$ and define the Hellinger affinity
@@ -239,13 +257,12 @@ Thus the product measures are equivalent iff
 \]
 This is the sequence-space shadow of the Cameron--Martin theorem: the shift belongs to the reproducing-kernel/Cameron--Martin Hilbert space exactly when the Gaussian product measures are equivalent.
 
-\section{Formalization relevance}
-\begin{formalizationnotes}
-\item This theorem is relevant for infinite product and Gaussian sequence measure equivalence, not finite Sinkhorn convergence.
-\item The proof uses only measure theory, Radon--Nikodym derivatives, product measures, independence, Tonelli, $L^2$ convergence, and a measure-extension argument.  It is more plausible to formalize than full Wiener-space Girsanov.
-\item The core reusable lemma is \eqref{eq:kak-cauchy}: the $L^2$ distance between finite square-root density products is controlled by the tail Hellinger product.
-\item For continuum Gaussian path measures, use Kakutani as a bridge between finite-dimensional Gaussian product approximations and Cameron--Martin-type equivalence.
-\end{formalizationnotes}
+\section{Structural commentary}
+\begin{commentarynotes}
+\item The proof uses Radon--Nikodym derivatives, finite product measures, Hellinger affinities, martingale densities, Tonelli's theorem, and an extension argument.
+\item The reusable quantitative step is \eqref{eq:kak-cauchy}: the $L^2$ distance between finite square-root density products is controlled by the tail Hellinger product.
+\item For Gaussian factors, the affinity criterion reduces exactly to square summability of the normalized shifts, giving the product-space form of the Cameron--Martin dichotomy.
+\end{commentarynotes}
 
 \section*{Checklist of details retained}
 \begin{itemize}[leftmargin=2em]

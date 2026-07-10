@@ -1,44 +1,24 @@
-# Distilled literature proof notes
+# Distilled literature proof reconstructions
 
-This directory contains first-pass LaTeX proof-target notes distilled from the PDFs in `papers.zip`.
+This directory contains standalone LaTeX reconstructions of the mathematical arguments in the cited sources. The goal is not brevity. Each note should preserve the paper's proof technique, order of reductions, hypotheses, notation-dependent distinctions, and any questionable step that matters to the argument, while modernizing notation and adding explanatory prose.
 
-Each `.tex` file is standalone and cites the paper it distills via `references.bib`. The notes are intended to become a bridge between the original literature and Lean theorem targets. They are not claimed to be a substitute for the full papers; each file includes a `Distillation gaps` section with anchors that still need exact page/theorem verification.
+A satisfactory reconstruction should let a reader map every major definition, lemma, theorem, equation, and proof stage back to a precise source location. Cleaner substitute proofs should be identified as commentary rather than silently replacing the paper's argument.
 
-## Files
+`source_manifest.json` records the source files, intended scope, and anchor points for each note.
 
-- `CGP2021_sinkhorn_schrodinger_bridge.tex`
-- `Leonard2014_schrodinger_survey.tex`
-- `SinkhornKnopp1967_matrix_scaling.tex`
-- `FranklinLorenz1989_matrix_scaling.tex`
-- `Carroll2004_birkhoff_contraction.tex`
-- `EvesonNussbaum1995_birkhoff_hopf.tex`
-- `BlanchetMurthy2019_model_risk_ot.tex`
-- `GaoKleywegt2023_wasserstein_drso.tex`
-- `MohajerinEsfahaniKuhn2018_data_driven_wdro.tex`
-- `WangGaoXie2025_sinkhorn_dro.tex`
-- `Alquier2024_pac_bayes.tex`
-- `Girsanov1960_change_of_measure.tex`
-- `CameronMartin1945_wiener_transformations.tex`
-- `Yeh1978_conditional_wiener_translation.tex`
-- `Kakutani1948_product_measures.tex`
-- `DSBM2023_diffusion_schrodinger_bridge_matching.tex`
-- `GSBM2024_generalized_schrodinger_bridge_matching.tex`
-- `AdjointMatching2025_memoryless_soc.tex`
+## Current state
 
-## Suggested workflow
+The corpus is under active expansion. Several classical projective-metric, matrix-scaling, and path-measure notes are already long proof-level reconstructions. The DRO, Schrödinger-bridge, and modern generative-model notes have received a substantial first expansion but still require a source-by-source fidelity pass before they should be treated as complete.
 
-1. Compile a note you care about:
+## Building a note
 
-   ```bash
-   pdflatex CGP2021_sinkhorn_schrodinger_bridge.tex
-   bibtex CGP2021_sinkhorn_schrodinger_bridge
-   pdflatex CGP2021_sinkhorn_schrodinger_bridge.tex
-   pdflatex CGP2021_sinkhorn_schrodinger_bridge.tex
-   ```
+From this directory:
 
-2. Replace each `TODO` with exact theorem/page anchors after checking the PDF.
-3. For each Lean theorem, add a line pointing to the exact distilled note section.
-4. For the current compactness frontier, prioritize:
-   - `FranklinLorenz1989_matrix_scaling.tex`
-   - `Carroll2004_birkhoff_contraction.tex`
-   - `CGP2021_sinkhorn_schrodinger_bridge.tex`
+```bash
+pdflatex CGP2021_sinkhorn_schrodinger_bridge.tex
+bibtex CGP2021_sinkhorn_schrodinger_bridge
+pdflatex CGP2021_sinkhorn_schrodinger_bridge.tex
+pdflatex CGP2021_sinkhorn_schrodinger_bridge.tex
+```
+
+The notes also support a first-pass syntax check with a single `pdflatex -halt-on-error` invocation.

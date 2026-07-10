@@ -18,21 +18,37 @@
 \newcommand{\supp}{\operatorname{supp}}
 
 \title{Modernized proof notes: Birkhoff 1957, Extensions of Jentzsch's theorem}
-\author{Generated for the AIQ DRSB formalization reference corpus}
+\author{}
 \date{2026-07-09}
 
 \begin{document}
 \maketitle
 
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{Birkhoff 1957 - Extensions of Jentzsch theorem - S0002-9947-1957-0087058-6.pdf}}
+\item[Coverage] The projective metric construction, contraction theorem, fixed-ray theorem, and the Jentzsch-type spectral-gap argument in Sections 2--8.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Sections 2--4
+  \item Theorems 1--3
+  \item Sections 5--8
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
+
 \section*{Reference being modernized}
 Garrett Birkhoff. ``Extensions of Jentzsch's theorem.'' \emph{Transactions of the American Mathematical Society} 85(1):219--227, 1957.
-Source PDF expected in the repo as
-\path{prose/papers/Birkhoff1957_extensions_jentzsch.pdf}.
+The source is Birkhoff's 1957 Transactions paper, pp. 219--227.
 
 \section*{Purpose of this note}
-The previous distillation only recorded the high-level idea: Hilbert projective metric, line-wise contraction, and a Picard fixed-point argument.  That is not enough for formalization work.  This note rewrites Birkhoff's proof almost section-by-section, keeping the original mathematical steps while modernizing notation.
+This reconstruction follows the paper almost section by section, retaining the line-metric calculation, the contraction argument, and the Jentzsch-type spectral conclusion while modernizing notation.
 
-The statements most relevant to the finite Sinkhorn/Schrodinger formalization are:
+The principal statements reconstructed below are:
 \begin{enumerate}[leftmargin=2em]
 \item the exact one-dimensional projective-line computation leading to
 \[
@@ -259,7 +275,7 @@ The cross-section is the closed simplex.  The components for the projective metr
 \[
   d(f,g)=\log\frac{\max_i f_i/g_i}{\min_i f_i/g_i}.
 \]
-This is the finite formula used in the Lean formalization.
+This is the finite-coordinate cross-ratio formula.
 
 \paragraph{Example 2: continuous positive functions.}
 Let \(L=C(S)\) with the Banach lattice norm \(\|f\|=\sup_x |f(x)|\), and let \(C=L_+\) be the cone of nonnegative functions.  The strictly positive functions form a component.  In that component,
@@ -373,7 +389,7 @@ Thus \(P(\Sigma)\) has finite projective diameter.  The contraction theorem give
 \]
 and iterates of every positive ray converge projectively to \(c\).  Birkhoff notes that it suffices for \(P\) to be nonnegative and for some power \(P^r\) to be strictly positive.
 
-For formalization, the compactness sentence can be replaced by the explicit finite matrix diameter bound.  If \(A=(a_{ij})\) is strictly positive, then for \(x,y>0\),
+In finite dimensions, the compactness sentence can be replaced by the explicit matrix diameter bound.  If \(A=(a_{ij})\) is strictly positive, then for \(x,y>0\),
 \[
   d(Ax,Ay)\le \log\max_{p,q,i,j}\frac{a_{pi}a_{qj}}{a_{pj}a_{qi}}.
 \]
@@ -566,8 +582,8 @@ Uniform boundedness of \(P_t\) for \(0\le t\le 2T\) fills in intermediate times 
 \]
 This is Birkhoff's asymptotic-growth theorem for multiplicative processes.
 
-\section{Formalization notes for the finite Sinkhorn path}
-For the current finite-dimensional Lean work, the high-value extract is much smaller than the full Banach-lattice theorem:
+\section{Finite-dimensional specialization and relation to Sinkhorn iteration}
+The finite-dimensional core of the argument is:
 \begin{enumerate}[leftmargin=2em]
 \item Define the finite Hilbert metric on strictly positive vectors by
 \[

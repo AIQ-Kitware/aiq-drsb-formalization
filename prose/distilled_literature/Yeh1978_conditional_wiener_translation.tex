@@ -1,9 +1,27 @@
 \input{preamble}
 \title{Modernized Proof Notes for Yeh (1978): Conditional Wiener Integrals under Translation}
-\author{Generated proof-target note for the AIQ DRSB formalization corpus}
+\author{}
 \date{Source PDF: \texttt{Transformations of Wiener Integrals Under Translations-Yeh-1977.pdf}}
 \begin{document}
 \maketitle
+
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{Transformations of Wiener Integrals Under Translations-Yeh-1977.pdf}}
+\item[Coverage] Lemmas 1--2, abstract Theorem 1 for conditional expectations, Wiener-specific Theorem 2, its corollary, and the exponential-integral example.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Section 2, Lemmas 1--2 and Theorem 1
+  \item Section 3, Theorem 2
+  \item corollary
+  \item final example
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
 \section*{Reference and purpose}
 This note expands J. Yeh, ``Transformation of Conditional Wiener Integrals under Translation and the Cameron--Martin Translation Theorem,'' \emph{Tohoku Mathematical Journal}, 30(4):505--515, 1978 \cite{Yeh1978}.  This is a non-arXiv source.  It is useful for Brownian bridge and endpoint-conditioned path-space identities.
@@ -179,13 +197,8 @@ Then \eqref{eq:yeh-cor} gives a version of $E^w(Y\mid X)(\xi)$:
 \end{align}
 This is the Gaussian bridge regression formula in conditional-Wiener-integral notation.
 
-\section{Formalization relevance}
-\begin{formalizationnotes}
-\item This paper is relevant only for continuum endpoint-conditioned path measures, especially Brownian bridge translation identities.
-\item The abstract Theorem 1 is ordinary measure theory: conditional expectation, pushforward measures, Radon--Nikodym derivative, and a measurable bijection commuting with the conditioning map.  This part is much more plausible to formalize than the Wiener-specific Cameron--Martin theorem.
-\item The Wiener-specific theorem should be treated as a theorem seam unless the project develops Gaussian/Wiener measure infrastructure.
-\item Formula \eqref{eq:yeh-endpointRN} is finite-dimensional Gaussian algebra and is a good formalization target if endpoint shifts appear in bridge calculations.
-\end{formalizationnotes}
+\section{Scope and proof dependencies}
+The abstract Theorem 1 uses conditional expectation, pushforward measures, a Radon--Nikodym derivative, and a measurable bijection commuting with the conditioning map.  The Wiener-specific Theorem 2 then inserts the Cameron--Martin density and the finite-dimensional Gaussian endpoint-density ratio.  Formula \eqref{eq:yeh-endpointRN} is ordinary Gaussian algebra; the genuinely infinite-dimensional input is the Cameron--Martin translation theorem.
 
 \section*{Checklist of details retained}
 \begin{itemize}[leftmargin=2em]

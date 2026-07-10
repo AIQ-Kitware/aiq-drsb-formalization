@@ -1,38 +1,265 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Wang--Gao--Xie (Sinkhorn DRO)}
-\author{Generated proof-target note}
-\date{Source PDFs: \texttt{WangGaoXie2023-2109.11926.pdf}, \texttt{WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf}}
+\title{Sinkhorn Distributionally Robust Optimization}
+\author{}
+\date{Wang, Gao, and Xie (2025)}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Wang, Gao, and Xie, \emph{Sinkhorn Distributionally Robust Optimization}, Operations Research, 2025 \cite{WangGaoXie2025}.  The local folder includes both the arXiv PDF and the Operations Research supplement.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{wang-gao-xie-2023_sinkhorn-distributionally-robust-optimization__arXiv-2109.11926.pdf}}, \texttt{\detokenize{WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf}}
+\item[Coverage] Definition 1 and Theorem 1(I)--(IV): Sinkhorn ambiguity sets, dual log-partition formula, existence/structure of worst-case laws, and the radius boundary cases.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Section 2, Definition 1 and equations (2)--(3)
+  \item Assumption 1
+  \item Condition 1
+  \item Section 3, Theorem 1(I)--(IV)
+  \item Lemmas 1--2
+  \item electronic companion proof
+\end{itemize}
+\end{description}
 
-\section*{Role in the formalization}
-This is the primary source for distributionally robust optimization with Sinkhorn/entropic-transport ambiguity.  It connects the DRO branch of the project to entropy-regularized optimal transport rather than classical Wasserstein balls.
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\begin{distillation}
-\item \textbf{Sinkhorn ambiguity.}  Replace the Wasserstein discrepancy by an entropically regularized transport cost, so the ambiguity set is smoother and worst-case distributions need not be purely discrete even when the nominal measure is empirical.
-\item \textbf{Dualization.}  The robust objective
+\section{Sinkhorn ambiguity sets}
+Let $(Z,\mathcal Z)$ be a measurable space, let $\widehat P\in\Pcal(Z)$ be nominal, let
+$\nu$ be a reference measure, let $c:Z\times Z\to[0,\infty]$, and let $\varepsilon>0$.  For
+$P\ll\nu$, define
 \[
-  \sup_Q\{\E_Q[\ell(\theta,Z)]: S_c^\eta(Q,\widehat P)\le \rho\}
+ W_\varepsilon(\widehat P,P)
+ :=\inf_{\gamma\in\Pi(\widehat P,P)}
+ \left\{\int c(x,z)\,d\gamma
+ +\varepsilon\KL(\gamma\,\|\,\widehat P\otimes\nu)\right\}.
 \]
-can be dualized with a Lagrange multiplier for the Sinkhorn radius.  Entropic regularization turns the inner transport problem into a log-sum-exp / Gibbs envelope rather than an ordinary supremum envelope.
-\item \textbf{Convex dual reformulation.}  Under the paper's assumptions on loss, cost, and nominal distribution, the robust objective has a convex dual representation.  This is the Sinkhorn analogue of the Wasserstein-DRO envelope in \cite{BlanchetMurthy2019,GaoKleywegt2023}, with KL/Gibbs terms replacing hard pointwise adversarial maximization.
-\item \textbf{Gibbs variational principle.}  The proof repeatedly uses the identity
+Given a radius $\rho$ and a measurable loss $f:Z\to\R\cup\{+\infty\}$, the primal value is
 \[
-  \log \int e^{f/\eta}\,d\mu
-  = \sup_{\nu}\left\{\eta^{-1}\int f\,d\nu-\KL(\nu\mid\mu)\right\},
+ V:=\sup\left\{\int f\,dP:
+      W_\varepsilon(\widehat P,P)\le\rho\right\}.
 \]
-up to the paper's normalization.  This is the bridge to Donsker--Varadhan style lemmas.
-\item \textbf{Algorithmic consequence.}  The dual objective admits stochastic biased subgradient/mirror-descent procedures because the entropic envelope can be sampled/estimated more smoothly than a hard Wasserstein supremum.
-\end{distillation}
+Assume:
+\begin{enumerate}[label=(A\arabic*)]
+\item $c$ is $\widehat P\otimes\nu$-measurable and
+$\nu\{z:0\le c(x,z)<\infty\}=1$ for $\widehat P$-almost every $x$;
+\item $\int e^{-c(x,z)/\varepsilon}\nu(dz)<\infty$ for $\widehat P$-almost every $x$;
+\item $f$ is measurable;
+\item every joint law with first marginal $\widehat P$ admits a regular conditional distribution given
+its first coordinate.
+\end{enumerate}
+Define the Gibbs reference kernel
+\[
+ Q_{x,\varepsilon}(dz)
+ :=\frac{e^{-c(x,z)/\varepsilon}\nu(dz)}
+          {\int e^{-c(x,u)/\varepsilon}\nu(du)}
+\]
+and the shifted radius
+\[
+ \bar\rho
+ :=\rho+\varepsilon\int
+ \log\left(\int e^{-c(x,z)/\varepsilon}\nu(dz)\right)\widehat P(dx).
+\]
+The light-tail condition is:
+\begin{equation}\label{eq:WGX-light-tail}
+ \text{there exists }\lambda>0\text{ such that }
+ \int e^{f(z)/(\lambda\varepsilon)}Q_{x,\varepsilon}(dz)<\infty
+ \quad\widehat P\text{-a.s.}
+\end{equation}
 
-\section*{Lean comparison targets}
-This paper should be cited for Sinkhorn-DRO duality and any theorem using entropic transport to derive a convex robust objective.  It is not the right source for finite Sinkhorn phase convergence; that remains CGP/Sinkhorn--Knopp/Franklin--Lorenz territory.
+\section{Conditional-KL reformulation}
+Disintegrate a coupling with first marginal $\widehat P$ as
+$\gamma(dx,dz)=\widehat P(dx)\gamma_x(dz)$.  Since
+\[
+ \log\frac{d\gamma_x}{d\nu}(z)
+ =\log\frac{d\gamma_x}{dQ_{x,\varepsilon}}(z)
+   -\frac{c(x,z)}{\varepsilon}
+   -\log\int e^{-c(x,u)/\varepsilon}\nu(du),
+\]
+one obtains the exact identity
+\[
+ \int c\,d\gamma+
+ \varepsilon\KL(\gamma\,\|\,\widehat P\otimes\nu)
+ =\varepsilon\int
+ \KL(\gamma_x\,\|\,Q_{x,\varepsilon})\widehat P(dx)
+ -\varepsilon\int\log Z_x\,\widehat P(dx),
+\]
+where $Z_x=\int e^{-c(x,u)/\varepsilon}\nu(du)$.  Hence
+\begin{equation}\label{eq:WGX-primal-kl}
+ V=\sup_{(\gamma_x)}
+ \left\{
+ \int\!\int f(z)\gamma_x(dz)\widehat P(dx):
+ \varepsilon\int\KL(\gamma_x\|Q_{x,\varepsilon})\widehat P(dx)
+ \le\bar\rho
+ \right\}.
+\end{equation}
+Because relative entropy is nonnegative, the ambiguity set is nonempty exactly when
+$\bar\rho\ge0$.  At $\bar\rho=0$, the only feasible conditional laws are
+$\gamma_x=Q_{x,\varepsilon}$ almost surely.
 
-\section*{Distillation gaps}
-\TODO{Read the supplement and extract the exact proposition/equation numbers used for the dual reformulation.  The current note intentionally records proof architecture rather than theorem numbering.}
+\section{Gibbs variational lemma}
+For any probability law $Q$, measurable $g$, and $a>0$,
+\begin{equation}\label{eq:WGX-gibbs}
+ \sup_{R\in\Pcal(Z)}
+ \left\{\int g\,dR-a\KL(R\|Q)\right\}
+ =a\log\int e^{g/a}\,dQ.
+\end{equation}
+When the exponential integral is finite, the unique maximizer is
+\[
+ \frac{dR^*}{dQ}(z)=
+ \frac{e^{g(z)/a}}{\int e^{g/a}\,dQ}.
+\]
+Indeed, if $Q_g$ denotes this tilted law, then
+\[
+ \int g\,dR-a\KL(R\|Q)
+ =a\log\int e^{g/a}\,dQ-a\KL(R\|Q_g).
+\]
+
+\section{The scalar dual}
+Lagranging the constraint in \eqref{eq:WGX-primal-kl} and using
+\eqref{eq:WGX-gibbs} pointwise yields weak duality:
+\begin{equation}\label{eq:WGX-dual}
+ V\le V_D:=\inf_{\lambda\ge0}v(\lambda),
+ \qquad
+ v(\lambda):=
+ \lambda\bar\rho+
+ \lambda\varepsilon\int
+ \log\left(\int e^{f(z)/(\lambda\varepsilon)}
+ Q_{x,\varepsilon}(dz)\right)\widehat P(dx).
+\end{equation}
+The value at $\lambda=0$ is defined by the decreasing-temperature limit and equals
+$\esssup_\nu f$.  The function $v$ is convex.  Under \eqref{eq:WGX-light-tail} and
+$\bar\rho>0$, it is finite at some positive point and coercive as $\lambda\to\infty$, so it attains its
+minimum at $\lambda^*\ge0$.
+
+\section{Positive multiplier: first-order condition}
+Suppose $\lambda^*>0$.  For each $x$ define the Gibbs conditional law
+\begin{equation}\label{eq:WGX-gibbs-kernel}
+ \frac{d\gamma_x^*}{dQ_{x,\varepsilon}}(z)
+ :=\frac{e^{f(z)/(\lambda^*\varepsilon)}}
+ {\int e^{f(u)/(\lambda^*\varepsilon)}Q_{x,\varepsilon}(du)}.
+\end{equation}
+Equivalently, with respect to $\nu$,
+\[
+ \frac{d\gamma_x^*}{d\nu}(z)
+ =\alpha_x
+ \exp\left(\frac{f(z)-\lambda^*c(x,z)}
+                  {\lambda^*\varepsilon}\right).
+\]
+Differentiating the scalar objective gives
+\[
+ v'(\lambda)
+ =\bar\rho-
+ \varepsilon\int
+ \KL(\gamma_x^{\lambda}\|Q_{x,\varepsilon})\widehat P(dx),
+\]
+where $\gamma_x^{\lambda}$ is the Gibbs kernel at temperature
+$\lambda\varepsilon$.  The first-order condition $v'(\lambda^*)=0$ is therefore
+\begin{equation}\label{eq:WGX-binding}
+ \varepsilon\int
+ \KL(\gamma_x^*\|Q_{x,\varepsilon})\widehat P(dx)=\bar\rho.
+\end{equation}
+Thus the coupling
+$\gamma^*(dx,dz)=\widehat P(dx)\gamma_x^*(dz)$ is feasible and exhausts the ambiguity budget.
+
+Apply the Gibbs identity at each $x$:
+\[
+ \int f\,d\gamma_x^*
+ =\lambda^*\varepsilon
+   \log\int e^{f/(\lambda^*\varepsilon)}dQ_{x,\varepsilon}
+ +\lambda^*\varepsilon
+   \KL(\gamma_x^*\|Q_{x,\varepsilon}).
+\]
+After integrating and using \eqref{eq:WGX-binding},
+\[
+ \int\!\int f(z)\gamma_x^*(dz)\widehat P(dx)
+ =v(\lambda^*)=V_D.
+\]
+Weak duality then gives $V=V_D$, and the second marginal
+$P^*=\int\gamma_x^*\widehat P(dx)$ is the unique worst-case law whenever the strict convexity
+conditions hold.  Its density is
+\[
+ \frac{dP^*}{d\nu}(z)
+ =\int \alpha_x
+ \exp\left(\frac{f(z)-\lambda^*c(x,z)}
+                  {\lambda^*\varepsilon}\right)\widehat P(dx).
+\]
+
+\section{Zero multiplier and a nonbinding constraint}
+Assume the light-tail condition and $\bar\rho>0$.  Let
+\[
+ H:=\esssup_\nu f,
+ \qquad
+ A:=\{z:f(z)=H\}.
+\]
+The dual minimizer is $\lambda^*=0$ if and only if
+\begin{enumerate}[label=(\roman*)]
+\item $H<\infty$;
+\item $Q_{x,\varepsilon}(A)>0$ for $\widehat P$-almost every $x$;
+\item
+\begin{equation}\label{eq:WGX-zero-condition}
+ \bar\rho+
+ \varepsilon\int\log Q_{x,\varepsilon}(A)\widehat P(dx)\ge0.
+\end{equation}
+\end{enumerate}
+Necessity follows by analyzing the right derivative of $v$ at zero.  If the maximizing set has zero
+$Q_{x,\varepsilon}$-mass on a positive-$\widehat P$ set, one can lower the dual objective by moving to a
+small positive temperature.  Otherwise Laplace's principle gives
+\[
+ \lim_{\lambda\downarrow0}v'(\lambda)
+ =\bar\rho+
+ \varepsilon\int\log Q_{x,\varepsilon}(A)\widehat P(dx).
+\]
+Convexity makes nonnegativity of this limit equivalent to minimization at zero.
+
+When \eqref{eq:WGX-zero-condition} holds, condition each $Q_{x,\varepsilon}$ on $A$:
+\[
+ \gamma_x^*(dz)=
+ \frac{\one_A(z)Q_{x,\varepsilon}(dz)}{Q_{x,\varepsilon}(A)}.
+\]
+Its average KL cost is
+$-\int\log Q_{x,\varepsilon}(A)d\widehat P\le\bar\rho/\varepsilon$, so it is feasible, and its
+payoff is $H=v(0)$.  This proves strong duality in the zero-multiplier case.
+
+\section{Boundary radius and failure of the light-tail condition}
+If $\bar\rho=0$, the conditional-KL constraint forces
+$\gamma_x=Q_{x,\varepsilon}$, and
+\[
+ V=\int\!\int f(z)Q_{x,\varepsilon}(dz)\widehat P(dx).
+\]
+The dual objective converges to this value as $\lambda\to\infty$, proving equality.
+
+If the light-tail condition fails, truncate the loss by
+$f_j=f\one_{\{f\le R_j\}}$ with $R_j\uparrow\infty$.  Each truncated problem satisfies the
+light-tail condition and has the established duality.  For large $j$ its optimizer is positive; the
+corresponding primal values increase without bound.  Monotone convergence then yields
+$V=V_D=+\infty$.
+
+\begin{theorem}[Strong duality]
+Under the measurability and disintegration assumptions:
+\begin{enumerate}[label=(\roman*)]
+\item the primal problem is feasible exactly when $\bar\rho\ge0$;
+\item whenever $\bar\rho\ge0$, $V=V_D$;
+\item if $\bar\rho>0$ and the exponential light-tail condition holds, the common value is finite;
+otherwise it is $+\infty$;
+\item the zero-multiplier criterion is exactly \eqref{eq:WGX-zero-condition} together with finite
+essential supremum.
+\end{enumerate}
+\end{theorem}
+
+\section{Small-regularization limit}
+For fixed $\lambda>0$, Laplace's principle gives
+\[
+ \lambda\varepsilon
+ \log\int
+ \exp\left(\frac{f(z)-\lambda c(x,z)}{\lambda\varepsilon}\right)\nu(dz)
+ \longrightarrow
+ \sup_{z\in\supp\nu}\{f(z)-\lambda c(x,z)\}.
+\]
+Thus the Sinkhorn dual converges formally to the Wasserstein-DRO robust-envelope dual as
+$\varepsilon\downarrow0$.  At positive regularization, however, the extremal response to each
+nominal point is a full Gibbs conditional distribution rather than a pointwise maximizer.
 
 \input{references_manual}
 \end{document}

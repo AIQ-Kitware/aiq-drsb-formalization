@@ -1,20 +1,34 @@
 \input{preamble}
-\newtheorem{theorem}{Theorem}
-\newtheorem{remark}{Remark}
-\newcommand{\diag}{\operatorname{diag}}
-\newcommand{\supp}{\operatorname{supp}}
 \title{Modernized proof notes: Sinkhorn--Knopp (1967)}
-\author{Generated proof-target note}
+\author{}
 \date{Source PDF: \texttt{SinkhornKnopp1967.pdf}}
 
 \begin{document}
 \maketitle
 
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{SinkhornKnopp1967.pdf}}
+\item[Coverage] The complete support theorem, uniqueness of diagonal scaling, convergence of alternating normalization, and the total-support/full-indecomposability distinctions.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item main theorem
+  \item Lemmas 1--2
+  \item necessity and sufficiency of total support
+  \item convergence proof
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
+
 \section*{Reference being modernized}
 This note expands Sinkhorn and Knopp, \emph{Concerning Nonnegative Matrices and Doubly Stochastic Matrices}, Pacific Journal of Mathematics 21(2), 343--348, 1967 \cite{SinkhornKnopp1967}.
 
-\section*{Role in the formalization}
-Sinkhorn--Knopp is the classical finite nonnegative matrix-scaling theorem.  Its strongest relevance to the current finite Schrodinger/Sinkhorn formalization is the positive-matrix specialization: positive row/column scaling factors exist, the resulting doubly stochastic matrix is unique, and alternating row/column normalization converges.  The paper also proves the exact support hypotheses needed for arbitrary nonnegative matrices.  These details matter if we later generalize beyond strictly positive kernels.
+\section*{Scope}
+Sinkhorn--Knopp is the classical finite nonnegative matrix-scaling theorem.  Its positive-matrix specialization states: positive row/column scaling factors exist, the resulting doubly stochastic matrix is unique, and alternating row/column normalization converges.  The paper also proves the exact support hypotheses needed for arbitrary nonnegative matrices.  The paper also determines the exact support conditions for arbitrary nonnegative matrices.
 
 This note keeps the original proof structure but modernizes notation and fills in implicit algebraic steps.
 
@@ -478,12 +492,12 @@ If \(A\) is strictly positive, then every entry lies on every sufficiently chose
 \item full indecomposability, hence uniqueness of \(D_1,D_2\) up to reciprocal scalar;
 \item convergence of alternating row/column normalization to that unique matrix.
 \end{enumerate}
-This is the fragment most directly relevant to the strictly positive finite-kernel Schrodinger bridge setting.
+This is the strictly positive finite-kernel specialization of the general theorem.
 
-\section{Lean comparison targets}
+\section{Proof dependencies and alternative convergence routes}
 \begin{enumerate}[leftmargin=2em]
-\item For strictly positive finite kernels, avoid the full support theory initially.  Prove total support and full indecomposability by elementary finite arguments.
-\item The uniqueness proof is mostly finite max/min reasoning over diagonal factor ratios.  It can be formalized without Hilbert metric.
+\item For strictly positive finite kernels, total support and full indecomposability follow by elementary finite arguments.
+\item The uniqueness proof is mostly finite max/min reasoning over diagonal factor ratios.  It does not require Hilbert's metric.
 \item The convergence proof in this paper uses compactness of finite matrices, Lemma 1, and the product monotonicity \(s_n\le s'_n\le s_{n+1}\).  It is constructive but bookkeeping-heavy.
 \item Franklin--Lorenz and Birkhoff--Hopf are better sources for projective-rate/asymptotic-regularity statements.  Sinkhorn--Knopp is better for support hypotheses, uniqueness of diagonal scaling, and existence of a doubly stochastic scaling.
 \end{enumerate}

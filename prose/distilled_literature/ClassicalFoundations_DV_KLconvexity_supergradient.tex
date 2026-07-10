@@ -1,170 +1,253 @@
 \input{preamble}
-\title{Classical baselines for the \texttt{ForMathlib} upstream candidates:\\
-Donsker--Varadhan, convexity of relative entropy, supergradient existence,\\ and measurable selection}
-\author{Distilled literature note --- the baselines our Lean proofs are compared against}
-\date{Anchors marked \textsc{unverified} are stated from standard knowledge; the cited book is
-\emph{not} in \texttt{prose/papers/} and the theorem number has \textbf{not} been checked against it.}
+\title{Variational Entropy, Convexity of Relative Entropy, and Supporting Slopes}
+\author{}
+\date{Classical results}
 \begin{document}
 \maketitle
 
-\section*{Purpose and an honesty note}
-Four reusable results were proved in the course of the DRSB work and are now staged as Mathlib
-candidates (\texttt{Challenge/README.md}).  Each is classical, and each therefore needs a citable
-baseline to diff the Lean against.  \textbf{The source texts for this note are not in
-\texttt{prose/papers/}.}  The mathematics below is standard and stated with care; the \emph{theorem
-numbers} are recalled, not checked.  Every such anchor is tagged \textsc{unverified} and must be
-confirmed against the book before this note is used as a citation.  See
-\texttt{LITERATURE\_REFERENCES.md} \S1b.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] Classical source results listed in the note.
+\item[Coverage] A normalized proof dossier for the Donsker--Varadhan variational identity, Gibbs attainment, KL convexity/data processing, and one-dimensional supporting-slope arguments.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Donsker--Varadhan/Gibbs variational identity
+  \item log-sum inequality
+  \item data-processing variational proof
+  \item supporting-line theorem for concave functions
+\end{itemize}
+\end{description}
 
-\section{Donsker--Varadhan / the Gibbs variational formula}
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\paragraph{The statement in the literature.}
-Let $\nu$ be a probability measure on a measurable space $(\Omega,\Fcal)$ and $f:\Omega\to\R$
-measurable with $\E_\nu[e^f]<\infty$.  Then
-\begin{equation}\label{eq:dv-gibbs}
-  \log \E_\nu\big[e^{f}\big]
-  \;=\; \sup_{\substack{\mu\in\Pcal(\Omega)\\ \mu\ll\nu}}
-        \Big\{\, \int f\dd\mu \;-\; \KL(\mu\,\|\,\nu) \,\Big\},
+\section{Relative entropy and exponential tilting}
+Let $(\Theta,\mathcal F)$ be a measurable space and let $\pi\in\mathcal P(\Theta)$.
+For $\rho\in\mathcal P(\Theta)$ define
+\[
+ \KL(\rho\|\pi)=
+ \begin{cases}
+  \displaystyle\int\log\frac{d\rho}{d\pi}\,d\rho,&\rho\ll\pi,\\
+  +\infty,&\text{otherwise}.
+ \end{cases}
+\]
+Let $h:\Theta\to\mathbb R$ be measurable and suppose
+$0<Z_h:=\int e^h\,d\pi<\infty$.  The exponentially tilted probability measure is
+\begin{equation}\label{eq:CF-tilt}
+ \pi_h(d\theta)=\frac{e^{h(\theta)}}{Z_h}\,\pi(d\theta).
 \end{equation}
-and the supremum is \textbf{attained}, uniquely, at the \emph{Gibbs (tilted, exponentially twisted)}
-measure
-\[
-  \frac{d\nu_f}{d\nu} \;=\; \frac{e^{f}}{\E_\nu[e^{f}]}.
-\]
-\textsc{unverified anchor:} Dupuis--Ellis, \emph{A Weak Convergence Approach to the Theory of Large
-Deviations} (Wiley, 1997), Prop.~1.4.2; the change-of-measure inequality is Lemma~1.4.3(a).  Originally
-Donsker--Varadhan, CPAM 1975--1983.
+For every $\rho\ll\pi$ for which the terms are defined,
+\begin{align}
+ \KL(\rho\|\pi_h)
+ &=\int\log\left(\frac{d\rho}{d\pi}e^{-h}Z_h\right)d\rho\\
+ &=\KL(\rho\|\pi)-\int h\,d\rho+\log Z_h.
+ \label{eq:CF-entropy-decomp}
+\end{align}
+Nonnegativity of relative entropy immediately yields the central change-of-measure
+inequality.
 
-\paragraph{The literature's proof (one line).}  For $\mu\ll\nu$,
-\[
-  \int f\dd\mu - \KL(\mu\|\nu)
-  \;=\; \log\E_\nu[e^f] \;-\; \KL(\mu\,\|\,\nu_f),
-\]
-because $\log\frac{d\mu}{d\nu} = \log\frac{d\mu}{d\nu_f} + f - \log\E_\nu[e^f]$.  Since $\KL\ge0$ with
-equality iff $\mu=\nu_f$, \eqref{eq:dv-gibbs} and the attainment follow at once.
+\begin{theorem}[Donsker--Varadhan--Gibbs variational formula]
+If $0<\int e^h\,d\pi<\infty$, then
+\begin{equation}\label{eq:CF-DV}
+ \log\int e^h\,d\pi
+ =\sup_{\rho\in\mathcal P(\Theta)}
+   \left\{\int h\,d\rho-\KL(\rho\|\pi)\right\}.
+\end{equation}
+The supremum is attained uniquely by $\pi_h$ whenever the objective is finite.
+Equivalently, for every $\rho$,
+\begin{equation}\label{eq:CF-change-measure}
+ \int h\,d\rho\le\KL(\rho\|\pi)+\log\int e^h\,d\pi.
+\end{equation}
+\end{theorem}
 
-\paragraph{Two different formulas, routinely conflated.}
-\begin{enumerate}[leftmargin=2em]
-\item \textbf{Gibbs form} \eqref{eq:dv-gibbs}: a supremum \emph{over measures}, \emph{attained} at
-      $\nu_f$.
-\item \textbf{Dual form}: $\KL(\mu\|\nu)=\sup_{g}\{\int g\dd\mu-\log\E_\nu[e^{g}]\}$, a supremum
-      \emph{over functions}, \emph{not} attained in general.
+\begin{proof}
+Rearrange \eqref{eq:CF-entropy-decomp}:
+\[
+ \int h\,d\rho-\KL(\rho\|\pi)
+ =\log Z_h-\KL(\rho\|\pi_h)\le\log Z_h.
+\]
+Equality holds for $\rho=\pi_h$, and only there by the equality condition in Gibbs'
+inequality.
+\end{proof}
+
+The dual form is obtained by replacing $h$ with $-\lambda f$:
+\begin{equation}\label{eq:CF-Gibbs-min}
+ -\frac1\lambda\log\int e^{-\lambda f}\,d\pi
+ =\inf_{\rho\in\mathcal P(\Theta)}
+   \left\{\int f\,d\rho+\frac1\lambda\KL(\rho\|\pi)\right\},
+\end{equation}
+with minimizer proportional to $e^{-\lambda f}\pi$.
+
+\section{Convexity of relative entropy}
+Let $\rho_0,\rho_1,\pi_0,\pi_1$ be probability measures and $t\in[0,1]$.  Put
+\[
+ \rho_t=(1-t)\rho_0+t\rho_1,
+ \qquad
+ \pi_t=(1-t)\pi_0+t\pi_1.
+\]
+Choose a measure $m$ dominating all four measures and write their densities as
+$r_i,p_i$.  The log-sum inequality states pointwise that
+\begin{equation}\label{eq:CF-logsum}
+ ((1-t)r_0+tr_1)
+ \log\frac{(1-t)r_0+tr_1}{(1-t)p_0+tp_1}
+ \le
+ (1-t)r_0\log\frac{r_0}{p_0}+tr_1\log\frac{r_1}{p_1}.
+\end{equation}
+It follows from convexity of the perspective function
+$(a,b)\mapsto a\log(a/b)$ on $\mathbb R_+^2$.  Integration yields:
+
+\begin{theorem}[Joint convexity of relative entropy]
+\begin{equation}\label{eq:CF-joint-convexity}
+ \KL(\rho_t\|\pi_t)
+ \le(1-t)\KL(\rho_0\|\pi_0)+t\KL(\rho_1\|\pi_1).
+\end{equation}
+In particular, $\rho\mapsto\KL(\rho\|\pi)$ is convex for fixed $\pi$.
+\end{theorem}
+
+\subsection{Mixtures with a common reference}
+For fixed $\pi$, \eqref{eq:CF-joint-convexity} becomes
+\begin{equation}\label{eq:CF-first-convexity}
+ \KL((1-t)\rho_0+t\rho_1\|\pi)
+ \le(1-t)\KL(\rho_0\|\pi)+t\KL(\rho_1\|\pi).
+\end{equation}
+This is the form used to prove concavity of ambiguity-set value functions: a mixture of
+feasible distributions has no more than the corresponding mixture of their entropy
+budgets.
+
+\section{Data processing}
+Let $T:\Theta\to\mathsf Y$ be measurable.  For bounded measurable $g$ on $\mathsf Y$,
+apply \eqref{eq:CF-change-measure} to $h=g\circ T$:
+\[
+ \int g\,d(T_\#\rho)
+ \le \KL(\rho\|\pi)+\log\int e^g\,d(T_\#\pi).
+\]
+Taking the supremum over $g$ and using \eqref{eq:CF-DV} on $\mathsf Y$ gives:
+
+\begin{theorem}[Data-processing inequality]
+\begin{equation}\label{eq:CF-DPI}
+ \KL(T_\#\rho\|T_\#\pi)\le\KL(\rho\|\pi).
+\end{equation}
+\end{theorem}
+
+For a Markov kernel $K$ from $\Theta$ to $\mathsf Y$, the same argument on the joint
+measures $\rho(d\theta)K(\theta,dy)$ and $\pi(d\theta)K(\theta,dy)$ yields
+\[
+ \KL(\rho K\|\pi K)\le\KL(\rho\|\pi).
+\]
+
+\section{Conditional entropy chain rule}
+Let $P$ and $Q$ be probability measures on $X\times Y$ with disintegrations
+\[
+ P(dx,dy)=P_X(dx)P^x(dy),
+ \qquad
+ Q(dx,dy)=Q_X(dx)Q^x(dy).
+\]
+Whenever $P\ll Q$, Radon--Nikodym factorization gives
+\[
+ \frac{dP}{dQ}(x,y)
+ =\frac{dP_X}{dQ_X}(x)\frac{dP^x}{dQ^x}(y)
+\quad P\text{-almost everywhere}.
+\]
+Taking logarithms and integrating gives:
+\begin{theorem}[Entropy chain rule]
+\begin{equation}\label{eq:CF-chain-rule}
+ \KL(P\|Q)=\KL(P_X\|Q_X)
+ +\int_X\KL(P^x\|Q^x)\,P_X(dx).
+\end{equation}
+\end{theorem}
+Both terms are nonnegative.  Equality in data processing for the projection
+$(x,y)\mapsto x$ occurs precisely when $P^x=Q^x$ for $P_X$-almost every $x$.
+
+\section{Concave value functions}
+Let $F$ be a linear functional on probability measures and let $C$ be a nonnegative
+convex constraint functional.  Define
+\begin{equation}\label{eq:CF-value}
+ v(r)=\sup\{F(\rho):C(\rho)\le r\},
+ \qquad r\ge0.
+\end{equation}
+If $\rho_i$ is feasible at radius $r_i$, then
+$\rho_t=(1-t)\rho_0+t\rho_1$ satisfies
+\[
+ C(\rho_t)\le(1-t)C(\rho_0)+tC(\rho_1)
+ \le(1-t)r_0+tr_1,
+\]
+and linearity gives
+$F(\rho_t)=(1-t)F(\rho_0)+tF(\rho_1)$.  Taking suprema proves:
+
+\begin{proposition}[Concavity and monotonicity]
+The value function $v$ in \eqref{eq:CF-value} is nondecreasing and concave on its
+effective domain.
+\end{proposition}
+
+\section{Supporting slopes for one-dimensional concave functions}
+Let $v:[a,b]\to\mathbb R$ be concave and let $r\in(a,b)$.  For $x<r<y$, concavity
+implies the monotonicity of secant slopes:
+\begin{equation}\label{eq:CF-secant-order}
+ \frac{v(r)-v(x)}{r-x}
+ \ge
+ \frac{v(y)-v(x)}{y-x}
+ \ge
+ \frac{v(y)-v(r)}{y-r}.
+\end{equation}
+Define the one-sided slope bounds
+\begin{align}
+ D^-v(r)&=\inf_{x<r}\frac{v(r)-v(x)}{r-x},\\
+ D^+v(r)&=\sup_{y>r}\frac{v(y)-v(r)}{y-r}.
+\end{align}
+Then $D^+v(r)\le D^-v(r)$.  Every
+$\lambda\in[D^+v(r),D^-v(r)]$ satisfies
+\begin{equation}\label{eq:CF-supergradient}
+ v(s)\le v(r)+\lambda(s-r)
+ \qquad(s\in[a,b]).
+\end{equation}
+Such a $\lambda$ is a supergradient of $v$ at $r$.
+
+\begin{proposition}[Nonnegative supergradient]
+If $v$ is also nondecreasing, every supergradient chosen from the nonnegative portion of
+$[D^+v(r),D^-v(r)]$ is nonnegative.  In particular, at every interior point of a finite,
+nondecreasing concave value function there exists $\lambda\ge0$ satisfying
+\eqref{eq:CF-supergradient}.
+\end{proposition}
+
+\begin{proof}
+For $y>r$, monotonicity gives
+$(v(y)-v(r))/(y-r)\ge0$, hence $D^+v(r)\ge0$.  The interval of admissible supporting
+slopes is nonempty by \eqref{eq:CF-secant-order}, so it contains a nonnegative slope.
+\end{proof}
+
+\section{Lagrange multiplier consequence}
+Apply \eqref{eq:CF-supergradient} to the value function \eqref{eq:CF-value}.  If
+$C(\rho)=s$, then $F(\rho)\le v(s)$, and therefore
+\[
+ F(\rho)\le v(r)+\lambda(C(\rho)-r).
+\]
+Rearranging gives the global Lagrangian bound
+\begin{equation}\label{eq:CF-lagrangian}
+ F(\rho)-\lambda C(\rho)\le v(r)-\lambda r.
+\end{equation}
+Taking a supremum over $\rho$ yields
+\begin{equation}\label{eq:CF-dual-value}
+ \sup_\rho\{F(\rho)-\lambda C(\rho)\}+\lambda r\le v(r).
+\end{equation}
+The reverse inequality follows from weak duality for every $\lambda\ge0$.  Thus the
+supporting slope produces an optimal Lagrange multiplier whenever the inner supremum
+can be evaluated or approximated.
+
+\section{How the pieces combine}
+The recurring argument is:
+\begin{enumerate}
+\item convexity of entropy or transport cost makes the budget value function concave;
+\item one-dimensional concavity produces a nonnegative supporting slope;
+\item measurable near-maximizers construct a distribution whose Lagrangian value
+approaches the inner supremum;
+\item the supporting-line inequality and weak duality meet at equality;
+\item the Donsker--Varadhan formula evaluates entropy-penalized inner problems by an
+exponential tilt.
 \end{enumerate}
-They are Legendre transforms of each other, and only the first is an attainment statement.
-
-\begin{formalizationnotes}
-\item Lean: \texttt{ForMathlib.MeasureTheory.isGreatest\_donskerVaradhan} (Gibbs form, as an
-      \texttt{IsGreatest}) and \texttt{log\_integral\_exp\_eq\_sSup} (its \texttt{sSup} corollary).  The
-      dual form is \texttt{toReal\_klDiv\_eq\_sSup\_dvDualSet}.
-\item \textbf{We assume more than $\E_\nu[e^f]<\infty$}: our hypotheses are
-      \texttt{hf\_nu : Integrable (exp $\circ$ f) $\nu$} \emph{and}
-      \texttt{hf\_tilted : Integrable f ($\nu$.tilted f)}.  The second is needed because $\int f\dd\nu_f$
-      is a Bochner integral, which returns the junk value $0$ on a non-integrable function; the informal
-      statement quietly assumes it is well defined.
-\item \textbf{This distinction is load-bearing for us.}  The Sinkhorn converse Lagrangian bound is an
-      \emph{equality with an explicit witness} precisely because the \emph{Gibbs} supremum is attained;
-      the Wasserstein converse bound loses an $\varepsilon$ because the \emph{dual} supremum is not.
-      Confusing the two cost this project a wrong prediction.
-\item Mathlib has \texttt{Measure.tilted}, \texttt{llr}, \texttt{klDiv} and
-      \texttt{integral\_llr\_tilted\_right}, but \textbf{no Donsker--Varadhan statement}
-      (\texttt{grep -ril donsker Mathlib} returns nothing, checked 2026-07-10).
-\end{formalizationnotes}
-
-\section{Convexity of the relative entropy}
-
-\paragraph{The statement in the literature.}
-$\KL$ is \emph{jointly} convex: for $a\in[0,1]$ and probability measures $\mu_1,\mu_2,\nu_1,\nu_2$,
-\[
-  \KL\big(a\mu_1+(1-a)\mu_2 \,\big\|\, a\nu_1+(1-a)\nu_2\big)
-  \;\le\; a\,\KL(\mu_1\|\nu_1) + (1-a)\,\KL(\mu_2\|\nu_2).
-\]
-\textsc{unverified anchor:} Cover--Thomas, \emph{Elements of Information Theory} (2nd ed.), Thm~2.7.2
-(finite alphabets, via the log-sum inequality).  On a general measurable space the statement is the
-joint convexity of an $f$-divergence with $f(t)=t\log t$ (Csisz\'ar), equivalently convexity of the
-\emph{perspective} $(p,q)\mapsto p\log(p/q)$ on $\R_{>0}^2$.
-
-\paragraph{The literature's proof.}  The perspective function of a convex $f$ is jointly convex; apply
-it pointwise to the Radon--Nikodym derivatives and integrate.  Equivalently, on finite alphabets, the
-log-sum inequality
-$\sum_i a_i\log\frac{a_i}{b_i}\ \ge\ \big(\sum_i a_i\big)\log\frac{\sum_i a_i}{\sum_i b_i}$
-applied termwise.
-
-\begin{formalizationnotes}
-\item Lean: \texttt{ForMathlib.MeasureTheory.klDiv\_mix\_le}, \emph{convexity in the first argument
-      only}, with $\nu$ fixed --- which is all that distributionally robust optimization needs (the
-      reference measure $\hat\mu\otimes\nu$ does not move).  Joint convexity is strictly stronger and is
-      \textbf{not} formalized.
-\item \textbf{Stated in $\R_{\ge0}^\infty$, with no finiteness hypotheses.}  The $\R$-valued statement is
-      \emph{false} without knowing the mixture's KL is finite, since \texttt{toReal} sends $\infty$ to
-      the junk value $0$.  The $\R_{\ge0}^\infty$ form has no bad branch and \emph{derives} finiteness:
-      \texttt{klDiv\_mix\_ne\_top} and \texttt{toReal\_klDiv\_mix\_le} are its corollaries.
-\item Our proof is the perspective/$f$-divergence route in Mathlib's idiom:
-      \texttt{klDiv\_eq\_lintegral\_klFun\_of\_ac} writes
-      $\KL(\mu\|\nu)=\int^-\!\!\texttt{ofReal}(\texttt{klFun}(\tfrac{d\mu}{d\nu}))\dd\nu$ with
-      $\texttt{klFun}(x)=x\log x+1-x$, and \texttt{convexOn\_klFun} compares the integrands pointwise.
-\item Mathlib has \texttt{klDiv\_smul\_same} and \texttt{klDiv\_smul\_right\_eq\_smul\_left} but
-      \textbf{no convexity of \texttt{klDiv} in either argument}, in $\R$ or $\R_{\ge0}^\infty$ (checked
-      2026-07-10).
-\end{formalizationnotes}
-
-\section{Supergradient existence for a concave function on $\R$}
-
-\paragraph{The statement in the literature.}
-If $g:\R^n\to\R\cup\{+\infty\}$ is proper convex, then $\partial g(x)\neq\emptyset$ for every
-$x\in\operatorname{ri}(\operatorname{dom} g)$.  \textsc{unverified anchor:} Rockafellar, \emph{Convex
-Analysis} (Princeton, 1970), Thm~23.4.
-
-In one dimension this is elementary: for convex $g$ on an interval and $x$ interior, the one-sided
-derivatives $g'_-(x)\le g'_+(x)$ exist (monotonicity of difference quotients) and \emph{any}
-$m\in[g'_-(x),g'_+(x)]$ satisfies $g(t)\ge g(x)+m(t-x)$ for all $t$.  For concave $h$ apply this to
-$g=-h$: there is $m$ with $h(t)\le h(x)+m(t-x)$ --- a \emph{supergradient}.
-
-\begin{formalizationnotes}
-\item Lean: \texttt{ForMathlib.Analysis.exists\_supergradient\_of\_concaveOn} (on \texttt{Icc a b}) and
-      \texttt{exists\_supergradient\_of\_concaveOn'} (on an arbitrary convex $s\subseteq\R$, which is
-      what the DRO value function needs since it lives on \texttt{Ici t0}).  We take $m$ to be the
-      supremum of the right-hand slopes at $\delta$; concavity
-      (\texttt{ConcaveOn.slope\_anti\_adjacent}) makes every left-hand slope an upper bound for that
-      set, which handles $t<\delta$.
-\item \texttt{exists\_nonneg\_multiplier(')} adds monotonicity of $h$ to conclude $m\ge0$ --- the
-      \emph{nonnegative} Lagrange multiplier the DRO dual ranges over.
-\item We prove only the one-dimensional concave case, which is all the duality argument uses.  The
-      finite-dimensional, relative-interior statement is strictly stronger and is not formalized.
-\item Mathlib has \texttt{ConcaveOn}, \texttt{ConvexOn} and the slope lemmas, but \textbf{no
-      sub/supergradient existence at all} (\texttt{grep -rn 'supergradient\textbackslash|subgradient'
-      Mathlib} returns nothing, checked 2026-07-10).
-\end{formalizationnotes}
-
-\section{Measurable selection: the baseline we deliberately avoid}
-
-\paragraph{The statement in the literature.}
-\emph{Kuratowski--Ryll-Nardzewski selection theorem.}  A weakly measurable correspondence from a
-measurable space into a Polish space with nonempty closed values admits a measurable selector.
-\textsc{unverified anchor:} Aliprantis--Border, \emph{Infinite Dimensional Analysis} (3rd ed.),
-Thm~18.13 (KRN) and Thm~18.19 (measurable maximum theorem).
-
-The standard route to the Wasserstein converse Lagrangian bound is: for each $y$ pick a maximizer
-$x(y)\in\arg\max_x\{f(x)-\lambda c(x,y)\}$, and invoke the measurable maximum theorem to make
-$y\mapsto x(y)$ measurable, so that the push-forward of $\nu$ along it is a measure.
-
-\begin{formalizationnotes}
-\item \textbf{We do not use KRN, and Mathlib does not have it.}  Instead
-      \texttt{ForMathlib.MeasureTheory.exists\_measurable\_eps\_argmax\_of\_separable} selects only an
-      \emph{$\varepsilon$-}maximizer, which is enough: on a separable domain with an integrand
-      continuous in the maximization variable, $\sup_x$ equals the supremum over a \emph{countable
-      dense} subset (\texttt{sSup\_image\_dense\_eq}), and on a countable index set ``the first index
-      that beats $\sup - \varepsilon$'' is a measurable selector by \texttt{Nat.find}.
-\item The cost of this trade is the $\varepsilon$, which is absorbed by
-      \texttt{le\_of\_forall\_pos\_le\_add}, and the strengthened continuity hypothesis on $c$
-      (Blanchet--Murthy need only lower semicontinuity; see
-      \texttt{BlanchetMurthy2019\_theorem1.tex} \S3).
-\item An early prediction in this project --- that the Wasserstein \texttt{hge} would need KRN --- was
-      \textbf{wrong}, and was corrected only by attempting the proof.
-\end{formalizationnotes}
-
-\TODO{Obtain Dupuis--Ellis (1997), Rockafellar (1970), Cover--Thomas (2nd ed.) and Aliprantis--Border
-(3rd ed.); confirm or correct every \textsc{unverified} theorem number above, then drop the tags.
-Until then this note must not be cited as establishing an anchor.}
+These are independent classical ingredients, but together they form a general mechanism
+for strong duality and Gibbs-type optimizer formulas.
 
 \input{references_manual}
 \end{document}

@@ -1,9 +1,4 @@
 \input{preamble}
-\newtheorem{theorem}{Theorem}
-\newtheorem{proposition}{Proposition}
-\newtheorem{corollary}{Corollary}
-\newtheorem{remark}{Remark}
-\DeclareMathOperator{\diam}{diam}
 \DeclareMathOperator{\co}{co}
 \DeclareMathOperator{\spanop}{span}
 \DeclareMathOperator{\intopn}{int}
@@ -13,15 +8,36 @@
 \newcommand{\bdry}[1]{\partial #1}
 \newcommand{\K}{K}
 \title{Step-by-step Modernization of Eveson--Nussbaum (1995):\\An Elementary Proof of the Birkhoff--Hopf Theorem}
-\author{Generated proof-target note}
+\author{}
 \date{Source PDF: \texttt{nusseveson1995.pdf}}
 \begin{document}
 \maketitle
 
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{BirkhoffHopf-Nussbaum1995-nusseveson1995.pdf}}
+\item[Coverage] The complete elementary proof of the Birkhoff--Hopf theorem, including the two-dimensional cone classification, reduction to a normalized 2x2 matrix, calculus lemma, infinite-diameter case, and integral/matrix formulas.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Proposition 2.9
+  \item Theorems 3.5--3.6
+  \item Lemmas 3.11--3.12
+  \item Theorem 4.1 and Corollaries 4.2--4.5
+  \item Lemmas 4.6--4.7
+  \item Lemma 5.1 and Theorems 5.3--5.4
+  \item Section 6
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
+
 \section*{Reference being modernized}
 This note modernizes, rather than merely distills, Eveson and Nussbaum,
 \emph{An Elementary Proof of the Birkhoff--Hopf Theorem}, Mathematical Proceedings of the Cambridge Philosophical Society 117(1), 31--55, 1995 \cite{EvesonNussbaum1995}.
-The goal is to retain the proof architecture and the mathematical details that matter for formalization, while translating the prose into a notation closer to our Lean targets.
+The goal is to retain the complete proof architecture while translating the prose into modern cone and projective-metric notation.
 
 \paragraph{Main theorem, in the paper's notation.}
 Let $C \subset V$ and $D \subset W$ be cones in real vector spaces, and let $L:V\to W$ be linear with $L(C)\subset D$.
@@ -61,10 +77,10 @@ A \emph{wedge} only requires convexity and positive homogeneity.
 No topology is assumed on $V$, and even when a topology is present the closure of a cone need only be a wedge.
 This matters later because the proof passes to two-dimensional closures and must explicitly separate the case where the closure remains a cone from the case where it degenerates to a half-plane.
 
-\begin{formalizationnotes}
-\item The order is carried by a cone, not by a typeclass order.  In Lean, avoid silently using lattice facts that require an ambient ordered vector space with topological closure properties.
+\begin{commentarynotes}
+\item The order is carried by a cone; lattice properties or topological closure must not be used unless separately assumed.
 \item The wedge/cone distinction is not cosmetic: in Section 4 it is exactly the source of the ``zero metric'' degenerate case.
-\end{formalizationnotes}
+\end{commentarynotes}
 
 \subsection{Dominance, oscillation, and the order seminorm}
 The paper first proves basic properties of the domain of $\omega_C(\cdot/x)$.
@@ -260,7 +276,7 @@ Let $\beta'\uparrow\beta$ and $\alpha'\downarrow\alpha$.
 \begin{remark}[Why the hypothesis in 2.9(c) is real]
 The paper gives a two-dimensional cone whose diameter is zero although some nonzero points are incomparable.
 The extra positivity assumption $M_C(v/u)>0$ rules out precisely that kind of one-sided degeneracy.
-For formalization, this is a warning not to prove comparability from finite diameter alone.
+This is a warning that finite diameter alone does not imply comparability without the additional hypotheses used in the proposition.
 \end{remark}
 
 \section{Section 3: positive linear maps and the ratios $N,k,\Delta,\chi$}
@@ -281,10 +297,10 @@ It implies
 whenever the left sides are defined.
 If $L$ is a bijection and $L(C)=D$, the same inequalities applied to $L^{-1}$ give equality.
 
-\begin{formalizationnotes}
+\begin{commentarynotes}
 \item This lemma is the abstract ancestor of the finite-matrix fact that nonnegative matrices are nonexpansive in Hilbert metric.
 \item Positive diagonal matrices and permutation matrices are cone automorphisms of $\R^n_{\ge0}$, hence preserve $\omega$ and $d$ exactly.  This is the algebraic reason Section 5 can normalize a positive $2\times2$ matrix without changing the constants.
-\end{formalizationnotes}
+\end{commentarynotes}
 
 \subsection{The four numerical invariants}
 The paper defines
@@ -812,15 +828,15 @@ Let $M\to\infty$ and $\varepsilon\downarrow0$ to obtain $k\ge1$.
 The proof for $N$ is identical, using the finite-diameter identity for $N$ on the same two-dimensional restriction.
 \end{proof}
 
-\begin{formalizationnotes}
+\begin{commentarynotes}
 \item The finite-diameter theorem is proved before the infinite case, so Theorem 5.4 is a limiting reduction, not an independent analytic proof.
-\item In a formal proof, the comparison of ambient and subcone denominators should be stated as a separate lemma: if $C'\subset C$, then order intervals in $C'$ are smaller, hence $d_C\le d_{C'}$ and similarly $\omega_C\le\omega_{C'}$ in the appropriate dominated setting.
-\end{formalizationnotes}
+\item For complete bookkeeping, the comparison of ambient and subcone denominators is best isolated as a separate lemma: if $C'\subset C$, then order intervals in $C'$ are smaller, hence $d_C\le d_{C'}$ and similarly $\omega_C\le\omega_{C'}$ in the appropriate dominated setting.
+\end{commentarynotes}
 
 \section{Section 6: explicit formulas for matrices and kernels}
 
 The final section records computable expressions for $\Delta$ in finite-dimensional positive matrices and in Hopf's integral-operator setting.
-These formulas are often the most directly useful for Sinkhorn-type formalization.
+These formulas are the most direct finite-coordinate specialization for positive matrices.
 
 \subsection{A comparability criterion for finite image diameter}
 \begin{lemma}[Paper Lemma 6.1]
@@ -878,13 +894,13 @@ Applying the standard quadrant formula to columns $i,j$ gives
 and maximizing over $i,j$ yields the cross-ratio formula.
 \end{proof}
 
-\begin{formalizationnotes}
+\begin{commentarynotes}
 \item For a strictly positive matrix $G$ with entries $G_{ij}>0$, the finite-matrix Birkhoff coefficient is therefore
 \[
   \tanh\!\left(\frac{1}{4}\log\max_{i,j,p,q}\frac{G_{p i}G_{q j}}{G_{p j}G_{q i}}\right).
 \]
 \item In a Sinkhorn proof, this is the exact place to connect the abstract projective diameter to a closed product/cross-ratio bound over matrix entries.
-\end{formalizationnotes}
+\end{commentarynotes}
 
 \subsection{Positive integral kernels}
 Let $S$ be compact Hausdorff, $\mu$ a regular Borel measure of full support, and $k:S\times S\to\R$ a positive continuous kernel.
@@ -923,7 +939,7 @@ If the measure lacks full support, the same expression is still an upper bound, 
 For merely measurable $L^\infty$ kernels, the essential-sup version gives an upper bound; the paper does not claim that the previous equality proof survives at that level of generality.
 \end{remark}
 
-\section{Formalization map and hard seams}
+\section{Proof dependency map}
 
 \begin{distillation}
 \item \textbf{Order interval algebra.}  Prove the endpoint identities for $M,m,\omega$ under addition of multiples, scalar multiplication, and positive linear maps.  This supports both Hopf oscillation and Hilbert metric facts.
@@ -936,10 +952,10 @@ For merely measurable $L^\infty$ kernels, the essential-sup version gives an upp
   \phi(t)=\frac{(\alpha^2-1)t}{(\alpha+t)(\alpha t+1)}.
 \]
 Its maximum at $t=1$ gives both $N$ directly and $k$ by the generalized mean value theorem.
-\item \textbf{Matrix cross-ratio formula.}  For strictly positive matrices, Section 6 collapses the projective diameter to a maximum over four indices.  This is likely the closest match to the current finite Lean Birkhoff--Hopf target.
+\item \textbf{Matrix cross-ratio formula.}  For strictly positive matrices, Section 6 collapses the projective diameter to a maximum over four indices.  This is the explicit positive-matrix specialization of the abstract theorem.
 \end{distillation}
 
-\section*{Lean comparison targets}
+\section*{Source theorem map}
 For the current finite-dimensional development, the most valuable extract is not the full arbitrary-cone theorem, but the chain
 \[
   \text{positive matrix}
@@ -950,7 +966,7 @@ For the current finite-dimensional development, the most valuable extract is not
 \]
 The paper proves this by reducing the general theorem to the symmetric $2\times2$ case and then returning to matrices in Section 6.
 If we only need Sinkhorn convergence for strictly positive finite kernels, Theorem 6.2 plus Theorem 3.5 is the clean citation route.
-If we want a self-contained Lean proof, the minimum faithful route is: finite quadrant formulas, convex-hull diameter, $2\times2$ normalization, calculus lemma, matrix cross-ratio formula.
+The minimum faithful self-contained route is: finite quadrant formulas, convex-hull diameter, $2\times2$ normalization, calculus lemma, matrix cross-ratio formula.
 
 \input{references_manual}
 \end{document}

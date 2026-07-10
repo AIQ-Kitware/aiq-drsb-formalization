@@ -1,10 +1,27 @@
 
 \input{preamble}
 \title{Step-by-step modernization of Carroll (2004): Birkhoff's contraction coefficient}
-\author{Generated proof-target note}
+\author{}
 \date{Source PDF: \texttt{BirkhoffHilbert-Carroll2005-carroll-birkoff.pdf}}
 \begin{document}
 \maketitle
+
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{BirkhoffHilbert-Carroll2005-carroll-birkoff.pdf}}
+\item[Coverage] Theorem 1 and the complete finite-dimensional linear-programming reduction proving the sharp Birkhoff contraction coefficient.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Theorem 1
+  \item Sections 2.1--2.4
+  \item Remark 2
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
 \section*{Reference and role}
 This note modernizes Joseph E. Carroll, \emph{Birkhoff's Contraction Coefficient},
@@ -442,10 +459,9 @@ then
 This is exactly the finite positive-matrix Birkhoff contraction coefficient used by
 Franklin--Lorenz, just written in Carroll's multiplicative notation.
 
-\section*{Lean extraction checklist}
-For the current finite Sinkhorn/projective-lag formalization, Carroll suggests the
-following proof seams.
-\begin{formalizationnotes}
+\section*{Proof dependency chain}
+Carroll's proof reduces the theorem to the following sequence.
+\begin{commentarynotes}
 \item Define the multiplicative spread of a positive finite vector:
 \[
   \|x\|=\max_{i,j}x_i/x_j.
@@ -465,17 +481,17 @@ The additive version is its logarithm.
   \log d(Ax,Ay)
   \le \tau(\Theta(A))\log d(x,y).
 \]
-For many Lean uses, the exact sharpness part can be postponed; existence of some
+For applications requiring only a strict contraction, the exact sharpness part can be separated; existence of some
 $\rho<1$ follows from strict positivity and finiteness.
 \item Use Franklin--Lorenz Lemma 2 to apply this theorem twice per Sinkhorn cycle,
 producing the squared factor $\gamma=\tau(\Theta(A))^2$.
-\end{formalizationnotes}
+\end{commentarynotes}
 
 \paragraph{Why Carroll is high value.}
 Eveson--Nussbaum gives a very general cone-theoretic theorem.  Carroll gives a
 coordinate finite-dimensional proof, including the exact coefficient, with only one
 linear-programming reduction and elementary two-variable inequalities.  This makes it
-a natural source for a Lean theorem specialized to strictly positive finite kernels.
+a direct finite-dimensional source for the sharp theorem specialized to strictly positive matrices.
 
 \input{references_manual}
 \end{document}

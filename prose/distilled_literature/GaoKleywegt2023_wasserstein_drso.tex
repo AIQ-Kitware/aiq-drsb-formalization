@@ -1,39 +1,219 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Gao--Kleywegt (2023)}
-\author{Generated proof-target note}
-\date{Source PDF: \texttt{GaoKleywegt2023-1604.02199.pdf}}
+\title{Distributionally Robust Stochastic Optimization with Wasserstein Distance}
+\author{}
+\date{Gao and Kleywegt (2023)}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Gao and Kleywegt, \emph{Distributionally Robust Stochastic Optimization with Wasserstein Distance}, Mathematics of Operations Research 48(2), 603--655, 2023 \cite{GaoKleywegt2023}.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{gao-kleywegt-2023_DRO-with-wasserstein-distance__arXiv-1604.02199.pdf}}
+\item[Coverage] The strong-duality and worst-case-distribution architecture in Sections 2--3, with the constructive epsilon-optimal measures and data-driven corollaries.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Section 2, Definitions 3--4
+  \item Proposition 1
+  \item Section 3, Lemmas 4--7
+  \item Theorem 1
+  \item Corollaries 1--2
+\end{itemize}
+\end{description}
 
-\section*{Role in the formalization}
-This is a primary source for strong duality and worst-case-distribution structure in Wasserstein distributionally robust stochastic optimization.  It is especially relevant to formal wrappers that turn a worst-case expectation over a Wasserstein ball into a scalar minimization over a regularization parameter.
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\begin{distillation}
-\item \textbf{Worst-case expectation.}  Given nominal $\nu$, loss $\Psi$, and radius $\theta$, study
+\section{Primal and dual problems}
+Let $(\Xi,d)$ be Polish, $p\in[1,\infty)$, $\nu\in\Pcal_p(\Xi)$, $\theta>0$, and let
+$\Psi:\Xi\to\R$ be $\nu$-integrable.  Define
 \[
-  \sup_{\mu: W_p(\mu,\nu)\le \theta}\int \Psi(\xi)\,\mu(d\xi).
+ v_P:=\sup_{\mu\in\Pcal(\Xi):W_p(\mu,\nu)\le\theta}\int\Psi\,d\mu
 \]
-\item \textbf{Dual envelope.}  The Lagrange multiplier $\lambda\ge 0$ yields the pointwise regularization operator
+and
 \[
-  \Phi(\lambda,\zeta)=\sup_{\xi}\{\Psi(\xi)-\lambda d(\xi,\zeta)^p\}.
+ v_D:=\inf_{\lambda\ge0}
+ \left\{\lambda\theta^p-
+   \int \Phi(\lambda,\zeta)\,\nu(d\zeta)\right\},
+ \qquad
+ \Phi(\lambda,\zeta):=
+ \inf_{\xi\in\Xi}\{\lambda d^p(\xi,\zeta)-\Psi(\xi)\}.
 \]
-The candidate dual objective is
+The sign convention makes $-\Phi$ the penalized robust envelope.
+
+\section{Growth rate and near-minimizers}
+Define
 \[
-  h(\lambda)=\lambda\theta^p+\int \Phi(\lambda,\zeta)\,\nu(d\zeta).
+ \kappa:=\inf\left\{\lambda\ge0:
+         \int\Phi(\lambda,\zeta)\,\nu(d\zeta)>-\infty\right\}.
 \]
-\item \textbf{Growth threshold.}  A central technical object is the growth rate $\kappa$ of $\Psi$ relative to $d^p$.  If $\lambda>\kappa$, the envelope is finite under the stated hypotheses; if $\lambda<\kappa$, the dual may be infinite.
-\item \textbf{Strong duality.}  Under the paper's regularity conditions, the worst-case expectation equals $\inf_{\lambda\ge 0}h(\lambda)$, with finite/infinite cases separated by the growth threshold.
-\item \textbf{Worst-case distributions.}  Approximate or exact worst-case distributions are built by transporting each nominal atom or infinitesimal mass to near maximizers of $\Psi(\xi)-\lambda d(\xi,\zeta)^p$.
-\end{distillation}
+When $\Xi$ is unbounded, $\kappa$ is the asymptotic $d^p$-growth rate of $\Psi$:
+\[
+ \kappa=
+ \limsup_{d^p(\xi,\zeta)\to\infty}
+ \frac{\max\{0,\Psi(\xi)-\Psi(\zeta)\}}{d^p(\xi,\zeta)},
+\]
+independently of the base point $\zeta$.  Equivalently, $\kappa<\infty$ exactly when there exist
+$L,M>0$ and $\zeta_0$ such that
+\[
+ \Psi(\xi)-\Psi(\zeta_0)\le Ld^p(\xi,\zeta_0)+M.
+\]
+For $\Phi(\lambda,\zeta)>-\infty$, define the limiting largest and smallest transport costs among
+near-minimizers:
+\begin{align*}
+ D^+(\lambda,\zeta)
+ &:=\lim_{\varepsilon\downarrow0}
+   \sup\{d^p(\xi,\zeta):
+      \lambda d^p(\xi,\zeta)-\Psi(\xi)
+      \le\Phi(\lambda,\zeta)+\varepsilon\},\\
+ D^-(\lambda,\zeta)
+ &:=\lim_{\varepsilon\downarrow0}
+   \inf\{d^p(\xi,\zeta):
+      \lambda d^p(\xi,\zeta)-\Psi(\xi)
+      \le\Phi(\lambda,\zeta)+\varepsilon\}.
+\end{align*}
+The measurable-selection lemmas provide measurable near-minimizers
+$T^+_{\varepsilon,\delta}(\zeta)$ and $T^-_{\varepsilon,\delta}(\zeta)$ whose transport costs are,
+respectively, within $\delta$ of $D^+$ and $D^-$.  When actual minimizers exist, the same holds with
+exact argmin selectors.  The proof uses measurable-graph results for normal integrands on Polish
+spaces.
 
-\section*{Lean comparison targets}
-Use this note for the Wasserstein-DRO duality branch, especially statements involving growth-rate conditions, regularization envelopes, and construction of worst-case measures.  The proof is measure-theoretic and requires measurable-selection/tightness infrastructure if formalized at full generality.
+\section{Weak duality}
+Given a coupling $\pi\in\Pi(\mu,\nu)$ and $\lambda\ge0$,
+\[
+ \Psi(\xi)\le\lambda d^p(\xi,\zeta)-\Phi(\lambda,\zeta).
+\]
+Integrating and using $\int d^p\,d\pi\le\theta^p$ gives
+\[
+ \int\Psi\,d\mu
+ \le\lambda\theta^p-
+   \int\Phi(\lambda,\zeta)\,\nu(d\zeta).
+\]
+Taking the supremum over $\mu$ and then the infimum over $\lambda$ yields $v_P\le v_D$.
 
-\section*{Distillation gaps}
-\TODO{Extract the exact hypotheses of Theorem 1 and Corollary 1 before formalizing strong duality.  The current note is a proof skeleton, not a fully faithful theorem statement.}
+\section{Properties of the scalar dual objective}
+Write
+\[
+ h(\lambda):=\lambda\theta^p-
+             \int\Phi(\lambda,\zeta)\,\nu(d\zeta).
+\]
+For each $\zeta$, $\Phi(\cdot,\zeta)$ is concave and nondecreasing, hence $h$ is convex.  It is
+finite on $(\kappa,\infty)$, lower semicontinuous on $[0,\infty)$, and coercive when the radius is
+positive.  Therefore, if $\kappa<\infty$, the dual infimum is attained at some
+$\lambda^*\in[\kappa,\infty)$.
+
+The one-sided derivatives of $-\Phi$ are governed by the extreme costs of near-minimizers.  After
+integration,
+\begin{align*}
+ h'_-(\lambda)&=\theta^p-
+      \int D^+(\lambda,\zeta)\,\nu(d\zeta),\\
+ h'_+(\lambda)&=\theta^p-
+      \int D^-(\lambda,\zeta)\,\nu(d\zeta)
+\end{align*}
+whenever $\lambda>\kappa$, with the analogous inequalities sufficient at boundary points.  At an
+interior minimizer,
+\begin{equation}\label{eq:GK-budget-bracket}
+ \int D^-(\lambda^*,\zeta)\,d\nu
+ \le\theta^p\le
+ \int D^+(\lambda^*,\zeta)\,d\nu.
+\end{equation}
+
+\section{Constructing a nearly optimal primal law when $\lambda^*>\kappa$}
+Fix small $\varepsilon,\delta>0$.  Select measurable maps $T^+$ and $T^-$ satisfying
+\begin{align*}
+ \lambda^*d^p(T^\pm(\zeta),\zeta)-\Psi(T^\pm(\zeta))
+ &\le\Phi(\lambda^*,\zeta)+\varepsilon,\\
+ d^p(T^+(\zeta),\zeta)&\ge D^+(\lambda^*,\zeta)-\delta,\\
+ d^p(T^-(\zeta),\zeta)&\le D^-(\lambda^*,\zeta)+\delta.
+\end{align*}
+By \eqref{eq:GK-budget-bracket}, after a vanishing adjustment of the selectors there exists
+$q\in[0,1]$ such that
+\[
+ q\int d^p(T^+(\zeta),\zeta)\,d\nu
+ +(1-q)\int d^p(T^-(\zeta),\zeta)\,d\nu
+ \le\theta^p
+\]
+and the left side approaches $\theta^p$ as the errors vanish.  Define a coupling by
+\[
+ \pi_{\varepsilon,\delta}(d\xi,d\zeta)
+ :=\bigl[q\delta_{T^+(\zeta)}(d\xi)
+ +(1-q)\delta_{T^-(\zeta)}(d\xi)\bigr]\nu(d\zeta).
+\]
+Its second marginal is $\nu$, its first marginal $\mu_{\varepsilon,\delta}$ lies in the Wasserstein
+ball, and the near-minimizer inequalities give
+\begin{align*}
+ \int\Psi\,d\mu_{\varepsilon,\delta}
+ &\ge \lambda^*\int d^p\,d\pi_{\varepsilon,\delta}
+       -\int\Phi(\lambda^*,\zeta)\,d\nu-\varepsilon\\
+ &\longrightarrow
+ \lambda^*\theta^p-
+       \int\Phi(\lambda^*,\zeta)\,d\nu
+ =v_D.
+\end{align*}
+Thus $v_P\ge v_D$.
+
+\section{The boundary case $\lambda^*=\kappa$}
+At the growth boundary, the preceding selector construction can fail because near-minimizers may
+escape to infinity.  The proof perturbs the multiplier to values on both sides of the minimizer that
+remain above $\kappa$, takes measurable near-minimizers for those perturbed problems, and mixes
+them with the identity map $\zeta\mapsto\zeta$.  Convex weights are chosen so that:
+\begin{enumerate}[label=(\roman*)]
+\item the total mass is one;
+\item the expected $p$-transport cost is at most $\theta^p$;
+\item the Lagrangian defect tends to zero as the perturbations vanish.
+\end{enumerate}
+If the minimizing sequence escapes to infinity, the definition of $\kappa$ guarantees that the payoff
+growth along that sequence compensates exactly for the boundary transport penalty.  The resulting
+three-component coupling again has objective converging to $v_D$.  Hence $v_P\ge v_D$ also at
+$\lambda^*=\kappa$.
+
+If $\kappa=\infty$, for every candidate multiplier there are measurable points where the payoff
+outgrows the transport penalty.  Moving an arbitrarily small amount of mass to those points produces
+feasible laws with arbitrarily large expected payoff.  Therefore $v_P=v_D=+\infty$.
+
+\begin{theorem}[Strong duality]
+If $\kappa<\infty$, then
+\[
+ v_P=v_D<\infty,
+\]
+and the scalar dual problem admits an optimizer $\lambda^*\ge\kappa$.  If $\kappa=\infty$, both
+values are $+\infty$.
+\end{theorem}
+
+\section{Worst-case distributions}
+Suppose the pointwise penalized problems attain their minima at $\lambda^*$.  Let
+$T^+$ and $T^-$ be measurable exact argmin selectors with the largest and smallest available
+transport costs, and choose $q$ so that the resulting mixture has cost $\theta^p$.  Then
+\[
+ \pi^*(d\xi,d\zeta)
+ :=\bigl[q\delta_{T^+(\zeta)}(d\xi)
+ +(1-q)\delta_{T^-(\zeta)}(d\xi)\bigr]\nu(d\zeta)
+\]
+is optimal, and its first marginal is a worst-case distribution.  Conversely, every optimal coupling
+must be concentrated on
+\[
+ \argmin_{\xi\in\Xi}
+ \{\lambda^*d^p(\xi,\zeta)-\Psi(\xi\}
+\]
+and must satisfy complementary slackness for the transport budget.
+
+For an empirical nominal law
+$\nu=N^{-1}\sum_{i=1}^N\delta_{\widehat\xi_i}$, one can choose a worst-case law supported on at
+most $2N$ points:
+\[
+ \mu^*=\frac1N\sum_{i=1}^N
+ \bigl[p_i\delta_{\xi_i^+}+(1-p_i)\delta_{\xi_i^-}\bigr],
+\]
+where each $\xi_i^\pm$ solves the corresponding penalized point problem.  Optimizing the weights
+$p_i$ is a linear program with one transport-budget constraint.  An extreme optimal solution has at
+most one fractional $p_i$, so a worst-case law can be represented by at most $N+1$ effective atoms
+when coincident and zero-weight atoms are removed.
+
+\section{Logical content of the proof}
+The strong-duality proof is constructive.  Convexity of the scalar dual objective produces a bracket
+for the desired transport budget; measurable near-minimizers realize the two sides of the bracket;
+and a pointwise two-way mixture interpolates to the prescribed radius.  The only additional issue is
+the boundary growth rate, where a third, untransported component controls escape to infinity.
 
 \input{references_manual}
 \end{document}

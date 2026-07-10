@@ -23,21 +23,39 @@
 \DeclareMathOperator{\Log}{Log}
 
 \title{Modernized proof notes: Lemmens--Nussbaum 2013, Birkhoff's version of Hilbert's metric}
-\author{Generated for the AIQ DRSB formalization reference corpus}
+\author{}
 \date{2026-07-09}
 
 \begin{document}
 \maketitle
 
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{Lemmens#U2013Nussbaum-2013-1304.7921v1.pdf}}
+\item[Coverage] Sections 2--3: Hilbert's projective metric, order-cone formulas, nonexpansiveness and contraction, positive-matrix diameter, and the special-cone models whose proofs are given in the survey.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Lemma 2.1
+  \item Theorem 2.2
+  \item Theorems 2.11 and 2.14
+  \item Lemma 3.1
+  \item Theorems 3.3--3.7
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
+
 \section*{Reference being modernized}
 Bas Lemmens and Roger Nussbaum. ``Birkhoff's version of Hilbert's metric and its applications in analysis.'' arXiv:1304.7921v1, 2013.
-Source PDF expected in the repo as
-\path{prose/papers/LemmensNussbaum2013_hilbert_metric_survey.pdf}.
+The source is the 2013 survey by Lemmens and Nussbaum, arXiv:1304.7921.
 
 \section*{Purpose of this note}
-The earlier note only summarized the survey.  This replacement keeps the modern notation and proof-level details that are useful for formalization: the order definition of Hilbert's metric, the proof of its basic metric properties, the equivalence with Hilbert's cross-ratio metric, nonexpansiveness of order-preserving homogeneous maps, the Birkhoff contraction theorem as the main theorem seam, the finite positive-matrix diameter formula, the Perron--Frobenius operator application, and the special-cone formulas for simplicial, polyhedral, and symmetric cones.
+This reconstruction keeps the modern notation and the proof-level details supplied by the survey: the order definition of Hilbert's metric, the proof of its basic metric properties, the equivalence with Hilbert's cross-ratio metric, nonexpansiveness of order-preserving homogeneous maps, the Birkhoff contraction theorem as the main theorem seam, the finite positive-matrix diameter formula, the Perron--Frobenius operator application, and the special-cone formulas for simplicial, polyhedral, and symmetric cones.
 
-The survey also contains later dynamical results for nonexpansive maps.  Those are recorded as theorem seams rather than fully reproved, because the survey itself cites external sources for several of them.  The fully expanded material below covers the parts whose proofs are present in the paper and most directly relevant to Birkhoff--Hopf/Sinkhorn formalization.
+The survey also contains later dynamical results for nonexpansive maps.  Those are stated with their source status rather than reproved when the survey itself cites an external proof.  The fully expanded material below covers the arguments actually supplied in the survey for Hilbert geometry, positive maps, and finite positive matrices.
 
 \section{Cones, order, domination, and parts}
 Let \(V\) be a real vector space.  A subset \(C\subseteq V\) is a cone if
@@ -656,7 +674,7 @@ The survey's final section concerns nonexpansive maps on Hilbert geometries, esp
 \[
   g(x)=\frac{f(x)}{\varphi(f(x))}
 \]
-on a base \(\Sigma_\varphi^\circ\).  The important formalization lesson is that order-preserving homogeneous maps are automatically Hilbert-nonexpansive, while finite projective diameter gives strict contraction.
+on a base \(\Sigma_\varphi^\circ\).  The structural conclusion is that order-preserving homogeneous maps are automatically Hilbert-nonexpansive, while finite projective diameter gives strict contraction.
 
 The survey records the following high-level results:
 \begin{enumerate}[leftmargin=2em]
@@ -666,8 +684,8 @@ The survey records the following high-level results:
 \end{enumerate}
 These are not the main dependencies for finite Sinkhorn scaling, but they justify using Hilbert metric as a general nonlinear Perron--Frobenius tool.
 
-\section{Lean comparison targets}
-The core finite-dimensional statements to carry into Lean are:
+\section{Core theorem chain}
+The core finite-dimensional statements are:
 \begin{enumerate}[leftmargin=2em]
 \item For positive vectors,
 \[

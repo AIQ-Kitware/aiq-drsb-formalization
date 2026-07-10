@@ -1,49 +1,259 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from L\'eonard's Schr\"odinger Survey}
-\author{Generated proof-target note}
-\date{Source PDF: \texttt{Leonard2013-1308.0215.pdf}}
+\title{The Schr\"odinger Problem, $(f,g)$-Transforms, and Entropic Interpolation}
+\author{}
+\date{L\'eonard (2014)}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Christian L\'eonard, \emph{A Survey of the Schr\"odinger Problem and Some of Its Connections with Optimal Transport}, Discrete and Continuous Dynamical Systems--A 34(4), 1533--1574, 2014 \cite{Leonard2014Survey}.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{leonard-2013_survey-schrodinger-problem-optimal-transport__arXiv-1308.0215.pdf}}
+\item[Coverage] The survey's proof-level core: entropy disintegration, dynamic/static equivalence, (f,g)-transform, Schrödinger system, reciprocal/Markov structure, and small-noise convergence to optimal transport.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Sections 2--3
+  \item Propositions 2.3 and 2.5
+  \item Section 4
+  \item Theorems 4.1--4.2
+  \item Section 5
+\end{itemize}
+\end{description}
 
-\section*{Role in the formalization}
-This is the cleanest survey source for the dynamic/static Schr\"odinger problem, entropy minimization over path measures, the $(f,g)$-transform, and the Markov property inherited by the bridge.
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\begin{distillation}
-\item \textbf{Dynamic-to-static reduction.}  Let $R$ be a reference path measure on $\Omega$, and constrain endpoint marginals $P_0=\mu_0$, $P_1=\mu_1$.  The dynamic problem
+\section{Path-space and endpoint formulations}
+Let $\Omega$ be a path space over a Polish state space $\mathcal X$, let
+$X_t(\omega)=\omega_t$ be the canonical process, and let $R$ be a Markov reference
+measure on $\Omega$.  Its endpoint law and bridge disintegration are denoted by
 \[
-  \inf\{H(P\mid R):P_0=\mu_0,\ P_1=\mu_1\}
+ R_{01}=(X_0,X_1)_\#R,
+ \qquad
+ R(d\omega)=R^{xy}(d\omega)R_{01}(dx,dy).
 \]
-can be reduced to a static entropy minimization over the endpoint coupling $\pi=P_{01}$ because relative entropy decomposes along disintegration:
-\[
-  H(P\mid R)=H(P_{01}\mid R_{01})+
-  \int H(P^{xy}\mid R^{xy})\,P_{01}(dxdy).
-\]
-The conditional entropy term is minimized by taking the reference bridges $R^{xy}$; hence the dynamic minimizer is obtained by mixing reference bridges with the optimal static endpoint coupling.
-\item \textbf{Multiplicative endpoint density.}  Under the usual integrability and irreducibility hypotheses, the optimal static coupling has density
-\[
-  \frac{d\widehat\pi}{dR_{01}}(x,y)=f(x)g(y),
-\]
-where $f,g\ge 0$ solve the Schr\"odinger system
-\[
-  f(x)\int g(y)R_{01}(dy\mid x)=\frac{d\mu_0}{dR_0}(x),\qquad
-  g(y)\int f(x)R_{01}(dx\mid y)=\frac{d\mu_1}{dR_1}(y).
-\]
-\item \textbf{$(f,g)$-transform.}  The bridge path measure is
-\[
-  \widehat P=f(X_0)g(X_1)R.
-\]
-If $R$ is Markov, this multiplicative endpoint tilt remains Markov.  Forward and backward harmonic functions propagate the endpoint potentials through the reference semigroup.
-\item \textbf{Connection to optimal transport.}  Entropic bridges converge, in small-noise or slow-reference limits, to optimal transport objects.  In proof terms, entropy gives strict convexity and compactness; the OT limit is a singular perturbation where the reference kernel concentrates on low-cost paths.
-\end{distillation}
+For prescribed endpoint laws $\mu_0,\mu_1\in\mathcal P(\mathcal X)$, the dynamic
+Schr\"odinger problem is
+\begin{equation}\label{eq:Leonard-Sdyn}
+ \inf\bigl\{H(P\mid R):P\in\mathcal P(\Omega),\ P_0=\mu_0,\ P_1=\mu_1\bigr\},
+\end{equation}
+and the static problem is
+\begin{equation}\label{eq:Leonard-S}
+ \inf\bigl\{H(\pi\mid R_{01}):\pi\in\mathcal P(\mathcal X^2),\
+                 \pi_0=\mu_0,\ \pi_1=\mu_1\bigr\}.
+\end{equation}
+Relative entropy is strictly convex on probability measures absolutely continuous with
+respect to the reference measure, so either problem has at most one minimizer.
 
-\section*{Lean comparison targets}
-Use this source for statements that identify path-space bridges with endpoint-coupling bridges and for any formalization of the Doob/$h$-transform picture.  For the finite Sinkhorn files, this is background rather than the primary convergence source.
+\subsection{Entropy disintegration}
+Disintegrate any admissible $P$ as
+\[
+ P(d\omega)=P^{xy}(d\omega)P_{01}(dx,dy).
+\]
+The chain rule for relative entropy gives
+\begin{equation}\label{eq:Leonard-chain}
+ H(P\mid R)=H(P_{01}\mid R_{01})
+ +\int_{\mathcal X^2}H(P^{xy}\mid R^{xy})\,P_{01}(dx,dy).
+\end{equation}
+The second term is nonnegative.  It is zero precisely when
+$P^{xy}=R^{xy}$ for $P_{01}$-almost every $(x,y)$.  Consequently:
 
-\section*{Distillation gaps}
-\TODO{For any Lean theorem about dynamic/static equivalence, pin it to L\'eonard's Proposition 2.10 / Theorem 2.12 style statements after checking exact numbering in the final PDF.}
+\begin{proposition}[Dynamic--static equivalence]
+The infima in \eqref{eq:Leonard-Sdyn} and \eqref{eq:Leonard-S} are equal.  If
+$\widehat\pi$ solves the static problem, then
+\begin{equation}\label{eq:Leonard-bridge-mixture}
+ \widehat P(d\omega)=\int_{\mathcal X^2}R^{xy}(d\omega)\,\widehat\pi(dx,dy)
+\end{equation}
+solves the dynamic problem.  Conversely, the endpoint law of every dynamic minimizer
+solves the static problem, and every dynamic minimizer shares its bridges with $R$.
+\end{proposition}
+
+\begin{proof}
+For every admissible $P$, \eqref{eq:Leonard-chain} implies
+$H(P\mid R)\ge H(P_{01}\mid R_{01})$.  Conversely, for any admissible $\pi$,
+the bridge mixture \eqref{eq:Leonard-bridge-mixture} has endpoints $\pi$ and makes the
+conditional entropy term in \eqref{eq:Leonard-chain} vanish.  Taking infima gives equality,
+and equality in the chain rule gives the bridge characterization.
+\end{proof}
+
+\section{Existence and the static entropy problem}
+Suppose there exists at least one coupling $\pi$ of $\mu_0$ and $\mu_1$ with
+$H(\pi\mid R_{01})<\infty$.  Under the standard tightness assumptions used for entropy
+minimization, a minimizing sequence is tight because its marginals are fixed.  Relative
+entropy is lower semicontinuous under weak convergence, so a weak cluster point is a
+minimizer.  Strict convexity gives uniqueness.
+
+When $R$ is allowed to be $\sigma$-finite rather than probabilistic, choose a nonnegative
+measurable weight $W$ such that
+\[
+ z_W:=\int e^{-W}\,dR<\infty
+\]
+and define the probability measure $R_W=z_W^{-1}e^{-W}R$.  Then
+\begin{equation}\label{eq:Leonard-unbounded-entropy}
+ H(P\mid R)=H(P\mid R_W)-\int W\,dP-\log z_W.
+\end{equation}
+This definition is independent of the admissible weight $W$ and extends the usual
+relative entropy.  Formula \eqref{eq:Leonard-unbounded-entropy} reduces compactness and
+lower-semicontinuity arguments to the probability-reference case.
+
+\section{The Schr\"odinger system and endpoint factorization}
+Assume that the endpoint reference law has a strictly positive kernel representation
+\begin{equation}\label{eq:Leonard-kernel}
+ R_{01}(dx,dy)=r(x,y)m(dx)m(dy),
+ \qquad r(x,y)>0.
+\end{equation}
+Assume also that the static problem has finite value and that the endpoint constraints
+are regular enough for convex duality.  Introduce Lagrange multipliers $\varphi$ and
+$\psi$ for the two marginal constraints.  Pointwise minimization of
+\[
+ h\longmapsto h\log h-h-(\varphi(x)+\psi(y))h
+\]
+shows that the density of the minimizer must have multiplicative form
+\begin{equation}\label{eq:Leonard-fg-endpoint}
+ \frac{d\widehat\pi}{dR_{01}}(x,y)=f_0(x)g_1(y),
+ \qquad f_0=e^{\varphi},\quad g_1=e^{\psi}.
+\end{equation}
+The marginal constraints are therefore equivalent to the Schr\"odinger system
+\begin{align}
+ f_0(x)\int g_1(y)R_{01}(dy\mid x)&=\frac{d\mu_0}{dR_0}(x),
+ \label{eq:Leonard-sch1}\\
+ g_1(y)\int f_0(x)R_{01}(dx\mid y)&=\frac{d\mu_1}{dR_1}(y).
+ \label{eq:Leonard-sch2}
+\end{align}
+The pair $(f_0,g_1)$ is determined only up to reciprocal scaling
+$(f_0,g_1)\mapsto(cf_0,c^{-1}g_1)$, whereas the coupling
+$f_0(X_0)g_1(X_1)R$ is unique.
+
+\begin{theorem}[$(f,g)$ representation of the bridge]
+Under the preceding existence and integrability assumptions, the dynamic minimizer is
+\begin{equation}\label{eq:Leonard-fg-path}
+ \widehat P=f_0(X_0)g_1(X_1)R,
+\end{equation}
+where $(f_0,g_1)$ solves \eqref{eq:Leonard-sch1}--\eqref{eq:Leonard-sch2}.
+Conversely, every probability measure of the form \eqref{eq:Leonard-fg-path} with the
+prescribed endpoints is the unique Schr\"odinger bridge.
+\end{theorem}
+
+\begin{proof}
+The endpoint density of \eqref{eq:Leonard-fg-path} is
+$f_0(x)g_1(y)R_{01}(dx,dy)$, so the Schr\"odinger system is exactly the endpoint
+constraint.  For every competitor $P$ with the same endpoints,
+\[
+ \log\frac{d\widehat P}{dR}=\log f_0(X_0)+\log g_1(X_1).
+\]
+Hence the integral of this logarithm is the same under $P$ and $\widehat P$.  The entropy
+chain rule relative to $\widehat P$ yields
+\[
+ H(P\mid R)=H(P\mid\widehat P)+H(\widehat P\mid R),
+\]
+so $\widehat P$ is the unique minimizer.
+\end{proof}
+
+\section{$(f,g)$-transforms of a Markov measure}
+For $0\le t\le1$, define
+\begin{equation}\label{eq:Leonard-ft-gt}
+ f_t(x):=E_R[f_0(X_0)\mid X_t=x],
+ \qquad
+ g_t(x):=E_R[g_1(X_1)\mid X_t=x].
+\end{equation}
+The Markov property implies
+\begin{equation}\label{eq:Leonard-marginal-density}
+ \frac{d\widehat P_t}{dR_t}(x)=f_t(x)g_t(x).
+\end{equation}
+For $0\le s\le t\le1$, the forward and backward transition kernels are tilted by
+\begin{align}
+ \widehat P(X_t\in dy\mid X_s=x)
+ &=\frac{g_t(y)}{g_s(x)}R(X_t\in dy\mid X_s=x),\label{eq:Leonard-forward-kernel}\\
+ \widehat P(X_s\in dx\mid X_t=y)
+ &=\frac{f_s(x)}{f_t(y)}R(X_s\in dx\mid X_t=y).
+ \label{eq:Leonard-backward-kernel}
+\end{align}
+Thus an $(f,g)$-transform of a Markov measure is Markov.  Its bridges are unchanged,
+because conditioning simultaneously on $X_s$ and $X_t$ cancels the endpoint factors.
+The bridge belongs to the reciprocal class of $R$.
+
+If $R$ has generator $L$ and carr\'e du champ $\Gamma$, then the forward and backward
+generators of the transform are
+\begin{align}
+ \overrightarrow A_tu&=Lu+\frac{\Gamma(g_t,u)}{g_t},\\
+ \overleftarrow A_tu&=Lu+\frac{\Gamma(f_t,u)}{f_t},
+\end{align}
+where the second formula is understood with reversed time orientation.  Writing
+$\psi_t=\log g_t$ and $\varphi_t=\log f_t$, the linear Kolmogorov equations for $f$ and
+$g$ become nonlinear Hamilton--Jacobi equations
+\begin{align}
+ (\partial_t+B)\psi&=0,\\
+ (-\partial_t+B)\varphi&=0,
+ \qquad Bu=e^{-u}Le^u.
+\end{align}
+
+\section{Brownian reference and stochastic control}
+For reversible Brownian motion on $\mathbb R^d$, $L=\tfrac12\Delta$ and
+\[
+ Bu=\frac12\Delta u+\frac12|\nabla u|^2.
+\]
+The forward drift of the bridge is $\nabla\psi_t$, and its marginal density satisfies
+\begin{equation}\label{eq:Leonard-FP}
+ (\partial_t-\tfrac12\Delta)\mu_t+\nabla\cdot(\mu_t\nabla\psi_t)=0.
+\end{equation}
+The potential solves
+\begin{equation}\label{eq:Leonard-HJB}
+ \partial_t\psi_t+\frac12\Delta\psi_t+\frac12|\nabla\psi_t|^2=0.
+\end{equation}
+If $Q$ is any path law of finite entropy with respect to Brownian reference $R$, Girsanov's
+theorem supplies a progressively measurable drift $\beta$ such that
+\begin{equation}\label{eq:Leonard-Girsanov-energy}
+ H(Q\mid R)=H(Q_0\mid R_0)+
+ E_Q\int_0^1\frac12|\beta_t|^2\,dt.
+\end{equation}
+Consequently, after fixing $Q_0=\mu_0$, entropy minimization is equivalent to the
+minimum-action problem
+\begin{equation}\label{eq:Leonard-min-action}
+ \inf_{(\nu,v)}\int_0^1\int_{\mathbb R^d}\frac12|v_t(x)|^2\,\nu_t(dx)\,dt,
+\end{equation}
+subject to the controlled Fokker--Planck equation
+\[
+ (\partial_t-\tfrac12\Delta)\nu+\nabla\cdot(\nu v)=0,
+ \qquad \nu_0=\mu_0,\quad\nu_1=\mu_1.
+\]
+The unique minimizing marginal flow is the entropic interpolation
+$\mu_t=\widehat P_t$, and the minimizing drift is $v_t=\nabla\psi_t$.
+
+\section{Small-noise limit and optimal transport}
+Let $R^\varepsilon$ be Brownian motion with variance parameter $\varepsilon$.  Its
+endpoint kernel has the logarithmic asymptotic
+\[
+ -\varepsilon\log r_{01}^\varepsilon(x,y)\longrightarrow \frac12d(x,y)^2.
+\]
+Therefore
+\[
+ \varepsilon H(\pi\mid R_{01}^\varepsilon)
+ =\int\frac12d(x,y)^2\,d\pi+o(1)
+\]
+up to terms depending only on the fixed marginals.  Large-deviation and
+$\Gamma$-convergence arguments imply that minimizers of the Schr\"odinger problem
+converge, along subsequences, to optimal couplings for quadratic transport.  The bridge
+mixture then concentrates on minimizing geodesics, so entropic interpolations converge
+to displacement interpolations.
+
+\section{Summary theorem chain}
+The mathematical structure is
+\[
+ \boxed{
+ \begin{array}{c}
+ \text{path-space entropy minimization}\\
+ \Updownarrow\\
+ \text{endpoint entropy minimization}\\
+ \Updownarrow\\
+ \text{multiplicative Schr\"odinger system}\\
+ \Downarrow\\
+ \text{$(f,g)$-transform, Markov bridge, and entropic interpolation}\\
+ \Downarrow\\
+ \text{quadratic-energy stochastic control for Brownian reference}.
+ \end{array}}
+\]
+The small-noise limit connects this chain to quadratic optimal transport.
 
 \input{references_manual}
 \end{document}

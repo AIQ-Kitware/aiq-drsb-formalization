@@ -1,9 +1,26 @@
 \input{preamble}
 \title{Modernized Proof Notes for Girsanov (1960): Absolutely Continuous Changes of Measure for Diffusions}
-\author{Generated proof-target note for the AIQ DRSB formalization corpus}
+\author{}
 \date{Source PDF: \texttt{girsanov1960.pdf}}
 \begin{document}
 \maketitle
+
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{girsanov1960.pdf}}
+\item[Coverage] Fundamental Theorems 1--2, their supporting lemmas, the density process, and the transformed conditional characteristics.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Section 2, Fundamental Theorem 1
+  \item Lemmas 1--2
+  \item Section 3, Fundamental Theorem 2
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
 \section*{Reference and purpose}
 This note expands I. V. Girsanov, ``On Transforming a Certain Class of Stochastic Processes by Absolutely Continuous Substitution of Measures,'' \emph{Theory of Probability and Its Applications}, 5(3):285--301, 1960 \cite{Girsanov1960}.  This is a non-arXiv classical source.  The notation in the translated PDF is old and the scan is noisy; this note keeps the proof architecture and rewrites it in modern stochastic-process language.
@@ -170,7 +187,7 @@ For diffusion-type processes with a common nondegenerate diffusion matrix $B$ an
 Girsanov's paper focuses on absolute continuity and drift transformation.  The identity most often used in Schrodinger bridge/SOC applications is the later standard consequence:
 if $Q\ll P$ is obtained by adding drift $u$ to Brownian motion and
 \[
-  \frac{dQ}{dP}=\exp\left(\int_0^T u_t\cdot dW_t-rac12\int_0^T\|u_t\|^2dt\right),
+  \frac{dQ}{dP}=\exp\left(\int_0^T u_t\cdot dW_t-\frac12\int_0^T\|u_t\|^2dt\right),
 \]
 then, under the regularity assumptions making the stochastic integral a true martingale,
 \begin{equation}
@@ -178,14 +195,12 @@ then, under the regularity assumptions making the stochastic integral a true mar
 \end{equation}
 This follows by taking $Q$-expectations of $\log(dQ/dP)$ and rewriting the stochastic integral under $Q$ using the shifted Brownian motion.  The martingale term has zero $Q$-expectation.  Equation \eqref{eq:girs-energy} is the analytic bridge from entropy minimization over path measures to quadratic stochastic control.
 
-\section{Formalization relevance}
-\begin{formalizationnotes}
-\item For finite Sinkhorn proofs, this paper is background only.
-\item For continuum bridge/SOC files, Theorem 1 is the source-level statement that drift changes are equivalent to absolutely continuous path-measure changes.
-\item A direct Lean formalization would require Brownian motion, stochastic integration, exponential martingales, and SDE uniqueness.  That is far beyond ordinary measure theory.
-\item For near-term formalization, use this note to justify theorem seams such as ``Girsanov change-of-drift theorem'' and ``entropy equals half control energy'' rather than attempting to prove them from first principles.
-\item Be careful with signs: the new Brownian motion is either $W-\int u$ or $W+\int u$ depending on whether the density is written with $+\int u\,dW$ or $-\int u\,dW$.
-\end{formalizationnotes}
+\section{Scope and analytic dependencies}
+\begin{commentarynotes}
+\item The theorem depends on stochastic integration, exponential-martingale criteria, and identification of the transformed conditional characteristics.
+\item The entropy--energy identity is obtained only after the density process is known to be a true martingale and the stochastic integral is recentered under the changed measure.
+\item Sign conventions must be tracked explicitly: the transformed Brownian motion is -\int u +\int u to the sign chosen in the exponential density.
+\end{commentarynotes}
 
 \section*{Checklist of details retained}
 \begin{itemize}[leftmargin=2em]

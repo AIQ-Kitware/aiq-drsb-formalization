@@ -1,116 +1,263 @@
-\documentclass[11pt]{article}
-\usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb,amsthm}
-\usepackage{enumitem}
-\usepackage[hidelinks]{hyperref}
-\newtheorem{theorem}{Theorem}
-\newtheorem{lemma}{Lemma}
-\newtheorem{proposition}{Proposition}
-\title{Distillation: Leonard 2019, Revisiting Fortet's proof}
-\author{Generated for the AIQ DRSB formalization reference corpus}
-\date{2026-07-09}
+\input{preamble}
+\title{Fortet's Fixed-Point Method for the Schr\"odinger System}
+\author{}
+\date{L\'eonard (2019)}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-Christian Leonard. ``Revisiting Fortet's proof of existence of a solution to the Schrodinger system.'' arXiv:1904.13211v1, 2019.
-Source PDF expected in the repo as
-\texttt{prose/papers/Leonard2019\_revisiting\_fortet.pdf}.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{Leonard 2019-revisit-fortet-1904.13211v1.pdf}}
+\item[Coverage] The fixed-point proof of Fortet's theorem: reduction, monotone scheme, uniqueness, positivity dichotomy, existence theorem, and the variants in Sections 6--7.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Theorems 1.1 and 1.9
+  \item Proposition 4.4
+  \item Lemmas 4.1--4.13
+  \item Proposition 5.1
+  \item Theorem 5.6
+  \item Lemmas 5.7--5.12
+  \item Proposition 6.1
+  \item Proposition 7.2
+\end{itemize}
+\end{description}
 
-\section*{Why this paper matters for the formalization}
-Leonard gives a modern, readable reconstruction of Fortet's existence and uniqueness proof for the Schrodinger system.  It is the best proof target for continuum Schrodinger-system existence.  It is also useful for interpreting the finite Sinkhorn equations and avoiding circularity in scale-normalization arguments.
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\section*{Problem and Schrodinger system}
-Given a reference density \(p(x,y)\) and prescribed marginals \(\mu,\nu\), the entropy problem is
+\section{The Schr\"odinger system}
+Let $(X,\mathcal X)$ and $(Y,\mathcal Y)$ be measurable spaces, let
+$\mu\in\mathcal P(X)$ and $\nu\in\mathcal P(Y)$, and let
+$p:X\times Y\to(0,\infty)$ be measurable.  The Schr\"odinger system asks for
+$\sigma$-finite positive measures $a$ and $b$ such that
+\begin{align}
+ a(dx)\int_Yp(x,y)b(dy)&=\mu(dx),\label{eq:L19-sch1}\\
+ b(dy)\int_Xp(x,y)a(dx)&=\nu(dy).\label{eq:L19-sch2}
+\end{align}
+Only the product measure
 \[
-  H(\pi\mid p)\to\min,
-  \qquad \pi_X=\mu,
-  \quad \pi_Y=\nu.
+ \pi(dx,dy)=p(x,y)a(dx)b(dy)
 \]
-The expected solution has product scaling form
-\[
-  \pi(dxdy)=p(x,y)a(dx)b(dy),
-\]
-where \((a,b)\) solves the Schrodinger system
-\[
-  a(dx)\int p(x,y)b(dy)=\mu(dx),
-  \qquad
-  b(dy)\int p(x,y)a(dx)=\nu(dy).
-\]
-The solution is unique up to reciprocal scaling of \(a\) and \(b\), while the product measure \(pab\) is unique.
+is intrinsic: $(a,b)$ and $(c^{-1}a,cb)$ determine the same solution for every $c>0$.
 
-\section*{Fortet equation}
-Set \(u=d\mu/da\).  Then the system is equivalent to
+Write $u=d\mu/da$.  Then
 \[
-  a=u^{-1}\mu,
-  \qquad
-  b=\left(\int p(x,\cdot)u(x)^{-1}\,\mu(dx)\right)^{-1}\nu,
-\]
-and \(u\) solves
-\[
-  u=\Phi[u],
+ a=u^{-1}\mu,
+ \qquad
+ b(dy)=\Psi[u](y)^{-1}\nu(dy),
 \]
 where
+\begin{equation}\label{eq:L19-Psi}
+ \Psi[u](y):=\int_Xp(x,y)u(x)^{-1}\,\mu(dx).
+\end{equation}
+Substitution into the first equation yields Fortet's fixed-point equation
+\begin{equation}\label{eq:L19-fixed}
+ u=\Phi[u],
+ \qquad
+ \Phi[u](x):=\int_Yp(x,y)\Psi[u](y)^{-1}\,\nu(dy).
+\end{equation}
+The conventions $0^{-1}=\infty$ and $\infty^{-1}=0$ are used, with products interpreted
+through monotone truncation.
+
+\section{Order and homogeneity}
+The two reciprocal integral maps reverse order separately:
 \[
-  \Phi[u](x)
-  =\int p(x,y)
-   \left[\int p(x',y)u(x')^{-1}\,\mu(dx')\right]^{-1}\nu(dy).
+ u\le v\quad\Longrightarrow\quad
+ \Psi[u]\ge\Psi[v]
+ \quad\Longrightarrow\quad
+ \Phi[u]\le\Phi[v].
 \]
-This is the modern version of Fortet's one-equation reduction.
+Thus $\Phi$ is order preserving.  It is positively homogeneous:
+\begin{equation}\label{eq:L19-homogeneous}
+ \Psi[cu]=c^{-1}\Psi[u],
+ \qquad
+ \Phi[cu]=c\Phi[u]
+ \quad(c>0).
+\end{equation}
+This is the projective symmetry of the Schr\"odinger system.
 
-\section*{Main results distilled}
-Leonard states two principal existence/uniqueness paths.
+Whenever the expressions are finite on the relevant sets, Tonelli's theorem gives the
+mass identity
+\begin{equation}\label{eq:L19-mass-id}
+ \int_{\{u>0\}}\frac{\Phi[u]}{u}\,d\mu
+ =\nu\bigl(\Psi[u]<\infty\bigr).
+\end{equation}
+Indeed,
+\begin{align*}
+ \int\frac{\Phi[u](x)}{u(x)}\,\mu(dx)
+ &=\int_Y\Psi[u](y)^{-1}
+    \left(\int_Xp(x,y)u(x)^{-1}\,\mu(dx)\right)\nu(dy)\\
+ &=\int_Y\mathbf1_{\{\Psi[u]<\infty\}}\,\nu(dy).
+\end{align*}
+When $u$ is strictly positive and comparable to an admissible envelope, both sides equal
+one.
 
-\paragraph{Theorem 1.1 path.}
-Assume \(p>0\), \(p\) bounded, and one of two reciprocal integrability estimates holds.  Then the Schrodinger system admits a unique solution.  The proof is reduced to:
-\begin{itemize}[leftmargin=2em]
-\item uniqueness of positive finite solutions to \(u=\Phi[u]\), stated as Proposition 5.1;
-\item existence of a positive fixed point, stated as Theorem 5.6.
-\end{itemize}
+\section{The monotone Fortet iteration}
+Choose an envelope $U:X\to(0,\infty)$ such that $\Psi[U]$ and $\Phi[U]$ are finite.
+Fortet's regularized iteration is
+\begin{equation}\label{eq:L19-iteration}
+ u_1=U,
+ \qquad
+ u_{n+1}=\frac{U}{n+1}\vee\bigl(\Phi[u_n]\wedge U\bigr).
+\end{equation}
+The floor $U/(n+1)$ keeps every iterate positive; the ceiling $U$ gives a common bound.
+Monotonicity of $\Phi$ yields
+\begin{equation}\label{eq:L19-monotone}
+ 0<u_{n+1}\le u_n\le U,
+ \qquad
+ \Phi[u_{n+1}]\le\Phi[u_n].
+\end{equation}
+Hence $u_n\downarrow u_*$ pointwise for some $0\le u_*\le U$.
+Monotone convergence through the reciprocal maps gives
+\begin{equation}\label{eq:L19-truncated-fixed}
+ u_*=\Phi[u_*]\wedge U
+ \quad\mu\text{-almost everywhere}.
+\end{equation}
+The remaining problem is to prove that $\Phi[u_*]$ is positive.  Once positivity is known,
+the mass identity removes the truncation.
 
-\paragraph{Theorem 1.9 path.}
-Replace the integrability estimate by compactness/uniform-integrability hypotheses.  This gives a version closer to Fortet's original method and includes a Gaussian-kernel corollary.
+\section{From positivity to an exact fixed point}
+Assume $\Phi[u_*]>0$ $\mu$-almost everywhere.  On the set where
+$\Phi[u_*]\le U$, equation \eqref{eq:L19-truncated-fixed} gives
+$\Phi[u_*]/u_*=1$; on the complementary set the ratio is strictly larger than one.
+Applying \eqref{eq:L19-mass-id} and using that both probability masses equal one forces
+the complementary set to have zero measure.  Therefore
+\begin{equation}\label{eq:L19-ae-fixed}
+ 0<u_*=\Phi[u_*]\le U
+ \quad\mu\text{-almost everywhere}.
+\end{equation}
 
-\section*{Algorithmic proof skeleton}
-The proof constructs a decreasing positive sequence by clipping the natural iteration:
-\[
-  u_{n+1}=U/(n+1)\vee \bigl(\Phi[u_n]\wedge U\bigr),
-  \qquad u_1=U.
-\]
-Then:
-\begin{enumerate}[leftmargin=2em]
-\item monotonicity of \(\Phi\) gives \(u_{n+1}\le u_n\);
-\item pointwise monotone convergence gives a limit \(u_*\);
-\item passing to the limit in the clipped equation gives \(u_*\le \Phi[u_*]\);
-\item the identity
-\[
-  \int \frac{\Phi[u](x)}{u(x)}\,\mu(dx)=1
-\]
-forces equality once positivity of \(u_*\) is known;
-\item separate positivity lemmas rule out the zero fixed point.
+To upgrade an almost-everywhere identity to an everywhere identity, note that changing
+$u$ on a $\mu$-null set leaves $\Psi[u]$ and therefore $\Phi[u]$ unchanged everywhere.
+Replacing $u_*$ by the everywhere-defined function $\Phi[u_*]$ gives
+\begin{equation}\label{eq:L19-everywhere-fixed}
+ 0<u_*(x)=\Phi[u_*](x)\le U(x)
+ \qquad(x\in X).
+\end{equation}
+
+\section{The positivity argument under integral hypotheses}
+The first principal theorem assumes
+\begin{enumerate}
+\item $p(x,y)>0$ for all $(x,y)$;
+\item $p$ is bounded above;
+\item at least one of
+\begin{align}
+ \int_Y\left(\int_Xp(x,y)\,\mu(dx)\right)^{-1}\nu(dy)&<\infty,
+ \label{eq:L19-int1}\\
+ \int_X\left(\int_Yp(x,y)\,\nu(dy)\right)^{-1}\mu(dx)&<\infty
+ \label{eq:L19-int2}
+\end{align}
+ holds.
 \end{enumerate}
+By symmetry it suffices to use \eqref{eq:L19-int1} and take $U=1$.
 
-\section*{Uniqueness mechanism}
-Uniqueness is projective/gauge uniqueness.  If two positive finite functions solve \(u=\Phi[u]\), one compares their ratios and uses positivity of \(p\) to propagate any extremal ratio through the two integral updates.  The conclusion is that the ratio is constant, hence the two solutions differ by a scalar.  This is conceptually parallel to Hilbert projective uniqueness, though Leonard's proof is framed as Fortet's fixed-point argument rather than as Birkhoff contraction.
+Strict positivity of $p$ gives a dichotomy:
+\begin{equation}\label{eq:L19-dichotomy}
+ \text{for }0\le u\le U,
+ \qquad
+ \Phi[u]\equiv0
+ \quad\text{or}\quad
+ \Phi[u](x)>0\text{ for every }x.
+\end{equation}
+Indeed, if $\Phi[u](x_0)=0$, then positivity of $p(x_0,\cdot)$ forces
+$\Psi[u]^{-1}=0$ $\nu$-almost everywhere, hence $\Phi[u]\equiv0$.
 
-\section*{Lean comparison target}
-For the finite formalization:
-\begin{itemize}[leftmargin=2em]
-\item \texttt{SinkhornTargets.lean} and quotient-update files formalize finite analogues of the Schrodinger system.
-\item \texttt{ScaleLag.lean} uses the same idea as Leonard's mass identity: a nonnegative residual with total integral/sum zero must vanish, thereby killing the residual scalar.
-\item \texttt{ProjectiveLag.lean} should not cite Leonard alone for contraction.  Leonard supports uniqueness of solution rays and Fortet iteration, but the finite projective-drift proof still needs the Birkhoff/positive-matrix contraction source.
-\end{itemize}
-
-\section*{Use as a source for distilled Lean proof notes}
-When writing formalization prose, use Leonard 2019 to justify the following schema:
+Suppose for contradiction that $\Phi[u_*]\equiv0$.  Put
 \[
-  \hbox{Schrodinger system}\quad\Longleftrightarrow\quad
-  \hbox{positive fixed point of }\Phi,
+ \gamma_u(dy)=\Psi[u](y)^{-1}\nu(dy).
 \]
-then use Birkhoff/Lemmens--Nussbaum to justify any Hilbert-metric contraction claims.  This separation keeps the Lean development honest: Fortet/Leonard is existence/uniqueness of scalings, while Birkhoff is asymptotic projective regularity.
+Since $u_n\downarrow u_*$, the measures satisfy
+$0\le\gamma_{u_{n+1}}\le\gamma_{u_n}\le\gamma_{u_1}$, and
+\[
+ \Phi[u_n](x)=\int p(x,y)\,\gamma_{u_n}(dy)\downarrow0.
+\]
+Fix $x_0$.  On $Y_k=\{y:p(x_0,y)\ge1/k\}$,
+\[
+ \gamma_{u_n}(Y_k)
+ \le k\int p(x_0,y)\,\gamma_{u_n}(dy)
+ =k\Phi[u_n](x_0)\longrightarrow0.
+\]
+Because $p(x_0,y)>0$, $Y_k\uparrow Y$, and the integrability assumption makes
+$\gamma_{u_1}$ finite.  Thus the mass of $Y\setminus Y_k$ is uniformly small for large
+$k$.  Boundedness of $p$ then gives
+\[
+ \sup_x\Phi[u_n](x)
+ \le \|p\|_\infty
+   \bigl(\gamma_{u_n}(Y_k)+\gamma_{u_1}(Y\setminus Y_k)\bigr)
+ \longrightarrow0.
+\]
+Hence for some $n_0$, $\Phi[u_{n_0}]\le U$.  The mass identity and the definition of the
+next iterate then force
+\[
+ u_{n_0+1}=\Phi[u_{n_0+1}]>0,
+\]
+and monotonicity implies $u_*=u_{n_0+1}$, contradicting
+$\Phi[u_*]\equiv0$.  Therefore $\Phi[u_*]>0$ everywhere, and
+\eqref{eq:L19-everywhere-fixed} follows.
 
-\begin{thebibliography}{9}
-\bibitem{Leonard2019} C. Leonard, \emph{Revisiting Fortet's proof of existence of a solution to the Schrodinger system}, arXiv:1904.13211, 2019.
-\bibitem{Fortet1940} R. Fortet, \emph{Resolution d'un systeme d'equations de M. Schrodinger}, Journal de mathematiques pures et appliquees, 9e serie, 19(1--4):83--105, 1940.
-\end{thebibliography}
+\begin{theorem}[Existence under Fortet's integral criterion]
+If $p$ is positive and bounded and either \eqref{eq:L19-int1} or
+\eqref{eq:L19-int2} holds, then the Schr\"odinger system has a solution.
+The associated coupling $p(x,y)a(dx)b(dy)$ is unique, and the pair $(a,b)$ is unique up
+to reciprocal scaling.
+\end{theorem}
+
+\section{Uniqueness of the fixed ray}
+Let $u'$ and $u''$ be two strictly positive fixed points.  By homogeneity, normalize them
+at some $x_0$ so that $u'(x_0)=u''(x_0)$, and define
+\[
+ \alpha=\sup\{c>0:cu'\le u''\},
+ \qquad
+ \beta=\inf\{c>0:u''\le cu'\}.
+\]
+Order preservation gives $\alpha u'\le u''\le\beta u'$.  At a touching point, equality of
+$\Phi[u']$ and $\Phi[u'']$ together with strict positivity of $p$ forces equality of the
+intermediate reciprocal integrals $\Psi[u']$ and $\Psi[u'']$, hence equality of the fixed
+points after normalization.  Therefore every positive fixed point lies on the same ray.
+Equivalently, the coupling is unique and the scaling measures have only the expected
+one-dimensional gauge freedom.
+
+\section{Topological variant}
+The integral criterion can be replaced by a compact-uniform-integrability condition.
+Assume $X$ is topological and there is a nonempty compact $K\subset X$ such that
+$p(\cdot,y)$ is continuous on $K$ for every $y$, and there exist finitely many points
+$x_j$ and constants $c_j>0$ with
+\begin{equation}\label{eq:L19-domination}
+ \sup_{x\in K}p(x,y)\le\sum_{j=1}^Jc_jp(x_j,y)
+ \qquad(y\in Y).
+\end{equation}
+The domination in \eqref{eq:L19-domination} makes the family of kernel integrands
+uniformly integrable on $K$.  If $\Phi[u_*]$ vanished at one point, the same argument as
+above would give pointwise convergence $\Phi[u_n]\to0$; continuity and uniform
+integrability upgrade this to uniform convergence on $K$.  A multiplicative change of
+kernel then transports the bound from $K$ to all of $X$, providing an iterate below the
+envelope and closing the positivity argument.
+
+\begin{theorem}[Existence under compact kernel control]
+If $p$ is positive and bounded and satisfies the compact continuity and finite domination
+condition \eqref{eq:L19-domination}, then the Schr\"odinger system has a unique coupling.
+\end{theorem}
+
+For a translation kernel $p(x,y)=\theta(|y-x|)$ on $\mathbb R^d$, positivity,
+boundedness, continuity, and eventual monotonicity of $\theta$ imply the finite
+domination condition on every compact set, yielding existence and uniqueness.
+
+\section{Recovery of the scaling measures}
+Given the positive fixed point $u_*$, define
+\[
+ a(dx)=u_*(x)^{-1}\mu(dx),
+ \qquad
+ b(dy)=\Psi[u_*](y)^{-1}\nu(dy).
+\]
+Then
+\[
+ \int_Yp(x,y)b(dy)=\Phi[u_*](x)=u_*(x),
+\]
+which proves \eqref{eq:L19-sch1}, and the definition of $b$ proves
+\eqref{eq:L19-sch2}.  Thus the monotone scalar iteration constructs the full
+Schr\"odinger factorization.
+
+\input{references_manual}
 \end{document}

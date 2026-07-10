@@ -1,32 +1,206 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Mohajerin Esfahani--Kuhn (2018)}
-\author{Generated proof-target note}
-\date{Source PDF: \texttt{MohajerinEsfahaniKuhn2018-1505.05116.pdf}}
+\title{Data-Driven Distributionally Robust Optimization with the Wasserstein Metric}
+\author{}
+\date{Mohajerin Esfahani and Kuhn (2018), Theorems 3.4--3.6 and 4.2--4.4}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Mohajerin Esfahani and Kuhn, \emph{Data-Driven Distributionally Robust Optimization Using the Wasserstein Metric: Performance Guarantees and Tractable Reformulations}, Mathematical Programming 171(1--2), 115--166, 2018 \cite{MohajerinEsfahaniKuhn2018}.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{mohajerin-esfahani-kuhn-2018_data-driven-wasserstein-DRO__arXiv-1505.05116.pdf}}
+\item[Coverage] The finite-dimensional reformulation theorem and worst-case distribution construction for empirical Wasserstein balls, together with the concentration/performance guarantee used to choose the radius.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Theorem 3.4
+  \item Corollary 3.5
+  \item Theorem 4.2
+  \item proof in Appendix
+  \item finite-support construction
+\end{itemize}
+\end{description}
 
-\section*{Role in the formalization}
-This is the source for data-driven Wasserstein ambiguity balls, finite-sample performance guarantees, and tractable reformulations under convexity/concavity structure.
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\begin{distillation}
-\item \textbf{Data-driven ambiguity set.}  From samples $\widehat\xi_1,\dots,\widehat\xi_N$, form the empirical measure $\widehat P_N$ and Wasserstein ball
+\section{Empirical Wasserstein ambiguity sets}
+Let $\Xi\subseteq\R^m$ be closed and let
+$\widehat P_N=N^{-1}\sum_{i=1}^N\delta_{\widehat\xi_i}$ be the empirical law of independent samples
+from an unknown law $P$.  Using the $1$-Wasserstein distance induced by a norm $\|\cdot\|$, define
 \[
-  \mathcal B_\epsilon(\widehat P_N)=\{Q:W(Q,\widehat P_N)\le \epsilon\}.
+ B_\varepsilon(\widehat P_N)
+ :=\{Q\in\Pcal(\Xi):W_1(Q,\widehat P_N)\le\varepsilon\}.
 \]
-\item \textbf{Out-of-sample guarantee.}  Concentration inequalities imply that, with high probability, the unknown true distribution $P$ lies in the ball for a radius calibrated by $N$, dimension, and tail parameters.  Therefore the robust value upper bounds the true out-of-sample risk.
-\item \textbf{Asymptotic consistency.}  If the confidence level/radius is driven to zero at a suitable rate, the robust optimizer and robust value converge to their true stochastic counterparts.
-\item \textbf{Convex reformulation.}  For losses expressible as maxima of concave functions and convex feasible sets, the worst-case expectation over the Wasserstein ball has a finite convex reformulation.  The core proof combines Kantorovich duality with conjugate/perspective transformations.
-\item \textbf{Worst-case distributions.}  When the robust value is finite and certain compactness/attainment conditions hold, a worst-case distribution can be represented by perturbing empirical samples toward optimizer points of local adversarial subproblems.
-\end{distillation}
+For a loss $\ell:\Xi\to\overline\R$, the basic worst-case expectation is
+\[
+ \sup_{Q\in B_\varepsilon(\widehat P_N)}\E_Q[\ell(\xi)].
+\]
 
-\section*{Lean comparison targets}
-This source is not needed for the current Sinkhorn compactness frontier.  It should be cited for formal claims about statistical calibration of Wasserstein DRO and tractable finite convex programs.
+\section{Finite-sample and asymptotic guarantees}
+Suppose the data-generating law has a light tail of order $a>1$:
+$\E_P[\exp(\|\xi\|^a)]<\infty$.  A Wasserstein concentration theorem gives constants
+$c_1,c_2>0$ such that
+\[
+ P^N\{W_1(P,\widehat P_N)>\varepsilon\}
+ \le c_1\exp\bigl(-c_2N\varepsilon^{\max\{m,2\}}\bigr)
+\]
+in the small-radius regime, with the corresponding $a$-power exponent in the large-radius regime.
+Choose $\varepsilon_N(\beta)$ by inverting this bound.  Then with probability at least $1-\beta$,
+$P\in B_{\varepsilon_N(\beta)}(\widehat P_N)$.  Consequently, for every decision $x$,
+\[
+ \E_P[h(x,\xi)]
+ \le\sup_{Q\in B_{\varepsilon_N(\beta)}(\widehat P_N)}
+      \E_Q[h(x,\xi)].
+\]
+In particular, the robust value provides an out-of-sample upper confidence bound for the true cost
+of a robust optimizer.
 
-\section*{Distillation gaps}
-\TODO{If the Lean project formalizes finite-sample guarantees, extract the exact concentration theorem and tail assumptions.  These are more probabilistic than the algebraic duality parts.}
+If $\sum_N\beta_N<\infty$, the chosen radii tend to zero, and $h(x,\cdot)$ is upper semicontinuous
+with at most linear growth, then the robust objective converges almost surely to the true objective
+pointwise in $x$.  If in addition $h(\cdot,\xi)$ is lower semicontinuous and the decision set has the
+needed compactness/coercivity, the robust optimal values converge to the true optimal value and every
+accumulation point of robust minimizers is a true minimizer.  The proof combines Borel--Cantelli,
+Wasserstein convergence of empirical laws, and semicontinuity of integral functionals.
+
+\section{Convex-reduction assumptions}
+Write
+\[
+ \ell(\xi)=\max_{1\le k\le K}\ell_k(\xi).
+\]
+Assume $\Xi$ is closed and convex and each $-\ell_k$ is proper, convex, and lower semicontinuous;
+equivalently, each constituent $\ell_k$ is concave on its effective domain.  Denote the convex
+conjugate by $f^*$, the support function of $\Xi$ by $\sigma_\Xi$, and the dual norm by
+$\|\cdot\|_*$.  The worst-case expectation equals the optimal value of
+\begin{equation}\label{eq:MEK-convex-program}
+\begin{aligned}
+ \inf_{\lambda,s_i,z_{ik},\nu_{ik}}\quad
+ &\lambda\varepsilon+\frac1N\sum_{i=1}^Ns_i\\
+ \text{s.t.}\quad
+ &[ -\ell_k]^*(z_{ik}-\nu_{ik})+\sigma_\Xi(\nu_{ik})
+       -\langle z_{ik},\widehat\xi_i\rangle\le s_i,
+       &&i\le N, k\le K,\\
+ &\|z_{ik}\|_*\le\lambda,
+       &&i\le N, k\le K,\\
+ &\lambda\ge0.
+\end{aligned}
+\end{equation}
+
+\section{Derivation of the finite convex program}
+Every coupling of $Q$ and $\widehat P_N$ disintegrates as
+\[
+ \Pi=\frac1N\sum_{i=1}^N Q_i\otimes\delta_{\widehat\xi_i}.
+\]
+Thus the infinite-dimensional primal is the generalized moment problem
+\begin{equation}\label{eq:MEK-moment}
+ \sup_{Q_i\in\Pcal(\Xi)}
+ \left\{\frac1N\sum_i\int\ell(\xi)Q_i(d\xi):
+ \frac1N\sum_i\int\|\xi-\widehat\xi_i\|Q_i(d\xi)\le\varepsilon\right\}.
+\end{equation}
+Dualizing the single moment constraint gives
+\[
+ \inf_{\lambda\ge0}
+ \left\{\lambda\varepsilon+\frac1N\sum_{i=1}^N
+ \sup_{\xi\in\Xi}\bigl(\ell(\xi)-\lambda\|\xi-\widehat\xi_i\|\bigr)\right\}.
+\]
+Under the stated convexity assumptions, strong duality for generalized moment problems makes this
+an equality, including at $\varepsilon=0$.
+
+Introduce epigraph variables $s_i$ and split the maximum over $k$:
+\[
+ \sup_{\xi\in\Xi}\bigl(\ell_k(\xi)-\lambda\|\xi-\widehat\xi_i\|\bigr)\le s_i.
+\]
+By the dual-norm formula
+$\lambda\|u\|=\sup_{\|z\|_*\le\lambda}\langle z,u\rangle$,
+this is equivalent, after minimax interchange, to existence of $z_{ik}$ with
+$\|z_{ik}\|_*\le\lambda$ and
+\[
+ \sup_{\xi\in\Xi}\{\ell_k(\xi)-\langle z_{ik},\xi\rangle\}
+ +\langle z_{ik},\widehat\xi_i\rangle\le s_i.
+\]
+The remaining supremum is
+$[-\ell_k+\chi_\Xi]^*( -z_{ik})$.  Infimal convolution of conjugates gives
+\[
+ [-\ell_k+\chi_\Xi]^*(z)
+ =\inf_{\nu}\{[-\ell_k]^*(z-\nu)+\sigma_\Xi(\nu)\},
+\]
+which yields \eqref{eq:MEK-convex-program}.  The minimax equalities are justified because the
+functions involved are proper closed convex functions and the norm ball is compact in finite
+dimensions.
+
+\begin{theorem}[Convex reduction]
+Under the convexity assumptions, for every $\varepsilon\ge0$ the worst-case expectation over the
+empirical Wasserstein ball equals the finite convex program \eqref{eq:MEK-convex-program}.
+Without those assumptions, the same program remains a valid conservative upper bound.
+\end{theorem}
+
+\section{Dualizing again: extremal distributions}
+The dual of \eqref{eq:MEK-convex-program} can be expressed using masses
+$\alpha_{ik}\ge0$ and displacement vectors $q_{ik}\in\R^m$:
+\begin{equation}\label{eq:MEK-extremal-program}
+\begin{aligned}
+ \sup_{\alpha,q}\quad
+ &\frac1N\sum_{i=1}^N\sum_{k=1}^K
+   \alpha_{ik}\,
+   \ell_k\left(\widehat\xi_i-\frac{q_{ik}}{\alpha_{ik}}\right)\\
+ \text{s.t.}\quad
+ &\frac1N\sum_{i,k}\|q_{ik}\|\le\varepsilon,\\
+ &\sum_{k=1}^K\alpha_{ik}=1, &&i=1,\ldots,N,\\
+ &\alpha_{ik}\ge0,
+ \widehat\xi_i-\frac{q_{ik}}{\alpha_{ik}}\in\Xi.
+\end{aligned}
+\end{equation}
+The perspective convention is used at $\alpha_{ik}=0$: a nonzero $q_{ik}$ is infeasible, while
+$(\alpha,q)=(0,0)$ contributes zero.
+
+The key calculation is the perspective identity.  If $f$ is proper closed convex and
+\[
+ F(q,\alpha)=\inf_z
+ \{\langle z,q\rangle-alpha\langle z,\widehat\xi\rangle+alpha f^*(z)\},
+\]
+then
+\[
+ F(q,\alpha)=
+ \begin{cases}
+ -\alpha f(\widehat\xi-q/\alpha),&\alpha>0,\\
+ -\chi_{\{0\}}(q),&\alpha=0.
+ \end{cases}
+\]
+For $\alpha>0$ this is Fenchel--Moreau applied to $\alpha f^*$; for $\alpha=0$ it is the infimum of
+a linear functional.  Applying this identity to each dual block converts the Lagrange dual exactly
+into \eqref{eq:MEK-extremal-program}.
+
+For every feasible $(\alpha,q)$ define
+\[
+ \xi_{ik}:=\widehat\xi_i-\frac{q_{ik}}{\alpha_{ik}},
+ \qquad
+ Q:=\frac1N\sum_{i=1}^N\sum_{k=1}^K
+      \alpha_{ik}\delta_{\xi_{ik}}.
+\]
+The coupling that transports mass $\alpha_{ik}/N$ from $\widehat\xi_i$ to $\xi_{ik}$ has cost
+\[
+ \frac1N\sum_{i,k}\alpha_{ik}
+ \|\xi_{ik}-\widehat\xi_i\|
+ =\frac1N\sum_{i,k}\|q_{ik}\|
+ \le\varepsilon,
+\]
+so $Q\in B_\varepsilon(\widehat P_N)$.  Its expected loss dominates the objective of
+\eqref{eq:MEK-extremal-program} because
+$\ell=\max_k\ell_k$.  Conversely, duality shows that no feasible law can exceed that program.
+
+\begin{theorem}[Worst-case distributions]
+The optimal value of \eqref{eq:MEK-extremal-program} equals the worst-case expectation.  Any
+maximizing sequence $(\alpha(r),q(r))$ generates discrete laws
+\[
+ Q_r=\frac1N\sum_{i,k}
+ \alpha_{ik}(r)\delta_{\widehat\xi_i-q_{ik}(r)/\alpha_{ik}(r)}
+\]
+inside the Wasserstein ball whose expected losses converge to the worst-case value.  If the finite
+program attains its optimum, the associated $Q$ is a worst-case distribution.
+\end{theorem}
+
+Thus, even though the ambiguity set is infinite-dimensional, extremal behavior is represented by a
+finite collection of displaced sample atoms, with at most $NK$ atoms in the direct construction.
 
 \input{references_manual}
 \end{document}

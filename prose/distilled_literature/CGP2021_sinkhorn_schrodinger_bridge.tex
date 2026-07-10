@@ -1,67 +1,272 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Chen--Georgiou--Pavon (2021)}
-\author{Generated proof-target note}
-\date{Source PDF: \texttt{CGP2021-2005.10963.pdf}}
+\title{Stochastic Control, Schr\"odinger Bridges, Entropic Transport, and Sinkhorn Iteration}
+\author{}
+\date{Chen, Georgiou, and Pavon (2021)}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills the arguments of Chen, Georgiou, and Pavon, \emph{Stochastic Control Liaisons: Richard Sinkhorn Meets Gaspard Monge on a Schr\"odinger Bridge}, SIAM Review 63(2), 249--313, 2021 \cite{ChenGeorgiouPavon2021}.  The uploaded source is the arXiv v3 PDF, which corresponds to the published survey/article.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{CGP2021-2005.10963v3.pdf}}, \texttt{\detokenize{CGP2021-arXiv-2005.10963v3.tar.gz}}
+\item[Coverage] The paper's central equivalences: dynamic and static Schrödinger problems, stochastic control, entropic transport/free energy, the Schrödinger system, and the finite Fortet--IPF--Sinkhorn convergence theorem.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Sections 5.2--5.5
+  \item Section 6
+  \item Sections 7.1--7.3
+  \item Section 8.1--8.4
+  \item Theorem labeled Fundtheorem
+  \item Lemmas Linear, inversion, and compothm
+\end{itemize}
+\end{description}
 
-\section*{Role in the formalization}
-This is the main organizing source for the Lean namespace \texttt{ChenGeorgiouPavon2021}.  It supplies the common storyline connecting entropy-regularized optimal transport, the finite Schr\"odinger system, Fortet/Sinkhorn iteration, Hilbert projective contraction, and stochastic-control formulations of the dynamic Schr\"odinger bridge.
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\begin{formalizationnotes}
-\item The finite Sinkhorn formalization should cite this paper for the finite bridge problem, the Schr\"odinger system, and the high-level convergence theorem in the finite case.
-\item The remaining projective-lag proof should not cite CGP alone as a complete formal proof unless the distilled proof is strengthened with a primary Hilbert-metric or matrix-scaling reference such as \cite{FranklinLorenz1989,Carroll2004,EvesonNussbaum1995}.
-\item Dynamic/stochastic-control files should cite this paper for the free-energy/SOC reformulation and the zero-noise optimal-transport connection.
-\end{formalizationnotes}
-
-\section*{Core finite Schr\"odinger/Sinkhorn argument}
-Let $X=\{1,\dots,n\}$, let $p,q$ be strictly positive probability vectors, and let $G=(G_{ij})$ be a strictly positive reference kernel.  The finite Schr\"odinger bridge problem is
+\section{The dynamic Schr\"odinger problem}
+Let $R$ be a Markov path measure on a path space $\Omega$ over $[0,1]$, with endpoint joint law
+$R_{01}$ and bridge disintegration
 \[
-  \min_{\pi\in\Pcal(X\times X)} \KL(\pi\mid G)
-  \quad\text{subject to}\quad
-  \sum_j \pi_{ij}=p_i,\qquad \sum_i \pi_{ij}=q_j .
+ R(d\omega)=R^{xy}(d\omega)R_{01}(dx,dy).
 \]
-Up to harmless normalization of $G$, the optimal coupling has the Gibbs/Sinkhorn form
+Given endpoint laws $\rho_0,\rho_1$, the Schr\"odinger bridge problem is
+\begin{equation}\label{eq:CGP-dynamic}
+ \inf\{\KL(P\|R):P_0=\rho_0, P_1=\rho_1\}.
+\end{equation}
+Disintegrating $P=P^{xy}P_{01}$ and applying the entropy chain rule gives
+\begin{equation}\label{eq:CGP-chain}
+ \KL(P\|R)
+ =\KL(P_{01}\|R_{01})
+ +\int\KL(P^{xy}\|R^{xy})P_{01}(dx,dy).
+\end{equation}
+The second term is nonnegative and vanishes exactly when $P^{xy}=R^{xy}$ for
+$P_{01}$-almost every $(x,y)$.  Therefore the dynamic problem is equivalent to the static endpoint
+problem
+\begin{equation}\label{eq:CGP-static}
+ \inf\{\KL(\pi\|R_{01}):\pi_0=\rho_0, \pi_1=\rho_1\},
+\end{equation}
+and the optimal path law is obtained by mixing the reference bridges with the optimal endpoint
+coupling:
 \[
-  \pi^*_{ij}=a_i G_{ij} b_j,
+ P^*(d\omega)=R^{xy}(d\omega)\pi^*(dx,dy).
 \]
-where $a,b>0$ solve the two marginal equations
-\[
-  a_i \sum_j G_{ij} b_j=p_i,\qquad
-  b_j \sum_i a_i G_{ij}=q_j .
-\]
-The pair $(a,b)$ is unique up to the scalar transformation $(a,b)\mapsto(ca,c^{-1}b)$.
+This is the dynamic--static equivalence.
 
-\begin{distillation}
-\item \textbf{Convex variational reduction.}  Relative entropy is strictly convex on the positive support of $G$.  Introducing Lagrange multipliers for the two marginals gives
+\section{The Schr\"odinger system}
+Assume $R_{01}$ has a strictly positive kernel representation
 \[
-  \log(\pi_{ij}/G_{ij})+1+\alpha_i+\beta_j=0,
+ R_{01}(dx,dy)=r_0(dx)g(x,y)r_1(dy).
 \]
-so any interior minimizer has multiplicative form $a_iG_{ij}b_j$.
-\item \textbf{Schr\"odinger equations.}  Substituting the multiplicative ansatz into the marginal constraints produces the nonlinear system above.  The system is invariant under reciprocal scaling of the two potentials.
-\item \textbf{Sinkhorn/Fortet iteration.}  Alternately enforce the left and right marginal equations by updating one potential from the other.  In finite positive dimension, the maps are order-preserving and homogeneous after quotienting by the scalar gauge.
-\item \textbf{Projective convergence.}  The classical convergence mechanism is not ordinary Euclidean contraction of the potentials themselves, because potentials are defined up to scale.  The correct object is the ray in the positive cone.  Positivity of $G$ gives finite projective diameter, and Birkhoff/Hilbert contraction gives convergence of projective classes.  This is the source of the projective-lag statements still being formalized.
-\item \textbf{Gauge closure.}  Once the projective ray is controlled, a normalization condition such as fixed total mass of one potential fixes the scalar and gives ordinary coordinate convergence.
-\end{distillation}
-
-\section*{Lean comparison targets}
-The finite Lean formalization has split this argument into local seams:
+The Euler--Lagrange equation for \eqref{eq:CGP-static} gives
 \[
-\begin{array}{ll}
-\texttt{Precluster.lean} & \text{finite compactness of bounded positive phase streams},\\
-\texttt{ProjectiveLag.lean} & \text{projective asymptotic regularity of alternating updates},\\
-\texttt{ScaleLag.lean} & \text{scalar normalization once projective drift is known},\\
-\texttt{FiniteLag.lean} & \text{pure finite algebra: projective+scale drift implies coordinate drift},\\
-\texttt{QuotientDrift.lean} & \text{quotient-update transfer to mixed phases}.
-\end{array}
+ \log\frac{d\pi^*}{dR_{01}}(x,y)=a(x)+b(y),
 \]
-The CGP text gives the architectural proof, but the formal projective step should be checked against a primary projective-metric source before being treated as fully justified.
+so, after exponentiating,
+\begin{equation}\label{eq:CGP-factorization}
+ \pi^*(dx,dy)=\widehat\varphi(x)g(x,y)\varphi(y)
+ r_0(dx)r_1(dy).
+\end{equation}
+The marginal constraints become
+\begin{align}
+ \widehat\varphi(x)
+ \int g(x,y)\varphi(y)r_1(dy)&=\frac{d\rho_0}{dr_0}(x),\label{eq:CGP-sch1}\\
+ \varphi(y)
+ \int g(x,y)\widehat\varphi(x)r_0(dx)&=\frac{d\rho_1}{dr_1}(y).\label{eq:CGP-sch2}
+\end{align}
+The pair is determined only up to the gauge
+$(\widehat\varphi,\varphi)\mapsto(a\widehat\varphi,a^{-1}\varphi)$.
+Strict convexity of relative entropy gives uniqueness of the coupling, and hence uniqueness of the
+potential rays.
 
-\section*{Distillation gaps}
-\TODO{Extract the exact CGP theorem/section references for the finite-state Sinkhorn convergence theorem and add page/number anchors.  The PDF text shows the finite-state development around Section 8; this note intentionally avoids overcommitting theorem numbers until they are cross-checked against the final PDF.}
+\section{Fortet iteration}
+Eliminate $\widehat\varphi$ from \eqref{eq:CGP-sch1}--\eqref{eq:CGP-sch2}.  In density notation,
+Fortet's fixed-point map is
+\[
+ \mathcal C(h)(x)
+ :=\int g(x,y)
+ \frac{\rho_1(y)}
+ {\int g(z,y)\rho_0(z)/h(z)\,dz}dy.
+\]
+A fixed point $h=\mathcal C(h)$ yields
+$\widehat\varphi=\rho_0/h$ and then $\varphi$ from the second denominator.  The map is
+order-preserving and positively homogeneous.  In the continuous setting it need not preserve a cone
+with nonempty interior, so Fortet's proof uses truncations and monotone approximation rather than a
+direct contraction theorem.
+
+\section{Girsanov and stochastic control}
+Take as reference a diffusion
+\[
+ dX_t=f(t,X_t)dt+\sigma(t,X_t)\,dW_t,
+ \qquad a=\sigma\sigma^\top.
+\]
+A controlled diffusion with the same noise channels has drift $f+\sigma u$.  Under the usual
+absolute-continuity and square-integrability assumptions, Girsanov's theorem gives
+\begin{equation}\label{eq:CGP-girsanov}
+ \KL(P^u\|R)
+ =\KL(P^u_0\|R_0)
+ +\frac12\E_{P^u}\int_0^1\|u(t,X_t)\|^2dt.
+\end{equation}
+When the initial law is fixed, minimizing path-space entropy with prescribed endpoints is therefore
+equivalent to
+\begin{equation}\label{eq:CGP-control}
+ \inf_{(\rho,u)}
+ \int_0^1\int\frac12\|u(t,x)\|^2\rho(t,x)dxdt
+\end{equation}
+subject to the controlled Fokker--Planck equation and the two endpoint densities.  This is the
+stochastic-control formulation of the bridge.
+
+\section{Generalized control with a state potential}
+The paper also studies
+\begin{equation}\label{eq:CGP-generalized-control}
+ \inf_{(\rho,u)}
+ \int_0^1\int
+ \left(\frac12\|u\|^2+V(t,x)\right)\rho(t,x)dxdt
+\end{equation}
+subject to
+\[
+ \partial_t\rho+
+ \nabla\cdot((f+\sigma u)\rho)
+ =\frac12\sum_{i,j}\partial_{ij}(a_{ij}\rho),
+ \qquad \rho(0)=\rho_0, \rho(1)=\rho_1.
+\]
+Introduce a Lagrange multiplier $\lambda(t,x)$ for the Fokker--Planck equation and integrate by parts.
+Pointwise minimization in $u$ gives
+\begin{equation}\label{eq:CGP-opt-control}
+ u^*=\sigma^\top\nabla\lambda.
+\end{equation}
+The remaining stationarity condition is the Hamilton--Jacobi--Bellman equation
+\begin{equation}\label{eq:CGP-HJB}
+ \partial_t\lambda+f\cdot\nabla\lambda
+ +\frac12\sum_{i,j}a_{ij}\partial_{ij}\lambda
+ +\frac12\nabla\lambda\cdot a\nabla\lambda-V=0.
+\end{equation}
+If $\rho$ solves the controlled Fokker--Planck equation with drift
+$f+a\nabla\lambda$ and satisfies the terminal marginal, then
+$(\rho,u^*)$ is optimal.  Indeed, completing the square in the integrated Lagrangian shows that any
+other feasible $u$ has excess cost
+\[
+ \frac12\int_0^1\int
+ \|u-\sigma^\top\nabla\lambda\|^2\rho\,dx\,dt.
+\]
+
+The Hopf--Cole transform $\varphi=e^\lambda$ linearizes
+\eqref{eq:CGP-HJB}:
+\begin{equation}\label{eq:CGP-forward-potential}
+ \partial_t\varphi+f\cdot\nabla\varphi
+ +\frac12\sum_{i,j}a_{ij}\partial_{ij}\varphi=V\varphi.
+\end{equation}
+Writing $\widehat\varphi=\rho/\varphi$ gives the adjoint equation
+\begin{equation}\label{eq:CGP-backward-potential}
+ \partial_t\widehat\varphi+
+ \nabla\cdot(f\widehat\varphi)
+ -\frac12\sum_{i,j}\partial_{ij}(a_{ij}\widehat\varphi)
+ =-V\widehat\varphi.
+\end{equation}
+The nonlinear coupling is entirely in the split boundary conditions
+\[
+ \varphi(0,\cdot)\widehat\varphi(0,\cdot)=\rho_0,
+ \qquad
+ \varphi(1,\cdot)\widehat\varphi(1,\cdot)=\rho_1.
+\]
+This is the generalized Schr\"odinger system, and the optimal control is
+$u^*=\sigma^\top\nabla\log\varphi$.
+
+\section{Entropic optimal transport and free energy}
+For a Brownian reference with variance parameter $\varepsilon$, the endpoint kernel has density
+proportional to
+$\exp(-\|x-y\|^2/(2\varepsilon))$.  Expanding
+$\KL(\pi\|R_{01})$ separates a quadratic transport term from the entropy of $\pi$:
+\[
+ \varepsilon\KL(\pi\|R_{01})
+ =\frac12\int\|x-y\|^2\pi(dx,dy)
+ +\varepsilon\KL(\pi\|r_0\otimes r_1)+\text{constants fixed by the marginals}.
+\]
+Therefore the static Schr\"odinger bridge is exactly entropy-regularized optimal transport.  As
+$\varepsilon\downarrow0$, the entropy term vanishes at leading order and the problem approaches
+quadratic optimal transport; dynamically, the controlled diffusion formulation approaches the
+Benamou--Brenier kinetic action.
+
+\section{Finite Schr\"odinger system}
+Let $G=(g_{ij})$ be an $n\times n$ matrix with all $g_{ij}>0$, and let $p,q$ be positive probability
+vectors.  Seek positive vectors
+$\varphi_0,\widehat\varphi_0,\varphi_1,\widehat\varphi_1$ satisfying
+\begin{align}
+ \varphi_0&=G\varphi_1, &
+ \widehat\varphi_1&=G^\top\widehat\varphi_0,\label{eq:CGP-linear-steps}\\
+ \varphi_0\odot\widehat\varphi_0&=p, &
+ \varphi_1\odot\widehat\varphi_1&=q.\label{eq:CGP-boundary-products}
+\end{align}
+The associated optimal coupling is
+\[
+ \pi_{ij}^*=\widehat\varphi_{0,i}g_{ij}\varphi_{1,j}.
+\]
+It has marginals $p,q$, and strict convexity of finite relative entropy makes it the unique minimizer.
+
+Define linear positive maps
+$\mathcal E(x)=Gx$ and $\mathcal E^\dagger(x)=G^\top x$, and componentwise inversion/scaling maps
+\[
+ \mathcal D_0(x)=p/x,
+ \qquad
+ \mathcal D_1(x)=q/x.
+\]
+The fixed-point map on $\varphi_0$ is
+\begin{equation}\label{eq:CGP-finite-map}
+ \mathcal C
+ =\mathcal E\circ\mathcal D_1\circ
+  \mathcal E^\dagger\circ\mathcal D_0.
+\end{equation}
+
+\section{Hilbert projective contraction}
+For positive vectors $x,y$, Hilbert's projective metric is
+\[
+ d_H(x,y)=
+ \log\frac{\max_i x_i/y_i}{\min_i x_i/y_i}.
+\]
+It is invariant under positive rescaling.  Componentwise inversion and multiplication by a fixed
+positive vector are isometries.  A positive linear map $A$ has finite projective diameter
+\[
+ \Delta(A)=\sup_{x,y>0}d_H(Ax,Ay)<\infty
+\]
+when all matrix entries are positive, and Birkhoff--Bushell theory gives a contraction coefficient
+strictly less than one.  Hence both $\mathcal E$ and $\mathcal E^\dagger$ contract rays, while
+$\mathcal D_0$ and $\mathcal D_1$ preserve projective distance.  Their composition
+\eqref{eq:CGP-finite-map} is therefore a strict projective contraction.
+
+The ray space of the positive cone is complete.  Banach's fixed-point theorem gives a unique fixed ray
+$[\varphi_0^*]$ and projective convergence of every positive iteration
+$\varphi_0^{k+1}=\mathcal C(\varphi_0^k)$.  Positive homogeneity implies
+$\mathcal C(\varphi_0^*)=\alpha\varphi_0^*$ for some $\alpha>0$.  The marginal-product equations
+force $\alpha=1$: summing the induced coupling by rows and columns gives the same total mass, so the
+scale multiplier cannot differ from one.  Thus there is an actual fixed vector after normalization.
+Recovering the other three potentials through the four maps gives a solution of
+\eqref{eq:CGP-linear-steps}--\eqref{eq:CGP-boundary-products}.
+
+\begin{theorem}[Finite existence, uniqueness, and convergence]
+For every strictly positive finite kernel $G$ and positive probability vectors $p,q$, the finite
+Schr\"odinger system has a positive solution.  The potential pair is unique up to reciprocal scaling,
+and the Fortet--IPF--Sinkhorn iteration converges projectively from every positive initialization.  A
+fixed gauge converts projective convergence into ordinary coordinate convergence.
+\end{theorem}
+
+\section{The common mathematical chain}
+The paper's central equivalences can be summarized without identifying the objects:
+\[
+ \boxed{
+ \begin{array}{c}
+ \text{minimum path-space relative entropy}\\
+ \Updownarrow\\
+ \text{minimum endpoint relative entropy}\\
+ \Updownarrow\\
+ \text{Schr\"odinger factorization and scaling equations}\\
+ \Updownarrow\\
+ \text{stochastic control with quadratic energy}\\
+ \Updownarrow\\
+ \text{entropic optimal transport/free-energy minimization}.
+ \end{array}}
+\]
+The finite positive case adds a constructive solution through a contraction on projective rays.
 
 \input{references_manual}
 \end{document}

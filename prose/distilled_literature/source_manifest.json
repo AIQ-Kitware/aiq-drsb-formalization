@@ -1,0 +1,358 @@
+{
+  "version": 1,
+  "purpose": "Source map for proof-level modernized reconstructions of the mathematical arguments used from each cited paper.",
+  "notes": {
+    "AdjointMatching2025_memoryless_soc.tex": {
+      "citation_key": "DomingoEnrichDrozdzalKarrerChen2025",
+      "source_files": [
+        "domingoenrich-etal-2025_adjoint-matching-soc-finetuning__arXiv-2409.08861.pdf"
+      ],
+      "scope": "Sections 3--5 and the appendices proving Proposition 1, Theorem 1, Proposition 2, and the critical-point guarantees for basic and practical Adjoint Matching.",
+      "anchors": [
+        "Section 3, equations (10)--(11)",
+        "Section 4, equations (16)--(26)",
+        "Proposition 1",
+        "Theorem 1",
+        "Section 5, equations (27)--(31)",
+        "Proposition 2",
+        "Appendix E, Propositions 6--8"
+      ]
+    },
+    "Birkhoff1957_extensions_jentzsch.tex": {
+      "citation_key": "Birkhoff1957",
+      "source_files": [
+        "Birkhoff 1957 - Extensions of Jentzsch theorem - S0002-9947-1957-0087058-6.pdf"
+      ],
+      "scope": "The projective metric construction, contraction theorem, fixed-ray theorem, and the Jentzsch-type spectral-gap argument in Sections 2--8.",
+      "anchors": [
+        "Sections 2--4",
+        "Theorems 1--3",
+        "Sections 5--8"
+      ]
+    },
+    "BlanchetMurthy2019_model_risk_ot.tex": {
+      "citation_key": "BlanchetMurthy2019",
+      "source_files": [
+        "blanchet-murthy-2019_quantifying-distributional-model-risk-OT__arXiv-1604.01446.pdf"
+      ],
+      "scope": "Theorem 1, its proof in Section 4, complementary slackness, and the primal-attainment criteria in Section 5.",
+      "anchors": [
+        "Section 2, equations (2)--(9)",
+        "Theorem 1",
+        "Section 4, Propositions 5--7",
+        "Section 4, Lemma 8",
+        "Section 5, Proposition 9 and Corollary 1"
+      ]
+    },
+    "BlanchetMurthy2019_theorem1.tex": {
+      "citation_key": "BlanchetMurthy2019",
+      "source_files": [
+        "blanchet-murthy-2019_quantifying-distributional-model-risk-OT__arXiv-1604.01446.pdf"
+      ],
+      "scope": "A line-by-line reconstruction of Theorem 1(a)--(b), including the compact minimax reduction, exhaustion of the general Polish space, measurable selection, and complementary slackness.",
+      "anchors": [
+        "Theorem 1",
+        "equations (7)--(9)",
+        "Propositions 5--7",
+        "Lemma 8",
+        "proof of Theorem 1(b)"
+      ]
+    },
+    "CGP2021_sinkhorn_schrodinger_bridge.tex": {
+      "citation_key": "ChenGeorgiouPavon2021",
+      "source_files": [
+        "CGP2021-2005.10963v3.pdf",
+        "CGP2021-arXiv-2005.10963v3.tar.gz"
+      ],
+      "scope": "The paper's central equivalences: dynamic and static Schrödinger problems, stochastic control, entropic transport/free energy, the Schrödinger system, and the finite Fortet--IPF--Sinkhorn convergence theorem.",
+      "anchors": [
+        "Sections 5.2--5.5",
+        "Section 6",
+        "Sections 7.1--7.3",
+        "Section 8.1--8.4",
+        "Theorem labeled Fundtheorem",
+        "Lemmas Linear, inversion, and compothm"
+      ]
+    },
+    "CameronMartin1945_wiener_transformations.tex": {
+      "citation_key": "CameronMartin1945",
+      "source_files": [
+        "S0002-9947-1945-0013240-1.pdf"
+      ],
+      "scope": "Theorem I, Theorem Ia, Theorem II, the polygonal-kernel reduction, convergence lemmas, and the final quadratic-functional example.",
+      "anchors": [
+        "Theorem I",
+        "Theorem Ia",
+        "Lemmas 1--7",
+        "Theorem II",
+        "final example"
+      ]
+    },
+    "Carroll2004_birkhoff_contraction.tex": {
+      "citation_key": "Carroll2004",
+      "source_files": [
+        "BirkhoffHilbert-Carroll2005-carroll-birkoff.pdf"
+      ],
+      "scope": "Theorem 1 and the complete finite-dimensional linear-programming reduction proving the sharp Birkhoff contraction coefficient.",
+      "anchors": [
+        "Theorem 1",
+        "Sections 2.1--2.4",
+        "Remark 2"
+      ]
+    },
+    "ClassicalFoundations_DV_KLconvexity_supergradient.tex": {
+      "citation_key": "ClassicalFoundations",
+      "source_files": [],
+      "scope": "A normalized proof dossier for the Donsker--Varadhan variational identity, Gibbs attainment, KL convexity/data processing, and one-dimensional supporting-slope arguments.",
+      "anchors": [
+        "Donsker--Varadhan/Gibbs variational identity",
+        "log-sum inequality",
+        "data-processing variational proof",
+        "supporting-line theorem for concave functions"
+      ]
+    },
+    "DSBM2023_diffusion_schrodinger_bridge_matching.tex": {
+      "citation_key": "ShiDeBortoliCampbellDoucet2023",
+      "source_files": [
+        "shi-etal-2023_diffusion-schrodinger-bridge-matching-DSBM__arXiv-2303.16852.pdf"
+      ],
+      "scope": "Iterative Markovian Fitting and its convergence: Markovian projection, reciprocal projection, KL Pythagorean identities, fixed-point identification, and the DSBM regression realization.",
+      "anchors": [
+        "Section 3",
+        "Propositions 2, 4, 5, and 7",
+        "Lemma 6",
+        "Theorem 8",
+        "Section 4, Propositions 9--10",
+        "appendix proofs"
+      ]
+    },
+    "EvesonNussbaum1995_birkhoff_hopf.tex": {
+      "citation_key": "EvesonNussbaum1995",
+      "source_files": [
+        "BirkhoffHopf-Nussbaum1995-nusseveson1995.pdf"
+      ],
+      "scope": "The complete elementary proof of the Birkhoff--Hopf theorem, including the two-dimensional cone classification, reduction to a normalized 2x2 matrix, calculus lemma, infinite-diameter case, and integral/matrix formulas.",
+      "anchors": [
+        "Proposition 2.9",
+        "Theorems 3.5--3.6",
+        "Lemmas 3.11--3.12",
+        "Theorem 4.1 and Corollaries 4.2--4.5",
+        "Lemmas 4.6--4.7",
+        "Lemma 5.1 and Theorems 5.3--5.4",
+        "Section 6"
+      ]
+    },
+    "Fortet1940_schrodinger_system.tex": {
+      "citation_key": "Fortet1940",
+      "source_files": [
+        "Fortet 1940 - JMPA_1940_9_19_1-4_83_0.pdf"
+      ],
+      "scope": "Fortet's existence and uniqueness proof for the Schrödinger system, including truncation, monotone iteration, mass identities, limiting arguments, and Bernstein's conclusion.",
+      "anchors": [
+        "Theorems I--III",
+        "successive approximation construction",
+        "lemmas controlling truncation and limits",
+        "final Bernstein application"
+      ]
+    },
+    "FranklinLorenz1989_matrix_scaling.tex": {
+      "citation_key": "FranklinLorenz1989",
+      "source_files": [
+        "FranklinLorenz1989-1-s2.0-0024379589904904-main.pdf"
+      ],
+      "scope": "Section 3's complete Hilbert-projective proof of geometric convergence of Sinkhorn iteration, including Lemmas 1--3, Theorem 4, and equation (3.9).",
+      "anchors": [
+        "Section 3",
+        "Lemma 1",
+        "Lemma 2",
+        "Theorem 4",
+        "Lemma 3",
+        "equation (3.9)"
+      ]
+    },
+    "GSBM2024_generalized_schrodinger_bridge_matching.tex": {
+      "citation_key": "LiuLipmanNickelKarrerTheodorouChen2024",
+      "source_files": [
+        "liu-etal-2024_generalized-schrodinger-bridge-matching-GSBM__arXiv-2310.02233.pdf"
+      ],
+      "scope": "The two-stage GSBM construction, conditional stochastic-control bridge, path-integral representation, local convergence, and fixed-point characterization.",
+      "anchors": [
+        "Section 3",
+        "Propositions 1--2",
+        "Lemma 3",
+        "Proposition 4",
+        "Theorems 5--6",
+        "Appendix A proofs"
+      ]
+    },
+    "GaoKleywegt2023_theorem1.tex": {
+      "citation_key": "GaoKleywegt2023",
+      "source_files": [
+        "gao-kleywegt-2023_DRO-with-wasserstein-distance__arXiv-1604.02199.pdf"
+      ],
+      "scope": "Theorem 1 and Corollary 1, including the growth rate kappa, regularization operator, weak duality, dual minimizer, epsilon-optimal primal construction, and the boundary case lambda*=kappa.",
+      "anchors": [
+        "Definitions 3--4",
+        "Lemma 2",
+        "Proposition 1",
+        "Lemmas 4--7",
+        "Theorem 1",
+        "Corollary 1"
+      ]
+    },
+    "GaoKleywegt2023_wasserstein_drso.tex": {
+      "citation_key": "GaoKleywegt2023",
+      "source_files": [
+        "gao-kleywegt-2023_DRO-with-wasserstein-distance__arXiv-1604.02199.pdf"
+      ],
+      "scope": "The strong-duality and worst-case-distribution architecture in Sections 2--3, with the constructive epsilon-optimal measures and data-driven corollaries.",
+      "anchors": [
+        "Section 2, Definitions 3--4",
+        "Proposition 1",
+        "Section 3, Lemmas 4--7",
+        "Theorem 1",
+        "Corollaries 1--2"
+      ]
+    },
+    "Girsanov1960_change_of_measure.tex": {
+      "citation_key": "Girsanov1960",
+      "source_files": [
+        "girsanov1960.pdf"
+      ],
+      "scope": "Fundamental Theorems 1--2, their supporting lemmas, the density process, and the transformed conditional characteristics.",
+      "anchors": [
+        "Section 2, Fundamental Theorem 1",
+        "Lemmas 1--2",
+        "Section 3, Fundamental Theorem 2"
+      ]
+    },
+    "Kakutani1948_product_measures.tex": {
+      "citation_key": "Kakutani1948",
+      "source_files": [
+        "Undergrad.2023S - Kakutani measure equivalence.pdf"
+      ],
+      "scope": "The equivalence/singularity dichotomy for infinite product measures through Hellinger affinities, martingale densities, and infinite products.",
+      "anchors": [
+        "Kakutani product-measure theorem",
+        "finite-product affinity identity",
+        "martingale-density argument",
+        "singularity direction"
+      ]
+    },
+    "LemmensNussbaum2013_hilbert_metric_survey.tex": {
+      "citation_key": "LemmensNussbaum2013",
+      "source_files": [
+        "Lemmens#U2013Nussbaum-2013-1304.7921v1.pdf"
+      ],
+      "scope": "Sections 2--3: Hilbert's projective metric, order-cone formulas, nonexpansiveness and contraction, positive-matrix diameter, and the special-cone models whose proofs are given in the survey.",
+      "anchors": [
+        "Lemma 2.1",
+        "Theorem 2.2",
+        "Theorems 2.11 and 2.14",
+        "Lemma 3.1",
+        "Theorems 3.3--3.7"
+      ]
+    },
+    "Leonard2014_schrodinger_survey.tex": {
+      "citation_key": "Leonard2014Survey",
+      "source_files": [
+        "leonard-2013_survey-schrodinger-problem-optimal-transport__arXiv-1308.0215.pdf"
+      ],
+      "scope": "The survey's proof-level core: entropy disintegration, dynamic/static equivalence, (f,g)-transform, Schrödinger system, reciprocal/Markov structure, and small-noise convergence to optimal transport.",
+      "anchors": [
+        "Sections 2--3",
+        "Propositions 2.3 and 2.5",
+        "Section 4",
+        "Theorems 4.1--4.2",
+        "Section 5"
+      ]
+    },
+    "Leonard2019_revisiting_fortet.tex": {
+      "citation_key": "Leonard2019Fortet",
+      "source_files": [
+        "Leonard 2019-revisit-fortet-1904.13211v1.pdf"
+      ],
+      "scope": "The fixed-point proof of Fortet's theorem: reduction, monotone scheme, uniqueness, positivity dichotomy, existence theorem, and the variants in Sections 6--7.",
+      "anchors": [
+        "Theorems 1.1 and 1.9",
+        "Proposition 4.4",
+        "Lemmas 4.1--4.13",
+        "Proposition 5.1",
+        "Theorem 5.6",
+        "Lemmas 5.7--5.12",
+        "Proposition 6.1",
+        "Proposition 7.2"
+      ]
+    },
+    "MohajerinEsfahaniKuhn2018_data_driven_wdro.tex": {
+      "citation_key": "MohajerinEsfahaniKuhn2018",
+      "source_files": [
+        "mohajerin-esfahani-kuhn-2018_data-driven-wasserstein-DRO__arXiv-1505.05116.pdf"
+      ],
+      "scope": "The finite-dimensional reformulation theorem and worst-case distribution construction for empirical Wasserstein balls, together with the concentration/performance guarantee used to choose the radius.",
+      "anchors": [
+        "Theorem 3.4",
+        "Corollary 3.5",
+        "Theorem 4.2",
+        "proof in Appendix",
+        "finite-support construction"
+      ]
+    },
+    "SinkhornKnopp1967_matrix_scaling.tex": {
+      "citation_key": "SinkhornKnopp1967",
+      "source_files": [
+        "SinkhornKnopp1967.pdf"
+      ],
+      "scope": "The complete support theorem, uniqueness of diagonal scaling, convergence of alternating normalization, and the total-support/full-indecomposability distinctions.",
+      "anchors": [
+        "main theorem",
+        "Lemmas 1--2",
+        "necessity and sufficiency of total support",
+        "convergence proof"
+      ]
+    },
+    "WangGaoXie2025_sinkhorn_dro.tex": {
+      "citation_key": "WangGaoXie2025",
+      "source_files": [
+        "wang-gao-xie-2023_sinkhorn-distributionally-robust-optimization__arXiv-2109.11926.pdf",
+        "WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf"
+      ],
+      "scope": "Definition 1 and Theorem 1(I)--(IV): Sinkhorn ambiguity sets, dual log-partition formula, existence/structure of worst-case laws, and the radius boundary cases.",
+      "anchors": [
+        "Section 2, Definition 1 and equations (2)--(3)",
+        "Assumption 1",
+        "Condition 1",
+        "Section 3, Theorem 1(I)--(IV)",
+        "Lemmas 1--2",
+        "electronic companion proof"
+      ]
+    },
+    "WangGaoXie2025_sinkhorn_dro_theorem1.tex": {
+      "citation_key": "WangGaoXie2025",
+      "source_files": [
+        "wang-gao-xie-2023_sinkhorn-distributionally-robust-optimization__arXiv-2109.11926.pdf",
+        "WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf"
+      ],
+      "scope": "A theorem-by-theorem reconstruction of Theorem 1, including the shifted radius, weak duality, Gibbs conditional optimizer, concave value function, Slater/boundary analysis, and worst-case law.",
+      "anchors": [
+        "Theorem 1(I)--(IV)",
+        "equations (4)--(8)",
+        "Lemmas 1--2",
+        "Appendix EC.5"
+      ]
+    },
+    "Yeh1978_conditional_wiener_translation.tex": {
+      "citation_key": "Yeh1978",
+      "source_files": [
+        "Transformations of Wiener Integrals Under Translations-Yeh-1977.pdf"
+      ],
+      "scope": "Lemmas 1--2, abstract Theorem 1 for conditional expectations, Wiener-specific Theorem 2, its corollary, and the exponential-integral example.",
+      "anchors": [
+        "Section 2, Lemmas 1--2 and Theorem 1",
+        "Section 3, Theorem 2",
+        "corollary",
+        "final example"
+      ]
+    }
+  }
+}

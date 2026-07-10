@@ -2,25 +2,21 @@
 \usepackage[margin=1in]{geometry}
 \usepackage{longtable,booktabs,array}
 \usepackage[hidelinks]{hyperref}
-\title{Index: Added projective/Fortet source distillations}
-\author{Generated for the AIQ DRSB formalization reference corpus}
+\title{Index of Projective and Fortet Source Reconstructions}
+\author{}
 \date{2026-07-09}
 \begin{document}
 \maketitle
 
-\section*{Files in this overlay}
 \begin{longtable}{p{0.31\linewidth}p{0.25\linewidth}p{0.34\linewidth}}
 \toprule
-Distillation file & Primary paper & Formalization role \\
+Reconstruction & Primary paper & Mathematical scope \\
 \midrule
-\texttt{Birkhoff1957\_extensions\_jentzsch.tex} & Birkhoff 1957 & Primary source for projective contraction and finite positive-kernel eigenray convergence. \\
-\texttt{LemmensNussbaum2013\_hilbert\_metric\_survey.tex} & Lemmens--Nussbaum 2013 & Modern notation for Hilbert metric, order-preserving maps, Birkhoff contraction ratio, and finite positive-matrix diameter. \\
-\texttt{Fortet1940\_schrodinger\_system.tex} & Fortet 1940 & Historical source for Schrodinger system existence/uniqueness by fixed-point iteration. \\
-\texttt{Leonard2019\_revisiting\_fortet.tex} & Leonard 2019 & Modern reconstruction of Fortet, useful for formal proof planning and comparison against the original. \\
+\texttt{Birkhoff1957\_extensions\_jentzsch.tex} & Birkhoff 1957 & Projective contraction and positive-operator eigenray convergence. \\
+\texttt{LemmensNussbaum2013\_hilbert\_metric\_survey.tex} & Lemmens--Nussbaum 2013 & Modern cone-order formulas, Hilbert metric, contraction ratio, and finite positive-matrix diameter. \\
+\texttt{Fortet1940\_schrodinger\_system.tex} & Fortet 1940 & Existence and uniqueness for the Schrödinger system by truncation and monotone fixed-point iteration. \\
+\texttt{Leonard2019\_revisiting\_fortet.tex} & L\'eonard 2019 & Modern reconstruction of Fortet's fixed-point proof and its variants. \\
 \bottomrule
 \end{longtable}
-
-\section*{Current use for Lean}
-For the remaining compactness frontier, the first two files are the direct inputs to the projective-lag problem.  The last two are source/provenance for Schrodinger-system existence and scalar normalization, but they should not be treated as a complete proof of finite Sinkhorn asymptotic projective drift.
 
 \end{document}

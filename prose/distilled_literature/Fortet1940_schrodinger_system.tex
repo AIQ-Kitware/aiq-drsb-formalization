@@ -1,13 +1,31 @@
 \input{preamble}
 \title{Modernized Proof Notes for Fortet (1940): Resolution of Schrodinger's System}
-\author{Generated proof-target note for the AIQ DRSB formalization corpus}
+\author{}
 \date{Source PDF: \texttt{Fortet 1940 - JMPA\_1940\_9\_19\_1-4\_83\_0.pdf}}
 \begin{document}
 \maketitle
 
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{Fortet 1940 - JMPA_1940_9_19_1-4_83_0.pdf}}
+\item[Coverage] Fortet's existence and uniqueness proof for the Schrödinger system, including truncation, monotone iteration, mass identities, limiting arguments, and Bernstein's conclusion.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Theorems I--III
+  \item successive approximation construction
+  \item lemmas controlling truncation and limits
+  \item final Bernstein application
+\end{itemize}
+\end{description}
+
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
+
 \section*{Reference and purpose}
 This note expands Robert Fortet, ``Resolution d'un systeme d'equations de M. Schrodinger,'' \emph{Journal de mathematiques pures et appliquees}, 9e serie, tome 19, pp. 83--105, 1940 \cite{Fortet1940}.
-The original is not an arXiv source and is written in older French analytic language.  The goal here is not to compress the idea, but to keep the proof architecture and translate the symbols into a modern form that can be compared with the finite Sinkhorn and continuum Schrodinger-bridge formalization.
+The original is written in older French analytic language.  The reconstruction keeps the proof architecture, translates the symbols into modern measure-theoretic notation, and records the almost-everywhere conventions explicitly.
 
 \paragraph{Modernization convention.}
 Fortet writes two real intervals as $J'$ and $J''$ and writes the marginal densities as $\omega_1(x)$ and $\omega_2(y)$.  We keep this notation.  Integrals are Lebesgue integrals; ``measurable (B)'' means Borel measurable.  Equalities between functions are to be read outside null sets when the original proof says ``presque partout.''
@@ -334,13 +352,13 @@ with continuous marginals.  The Gaussian kernel is a function of $x-y$ and is mo
 In the Gaussian Bernstein case, the Schrodinger system admits a positive continuous solution, and this solution is the unique positive Borel solution modulo the scalar gauge.
 \end{distilled}
 
-\section{Formalization relevance}
-\begin{formalizationnotes}
-\item The fixed-point operator $Q$ is the continuum analogue of composing the two Sinkhorn quotient updates.
-\item The mass identity \eqref{eq:fortet-mass-identity} is a continuum version of the finite identity that the current rescaled coupling has the prescribed total mass.  It is the main device that kills residual scaling in one-sided comparison arguments.
-\item Fortet's proof is not the Hilbert-metric contraction proof used for the finite projective-lag seam.  It is useful for existence/uniqueness and for understanding why normalization identities are load-bearing.
-\item A Lean formalization of Fortet directly would require measurable kernels, monotone convergence, almost-everywhere quotient conventions, and local uniform convergence classes.  For the current finite proof, translate only the algebraic skeleton: denominator map $G$, update map $Q$, mass identity, max/min comparison.
-\end{formalizationnotes}
+\section{Structural commentary}
+\begin{commentarynotes}
+\item The fixed-point operator  the continuum analogue of composing the two quotient updates in matrix scaling.
+\item The mass identity \eqref{eq:fortet-mass-identity} is the device that removes residual scalar freedom from one-sided comparison arguments.
+\item Fortet's proof is an order-and-compactness argument, not a Hilbert-metric contraction proof; its distinctive ingredients are truncation, monotone iteration, the mass identity, and local uniform compactness.
+\item The finite-dimensional specialization retains the same algebraic skeleton: denominator map  update map  mass identity, and max--min comparison.
+\end{commentarynotes}
 
 \section*{Checklist of details retained}
 \begin{itemize}[leftmargin=2em]

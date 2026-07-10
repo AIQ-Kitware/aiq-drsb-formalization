@@ -1,54 +1,53 @@
 \input{preamble}
 \title{Index of Distilled Mathematical Arguments}
-\author{Generated proof-target notes}
-\date{Sources from uploaded \texttt{papers.zip}}
+\author{}
+\date{}
 \begin{document}
 \maketitle
 
 \section*{Purpose}
-This index lists the standalone LaTeX notes in this directory.  Each note cites the paper it distills using \texttt{references.bib}.  The notes are designed to support a later pass where each Lean theorem is mapped to an exact paper theorem, lemma, equation, or proof paragraph.
+This index lists the standalone proof reconstructions in this directory.  Each note cites its primary source and is organized so that definitions, lemmas, equations, and theorem proofs can be traced back to the paper.
 
-\section*{Highest priority for the current Lean frontier}
-The remaining finite Sinkhorn compactness work needs a proof that strict positivity of the kernel forces projective asymptotic regularity of alternating Sinkhorn updates.  The most relevant notes are:
-\begin{enumerate}
-\item \texttt{FranklinLorenz1989\_matrix\_scaling.tex}, distilled from \cite{FranklinLorenz1989}.
-\item \texttt{Carroll2004\_birkhoff\_contraction.tex}, distilled from \cite{Carroll2004}.
-\item \texttt{EvesonNussbaum1995\_birkhoff\_hopf.tex}, distilled from \cite{EvesonNussbaum1995}.
-\item \texttt{CGP2021\_sinkhorn\_schrodinger\_bridge.tex}, distilled from \cite{ChenGeorgiouPavon2021}.
-\end{enumerate}
+\section*{Projective geometry and matrix scaling}
+\begin{itemize}
+\item \texttt{Birkhoff1957\_extensions\_jentzsch.tex}
+\item \texttt{Carroll2004\_birkhoff\_contraction.tex}
+\item \texttt{EvesonNussbaum1995\_birkhoff\_hopf.tex}
+\item \texttt{LemmensNussbaum2013\_hilbert\_metric\_survey.tex}
+\item \texttt{SinkhornKnopp1967\_matrix\_scaling.tex}
+\item \texttt{FranklinLorenz1989\_matrix\_scaling.tex}
+\item \texttt{Fortet1940\_schrodinger\_system.tex}
+\item \texttt{Leonard2019\_revisiting\_fortet.tex}
+\end{itemize}
 
-\section*{DRO and entropy-duality sources}
-\begin{enumerate}
-\item \texttt{BlanchetMurthy2019\_model\_risk\_ot.tex}, distilled from \cite{BlanchetMurthy2019} (architecture only).
-\item \texttt{BlanchetMurthy2019\_theorem1.tex}, the \textbf{full} distillation of Theorem 1 (Strong Duality) from \cite{BlanchetMurthy2019}: Assumptions (A1)/(A2), $I$ and $J$, Theorem 1(a)/(b) with the complementary-slackness conditions (8a)/(8b), Remark 1 eq.~(9), the Fenchel/Sion proof architecture, and an explicit record of where the Lean development differs (our proof is an independent route).
-\item \texttt{GaoKleywegt2023\_wasserstein\_drso.tex}, distilled from \cite{GaoKleywegt2023} (architecture only).
-\item \texttt{GaoKleywegt2023\_theorem1.tex}, the \textbf{full} distillation of Theorem 1 (Strong Duality) and Corollary 1 from \cite{GaoKleywegt2023}: Definitions 3--4 (the regularization operator $\Phi$ and the growth rate $\kappa$), Lemma 2, Proposition 1 (weak duality), Theorem 1 ($\kappa<\infty \Rightarrow v_P=v_D<\infty$), Remark 2 (general cost $c$), Corollary 1 (existence of a worst-case distribution), and where the Lean development differs --- notably that our hypotheses are a strict special case of $\kappa<\infty$.
-\item \texttt{MohajerinEsfahaniKuhn2018\_data\_driven\_wdro.tex}, distilled from \cite{MohajerinEsfahaniKuhn2018}.
-\item \texttt{WangGaoXie2025\_sinkhorn\_dro.tex}, distilled from \cite{WangGaoXie2025} (architecture only).
-\item \texttt{WangGaoXie2025\_sinkhorn\_dro\_theorem1.tex}, the \textbf{full} distillation of Theorem 1 (Strong Duality) from \cite{WangGaoXie2025}: Definition 1, eq.~(2)--(3), Assumption 1, Condition 1, Theorem 1(I)--(IV) in the shifted radius $\overline\rho$, Lemmas 1--2, and an explicit record of where the Lean development differs.
-\item \texttt{Alquier2024\_pac\_bayes.tex}, distilled from \cite{Alquier2024}.
-\end{enumerate}
-\section*{Classical baselines for the \texttt{ForMathlib} upstream candidates}
-\begin{enumerate}
-\item \texttt{ClassicalFoundations\_DV\_KLconvexity\_supergradient.tex}: Donsker--Varadhan / the Gibbs variational formula; joint convexity of relative entropy; supergradient existence for concave functions; and Kuratowski--Ryll-Nardzewski measurable selection (the baseline we deliberately avoid).  \textbf{Theorem anchors in that note are tagged \textsc{unverified}} --- the source texts are not in \texttt{prose/papers/}.
-\end{enumerate}
+\section*{Wasserstein and Sinkhorn distributional robustness}
+\begin{itemize}
+\item \texttt{BlanchetMurthy2019\_model\_risk\_ot.tex}
+\item \texttt{BlanchetMurthy2019\_theorem1.tex}
+\item \texttt{GaoKleywegt2023\_wasserstein\_drso.tex}
+\item \texttt{GaoKleywegt2023\_theorem1.tex}
+\item \texttt{MohajerinEsfahaniKuhn2018\_data\_driven\_wdro.tex}
+\item \texttt{WangGaoXie2025\_sinkhorn\_dro.tex}
+\item \texttt{WangGaoXie2025\_sinkhorn\_dro\_theorem1.tex}
+\item \texttt{ClassicalFoundations\_DV\_KLconvexity\_supergradient.tex}
+\end{itemize}
 
+\section*{Schrödinger bridges, stochastic control, and path measures}
+\begin{itemize}
+\item \texttt{CGP2021\_sinkhorn\_schrodinger\_bridge.tex}
+\item \texttt{Leonard2014\_schrodinger\_survey.tex}
+\item \texttt{Girsanov1960\_change\_of\_measure.tex}
+\item \texttt{CameronMartin1945\_wiener\_transformations.tex}
+\item \texttt{Yeh1978\_conditional\_wiener\_translation.tex}
+\item \texttt{Kakutani1948\_product\_measures.tex}
+\end{itemize}
 
-\section*{Path-space and stochastic-control sources}
-\begin{enumerate}
-\item \texttt{Leonard2014\_schrodinger\_survey.tex}, distilled from \cite{Leonard2014Survey}.
-\item \texttt{Girsanov1960\_change\_of\_measure.tex}, distilled from \cite{Girsanov1960}.
-\item \texttt{CameronMartin1945\_wiener\_transformations.tex}, distilled from \cite{CameronMartin1945}.
-\item \texttt{Yeh1978\_conditional\_wiener\_translation.tex}, distilled from \cite{Yeh1978}.
-\item \texttt{Kakutani1948\_product\_measures.tex}, distilled from \cite{Kakutani1948}.
-\end{enumerate}
-
-\section*{Modern generative-model provenance sources}
-\begin{enumerate}
-\item \texttt{DSBM2023\_diffusion\_schrodinger\_bridge\_matching.tex}, distilled from \cite{ShiDeBortoliCampbellDoucet2023}.
-\item \texttt{GSBM2024\_generalized\_schrodinger\_bridge\_matching.tex}, distilled from \cite{LiuLipmanNickelKarrerTheodorouChen2024}.
-\item \texttt{AdjointMatching2025\_memoryless\_soc.tex}, distilled from \cite{DomingoEnrichDrozdzalKarrerChen2025}.
-\end{enumerate}
+\section*{Modern bridge-matching and stochastic-control methods}
+\begin{itemize}
+\item \texttt{DSBM2023\_diffusion\_schrodinger\_bridge\_matching.tex}
+\item \texttt{GSBM2024\_generalized\_schrodinger\_bridge\_matching.tex}
+\item \texttt{AdjointMatching2025\_memoryless\_soc.tex}
+\end{itemize}
 
 \input{references_manual}
 \end{document}

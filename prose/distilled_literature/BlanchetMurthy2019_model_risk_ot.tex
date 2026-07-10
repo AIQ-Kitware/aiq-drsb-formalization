@@ -1,41 +1,224 @@
 \input{preamble}
-\title{Distilled Mathematical Arguments from Blanchet--Murthy (2019)}
-\author{Generated proof-target note}
-\date{Source PDF: \texttt{BlanchetMurthy2019-1604.01446.pdf}}
+\title{Optimal-Transport Distributional Model Risk: The Complete Duality Argument}
+\author{}
+\date{Blanchet and Murthy (2019)}
 \begin{document}
 \maketitle
 
-\section*{Reference being distilled}
-This note distills Blanchet and Murthy, \emph{Quantifying Distributional Model Risk via Optimal Transport}, Mathematics of Operations Research 44(2), 565--600, 2019 \cite{BlanchetMurthy2019}.
+\section*{Source map and scope}
+\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
+\item[Primary source] \texttt{\detokenize{blanchet-murthy-2019_quantifying-distributional-model-risk-OT__arXiv-1604.01446.pdf}}
+\item[Coverage] Theorem 1, its proof in Section 4, complementary slackness, and the primal-attainment criteria in Section 5.
+\item[Source anchors]
+\begin{itemize}[leftmargin=2em]
+  \item Section 2, equations (2)--(9)
+  \item Theorem 1
+  \item Section 4, Propositions 5--7
+  \item Section 4, Lemma 8
+  \item Section 5, Proposition 9 and Corollary 1
+\end{itemize}
+\end{description}
 
-\section*{Role in the formalization}
-This is a primary source for the optimal-transport DRO duality principle: worst-case expected loss over a transportation-cost ball equals a one-dimensional infimum over Lagrange multipliers of a pointwise robust envelope.
+The exposition below preserves the source proof order and proof technique.  Notation is normalized
+and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
+apparently incorrect step, the reconstruction records the source step before adding a separate
+commentary remark.
 
-\begin{distillation}
-\item \textbf{Primal model-risk functional.}  For a baseline measure $\mu$, cost $c$, radius $\delta$, and upper semicontinuous integrable loss $f$, study
+\section{Setting}
+Let $S$ be a Polish space, let $\mu\in\Pcal(S)$, and let $\delta>0$.  The transportation cost
+$c:S\times S\to[0,\infty)$ and the payoff $f:S\to\R$ satisfy:
+\begin{enumerate}[label=(A\arabic*)]
+\item $c$ is lower semicontinuous, $c(x,y)=0$ exactly when $x=y$;
+\item $f$ is upper semicontinuous and $f\in L^1(\mu)$.
+\end{enumerate}
+For probability measures $\mu_1,\mu_2$ define
 \[
-  I(\delta)=\sup\left\{\int f\,d\nu: D_c(\mu,\nu)\le \delta\right\},
+ d_c(\mu_1,\mu_2)
+ :=\inf_{\pi\in\Pi(\mu_1,\mu_2)}\int c(x,y)\,\pi(dx,dy).
 \]
-where $D_c$ is an optimal-transport discrepancy.
-\item \textbf{Lagrange upper bound.}  For any $\lambda\ge 0$,
+Equivalently, optimize directly over couplings having first marginal $\mu$:
 \[
-  \int f(y)\nu(dy)
-  \le \lambda\delta + \int \sup_y\{f(y)-\lambda c(x,y)\}\,\mu(dx),
+ \Phi_{\mu,\delta}
+ :=\left\{\pi\in\Pcal(S\times S):\pi_1=\mu,
+        \ \int c\,d\pi\le\delta\right\},
+ \qquad
+ I:=\sup_{\pi\in\Phi_{\mu,\delta}}\int f(y)\,d\pi(x,y).
 \]
-using any coupling of $\mu$ and $\nu$ and then optimizing pointwise in $y$.
-\item \textbf{Strong duality.}  Under lower semicontinuity of $c$ and upper semicontinuity/integrability of $f$, the upper bound is tight:
+A dual pair is a scalar $\lambda\ge0$ and a universally measurable function $\varphi$ satisfying
 \[
-  I(\delta)=\inf_{\lambda\ge 0}\left\{\lambda\delta+\\int \sup_y(f(y)-\lambda c(x,y))\,\mu(dx)\right\}.
+ f(y)-\lambda c(x,y)\le\varphi(x),\qquad x,y\in S.
 \]
-The proof constructs nearly optimal couplings by measurable selection/tightness and handles noncompactness by truncation/localization.
-\item \textbf{Worst-case interpretation.}  At an optimal multiplier, a worst-case distribution transports each nominal point $x$ toward points maximizing $f(y)-\lambda c(x,y)$, whenever such maximizers exist.
-\end{distillation}
+Let
+\[
+ J:=\inf_{(\lambda,\varphi)}\left\{\lambda\delta+\int\varphi\,d\mu\right\}.
+\]
+For fixed $\lambda$ the least admissible majorant is the $c$-transform
+\[
+ \varphi_\lambda(x):=\sup_{y\in S}\{f(y)-\lambda c(x,y)\}.
+\]
 
-\section*{Lean comparison targets}
-This source should support Lean statements about OT-DRO weak/strong duality and robust envelopes.  It is not a Sinkhorn/projective source.  The formalization should distinguish the unregularized transport duality here from entropic/Sinkhorn duality in \cite{WangGaoXie2025}.
+\section{The strong-duality theorem}
+\begin{theorem}[Blanchet--Murthy]
+Under the assumptions above:
+\begin{enumerate}[label=(\alph*)]
+\item $I=J$;
+\item the dual infimum is attained by $(\lambda^*,\varphi_{\lambda^*})$ for some $\lambda^*\ge0$;
+\item a feasible coupling $\pi^*$ and a dual optimizer $(\lambda^*,\varphi_{\lambda^*})$ are optimal exactly when
+\begin{align}
+ f(y)-\lambda^*c(x,y)&=\varphi_{\lambda^*}(x)
+       &&\pi^*\text{-a.s.},\label{eq:BM-contact}\\
+ \lambda^*\left(\int c\,d\pi^*-\delta\right)&=0.\label{eq:BM-slack}
+\end{align}
+Consequently,
+\begin{equation}\label{eq:BM-univariate}
+ I=\inf_{\lambda\ge0}
+ \left\{\lambda\delta+\int
+       \sup_{y\in S}\bigl(f(y)-\lambda c(x,y)\bigr)\,\mu(dx)\right\}.
+\end{equation}
+\end{enumerate}
+\end{theorem}
 
-\section*{Distillation gaps}
-\TODO{Record exact theorem anchors for Theorem 1 and its assumptions A1--A2 if these are formalized.  The current note paraphrases the theorem and proof skeleton but does not yet reproduce the truncation lemmas.}
+\section{Weak duality and the least majorant}
+For every feasible $\pi$ and every dual pair,
+\[
+ \int f(y)\,d\pi
+ \le \int\varphi(x)\,d\pi+\lambda\int c\,d\pi
+ \le \int\varphi\,d\mu+\lambda\delta.
+\]
+Thus $I\le J$.  Moreover every admissible $\varphi$ dominates $\varphi_\lambda$ pointwise, so once
+$\varphi_\lambda$ is known to be universally measurable, the two-variable dual reduces to
+\eqref{eq:BM-univariate}.
+
+\section{The compact continuous-cost case}
+Assume first that $S$ is compact and $c$ is continuous.  Put $X=C(S\times S)$ and identify
+$X^*$ with finite signed Borel measures.  Introduce convex functionals whose common variable is a
+continuous test function on $S\times S$:
+\begin{align*}
+ \Theta(u)&:=
+ \begin{cases}
+ 0,&u(x,y)\ge f(y)\text{ for all }x,y,\\
+ +\infty,&\text{otherwise},
+ \end{cases}\\
+ \Xi(u)&:=
+ \begin{cases}
+ \displaystyle\int\varphi\,d\mu+\lambda\delta,
+ &u(x,y)=\varphi(x)+\lambda c(x,y),\quad \lambda\ge0,\\
+ +\infty,&\text{otherwise}.
+ \end{cases}
+\end{align*}
+The Fenchel duality theorem applies because one functional is continuous at a point in the effective
+domain of the other.  Computing conjugates gives:
+\begin{itemize}[leftmargin=2em]
+\item the dual variable must be a nonnegative measure $\pi$;
+\item finiteness in the $\varphi$ direction forces $\pi_1=\mu$;
+\item finiteness in the $\lambda$ direction forces $\int c\,d\pi\le\delta$;
+\item the resulting dual objective is $\int f(y)\,d\pi$.
+\end{itemize}
+Hence the Fenchel identity is precisely $I=J$.  Compactness of the feasible set and upper
+semicontinuity of $\pi\mapsto\int f(y)\,d\pi$ also yield a maximizing coupling.
+
+\section{Compact spaces and lower semicontinuous costs}
+On a compact metric space, a nonnegative lower semicontinuous function is the pointwise increasing
+limit of continuous functions $c_n$.  Define the corresponding primal and dual values $I_n,J_n$.
+The continuous-cost result gives $I_n=J_n$.
+
+Because $c_n\uparrow c$, every $c$-feasible coupling is $c_n$-feasible, so $I\le I_n$.  Conversely,
+choose nearly optimal $c_n$-feasible couplings.  Compactness gives a weakly convergent subnet or
+subsequence.  Lower semicontinuity and monotone approximation imply that any limit coupling is
+$c$-feasible, while upper semicontinuity of $f$ gives the required upper bound on the limiting
+payoff.  Therefore $I_n\downarrow I$.  The dual envelopes also decrease to the envelope for $c$,
+and monotone convergence gives $J_n\downarrow J$.  Thus $I=J$ for compact $S$ and lower
+semicontinuous $c$.
+
+\section{Localization on a general Polish space}
+The family $\Phi_{\mu,\delta}$ need not be tight because its second marginals are not fixed.  The
+proof therefore localizes the maximization rather than invoking compactness of the whole feasible
+set.
+
+Choose compact sets $K_n\uparrow S$ carrying asymptotically all of $\mu$ and on which the relevant
+integrals are controlled.  For any finite collection of candidate couplings, enlarge $K_n$ so that the
+supports needed by those couplings are contained in a common $\sigma$-compact set.  On such a
+localized support the compact-space duality theorem applies after one-point compactification and
+truncation.  The resulting statement is the following finite-family reduction: for every finite convex
+combination of localized candidates and every error tolerance, there is a feasible coupling whose
+payoff is within that tolerance of the corresponding localized robust envelope.
+
+The localized couplings form a convex set $E$.  For a coupling parameter $\pi\in E$ let $S_\pi$ be
+its localized second-coordinate support and define
+\[
+ T(\lambda,\pi)
+ :=\lambda\delta+
+   \int\sup_{y\in S_\pi}\{f(y)-\lambda c(x,y)\}\,\mu(dx).
+\]
+For fixed $\pi$, $T$ is convex and lower semicontinuous in $\lambda$; for fixed $\lambda$, its
+localized construction is concave in the coupling parameter.  An a priori upper bound on the useful
+multipliers restricts $\lambda$ to a compact interval $[0,L]$.  Sion's minimax theorem then gives
+\[
+ \inf_{0\le\lambda\le L}\sup_{\pi\in E}T(\lambda,\pi)
+ =\sup_{\pi\in E}\inf_{0\le\lambda\le L}T(\lambda,\pi).
+\]
+The compact localized duality result identifies the inner infima with attainable localized primal
+values.  Letting the localization expand and the errors vanish gives $J\le I$.  Together with weak
+duality this proves $I=J$ on the original Polish space.
+
+\section{Measurability and near-maximizing selectors}
+For fixed $\lambda$, the function
+\[
+ (x,y)\longmapsto f(y)-\lambda c(x,y)
+\]
+is upper semicontinuous.  Its pointwise supremum over $y$ is upper semianalytic, hence universally
+measurable.  More concretely, for each $n$ the set
+\[
+ A_n:=\left\{(x,y):f(y)-\lambda c(x,y)
+                 \ge\varphi_\lambda(x)-\frac1n\right\}
+\]
+is analytic and has nonempty sections.  The Jankov--von Neumann selection theorem yields a
+universally measurable map $T_n$ with $(x,T_n(x))\in A_n$.  Therefore
+\[
+ f(T_n(x))-\lambda c(x,T_n(x))
+ \ge \varphi_\lambda(x)-\frac1n.
+\]
+The coupling $(\Id,T_n)_\#\mu$ realizes the pointwise envelope up to $1/n$.  Truncation and Fatou's
+lemma handle the possible lack of a common integrable lower bound.  This selection argument is the
+mechanism by which pointwise robust responses are converted into admissible transport plans.
+
+\section{Dual attainment}
+Define the one-dimensional objective
+\[
+ g(\lambda):=\lambda\delta+\int\varphi_\lambda\,d\mu.
+\]
+It is convex as a supremum of affine functions followed by integration.  It is lower semicontinuous:
+if $\lambda_n\to\lambda$, upper semicontinuity of $f-\lambda c$ and the measurable-envelope
+construction yield the required liminf inequality.  Also
+\[
+ \varphi_\lambda(x)\ge f(x)
+\]
+because $c(x,x)=0$, so
+\[
+ g(\lambda)\ge \lambda\delta+\int f\,d\mu\longrightarrow+\infty
+ \qquad(\lambda\to\infty).
+\]
+Thus $g$ attains its minimum at some finite $\lambda^*\ge0$, and
+$(\lambda^*,\varphi_{\lambda^*})$ is a dual optimizer.
+
+\section{Complementary slackness}
+For any feasible $\pi$ and dual optimizer,
+\begin{align*}
+ 0&\le \int\bigl(\varphi_{\lambda^*}(x)+\lambda^*c(x,y)-f(y)\bigr)\,d\pi,\\
+ 0&\le \lambda^*\left(\delta-\int c\,d\pi\right).
+\end{align*}
+The sum of these two nonnegative quantities is exactly the dual objective minus the primal
+objective.  Equality of the primal and dual values therefore holds if and only if each term vanishes.
+The first integrand is nonnegative, so its integral is zero exactly when the contact condition
+\eqref{eq:BM-contact} holds $\pi$-almost surely.  The second term is precisely
+\eqref{eq:BM-slack}.  This proves the optimizer characterization.
+
+\section{Interpretation}
+At a positive optimal multiplier, an optimal coupling spends the full transport budget and is
+concentrated on pairs $(x,y)$ for which $y$ maximizes the penalized payoff
+$f(y)-\lambda^*c(x,y)$.  If the optimal multiplier is zero, the budget may be slack and the coupling
+is supported on global maximizers of $f$.  Thus the theorem is both a scalar duality formula and a
+structural description of worst-case transport.
 
 \input{references_manual}
 \end{document}

@@ -23,6 +23,7 @@ perturbations and checks `measured cost ≤ bound`; these theorems certify that 
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Coupling
+import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.MeasureTheory.KLChainRule
 import BlanchetMurthy2019.Basic
@@ -76,7 +77,9 @@ Two of `strong_duality_thm1`'s hypotheses are **discharged here rather than assu
   `ForMathlib.OT.integrable_normSq_sub_of_mem_couplings`.
 
 What remains genuinely assumed is the `≥` direction's **worst-case-measure attainment**
-(`hattain`, `hbddP`) — the T4 research seam — plus regularity. -/
+(`hattain`) — the T4 research seam — plus regularity. Even `hbddP` is gone: `hbdd` at `lam = 0`
+already asserts `BddAbove (Set.range V)`, and a bounded-above objective has bounded-above
+expectations (`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`). -/
 theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ)
     (hV : Integrable V (p₀ : Measure X)) (hε : 0 < ε)
@@ -91,8 +94,6 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (hp2 : HasSecondMoment p₀)
     (hmom : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε →
         HasSecondMoment μ)
-    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-        μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε ∧ r = expect μ V })
     (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε ∧
         expect μ V = GaoKleywegt2023.dualValue sqCost V p₀ ε) :
     droValue (wassersteinBall p₀ ε) V
@@ -101,6 +102,8 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
   -- `hfeas`: the nominal lies in its own ball (diagonal coupling has zero cost)
   have hfeas : (GaoKleywegt2023.ambiguitySet sqCost p₀ ε).Nonempty :=
     ⟨p₀, ForMathlib.OT.mem_wassersteinBall_self p₀ ε hε.le⟩
+  -- `hbddP`: `hbdd` at `lam = 0` says `V` is bounded above, and a bounded objective has
+  -- bounded expectations
   -- `hOT`: near-optimal plans exist, and second moments make their cost integrable
   have hOT : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε →
       ∀ η : ℝ, 0 < η →
@@ -129,7 +132,7 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     exact integral_congr_ae (Filter.Eventually.of_forall (fun ζ => hLcPhi lam ζ))
   -- apply the proved general strong duality (specialized to `sqCost, V, p₀, ε`)
   have hsd := GaoKleywegt2023.strong_duality_thm1 sqCost V p₀ ε hV hε _hκ hfeas hbdd hφint
-    hΨμ hOT hbddP hattain
+    hΨμ hOT hattain
   rw [show droValue (wassersteinBall p₀ ε) V = GaoKleywegt2023.primalValue sqCost V p₀ ε from rfl,
     hsd, GaoKleywegt2023.dualValue]
   -- the two dual sets coincide (Φ-form = Lc-form)
@@ -540,9 +543,11 @@ equals the Wang–Gao–Xie log-partition dual (`f := V`, cost `‖·‖²`). Co
 `dual ≤ droValue` (the attaining worst-case measure, `le_csSup`).
 
 The disintegration and transport edges are gone; what remains assumed is the `≥` direction's
-**worst-case-measure attainment** (`hattain`, `hbddP`) — the T4 research seam — plus the same
-regularity as `sdrsb_cost_bound`, now quantified over every source in the ball. Dual over
-`0 < lam`. -/
+**worst-case-measure attainment** (`hattain`) — the T4 research seam — plus the same regularity as
+`sdrsb_cost_bound`, now quantified over every source in the ball. The `BddAbove` gate is derived
+from `hVbdd` (`V` bounded above), which is checkable regularity rather than a statement about the
+ball. This dual runs over `0 < lam`, so unlike `wdrsb_strong_duality` there is no `lam = 0`
+conjugate term to read `hVbdd` off; it is stated explicitly. -/
 theorem sdrsb_strong_duality
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
@@ -553,14 +558,17 @@ theorem sdrsb_strong_duality
         (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
-    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-        μ ∈ sinkhornBall p₀ ν κ ε ∧ r = expect μ V })
+    (hVbdd : BddAbove (Set.range V))
     (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε ∧
         expect μ V = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam }) :
     droValue (sinkhornBall p₀ ν κ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
+  -- the `BddAbove` gate is a consequence of `V` being bounded above
+  have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+      μ ∈ sinkhornBall p₀ ν κ ε ∧ r = expect μ V } :=
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ V hVbdd hV
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
     · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ V, μ, hμ, rfl⟩

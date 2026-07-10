@@ -27,6 +27,7 @@ trap-laden `reference/V4.lean`.
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.OptimalTransport.WeakDuality
 
 set_option autoImplicit false
@@ -246,12 +247,19 @@ theorem strong_duality_thm1
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
     -- the `≥` direction: the worst-case distribution attains the dual value (the OT
     -- measurable-selection / attainment result — NOT in Mathlib; the §6 research seam,
-    -- here isolated as a single explicit hypothesis), and the primal is bounded:
-    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-        μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
+    -- here isolated as a single explicit hypothesis). The primal's `BddAbove` gate is NOT a
+    -- hypothesis: it follows from `hbdd` at `lam = 0` (which says `Ψ` is bounded above) — see
+    -- `ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`.
     (hattain : ∃ μ : ProbabilityMeasure X,
         μ ∈ ambiguitySet c ν δ ∧ expect μ Ψ = dualValue c Ψ ν δ) :
     primalValue c Ψ ν δ = dualValue c Ψ ν δ := by
+  haveI : IsProbabilityMeasure (ν : Measure X) := ν.2
+  have hne : Nonempty X := nonempty_of_isProbabilityMeasure (ν : Measure X)
+  have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+      μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ } :=
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ Ψ
+      (ForMathlib.OT.bddAbove_range_of_bddAbove_dualIntegrand Ψ c hne.some (hbdd 0 le_rfl hne.some))
+      hΨμ
   refine le_antisymm (weak_duality_prop1 c Ψ ν δ hΨ hδ hfeas hbdd hφint hΨμ hOT) ?_
   obtain ⟨μ, hμ, hμeq⟩ := hattain
   calc dualValue c Ψ ν δ = expect μ Ψ := hμeq.symm
@@ -511,13 +519,12 @@ theorem dataDriven_strongDuality_cor2i [MeasurableSingletonClass X]
     (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → ∀ η : ℝ, 0 < η →
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ ν ∧ couplingCost c π ≤ δ + η ∧
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
-    -- the `≥`/attainment edge (the §6 OT worst-case-measure seam), as in `strong_duality_thm1`:
-    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-        μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
+    -- the `≥`/attainment edge (the §6 OT worst-case-measure seam), as in `strong_duality_thm1`.
+    -- `BddAbove` is not assumed: `strong_duality_thm1` derives it from `hbdd` at `lam = 0`.
     (hattain : ∃ μ : ProbabilityMeasure X,
         μ ∈ ambiguitySet c ν δ ∧ expect μ Ψ = dualValue c Ψ ν δ) :
     primalValue c Ψ ν δ = empiricalDual c Ψ xhat δ :=
-  (strong_duality_thm1 c Ψ ν δ hΨ hδ hκ hfeas hbdd hφint hΨμ hOT hbddP hattain).trans
+  (strong_duality_thm1 c Ψ ν δ hΨ hδ hκ hfeas hbdd hφint hΨμ hOT hattain).trans
     (dualValue_eq_empiricalDual c Ψ ν xhat δ hN hν)
 
 omit [NormedAddCommGroup X] in

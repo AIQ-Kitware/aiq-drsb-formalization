@@ -305,8 +305,12 @@ via `csSup_le`) and `dual ≤ droValue` (the attaining worst-case measure, `le_c
 
 The paper's Assumption 1 is replaced by the operational **edges** that make it provable:
 `hSinkAll` (the `∀ μ` attainment+disintegration bundle — the OT measurable-selection +
-`condKernel` disintegration + KL chain rule, §6), `hbddP`, `hattain`; the dual runs over
-`0 < lam` (the `lam=0` `logPartition` is junk, cf. `Drsb.sdrsb_cost_bound`). -/
+`condKernel` disintegration + KL chain rule, §6) and `hattain`; the dual runs over `0 < lam`
+(the `lam=0` `logPartition` is junk, cf. `Drsb.sdrsb_cost_bound`).
+
+The `BddAbove` gate is **not** a hypothesis: `hfbdd` (`f` bounded above) gives it via
+`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`. Unlike the Wasserstein duals, this one runs
+over `0 < lam` only, so there is no `lam = 0` conjugate term to read `hfbdd` off; it is explicit. -/
 theorem strong_duality
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
     (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε →
@@ -324,14 +328,34 @@ theorem strong_duality
           Integrable (fun x => klReal (P x) (ν : Measure X)) (μhat : Measure X) ∧
           (∀ lam, 0 < lam → Integrable
               (fun x => logPartition ν c f κ lam x) (μhat : Measure X)))
-    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-        μ ∈ sinkhornBall μhat ν κ ε ∧ r = expect μ f })
+    (hfbdd : BddAbove (Set.range f))
     (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε ∧
         expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = sinkhornDualObjective μhat ν c f κ ε lam }) :
     droValue (sinkhornBall μhat ν κ ε) f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = sinkhornDualObjective μhat ν c f κ ε lam } := by
+  -- the `BddAbove` gate is a consequence of `f` being bounded above, not an assumption.
+  -- `f`'s `μ`-integrability is not available here, but the disintegration supplies the bound
+  -- one layer down: each conditional mean `∫ f dP x` is `≤ M`, hence so is their `μhat`-average.
+  haveI : IsProbabilityMeasure (μhat : Measure X) := μhat.2
+  obtain ⟨M, hM⟩ := hfbdd
+  have hfM : ∀ x, f x ≤ M := fun x => hM ⟨x, rfl⟩
+  have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+      μ ∈ sinkhornBall μhat ν κ ε ∧ r = expect μ f } := by
+    refine ⟨M, ?_⟩
+    rintro r ⟨μ, hμ, rfl⟩
+    obtain ⟨P, hP, -, hfdis, -, hf_P, -, -, -, hI_f, -, -, -⟩ := hSinkAll μ hμ
+    have hslice : ∀ x, (∫ y, f y ∂(P x)) ≤ M := by
+      intro x
+      haveI := hP x
+      calc ∫ y, f y ∂(P x) ≤ ∫ _y, M ∂(P x) :=
+            integral_mono (hf_P x) (integrable_const M) hfM
+        _ = M := by simp
+    rw [hfdis]
+    calc (∫ x, (∫ y, f y ∂(P x)) ∂(μhat : Measure X))
+        ≤ ∫ _x, M ∂(μhat : Measure X) := integral_mono hI_f (integrable_const M) hslice
+      _ = M := by simp
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
     · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ f, μ, hμ, rfl⟩

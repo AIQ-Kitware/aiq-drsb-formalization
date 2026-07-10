@@ -21,6 +21,9 @@ One file per proposed Mathlib destination area:
   extraction of near-optimal plans from the `otCost` infimum, and "finite second moments
   ⟹ every coupling has integrable quadratic cost". These are what let the DRSB
   Wasserstein cost bound drop its OT-*attainment* hypothesis.
+* `ForMathlib.OptimalTransport.DroValue` — the DRO worst-case value `sSup`: a function bounded
+  above has bounded-above expectations, so the `BddAbove` side condition of every strong-duality
+  theorem is a consequence of its own `λ = 0` conjugate hypothesis, not an assumption.
 * `ForMathlib.OptimalTransport.WeakDuality` — the per-coupling Lagrangian bound (the
   always-true `≤` half of OT-DRO duality). STAGING (placeholder); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
@@ -44,6 +47,7 @@ import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Coupling
+import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling

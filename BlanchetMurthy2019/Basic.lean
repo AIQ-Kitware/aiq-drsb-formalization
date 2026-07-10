@@ -16,6 +16,7 @@ collapsed via Remark 1, eq. (9)).
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.OptimalTransport.WeakDuality
 
 set_option autoImplicit false
@@ -81,9 +82,9 @@ theorem wdro_strong_duality
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ μhat ∧ couplingCost c π ≤ δ + η ∧
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
     -- the `≥` direction: the worst-case distribution attains the dual (OT measurable
-    -- selection — §6 seam), and the primal is bounded:
-    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-        otCost c μ μhat ≤ δ ∧ r = expect μ f })
+    -- selection — §6 seam). The primal's `BddAbove` gate is NOT a hypothesis: it follows from
+    -- `hbdd` at `lam = 0` (`f` bounded above) via
+    -- `ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`.
     (hattain : ∃ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ ∧
         expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }) :
@@ -91,6 +92,14 @@ theorem wdro_strong_duality
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * δ
               + expect μhat (fun x => sSup (Set.range (fun y : X => f y - lam * c x y))) } := by
+  -- the `BddAbove` gate: `hbdd` at `lam = 0` says `f` is bounded above
+  haveI : IsProbabilityMeasure (μhat : Measure X) := μhat.2
+  have hne : Nonempty X := nonempty_of_isProbabilityMeasure (μhat : Measure X)
+  have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+      otCost c μ μhat ≤ δ ∧ r = expect μ f } :=
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range { μ | otCost c μ μhat ≤ δ } f
+      (ForMathlib.OT.bddAbove_range_of_bddAbove_dualIntegrand f c hne.some (hbdd 0 le_rfl hne.some))
+      hfμ
   -- symmetry: the dual integrand `fun x => sup_y (f y − λc(x,y))` equals the kernel's
   -- `fun y => sup_x (f x − λc(x,y))`
   have hAB : ∀ lam : ℝ, (fun x => sSup (Set.range (fun y => f y - lam * c x y)))
@@ -145,8 +154,6 @@ theorem wdro_strong_duality_dualFn
     (hOT : ∀ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ → ∀ η : ℝ, 0 < η →
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ μhat ∧ couplingCost c π ≤ δ + η ∧
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
-    (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-        otCost c μ μhat ≤ δ ∧ r = expect μ f })
     (hattain : ∃ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ ∧
         expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }) :
@@ -154,6 +161,6 @@ theorem wdro_strong_duality_dualFn
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧ v = lam * δ + expect μhat (Lc c f lam) } := by
   -- `Lc c f lam` unfolds (delta) to `fun x => sSup (Set.range (fun y => f y − lam · c x y))`,
   -- so the goal is definitionally equal to `wdro_strong_duality`.
-  exact wdro_strong_duality μhat c f δ hc_symm hfeas hbdd hφint hfμ hOT hbddP hattain
+  exact wdro_strong_duality μhat c f δ hc_symm hfeas hbdd hφint hfμ hOT hattain
 
 end BlanchetMurthy2019

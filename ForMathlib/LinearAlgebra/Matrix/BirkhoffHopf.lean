@@ -543,7 +543,7 @@ This wrapper is now proved from two smaller seams:
 2. the projective oscillation estimate,
    `positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound`.
 
-The old single broad `sorry` has therefore been split into an algebraic task and an analytic
+The old single broad placeholder has therefore been split into an algebraic task and an analytic
 Hilbert-metric task. -/
 theorem positive_kernel_birkhoff_hopf_contraction {ι κ : Type*}
     [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]

@@ -239,7 +239,7 @@ bound on `|r_i - r_j|` at the same geometric rate, with a larger constant depend
 This is the faithful replacement for the earlier pointwise log-to-one conversion. -/
 theorem hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound_and_ratio_box
     {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (_p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
     (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
     (hratio_pos : ∀ k j, 0 < q j / franklinLorenzCurrentColumnMarginal G a b k j)

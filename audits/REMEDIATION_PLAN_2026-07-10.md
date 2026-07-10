@@ -83,8 +83,16 @@ Single theorem, `ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean:49–354`.
 | **M2** `column_scaling_of_zero_residual` | zero residual ⟹ column scaling equation | ~345–353 | **LANDED** (commit 3791d88) |
 | **M3a** `stationarity_pairwise_residual_eq` | ψ-specific `HasDerivAt` core | ~210–311 | **LANDED** (this overlay) |
 | **M3b** pairwise-equal family ⟹ constant | choose `j0`, `μ := r j0` | inline | **LANDED inline** (in `key`/`hresid`) |
-| **M4** compact interior minimizer exists | boundary-coercivity confinement + EVT | ~62–201 | **not this overlay** |
-| **M5** assembly | short public-theorem body | 49–56, 338–353 | done for the tail; M4 pending |
+| **M4a.1** `lower_bound_le_weighted_sum` | constant ≤ normalized nonneg weighting | `hGb_ge` | **LANDED** |
+| **M4a.2** `simplex_coord_le_one` | coord ≤ 1 on the simplex | `hle1` | **LANDED** |
+| **M4b** `exp_neg_div_le_coord_of_weighted_log_sum_ge` | pure log barrier (no ψ/G) | `hsublevel` | **LANDED** (ψ-wrapper retained) |
+| **M4 (rest)** compact simplex + `ContinuousOn ψ` + `exists_isMinOn` | EVT plumbing | inline | pending; review as `exists_interior_minimizer` |
+| **M5** assembly | short public-theorem body | tail | tail done; M4-EVT still inline |
+
+**Heartbeat finding:** after M1–M4b the module compiles under **default** heartbeats;
+`set_option maxHeartbeats 1000000` **removed**. Mathlib helper search: no clean
+specialization for M4a.1 (Jensen needs `ConvexOn`/`Module`); `stdSimplex.le_one` exists
+but only for the bundled type, so M4a.2 stays a private raw-function lemma.
 
 M1 passes the row relation as the construction-independent
 `hrow : ∀ i, a i * ∑ j, G i j * b j = p i` (never sees `ψ`/`D2`/`aa`). M3a takes
@@ -106,5 +114,10 @@ explicit first. Do **not** start M4 in the M3 overlay.
   exit 0 (incl. `Drsb.Basic`); CLI `#print axioms`:
   `matrix_scaling_exists`, `wdrsb_cost_bound`, `sdrsb_cost_bound` all
   `[propext, Classical.choice, Quot.sound]`. MCP and CLI agreed throughout.
-- Next: report M3 to reviewer; then decide M4 first target (convex-combination lower
-  bound `hGb_ge` vs. logarithmic sublevel confinement `hsublevel`).
+- 2026-07-10: reported M3. Landed M4a (`lower_bound_le_weighted_sum`,
+  `simplex_coord_le_one`) + M4b (`exp_neg_div_le_coord_of_weighted_log_sum_ge`), with the
+  ψ-specific `hsublevel` reduced to a thin wrapper that only proves the `hlogsum` premise.
+  `hle1` local deleted (M4b calls `simplex_coord_le_one` directly). Removed the module's
+  `maxHeartbeats 1000000` — default heartbeats now suffice. `lake env lean` exit 0.
+- Next: M4 EVT plumbing (compact simplex + continuity + `exists_isMinOn`) as
+  `exists_interior_minimizer`, pending reviewer go-ahead.

@@ -34,11 +34,73 @@ delegates to this corrected statement.
 import Mathlib
 
 set_option autoImplicit false
-set_option maxHeartbeats 1000000
 open scoped BigOperators
 open Real Finset
 
 namespace ForMathlib
+
+/-- **[M4a.1] A pointwise lower bound survives normalized nonnegative weighting.**
+If `c ≤ f j` for every `j` and `b` is a nonnegative weight vector summing to `1`, then
+`c ≤ ∑ⱼ f j · b j`. Elementary; Mathlib's convex-combination lemmas
+(`ConvexOn.map_sum_le` etc.) require `ConvexOn`/`Module` structure and do not specialize
+cleanly to this real-scalar bound. -/
+private theorem lower_bound_le_weighted_sum
+    {ι : Type*} [Fintype ι]
+    (f b : ι → ℝ) (c : ℝ)
+    (hf : ∀ j, c ≤ f j) (hb : ∀ j, 0 ≤ b j) (hbsum : ∑ j, b j = 1) :
+    c ≤ ∑ j, f j * b j := by
+  calc c = ∑ j, c * b j := by rw [← Finset.mul_sum, hbsum, mul_one]
+    _ ≤ ∑ j, f j * b j :=
+      Finset.sum_le_sum fun j _ => mul_le_mul_of_nonneg_right (hf j) (hb j)
+
+/-- **[M4a.2] Every coordinate of a nonnegative vector summing to `1` is at most `1`.**
+Mathlib's `stdSimplex.le_one` states this only for the bundled `stdSimplex` type; this is
+the raw-function form the log-barrier argument needs. -/
+private theorem simplex_coord_le_one
+    {ι : Type*} [Fintype ι]
+    (b : ι → ℝ) (hb : ∀ j, 0 ≤ b j) (hbsum : ∑ j, b j = 1) :
+    ∀ j, b j ≤ 1 := by
+  intro j
+  calc b j ≤ ∑ l, b l := Finset.single_le_sum (fun l _ => hb l) (Finset.mem_univ j)
+    _ = 1 := hbsum
+
+/-- **[M4b] Logarithmic boundary coercivity on a finite simplex.** If a positive simplex
+point `b` has a `q`-weighted logarithmic sum bounded below by `−M` (with `M ≥ 0`), and each
+weight satisfies `qq ≤ q j` with `qq > 0`, then every coordinate has the explicit positive
+lower bound `exp(−M/qq) ≤ b j`.
+
+The pure barrier lemma behind `matrix_scaling_exists`'s sublevel confinement: it mentions
+no objective `ψ`, kernel `G`, or reference point — only the weighted log-sum premise. No
+`0 < q j` parameter is needed (it follows from `hqq_pos` and `hqq`). `hM_nonneg` is genuinely
+used: it fixes the direction of `−M/qq ≤ −M/q j`. -/
+private theorem exp_neg_div_le_coord_of_weighted_log_sum_ge
+    {ι : Type*} [Fintype ι]
+    (q b : ι → ℝ) (qq M : ℝ)
+    (hqq_pos : 0 < qq) (hqq : ∀ j, qq ≤ q j) (hM_nonneg : 0 ≤ M)
+    (hbpos : ∀ j, 0 < b j) (hbsum : ∑ j, b j = 1)
+    (hlogsum : -M ≤ ∑ j, q j * Real.log (b j)) :
+    ∀ j, Real.exp (-M / qq) ≤ b j := by
+  classical
+  intro j
+  have hq : ∀ l, 0 < q l := fun l => lt_of_lt_of_le hqq_pos (hqq l)
+  have hb0 : ∀ l, 0 ≤ b l := fun l => le_of_lt (hbpos l)
+  have hle1 := simplex_coord_le_one b hb0 hbsum
+  have hsplit : ∑ l, q l * Real.log (b l)
+      = q j * Real.log (b j) + ∑ l ∈ Finset.univ.erase j, q l * Real.log (b l) :=
+    (Finset.add_sum_erase Finset.univ _ (Finset.mem_univ j)).symm
+  have htail : ∑ l ∈ Finset.univ.erase j, q l * Real.log (b l) ≤ 0 :=
+    Finset.sum_nonpos (fun l _ => mul_nonpos_of_nonneg_of_nonpos (le_of_lt (hq l))
+      (Real.log_nonpos (le_of_lt (hbpos l)) (hle1 l)))
+  have hqj_ge : - M ≤ q j * Real.log (b j) := by linarith [hlogsum, hsplit, htail]
+  have hlogb1 : -M / q j ≤ Real.log (b j) := by
+    rw [div_le_iff₀ (hq j)]; linarith [hqj_ge, mul_comm (q j) (Real.log (b j))]
+  have hlogb2 : -M / qq ≤ -M / q j := by
+    rw [neg_div, neg_div, neg_le_neg_iff]
+    gcongr
+    exact hqq j
+  rw [← Real.exp_log (hbpos j)]
+  apply Real.exp_le_exp.mpr
+  linarith [hlogb1, hlogb2]
 
 /-- **[M1] Common column residual vanishes by mass conservation.** If a positive `b`
 normalizes to `1`, the row relation `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` holds, the marginals have
@@ -252,11 +314,8 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
   set ψ : (ι → ℝ) → ℝ :=
     fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j) with hψ
   -- lower bound helpers
-  have hGb_ge : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, gmin ≤ ∑ j, G i j * b j := by
-    intro b hb0 hb1 i
-    calc gmin = ∑ j, gmin * b j := by rw [← Finset.mul_sum, hb1, mul_one]
-      _ ≤ ∑ j, G i j * b j :=
-        Finset.sum_le_sum (fun j _ => mul_le_mul_of_nonneg_right (hgmin i j) (hb0 j))
+  have hGb_ge : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, gmin ≤ ∑ j, G i j * b j :=
+    fun b hb0 hb1 i => lower_bound_le_weighted_sum (fun j => G i j) b gmin (hgmin i) hb0 hb1
   have hGb_pos : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, 0 < ∑ j, G i j * b j :=
     fun b hb0 hb1 i => lt_of_lt_of_le hgmin_pos (hGb_ge b hb0 hb1 i)
   have hlb_p : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) →
@@ -266,11 +325,6 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
     rw [hP, Finset.sum_mul]
     exact Finset.sum_le_sum (fun i _ =>
       mul_le_mul_of_nonneg_left (Real.log_le_log hgmin_pos (h i)) (le_of_lt (hp i)))
-  -- upper bound for b coords on simplex
-  have hle1 : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ j, b j ≤ 1 := by
-    intro b hb0 hb1 j
-    calc b j ≤ ∑ l, b l := Finset.single_le_sum (fun l _ => hb0 l) (Finset.mem_univ j)
-      _ = 1 := hb1
   set M := ψ u - P * Real.log gmin with hM
   have hM_nonneg : 0 ≤ M := by
     rw [hM]
@@ -299,31 +353,17 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
     have h2 : (0:ℝ) ≤ N⁻¹ := by positivity
     linarith
   -- sublevel bound
+  -- objective-specific wrapper: the Sinkhorn sublevel supplies the `hlogsum` premise (M4b)
   have hsublevel : ∀ b : ι → ℝ, (∀ l, 0 < b l) → (∑ l, b l = 1) → ψ b ≤ ψ u → ∀ j, δ0 ≤ b j := by
-    intro b hbpos hbsum hble j
+    intro b hbpos hbsum hble
     have hb0 : ∀ l, 0 ≤ b l := fun l => le_of_lt (hbpos l)
     have hlb := hlb_p b hb0 hbsum
     have hψb : ψ b = (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ l, q l * Real.log (b l) := by
       simp only [hψ]
-    have hqsum_ge : - M ≤ ∑ l, q l * Real.log (b l) := by
+    have hlogsum : - M ≤ ∑ l, q l * Real.log (b l) := by
       rw [hM]; linarith [hlb, hble, hψb]
-    -- single term ≥ sum (all terms ≤ 0)
-    have hsplit : ∑ l, q l * Real.log (b l)
-        = q j * Real.log (b j) + ∑ l ∈ Finset.univ.erase j, q l * Real.log (b l) :=
-      (Finset.add_sum_erase Finset.univ _ (Finset.mem_univ j)).symm
-    have htail : ∑ l ∈ Finset.univ.erase j, q l * Real.log (b l) ≤ 0 :=
-      Finset.sum_nonpos (fun l _ => mul_nonpos_of_nonneg_of_nonpos (le_of_lt (hq l))
-        (Real.log_nonpos (le_of_lt (hbpos l)) (hle1 b hb0 hbsum l)))
-    have hqj_ge : - M ≤ q j * Real.log (b j) := by linarith [hqsum_ge, hsplit, htail]
-    have hlogb1 : -M / q j ≤ Real.log (b j) := by
-      rw [div_le_iff₀ (hq j)]; linarith [hqj_ge, mul_comm (q j) (Real.log (b j))]
-    have hlogb2 : -M / qq ≤ -M / q j := by
-      rw [neg_div, neg_div, neg_le_neg_iff]
-      gcongr
-      exact hqq j
-    rw [hδ0, ← Real.exp_log (hbpos j)]
-    apply Real.exp_le_exp.mpr
-    linarith [hlogb1, hlogb2]
+    rw [hδ0]
+    exact exp_neg_div_le_coord_of_weighted_log_sum_ge q b qq M hqq_pos hqq hM_nonneg hbpos hbsum hlogsum
   -- the compact feasible set
   set K : Set (ι → ℝ) := {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} with hK
   have hu_mem : u ∈ K := ⟨fun l => by rw [hu]; exact hδ_le_N, hu_sum⟩

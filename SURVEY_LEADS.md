@@ -183,7 +183,8 @@ Blanchet–Murthy Thm 1 / Gao–Kleywegt Thm 1, and its proof selects near-maxim
 
 | Gap | Needed for | Lean status | Source |
 |---|---|---|---|
-| **measurable selection (KRN)** | `hge` — the duality gap | **ABSENT** | Kuratowski–Ryll-Nardzewski; Villani Thm 5.10 (`c`-transform); Blanchet–Murthy 2019 Thm 1 |
+| ~~measurable selection (KRN)~~ | `hge` ingredient (1) | ✅ **SIDESTEPPED, 2026-07-10.** KRN is not needed: for a *continuous* integrand on a *separable* domain the supremum is achieved to within `ε` on a countable dense set, and `Nat.find` on an enumeration gives a measurable ε-argmax. `ForMathlib.MeasureTheory.exists_measurable_eps_argmax{,_of_separable}` + `ForMathlib.OT.exists_coupling_lagrangian_ge` (the converse Lagrangian bound). Axiom-clean. | Villani Thm 5.10 (`c`-transform); Blanchet–Murthy 2019 Thm 1 |
+| **optimal multiplier / complementary slackness** | `hge` ingredient (2) — **the only thing still missing** | **ABSENT.** 1-D concave duality: `h(t) = sup{𝔼_μ[f] : cost ≤ t}` is concave; `λ*` is a supergradient at `t = δ`. Mathlib has `ConvexOn` + slope lemmas but no supergradient existence. | Blanchet–Murthy 2019 Thm 1; Gao–Kleywegt 2023 Thm 1 / Prop 2 |
 | **(A) lsc of the transport cost / `otCost`** | attainment (worst-case-measure existence), *not* `hge` | **ABSENT** | Villani, *OT Old and New*, Thm 4.1; Santambrogio §1.2 |
 | **(B) lsc of `klDiv`** | attainment on the entropic ball | 🟡 **setwise version PROVED 2026-07-10** (`ForMathlib.MeasureTheory.toReal_klDiv_le_of_tendsto_integral`); weak version needs bounded *continuous* test functions (Lusin upgrade) | Dupuis–Ellis Lemma 1.4.3 |
 | **(C) Donsker–Varadhan *dual* variational formula** | the route to (B) | ✅ **CLOSED 2026-07-10** — `toReal_klDiv_eq_sSup_dvDualSet`, axiom-clean. Not the Gibbs formula (`isGreatest_donskerVaradhan`, sup over *measures*, attained); this sups over *functions* and is not attained. | Dupuis–Ellis Prop 1.4.2 |

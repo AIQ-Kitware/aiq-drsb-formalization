@@ -7,6 +7,11 @@ proofs in `reference/WellKnown.lean`; they are re-stated here with placeholder w
 audit statements against the papers, per the first-pass "statements only" policy).
 
 One file per proposed Mathlib destination area:
+* `ForMathlib.MeasureTheory.MeasurableArgmax` — **measurable ε-argmax selectors**: over a countable
+  index set (`Nat.find` on an enumeration), and over a separable domain with a continuous integrand
+  (the supremum is already achieved to within `ε` on a countable dense subset). This is the
+  Kuratowski–Ryll-Nardzewski *substitute* the Wasserstein-DRO `≥` direction needs, and it avoids KRN
+  entirely.
 * `ForMathlib.MeasureTheory.DonskerVaradhanDual` — the DV **dual** variational formula
   `KL(μ‖ν) = sup_f (∫f dμ − log ∫eᶠdν)` (sup over bounded measurable `f`, **not** attained), and
   its corollary: setwise lower semicontinuity of `klDiv`, i.e. `KL`-balls are setwise closed.
@@ -32,6 +37,11 @@ One file per proposed Mathlib destination area:
 * `ForMathlib.OptimalTransport.DroValue` — the DRO worst-case value `sSup`: a function bounded
   above has bounded-above expectations, so the `BddAbove` side condition of every strong-duality
   theorem is a consequence of its own `λ = 0` conjugate hypothesis, not an assumption.
+* `ForMathlib.OptimalTransport.ConverseLagrangian` — the **converse** of that bound: the Lagrangian
+  value `𝔼_ν[φ_λ]` is *achieved*, to within `ε`, by pushing the nominal forward along a measurable
+  near-maximizer of the `c`-transform. Together with `WeakDuality` this pins the Lagrangian
+  supremum exactly. It is ingredient (1) of the last open edge `hge`; ingredient (2) is the optimal
+  multiplier / complementary slackness.
 * `ForMathlib.OptimalTransport.WeakDuality` — the per-coupling Lagrangian bound (the
   always-true `≤` half of OT-DRO duality). STAGING (placeholder); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
@@ -52,10 +62,12 @@ One file per proposed Mathlib destination area:
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.DonskerVaradhanDual
+import ForMathlib.MeasureTheory.MeasurableArgmax
 import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Coupling
+import ForMathlib.OptimalTransport.ConverseLagrangian
 import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.Analysis.ExpLogBounds

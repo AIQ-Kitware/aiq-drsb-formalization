@@ -79,31 +79,46 @@ These are the strong-duality and continuum capstones. Re-verified against the pi
 | `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
 | `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
 
-### Tier 1 — the duality gap: **one theorem, four capstones, no Lean source**
+### Tier 1 — the duality gap `hge`: **ingredient (1) of 2 is now proved**
 
-The last edge on all four strong-duality capstones is now **`hge : dualValue ≤ primalValue`** — the
-statement that the **duality gap is zero**. It replaced the customary `hattain` on 2026-07-10:
-that hypothesis bundled a vanishing gap *with* attainment of the primal supremum, and none of the
-proofs ever used the attainment half. Receipts: `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure`,
-`WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure` (`hattain ⟹ hge`; converse false).
+The last edge on all four strong-duality capstones is **`hge : dualValue ≤ primalValue`** — the
+duality gap is zero. It replaced `hattain` (which bundled the gap with attainment of the primal sup;
+receipts: `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure`,
+`WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure`).
 
-⚠ **Correction, recorded because it was asserted here in error earlier today.** `hge` is **not** an
-extreme-value argument and Prokhorov does **not** reach it. Compactness delivers *attainment of the
-sup*, which `hge` no longer requires. Proving `hge` is proving Blanchet–Murthy Thm 1 / Gao–Kleywegt
-Thm 1: for each `ε > 0`, produce a feasible `μ` with `𝔼_μ[f] ≥ dualValue − ε` by selecting
-near-maximizers of the `c`-transform `sup_x (f x − λ* c(x,y))` and pushing the nominal forward. The
-selection is **Kuratowski–Ryll-Nardzewski measurable selection** — genuinely absent from Mathlib
-(`FOUNDATIONS.md` Chain 1, `XL`). Papers: Blanchet–Murthy 2019 Thm 1; Gao–Kleywegt 2023 Thm 1;
-Villani Thm 5.10 for the `c`-transform machinery.
+⚠ **Correction, recorded because it was asserted here in error.** `hge` is **not** an extreme-value
+argument and Prokhorov does not reach it. Compactness delivers attainment of the sup, which `hge` no
+longer requires. `hge` is Blanchet–Murthy Thm 1.
 
-Prokhorov / `IsTightMeasureSet` / Portmanteau *are* in the pin, and remain the right tool for the
-separate "a worst-case measure exists" statements (`GaoKleywegt2023.worstCase_structure_cor1`,
+Its proof has exactly two ingredients:
+
+1. ✅ **A measurable near-maximizer of the `c`-transform, and the resulting pushforward coupling.**
+   **PROVED (2026-07-10)**, axiom-clean:
+   * `ForMathlib.MeasureTheory.exists_measurable_eps_argmax` — measurable ε-argmax over a *countable*
+     index set (`Nat.find` on an enumeration; measurability is a Boolean combination via
+     `Nat.find_eq_iff`);
+   * `..._of_separable` — over a separable domain with a continuous integrand, since the supremum is
+     already achieved to within `ε` on a countable dense subset (`sSup_image_dense_eq`).
+     **This sidesteps Kuratowski–Ryll-Nardzewski entirely** — KRN is *not* needed for a continuous
+     integrand on a separable space, which is exactly the DRSB setting.
+   * `ForMathlib.OT.exists_coupling_lagrangian_ge` — the **converse Lagrangian bound**:
+     `𝔼_ν[φ_λ] − ε ≤ 𝔼_μ[f] − λ·𝔼_π[c]` for the pushforward coupling. With the forward bound
+     `expect_le_dualIntegrand_add_lam_couplingCost` this pins the Lagrangian value exactly:
+     `sup_π (𝔼_μ[f] − λ·𝔼_π[c]) = 𝔼_ν[φ_λ]`.
+
+2. ❌ **An optimal multiplier `λ*` with complementary slackness** (`𝔼_π[c] = δ` at the optimum), to
+   pass from `inf_λ (λδ + 𝔼_ν[φ_λ])` to the constrained supremum. This is one-dimensional concave
+   duality: `h(t) = sup{𝔼_μ[f] : 𝔼_π[c] ≤ t}` is concave, and `λ*` is a supergradient at `t = δ`.
+   Mathlib has `ConvexOn`/slope lemmas but no supergradient existence; this is the remaining work.
+   Papers: Blanchet–Murthy 2019 Thm 1; Gao–Kleywegt 2023 Thm 1 (Prop 2 for the `κ < ∞` gate).
+
+Prokhorov / `IsTightMeasureSet` / Portmanteau are in the pin and remain the tool for the *separate*
+worst-case-measure-existence statements (`GaoKleywegt2023.worstCase_structure_cor1`,
 `MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment.
 
-Also landed on the entropic side: the Donsker–Varadhan **dual** variational formula
+On the entropic side, the Donsker–Varadhan **dual** variational formula
 (`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv`
-(`toReal_klDiv_le_of_tendsto_integral`). Both are real Mathlib gaps and upstreamable; they serve
-the attainment statements, not `hge`.
+(`toReal_klDiv_le_of_tendsto_integral`) are proved. Both serve the attainment statements, not `hge`.
 
 ### Tier 2 — Schrödinger-bridge structure (`ChenGeorgiouPavon2021.SocOt`)
 

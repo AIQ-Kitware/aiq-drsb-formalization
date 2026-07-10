@@ -67,8 +67,17 @@ Sion's minimax theorem ✅ (Mathlib.Topology.Sion) ──┘                    
 > it does not give you *the vanishing gap*. Proving `hge` means proving Blanchet–Murthy Thm 1 /
 > Gao–Kleywegt Thm 1: for each `ε > 0` produce a feasible `μ` with `𝔼_μ[f] ≥ dualValue − ε`, by
 > selecting near-maximizers `x(y)` of the `c`-transform `sup_x (f x − λ* c(x,y))` and pushing `ν`
-> forward. That selection step is exactly **measurable selection (Kuratowski–Ryll-Nardzewski)**, the
-> `XL` row below. So Chain 1's original assessment was right; the reframing was not.
+> forward. ✅ **That selection step is now proved, and it does not need KRN**: for a continuous
+> integrand on a separable domain the supremum is achieved to within `ε` on a countable dense set, so
+> `Nat.find` on an enumeration yields a measurable ε-argmax
+> (`ForMathlib.MeasureTheory.exists_measurable_eps_argmax_of_separable`), and pushing `ν` forward
+> along it gives the **converse Lagrangian bound** `ForMathlib.OT.exists_coupling_lagrangian_ge`.
+> With the forward bound this pins `sup_π (𝔼_μ[f] − λ·𝔼_π[c]) = 𝔼_ν[φ_λ]` exactly.
+>
+> ❌ What remains of `hge` is the *other* ingredient: an **optimal multiplier `λ*` with complementary
+> slackness**. That is one-dimensional concave duality (a supergradient of the concave value function
+> at the radius), not measurable selection. So the `XL` KRN row is **off** the critical path after
+> all — but for a different reason than the one I gave earlier, and only after proving the selector.
 >
 > Prokhorov / `IsTightMeasureSet` / Portmanteau *are* now in the pin, and they remain the tool for
 > the separate statement "the worst-case measure exists" (`GaoKleywegt2023.worstCase_structure_cor1`

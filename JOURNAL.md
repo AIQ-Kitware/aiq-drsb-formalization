@@ -1464,3 +1464,59 @@ The attainment statements that *do* need Prokhorov (`GaoKleywegt2023.worstCase_s
 whoever takes them on.
 
 Build green, zero warnings, sorry-free, axiom-clean.
+
+---
+
+# Session journal — measurable ε-argmax; the converse Lagrangian bound (2026-07-10)
+
+`hge` (the duality gap) is Blanchet–Murthy Thm 1, and its proof has exactly two ingredients. **The
+first is now proved.**
+
+## Kuratowski–Ryll-Nardzewski is not needed
+
+I had recorded — and FOUNDATIONS had long recorded — that the `≥` direction needs KRN measurable
+selection, an `XL` gap. That is true in full generality and **false in the setting DRSB is in.**
+
+If the maximization runs over a *countable* index set, an enumeration plus `Nat.find` gives the
+selector outright, and "index `k` is the first to beat `S y − ε`" is a finite Boolean combination of
+the measurable sets `{y | S y − ε < F (e j) y}`. So the selector is measurable, by
+`measurable_to_countable'`. No KRN.
+
+And a continuous integrand on a separable domain *is* a countable problem: its supremum is already
+achieved to within `ε` on a countable dense subset (`sSup_image_dense_eq`, proved here — Mathlib
+lacks it). So `exists_measurable_eps_argmax_of_separable` gives a measurable `g : Y → X` with
+`F (g y) y > (⨆ x, F x y) − ε`, over the whole domain.
+
+New file `ForMathlib/MeasureTheory/MeasurableArgmax.lean`, axiom-clean. It surfaces one junk caveat
+rather than hiding it: the countable version needs **no** `BddAbove`, because `exists_lt_of_lt_csSup`
+needs only nonemptiness — but then `⨆` is `Real`'s junk `0` and the conclusion, while true, is
+uninformative. The separable version *does* use boundedness, because the two suprema agree only when
+both are honest.
+
+## The converse Lagrangian bound
+
+`ForMathlib/OptimalTransport/ConverseLagrangian.lean`: push `ν` forward along the selector `g`, take
+the coupling `π = (g, id)_# ν`, and
+
+`𝔼_ν[φ_λ] − ε ≤ 𝔼_μ[f] − λ·𝔼_π[c]`.
+
+Paired with the existing forward bound `expect_le_dualIntegrand_add_lam_couplingCost` (which holds
+for *every* coupling), this pins the Lagrangian supremum exactly:
+
+`sup_{π ∈ Π(·,ν)} ( 𝔼_μ[f] − λ·𝔼_π[c] ) = 𝔼_ν[φ_λ]`.
+
+`0 < λ` is used to recover the cost's integrability from `λ·c(g y, y) = f(g y) − u y`; boundedness of
+`f` is what makes `f ∘ g` integrable for an arbitrary measurable `g`.
+
+## What is left of `hge`, precisely
+
+Ingredient (2): **an optimal multiplier `λ*` with complementary slackness** (`𝔼_π[c] = δ` at the
+optimum), to pass from `inf_λ (λδ + 𝔼_ν[φ_λ])` to the constrained supremum. That is
+one-dimensional concave duality — `h(t) = sup{𝔼_μ[f] : cost ≤ t}` is concave and `λ*` is a
+supergradient at `t = δ`. Mathlib has `ConvexOn` and slope lemmas but no supergradient existence.
+
+So the `XL` KRN row *is* off the critical path — but for a different reason than the one I gave
+earlier today, and only after actually proving the selector. Corrected in FOUNDATIONS, STATUS and
+SURVEY_LEADS.
+
+Build green, zero warnings, sorry-free, axiom-clean.

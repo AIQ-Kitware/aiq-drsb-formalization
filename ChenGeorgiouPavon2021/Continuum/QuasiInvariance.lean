@@ -57,20 +57,6 @@ theorem finiteDyadic_absCont_standardWienerRealPath_shift_of_isCameronMartinPath
     W hWmeasure h hderiv hCM level]
   exact withDensity_absolutelyContinuous _ _
 
-/-- Uniform integrability / martingale closure for the Cameron--Martin density process on dyadic
-path projections.
-
-This is the analytic bridge from finite-dimensional absolute continuity to full path-space absolute
-continuity.  It should be proved by the same density-process/L² strategy used in the sequence-model
-Cameron--Martin theorem, transported through dyadic normalized increments. -/
-theorem cameronMartinDyadicDensity_uniformIntegrability_of_isCameronMartinPath
-    (W : ProbabilityMeasure RealPath)
-    (_hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
-    (h : RealPath) (hderiv : ℝ → ℝ)
-    (_hCM : IsCameronMartinPath h hderiv) :
-    True := by
-  trivial
-
 /-- Sharp remaining density-closure interface behind the current finite-dyadic density theorem.
 
 The current `RealPath := ℝ → ℝ` scaffold does not contain enough structure to derive this theorem
@@ -86,8 +72,13 @@ theorem cameronMartinDyadicDensity_closes_path_absCont_of_isCameronMartinPath
     (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) := by
   exact hac
 
-/-- Dyadic finite-dimensional quasi-invariance plus an explicit density-closure/absolute-continuity
-interface gives full path-space absolute continuity. -/
+/-- Full path-space absolute continuity, assembled from an explicit density-closure/absolute-continuity
+interface.
+
+The closure is supplied by the explicit hypothesis `hac`. The finite-dyadic quasi-invariance family
+`_hfin` provides source-facing context — it is the finite-dimensional evidence that motivates the
+closure — but on the current `RealPath := ℝ → ℝ` carrier it does not by itself derive `hac`, so it is
+carried as an unused witness rather than consumed. -/
 theorem absCont_of_finiteDyadic_absCont_and_density_closure
     (W : ProbabilityMeasure RealPath)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
@@ -97,7 +88,6 @@ theorem absCont_of_finiteDyadic_absCont_and_density_closure
       Measure.map (normalizedDyadicIncrementMap level)
           ((W : Measure RealPath).map (fun ω : RealPath => ω + h))
         ≪ Measure.map (normalizedDyadicIncrementMap level) (W : Measure RealPath))
-    (_hui : True)
     (hac : (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath)) :
     (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) := by
   exact cameronMartinDyadicDensity_closes_path_absCont_of_isCameronMartinPath
@@ -107,7 +97,9 @@ theorem absCont_of_finiteDyadic_absCont_and_density_closure
 path-space quasi-invariance interface is supplied explicitly.
 
 This avoids an overclaim from the present lightweight `IsCameronMartinPath` scaffold, which only
-controls dyadic energies and does not by itself constrain all coordinates of `RealPath := ℝ → ℝ`. -/
+controls dyadic energies and does not by itself constrain all coordinates of `RealPath := ℝ → ℝ`.
+The actual closure is supplied by the explicit hypothesis `hac`; the finite-dyadic absolute
+continuity below is the source-facing finite-dimensional evidence, not a derivation of `hac`. -/
 theorem absCont_standardWienerRealPath_shift_of_isCameronMartinPath
     (W : ProbabilityMeasure RealPath)
     (hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
@@ -117,8 +109,6 @@ theorem absCont_standardWienerRealPath_shift_of_isCameronMartinPath
     (W : Measure RealPath).map (fun ω : RealPath => ω + h) ≪ (W : Measure RealPath) := by
   exact absCont_of_finiteDyadic_absCont_and_density_closure W hWmeasure h hderiv hCM
     (finiteDyadic_absCont_standardWienerRealPath_shift_of_isCameronMartinPath
-      W hWmeasure h hderiv hCM)
-    (cameronMartinDyadicDensity_uniformIntegrability_of_isCameronMartinPath
       W hWmeasure h hderiv hCM)
     hac
 

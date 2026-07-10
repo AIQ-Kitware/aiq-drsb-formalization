@@ -244,28 +244,23 @@ already present in the no-subsequence proof rather than reconstructing all argum
 
 ### A4. Continuum honesty cleanup
 
-Two theorem-shaped markers have conclusions equal to `True`:
+Completed. Two theorem-shaped markers whose conclusions were `True` — one with no client, the other
+feeding an ignored `True` argument — were deleted rather than replaced with premature Lean
+propositions on the provisional `RealPath := ℝ → ℝ` carrier. The ignored `True` binder on the
+finite-dyadic/density-closure assembly theorem was removed and its caller updated. The proved
+one-sided measurability bound, finite-grid, sequence-Gaussian, and assembly results were retained; the
+finite-dyadic quasi-invariance family remains as source-facing context whose closure is supplied by
+the explicit `hac` hypothesis.
 
-```lean
-dyadicNormalizedIncrementMap_generates_standardWienerRealPathMeasure
-cameronMartinDyadicDensity_uniformIntegrability_of_isCameronMartinPath
-```
+The full continuum generation/quasi-invariance targets are described in prose in
+`PLAN_CONTINUUM_CLOSURE.md` rather than encoded as `True`-valued stand-ins. The future work is, in
+order:
 
-The current broad path carrier is known to be provisional, and one of the markers has no client while
-the other feeds an ignored `True` value. Do not design a premature Lean proposition merely to replace
-them.
-
-#### A4.1 Correction
-
-1. confirm clients with `rg`;
-2. remove the no-client theorem;
-3. remove the ignored `True` argument and its theorem;
-4. add precise roadmap prose describing:
-   - the intended interval path carrier;
-   - dyadic sigma-algebra generation;
-   - uniform integrability/density-process closure;
-   - prerequisites that are not yet fixed;
-5. retain proved finite-grid, sequence-Gaussian, and assembly results.
+1. choose the canonical anchored/continuous interval path carrier;
+2. prove dyadic observations generate its Borel measurable space;
+3. establish KL exhaustion along the resulting filtration;
+4. prove Cameron--Martin density-process closure or quasi-invariance;
+5. transport those facts into the continuum energy identity.
 
 A stable `def ... : Prop` or `structure ... : Prop` should be added only when a real client consumes
 it or the statement no longer depends on a carrier known to be wrong.

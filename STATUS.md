@@ -114,10 +114,38 @@ worst-case-measure-*existence* statements (`GaoKleywegt2023.worstCase_structure_
 `MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment — a strictly stronger
 statement than `hge`, and one the cards never need.
 
-On the entropic side, the Donsker–Varadhan **dual** variational formula
-(`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv` are proved.
-The Sinkhorn `hge` analogue (`WangGaoXie2023.strong_duality`, `Drsb.sdrsb_strong_duality`) is the
-natural next target: the same three-ingredient recipe with the entropic value function.
+### The Sinkhorn `hge` — the recipe, and the one piece left
+
+`WangGaoXie2023.strong_duality` and `Drsb.sdrsb_strong_duality` still carry `hge`. The same
+three-ingredient recipe applies, and **two of the three ingredients are already proved**:
+
+* **(2) the optimal multiplier** — `ForMathlib.Analysis.exists_nonneg_multiplier'`, unchanged.
+* **(3) concavity of the entropic value function** — the Sinkhorn objective
+  `𝔼_γ[c] + κ·KL(γ ‖ μ̂⊗ν)` is *convex* in `γ`: `couplingCost` is affine (`couplingCost_mix`) and
+  **`klDiv` is convex in its first argument** (`ForMathlib.MeasureTheory.toReal_klDiv_mix_le`,
+  proved 2026-07-10 — Mathlib has the `smul` lemmas but no convexity). Convex objective ⇒ the
+  constraint set `{γ : obj γ ≤ t}` is convex ⇒ the value function is concave, exactly as in the
+  Wasserstein case.
+* **(1) the converse Lagrangian bound** — ⚠ **the one piece left**, and it is *easier* than the
+  Wasserstein version because it is **exact, not `ε`-approximate**: the Gibbs/Donsker–Varadhan
+  supremum *is attained*, at the tilted measure (`ForMathlib.MeasureTheory.isGreatest_donskerVaradhan`,
+  `integral_tilted_sub_klDiv_tilted`). Per nominal point `x`,
+  `∫f dP_x − λ(∫c(x,·) dP_x + κ·KL(P_x‖ν)) = logPartition ν c f κ λ x` when `P_x = ν.tilted A_x`,
+  `A_x = (f − λ c(x,·))/(λκ)`.
+
+  What must be *built* is the tilted family as a **kernel**: `P = Kernel.withDensity (Kernel.const _ ν) g`
+  with `g x y = ENNReal.ofReal (exp (A x y) / Z x)`, `IsMarkovKernel` from `∫ g x dν = 1`. Then
+  `γ = μ̂ ⊗ₘ P`, `μ = γ.snd`, `couplingCost` and (by `toReal_klDiv_compProd_eq_integral`) the entropic
+  term disintegrate, and the per-`x` identity integrates to
+  `𝔼_μ[f] − λ·sinkhornObjective(γ) = 𝔼_μ̂[logPartition λ]` — the converse bound, with equality.
+
+  Measurability of `g` is the only real obstacle, and it is standard: `A` is jointly measurable and
+  `Z x = ∫ exp (A x ·) dν` is measurable in `x`.
+
+Also proved on the entropic side: the DV **dual** variational formula
+(`toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv` (`toReal_klDiv_le_of_tendsto_integral`).
+The dual formula pays for itself twice — the convexity above is a two-line corollary of it, since a
+supremum of affine functionals is convex.
 
 ### Tier 2 — Schrödinger-bridge structure (`ChenGeorgiouPavon2021.SocOt`)
 

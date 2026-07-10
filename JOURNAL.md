@@ -1637,3 +1637,38 @@ One trap worth recording: adding `[TopologicalSpace X]` to a theorem whose `X` a
 `[SecondCountableTopology X] [Nonempty X] [BorelSpace X]`.
 
 Build green, zero warnings, sorry-free, axiom-clean.
+
+---
+
+# Session journal — `klDiv` is convex (2026-07-10)
+
+`ForMathlib.MeasureTheory.toReal_klDiv_mix_le`: relative entropy is convex in its first argument.
+Mathlib has `klDiv` and the `smul` lemmas but **no convexity** (grep-verified).
+
+The proof is two lines of mathematics, and it is the DV *dual* variational formula paying for itself
+a second time. `toReal_klDiv_eq_sSup_dvDualSet` writes `KL(·‖ν) = sup_f (∫f d· − log ∫eᶠdν)`, and
+each of those functionals is **affine** in the measure. A supremum of affine functions is convex.
+No `rnDeriv` manipulation, no `klFun` convexity transfer, no measurability side conditions beyond
+the ones the dual formula already carries.
+
+This is ingredient (3) of the **Sinkhorn** `hge`, exactly as affinity of `couplingCost` was
+ingredient (3) of the Wasserstein one: it makes `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)` convex in the coupling, hence
+the entropic value function concave.
+
+## What is left for the Sinkhorn `hge`
+
+Ingredient (2), the multiplier, is unchanged and already proved. Ingredient (1), the converse
+Lagrangian bound, is *easier* than in the Wasserstein case — it is **exact rather than
+`ε`-approximate**, because the Gibbs supremum is attained at the tilted measure
+(`isGreatest_donskerVaradhan`, `integral_tilted_sub_klDiv_tilted`). What has to be *built* is the
+tilted family as a kernel, `P = Kernel.withDensity (Kernel.const _ ν) g` with
+`g x y = ofReal (exp (A x y) / Z x)`; then `γ = μ̂ ⊗ₘ P`, and the per-`x` Gibbs identity integrates
+against `μ̂` (via `toReal_klDiv_compProd_eq_integral`) to the converse bound with equality.
+
+Measurability of `g` is the only real obstacle and is standard.
+
+So the Sinkhorn path is one construction away, and the recipe is written down rather than guessed.
+Given my record on predicting the difficulty of `hge` — wrong three times — I am not going to call
+that "easy" until it compiles.
+
+Build green, zero warnings, sorry-free, axiom-clean.

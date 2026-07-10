@@ -270,4 +270,55 @@ theorem toReal_klDiv_le_of_tendsto_integral {ι : Type*} {l : Filter ι} [l.NeBo
     (hconv f hf hb).sub tendsto_const_nhds
   exact le_of_tendsto hlim (Eventually.of_forall hstep)
 
+/-! ## Convexity of `klDiv` — the dual formula paying off a second time
+
+A supremum of **affine** functionals is convex. `toReal_klDiv_eq_sSup_dvDualSet` writes `KL(·‖ν)` as
+`sup_f (∫f d· − log ∫eᶠdν)`, and each of those is affine in the measure. So relative entropy is
+convex in its first argument, with no `rnDeriv` manipulation at all.
+
+Mathlib has `klDiv` and the `smul` lemmas (`toReal_klDiv_smul_left`, …) but **no convexity**
+(grep-verified). This is the ingredient the *entropic* analogue of Wasserstein-DRO strong duality
+needs, exactly as `ForMathlib.OT.concaveOn_droValueAt` (which rests on affinity of `couplingCost`)
+is what the Wasserstein one needs: it makes the Sinkhorn objective `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)` convex in
+the coupling, hence the entropic value function concave. -/
+
+/-- **Relative entropy is convex in its first argument.** Immediate from the dual variational
+formula: `KL(·‖ν)` is a supremum of affine functionals of the measure. -/
+theorem toReal_klDiv_mix_le (a : ℝ) (ha : a ∈ Set.Icc (0:ℝ) 1)
+    (μ₁ μ₂ ν : Measure α) [IsProbabilityMeasure μ₁] [IsProbabilityMeasure μ₂]
+    [IsProbabilityMeasure ν]
+    (hac₁ : μ₁ ≪ ν) (hac₂ : μ₂ ≪ ν)
+    (hllr₁ : Integrable (llr μ₁ ν) μ₁) (hllr₂ : Integrable (llr μ₂ ν) μ₂)
+    (μ : Measure α) [IsProbabilityMeasure μ]
+    (hμdef : μ = ENNReal.ofReal a • μ₁ + ENNReal.ofReal (1 - a) • μ₂)
+    (hac : μ ≪ ν) (hllr : Integrable (llr μ ν) μ) :
+    (klDiv μ ν).toReal ≤ a * (klDiv μ₁ ν).toReal + (1 - a) * (klDiv μ₂ ν).toReal := by
+  have ha0 : 0 ≤ a := ha.1
+  have ha1 : 0 ≤ 1 - a := by linarith [ha.2]
+  rw [toReal_klDiv_eq_sSup_dvDualSet μ ν hac hllr]
+  refine csSup_le (dvDualSet_nonempty μ ν) ?_
+  rintro r ⟨f, hf, ⟨C, hC⟩, rfl⟩
+  have hbound : ∀ (ρ : Measure α) [IsProbabilityMeasure ρ], Integrable f ρ := by
+    intro ρ _
+    exact Integrable.mono' (integrable_const C) hf.aestronglyMeasurable
+      (ae_of_all _ fun x => by rw [Real.norm_eq_abs]; exact hC x)
+  have hsplit : ∫ x, f x ∂μ = a * ∫ x, f x ∂μ₁ + (1 - a) * ∫ x, f x ∂μ₂ := by
+    rw [hμdef, integral_add_measure ((hbound μ₁).smul_measure ENNReal.ofReal_ne_top)
+        ((hbound μ₂).smul_measure ENNReal.ofReal_ne_top),
+      integral_smul_measure, integral_smul_measure,
+      ENNReal.toReal_ofReal ha0, ENNReal.toReal_ofReal ha1]
+    simp [smul_eq_mul]
+  -- each summand is an admissible value for the corresponding measure
+  have h1 : (∫ x, f x ∂μ₁) - Real.log (∫ x, Real.exp (f x) ∂ν) ≤ (klDiv μ₁ ν).toReal :=
+    dvDualSet_le μ₁ ν hac₁ hllr₁ _ ⟨f, hf, ⟨C, hC⟩, rfl⟩
+  have h2 : (∫ x, f x ∂μ₂) - Real.log (∫ x, Real.exp (f x) ∂ν) ≤ (klDiv μ₂ ν).toReal :=
+    dvDualSet_le μ₂ ν hac₂ hllr₂ _ ⟨f, hf, ⟨C, hC⟩, rfl⟩
+  have k1 := mul_le_mul_of_nonneg_left h1 ha0
+  have k2 := mul_le_mul_of_nonneg_left h2 ha1
+  have hL : Real.log (∫ x, Real.exp (f x) ∂ν)
+      = a * Real.log (∫ x, Real.exp (f x) ∂ν)
+        + (1 - a) * Real.log (∫ x, Real.exp (f x) ∂ν) := by ring
+  nlinarith [k1, k2, hsplit, hL]
+
+
 end ForMathlib.MeasureTheory

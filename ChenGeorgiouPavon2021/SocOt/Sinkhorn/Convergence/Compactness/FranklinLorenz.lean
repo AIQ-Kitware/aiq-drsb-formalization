@@ -180,15 +180,20 @@ Since `x ↦ c / x` is a projective isometry, with `α k = d(a (k+1), a k)` and 
 
 So `M k = max (α k) (β k)` satisfies `M (k+1) ≤ γ · M k`, hence `M k ≤ γ^k · M 0` — no parity
 argument is needed.  The target quantity is `|log ((b (k+1) i / b k i) / (b (k+1) j / b k j))|`,
-which is at most `β k ≤ M k`. -/
-theorem hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
+which is at most `β k ≤ M k`.
+
+This `_core` form carries the minimal hypotheses.  The projective log-oscillation decay depends only
+on the orbit, the two Birkhoff contraction coefficients, and `0 ≤ γ`.  It needs neither the box
+bounds `FranklinLorenzScalingBoxBounds` (which enter later, in the box-ratio lemma) nor `γ < 1`
+(which enters later, in the log-to-error real-analysis conversion).  The
+`..._geometric_bound` wrapper retains both for source/context fidelity. -/
+theorem hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound_core
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
     (hG : ∀ i j, 0 < G i j)
     (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
-    (_hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ)
     (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
     (hγ_contract_transpose :
       ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
@@ -300,6 +305,33 @@ theorem hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_
     _ ≤ γ ^ k * M 0 := hM_geom k
     _ = M 0 * γ ^ k := by ring
 
+/-- Source/context-facing wrapper for
+`hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound_core`.
+
+The `_hbox` and `_hγ_lt_one` hypotheses are retained for compatibility and source fidelity, but they
+are **not** mathematical premises of this projective log-oscillation decay: the proof lives in the
+`_core` lemma.  `FranklinLorenzScalingBoxBounds` and `γ < 1` are genuinely needed only downstream,
+by the box-ratio lemma and the log-to-error conversion respectively. -/
+theorem hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (a b : ℕ → ι → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (_hbox : FranklinLorenzScalingBoxBounds a b)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
+    ∃ C : ℝ,
+      0 ≤ C ∧
+        ∀ k (ij : ι × ι),
+          |Real.log
+            ((q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1) /
+              (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2))| ≤ C * γ ^ k :=
+  hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound_core
+    p q G a b hG horbit γ hγ_nonneg hγ_contract hγ_contract_transpose
+
 /-- Uniform finite-box bound for the right-column relative ratio `q / c_k`.
 
 This is a finite-order/box-bounds seam, independent of Hilbert contraction.  From the update equation
@@ -409,8 +441,8 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
   exact hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound_and_ratio_box
     p q G a b γ hγ_nonneg hγ_lt_one hratio_pos
     (franklinLorenz_right_column_relative_ratio_box_bound p q G a b hG horbit hbox)
-    (hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
-      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose)
+    (hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound_core
+      p q G a b hG horbit γ hγ_nonneg hγ_contract hγ_contract_transpose)
 
 /-- Pure two-sequence Franklin--Lorenz right-column correction geometric bound.
 

@@ -127,11 +127,15 @@ Dupuis--Ellis; see the exact-reference ledger in
 proves
 
 ```lean
-ForMathlib.matrix_scaling_exists
+ForMathlib.matrix_scaling_exists              -- square (ι → ι → ℝ)
+ForMathlib.matrix_scaling_exists_rectangular  -- rectangular rows ι, columns κ
 ```
 
 for a strictly positive finite kernel with prescribed positive marginals. The proof uses a
-log-domain convex minimization argument and first-order conditions.
+log-domain convex minimization argument and first-order conditions; it is naturally rectangular
+(row type `ι`, column type `κ`, `G : ι → κ → ℝ`), and the square theorem is the `κ := ι`
+specialization. The discrete-Schrödinger corollary `ForMathlib.sinkhorn_potentials_exist(_rectangular)`
+follows. Upstream-preparation notes: [`audits/UPSTREAM_CANDIDATES_2026-07-10.md`](audits/UPSTREAM_CANDIDATES_2026-07-10.md).
 
 The Chen--Georgiou--Pavon finite development then culminates in
 

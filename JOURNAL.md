@@ -1302,3 +1302,37 @@ compact ⇒ a usc objective attains its sup ⇒ `hattain`.
 
 `hbddP` deleted from every duality theorem (see the previous entry). Repo builds with **zero
 warnings**, is sorry-free, and every card-path and ForMathlib declaration is axiom-clean.
+
+---
+
+# Session journal — an audit finding: the Sinkhorn ball's cost is hard-wired (2026-07-10)
+
+While attempting to discharge `WangGaoXie2023.strong_duality`'s `hSinkAll`, found a **statement
+wart** that had survived every previous audit.
+
+`sinkhornBall` → `Wkappa` → `sinkhornObjectiveENN` → `couplingCost2ENN` is hard-wired to the
+quadratic cost `‖x−y‖²`. But `WangGaoXie2023.strong_duality` quantifies over its own free cost `c`,
+and its `hSinkAll` states the disintegrated budget `∫(∫c dP + κ·KL) dp₀ ≤ ε` in terms of *that* `c`.
+
+So for `c ≠ ‖·‖²` the edge asserts: *for every `μ` in the **quadratic** ball, there is a conditional
+family whose **`c`**-budget is `≤ ε`.* Those are unrelated quantities. The theorem is not unsound —
+everything is hypothesis-driven and it is proved from its hypotheses — but the edge fails
+AGENTS.md §6's own test: *an edge is only honest if its premises are jointly satisfiable in the real
+problem.* For general `c` they are not.
+
+The fix is a parametrization, not new mathematics: give `sinkhornObjective`, `sinkhornObjectiveENN`,
+`Wkappa` and `sinkhornBall` a cost argument (Wang–Gao–Xie **Definition 1** states the entropic ball
+for a general cost — the hard-wiring was ours, not the paper's), and have `Drsb` instantiate
+`c := sqCost`. `couplingCostENN` is already general. The bridge lemmas `couplingCost_eq_toReal` and
+`integrable_of_couplingCostENN_ne_top` then take `hc : ∀ x y, 0 ≤ c x y` and
+`Measurable fun z => c z.1 z.2` where the quadratic version got positivity and measurability from
+typeclasses.
+
+I began that refactor, got `Basic.lean` and `Coupling.lean` through, then lost the `Coupling.lean`
+edits to a mistaken `git checkout` and chose to restore the last green commit rather than leave a
+wide, half-applied refactor across four libraries. Recorded here and in AGENTS.md §6 + STATUS.md
+with the full recipe, including the one non-obvious obstacle: discharging `hSinkAll` afterwards also
+requires moving `Drsb.hasSinkhornDisintegration_of_isSinkhornPlan` *below* `WangGaoXie2023` in the
+import graph, since it presently sits above it.
+
+Repo restored to green: `lake build` clean, **zero warnings**, sorry-free, axiom-clean.

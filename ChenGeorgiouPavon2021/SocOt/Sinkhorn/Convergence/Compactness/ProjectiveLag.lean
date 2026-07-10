@@ -1382,12 +1382,14 @@ theorem no_positive_subsequence_of_pair_tendsto_zero
 
 /-- No positive-limsup subsequence for the coupled backward denominator spread.
 
-This is now the single Sinkhorn-specific hard theorem.  The uploaded distillations identify the
-intended route as Franklin--Lorenz matrix-scaling convergence plus the Carroll / Birkhoff--Hopf
-positive-matrix contraction principle: assume a bad subsequence with spread bounded below, extract a
-phase-compatible finite cluster using the uniform box bounds, pass the alternating positive-kernel
-update equations to the limit, and use strict positivity of `G` to force the two backward-ratio
-vectors to be projectively constant, contradicting the positive spread. -/
+This theorem is currently a derived alternate characterization: the Franklin--Lorenz geometric proof
+(`sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_franklin_lorenz`) first
+establishes convergence, and the generic sequence lemma `no_positive_subsequence_of_pair_tendsto_zero`
+then rules out a positive-spread subsequence.  It is retained as the interface expected by a possible
+future independent compactness/subsequence proof (assume a bad subsequence with spread bounded below,
+extract a phase-compatible finite cluster from the uniform box bounds, pass the alternating
+positive-kernel update equations to the limit, and use strict positivity of `G` to force the backward
+ratios to be projectively constant), not as the production route. -/
 theorem sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subsequence_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -1416,10 +1418,12 @@ theorem sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subse
 
 /-- Full-orbit coupled positive-kernel scalar spread collapse for both backward denominator ratios.
 
-The theorem now factors into two pieces:
-
-* a pure order/topology lemma excluding positive-limsup subsequences;
-* the Sinkhorn-specific Fortet/Hilbert argument that proves such bad subsequences cannot exist.
+This theorem reconstructs convergence through the alternate no-subsequence seam: it feeds the derived
+`sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subsequence_from_gauge_iterates`
+into the pure order/topology lemma `tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence`.
+It is **not** the production route (the drift-envelope wrapper now consumes the Franklin--Lorenz
+convergence theorem directly) and it is **not** an independent proof; it is retained to exercise the
+subsequence seam end to end.
 
 The concrete scalar quantities monitored are:
 
@@ -1474,7 +1478,7 @@ theorem sinkhorn_backward_denominator_projective_ratio_drift_envelopes_atTop_fro
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
     SinkhornBackwardDenominatorProjectiveRatioDriftEnvelopesAtTop φ0Iter φhat1Iter := by
   obtain ⟨hφ0_spread, hφhat1_spread⟩ :=
-    sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_gauge_iterates
+    sinkhorn_backward_denominator_projective_ratio_spreads_tendsto_zero_from_franklin_lorenz
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
       hG hiter hgauge hbounds
   exact ⟨

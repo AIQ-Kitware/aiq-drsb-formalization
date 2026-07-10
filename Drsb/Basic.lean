@@ -155,6 +155,39 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
   · rintro ⟨lam, hlam, rfl⟩
     exact ⟨lam, hlam, by rw [hexpLc lam]; ring⟩
 
+
+/-- **WDRSB strong duality, with no edges at all.** The `≥` direction (`hge`, the vanishing duality
+gap) is no longer assumed: it is `GaoKleywegt2023.dualValue_le_primalValue`, i.e. Blanchet–Murthy
+Thm 1, proved in `ForMathlib.OT.StrongDualityGe` from the converse Lagrangian bound, the optimal
+multiplier, and concavity of the DRO value function.
+
+What remains are checkable regularity conditions on the value function `V` and the quadratic cost:
+continuity, boundedness, the conjugate's finiteness, integrability, and a zero-cost feasible plan
+(which the diagonal coupling supplies, `sqCost x x = 0`). -/
+theorem wdrsb_strong_duality_of_regularity
+    [SecondCountableTopology X] [Nonempty X] [BorelSpace X] [MeasurableSub₂ X]
+    (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ)
+    (hV : Integrable V (p₀ : Measure X)) (hε : 0 < ε)
+    (_hκ : GaoKleywegt2023.kappa sqCost V p₀ ≠ ⊤)
+    (hVc : Continuous V) (hcc : Continuous fun z : X × X => sqCost z.1 z.2)
+    (C : ℝ) (hVb : ∀ x, |V x| ≤ C)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,
+        BddAbove (Set.range (fun ξ => V ξ - lam * sqCost ξ ζ)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun ζ => sSup (Set.range (fun ξ => V ξ - lam * sqCost ξ ζ))) (p₀ : Measure X))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε →
+        Integrable V (μ : Measure X))
+    (hp2 : HasSecondMoment p₀)
+    (hmom : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε →
+        HasSecondMoment μ)
+    (hne0 : (ForMathlib.OT.droValueSet sqCost V p₀ 0).Nonempty) :
+    droValue (wassersteinBall p₀ ε) V
+      = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * ε + expect p₀ (BlanchetMurthy2019.Lc sqCost V lam) } :=
+  wdrsb_strong_duality p₀ V ε hV hε _hκ hbdd hφint hΨμ hp2 hmom
+    (GaoKleywegt2023.dualValue_le_primalValue sqCost V p₀ ε hε hVc hcc sqCost_nonneg C hVb
+      hbdd hφint hΨμ hne0)
+
 /-- **WDRSB cost bound** (the `wdrsb_cost_bound.yaml` claim `E_perturbed[V] ≤ E_wc[V]`):
 for any source `μ` inside the Wasserstein-2 ball of radius `ε` around the nominal `p₀`,
 the expected cost is bounded by the WDRO dual worst-case value.

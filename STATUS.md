@@ -23,7 +23,8 @@
 | DRSB card claims | ✅ **proved** (`wdrsb_cost_bound`, `sdrsb_cost_bound`) |
 | WDRSB card assumption surface | ✅ **minimal** — the `hOT` attainment edge is **deleted**, not assumed |
 | SDRSB card assumption surface | ✅ **minimal** — attainment, disintegration and transport edges all discharged; **no second moments** (plan carries `integrable_cost`) |
-| Strong duality (all four) | ✅ **proved**, each `le_antisymm(weak, one explicit attainment edge)` |
+| Strong duality — Wasserstein | ✅ **EDGE-FREE** (`hge` proved: `ForMathlib.OT.dualValue_le_droValue`) |
+| Strong duality — Sinkhorn | ✅ proved; `hge` still a hypothesis (same recipe applies) |
 | `energy_identity` | ✅ **closed** — Girsanov content isolated to the explicit `hCM` edge |
 | Birkhoff–Hopf contraction | ✅ **proved twice**, by two independent routes |
 | Sinkhorn convergence | ✅ **proved** — no placeholder anywhere on the critical path |
@@ -79,53 +80,44 @@ These are the strong-duality and continuum capstones. Re-verified against the pi
 | `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
 | `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
 
-### Tier 1 — the duality gap `hge`: **both analytic ingredients are proved**
+### Tier 1 — the duality gap `hge`: ✅ **PROVED (2026-07-10)**
 
-The last edge on all four strong-duality capstones is **`hge : dualValue ≤ primalValue`** — the
-duality gap is zero. It replaced `hattain`, which bundled the gap with attainment of the primal sup
-(receipts: `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure`,
-`WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure`).
+`hge` is no longer a hypothesis. `ForMathlib.OT.dualValue_le_droValue` proves the `≥` half of
+Wasserstein-DRO strong duality — Blanchet–Murthy Thm 1 / Gao–Kleywegt Thm 1 — and
+`GaoKleywegt2023.dualValue_le_primalValue` specializes it. Edge-free capstones:
+`GaoKleywegt2023.strong_duality_thm1_of_regularity`, `Drsb.wdrsb_strong_duality_of_regularity`.
 
-⚠ **Two corrections, recorded because both were asserted here in error.** (i) `hge` is *not* an
-extreme-value argument and Prokhorov does not reach it. (ii) `hge` does *not* need
-Kuratowski–Ryll-Nardzewski. Both claims were mine, and both were wrong; the truth is below.
+Three ingredients, all in `ForMathlib`:
 
-`hge` is Blanchet–Murthy Thm 1, and its proof has three ingredients. **Two are now proved,
-axiom-clean:**
+1. `ForMathlib.OT.exists_coupling_lagrangian_ge` — the **converse Lagrangian bound**: `𝔼_ν[φ_λ]` is
+   achieved, to within `ε`, by pushing `ν` forward along a measurable near-maximizer of the
+   `c`-transform. The selector is `ForMathlib.MeasureTheory.exists_measurable_eps_argmax_of_separable`
+   and needs **no Kuratowski–Ryll-Nardzewski**: on a separable domain a continuous integrand attains
+   its supremum to within `ε` on a countable dense set, and `Nat.find` on an enumeration is
+   measurable.
+2. `ForMathlib.Analysis.exists_nonneg_multiplier'` — the **optimal multiplier**. Mathlib has
+   `ConcaveOn` and the slope lemmas but **no sub/supergradient existence at all** (grep-verified);
+   the one-dimensional case is `ForMathlib/Analysis/Supergradient.lean`.
+3. `ForMathlib.OT.concaveOn_droValueAt` — the **DRO value function is concave and nondecreasing**,
+   because the coupling set is convex (`mix_mem_couplings`) and cost/reward are affine on it.
 
-1. ✅ **The Lagrangian value is achieved by a pushforward.**
-   `ForMathlib.MeasureTheory.exists_measurable_eps_argmax{,_of_separable}` — a measurable ε-argmax,
-   with **no KRN**: for a countable index set `Nat.find` on an enumeration gives the selector, and a
-   *continuous* integrand on a *separable* domain is a countable problem (`sSup_image_dense_eq`).
-   Then `ForMathlib.OT.exists_coupling_lagrangian_ge` — the **converse Lagrangian bound**
-   `𝔼_ν[φ_λ] − ε ≤ 𝔼_μ[f] − λ·𝔼_π[c]`. With the forward bound this pins
-   `sup_π (𝔼_μ[f] − λ·𝔼_π[c]) = 𝔼_ν[φ_λ]` exactly.
+**The trick in the assembly:** run (1) at `λ = λ* + η` for small `η > 0`, never at `λ*` itself. That
+supplies `λ > 0` for the cost-integrability step *and* eliminates the `λ* = 0` case (inactive
+constraint), since `t ≥ 0` makes `η(δ − t) ≤ ηδ`, absorbed by `η ≤ ε/(2δ)`. The dual set's
+`BddBelow` — needed for `csInf_le` — comes from the *forward* Lagrangian bound at the zero-cost plan.
 
-2. ✅ **The optimal multiplier.** `ForMathlib.Analysis.exists_nonneg_multiplier`: a nondecreasing
-   concave value function `h` on an interval has, at an interior `δ`, a supergradient `λ* ≥ 0` with
-   `h t + λ*·(δ − t) ≤ h δ` for all `t` — i.e. the Lagrangian relaxation at `λ*` never exceeds the
-   constrained optimum. Mathlib has `ConcaveOn` and the slope lemmas but **no sub/supergradient
-   existence at all** (grep-verified); `ForMathlib/Analysis/Supergradient.lean` supplies the
-   one-dimensional case.
-
-3. ❌ **The DRO value function is concave, nondecreasing, and finite near `δ`.**
-   `h t = sup { 𝔼_μ[f] : ∃ π ∈ Π(μ,ν), 𝔼_π[c] ≤ t }`. Concavity is *mixing two couplings*:
-   `a·π₁ + (1−a)·π₂` couples `a·μ₁ + (1−a)·μ₂` with `ν`, and both `couplingCost` and `expect` are
-   affine in the coupling. Monotone is relaxing the budget. Finiteness near `δ` is the Slater
-   condition (`0 < δ`, `κ < ∞` in Gao–Kleywegt). Then `primalValue = h δ` needs continuity of a
-   concave function on the interior. **This is the remaining work**, and it is measure-theoretic
-   bookkeeping — convex combinations of probability measures and their marginals — not new analysis.
-
-Assembly, once (3) lands: `dualValue = inf_λ (λδ + 𝔼_ν[φ_λ]) ≤ λ*δ + 𝔼_ν[φ_{λ*}]`
-`= sup_π (𝔼_μ[f] + λ*(δ − 𝔼_π[c]))` (by (1)) `≤ sup_t (h t + λ*(δ − t)) ≤ h δ = primalValue` (by (2)).
-
-Prokhorov / `IsTightMeasureSet` / Portmanteau are in the pin and remain the tool for the *separate*
-worst-case-measure-existence statements (`GaoKleywegt2023.worstCase_structure_cor1`,
-`MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment.
+⚠ **Three claims made in this file earlier today were wrong**, each corrected only by attempting the
+proof: `hge` is *not* an extreme-value argument reachable by Prokhorov; it does *not* need KRN; and
+Chain 1's `XL` convex-analysis rows were *not* the critical path. What was actually missing was one
+thirty-line supergradient lemma. Prokhorov / Portmanteau remain the tool for the **separate**
+worst-case-measure-*existence* statements (`GaoKleywegt2023.worstCase_structure_cor1`,
+`MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment — a strictly stronger
+statement than `hge`, and one the cards never need.
 
 On the entropic side, the Donsker–Varadhan **dual** variational formula
 (`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv` are proved.
-Both serve the attainment statements, not `hge`.
+The Sinkhorn `hge` analogue (`WangGaoXie2023.strong_duality`, `Drsb.sdrsb_strong_duality`) is the
+natural next target: the same three-ingredient recipe with the entropic value function.
 
 ### Tier 2 — Schrödinger-bridge structure (`ChenGeorgiouPavon2021.SocOt`)
 

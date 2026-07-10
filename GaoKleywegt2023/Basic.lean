@@ -28,6 +28,7 @@ trap-laden `reference/V4.lean`.
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.DroValue
+import ForMathlib.OptimalTransport.StrongDualityGe
 import ForMathlib.OptimalTransport.WeakDuality
 
 set_option autoImplicit false
@@ -221,6 +222,87 @@ theorem weak_duality_prop1
   linarith [hker, h1, h2]
 
 omit [NormedAddCommGroup X] in
+
+/-! ## The `≥` direction, discharged
+
+`hge` is no longer a hypothesis of this development: it is
+`ForMathlib.OT.dualValue_le_droValue` (Blanchet–Murthy Thm 1), specialized to this file's
+`dualValue`/`primalValue`. -/
+
+omit [NormedAddCommGroup X] in
+/-- **The duality gap is zero.** Discharges `strong_duality_thm1`'s `hge` from regularity:
+a continuous bounded objective, a continuous nonnegative cost, a separable Borel sample space, a
+strictly positive radius, and a zero-cost feasible plan. -/
+theorem dualValue_le_primalValue
+    [TopologicalSpace X] [SecondCountableTopology X] [Nonempty X] [BorelSpace X]
+    (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ) (hδ : 0 < δ)
+    (hΨc : Continuous Ψ) (hcc : Continuous fun p : X × X => c p.1 p.2)
+    (hc0 : ∀ x y, 0 ≤ c x y) (C : ℝ) (hΨb : ∀ x, |Ψ x| ≤ C)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,
+        BddAbove (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun ζ => sSup (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ))) (ν : Measure X))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → Integrable Ψ (μ : Measure X))
+    (hne0 : (ForMathlib.OT.droValueSet c Ψ ν 0).Nonempty) :
+    dualValue c Ψ ν δ ≤ primalValue c Ψ ν δ := by
+  classical
+  -- `−Φ(λ, ·)` is the `c`-transform
+  have hPhi : ∀ (lam : ℝ) (ζ : X), -(Phi c Ψ lam ζ) = ⨆ ξ, (Ψ ξ - lam * c ξ ζ) := by
+    intro lam ζ
+    rw [Phi, ← Real.sSup_neg, ← sSup_range]
+    congr 1
+    rw [← Set.image_neg_eq_neg, ← Set.range_comp]
+    congr 1; funext ξ; simp only [Function.comp_apply]; ring
+  have hExp : ∀ lam : ℝ, -expect ν (fun ζ => Phi c Ψ lam ζ)
+      = expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) := by
+    intro lam
+    rw [expect, expect, ← integral_neg]
+    exact integral_congr_ae (Filter.Eventually.of_forall fun ζ => hPhi lam ζ)
+  -- rewrite the dual value set in `c`-transform form
+  have hset : { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧ v = lam * δ - expect ν (fun ζ => Phi c Ψ lam ζ) }
+      = { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * δ + expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) } := by
+    ext v
+    constructor
+    · rintro ⟨lam, hlam, rfl⟩; exact ⟨lam, hlam, by rw [← hExp lam]; ring⟩
+    · rintro ⟨lam, hlam, rfl⟩; exact ⟨lam, hlam, by rw [← hExp lam]; ring⟩
+  -- the `λ > 0` slice, and boundedness below of the full `λ ≥ 0` set
+  obtain ⟨r₀, μ₀, π₀, hπ₀, hf₀, hc₀, hcost₀, hr₀⟩ := hne0
+  have hcost₀' : couplingCost c π₀ = 0 :=
+    le_antisymm hcost₀ (integral_nonneg fun z => hc0 z.1 z.2)
+  have hBdd : BddBelow { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+      v = lam * δ + expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) } := by
+    refine ⟨expect μ₀ Ψ, ?_⟩
+    rintro v ⟨lam, hlam, rfl⟩
+    have hkey := expect_le_dualIntegrand_add_lam_couplingCost c Ψ lam hlam μ₀ ν π₀ hπ₀
+      (hbdd lam hlam) hf₀ (hφint lam hlam) hc₀
+    simp only [sSup_range] at hkey
+    rw [hcost₀', mul_zero, add_zero] at hkey
+    nlinarith [hkey, hlam, hδ.le]
+  have hsub : { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+        v = lam * δ + expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) }
+      ⊆ { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+        v = lam * δ + expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) } := by
+    rintro v ⟨lam, hlam, rfl⟩; exact ⟨lam, hlam.le, rfl⟩
+  have hne : { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+      v = lam * δ + expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) }.Nonempty :=
+    ⟨_, 1, one_pos, rfl⟩
+  -- assemble: `dualValue ≤ (λ>0 slice) ≤ droValue = primalValue`
+  calc dualValue c Ψ ν δ
+      = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * δ + expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) } := by
+        rw [dualValue, hset]
+    _ ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = lam * δ + expect ν (fun ζ => ⨆ ξ, (Ψ ξ - lam * c ξ ζ)) } :=
+        csInf_le_csInf hBdd hne hsub
+    _ ≤ primalValue c Ψ ν δ :=
+        ForMathlib.OT.dualValue_le_droValue c Ψ ν δ hδ hΨc hcc hc0 C hΨb
+          (fun lam hlam => hbdd lam hlam.le)
+          (fun lam hlam => by simpa only [sSup_range] using hφint lam hlam.le)
+          ⟨r₀, μ₀, π₀, hπ₀, hf₀, hc₀, hcost₀, hr₀⟩ hΨμ
+
+
+omit [NormedAddCommGroup X] in
 /-- **An attaining worst-case measure gives the `≥` direction.** The receipt that
 `strong_duality_thm1`'s `hge` is weaker than the customary attainment hypothesis: if some feasible
 `μ` achieves the dual value, then `dualValue ≤ primalValue`. The converse fails — a vanishing
@@ -281,6 +363,31 @@ theorem strong_duality_thm1
     (hge : dualValue c Ψ ν δ ≤ primalValue c Ψ ν δ) :
     primalValue c Ψ ν δ = dualValue c Ψ ν δ :=
   le_antisymm (weak_duality_prop1 c Ψ ν δ hΨ hδ hfeas hbdd hφint hΨμ hOT) hge
+
+omit [NormedAddCommGroup X] in
+/-- **Theorem 1, with no edges at all.** `v_P = v_D`, from regularity alone: the `≤` half is
+`weak_duality_prop1`, the `≥` half is `dualValue_le_primalValue` (Blanchet–Murthy Thm 1, proved in
+`ForMathlib.OT.StrongDualityGe`). Nothing is assumed about worst-case measures or duality gaps. -/
+theorem strong_duality_thm1_of_regularity
+    [TopologicalSpace X] [SecondCountableTopology X] [Nonempty X] [BorelSpace X]
+    (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ)
+    (hΨ : Integrable Ψ (ν : Measure X)) (hδ : 0 < δ) (hκ : kappa c Ψ ν ≠ ⊤)
+    (hfeas : (ambiguitySet c ν δ).Nonempty)
+    (hΨc : Continuous Ψ) (hcc : Continuous fun p : X × X => c p.1 p.2)
+    (hc0 : ∀ x y, 0 ≤ c x y) (C : ℝ) (hΨb : ∀ x, |Ψ x| ≤ C)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,
+        BddAbove (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)))
+    (hφint : ∀ lam : ℝ, 0 ≤ lam →
+        Integrable (fun ζ => sSup (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ))) (ν : Measure X))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → Integrable Ψ (μ : Measure X))
+    (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → ∀ η : ℝ, 0 < η →
+        ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ ν ∧ couplingCost c π ≤ δ + η ∧
+          Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
+    (hne0 : (ForMathlib.OT.droValueSet c Ψ ν 0).Nonempty) :
+    primalValue c Ψ ν δ = dualValue c Ψ ν δ :=
+  strong_duality_thm1 c Ψ ν δ hΨ hδ hκ hfeas hbdd hφint hΨμ hOT
+    (dualValue_le_primalValue c Ψ ν δ hδ hΨc hcc hc0 C hΨb hbdd hφint hΨμ hne0)
+
 
 /-!
 ## 2.3 Worst-case distribution (prose §2.3)

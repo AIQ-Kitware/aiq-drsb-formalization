@@ -1618,3 +1618,22 @@ Each was corrected in FOUNDATIONS, STATUS and SURVEY_LEADS with the error named.
 survived as long as they did is that I reasoned about the proof instead of writing it.
 
 Build green, zero warnings, sorry-free, axiom-clean.
+
+---
+
+# Session journal — the Wasserstein capstones are edge-free (2026-07-10)
+
+`hge` wired through. `GaoKleywegt2023.dualValue_le_primalValue` discharges it for this file's
+`dualValue`/`primalValue` (bridging `−Φ(λ,·)` to the `c`-transform via `Real.sSup_neg`, and the
+`λ ≥ 0` dual set to its `λ > 0` slice via `csInf_le_csInf`). Then:
+
+* `GaoKleywegt2023.strong_duality_thm1_of_regularity` — Theorem 1 with **no edges**: `v_P = v_D`
+  from regularity alone.
+* `Drsb.wdrsb_strong_duality_of_regularity` — the WDRSB capstone, likewise.
+
+One trap worth recording: adding `[TopologicalSpace X]` to a theorem whose `X` already carries
+`[NormedAddCommGroup X]` creates a **topology diamond**, and `BorelSpace X` then fails to produce
+`OpensMeasurableSpace X` for the *norm* topology. Take the topology from the norm; ask only for
+`[SecondCountableTopology X] [Nonempty X] [BorelSpace X]`.
+
+Build green, zero warnings, sorry-free, axiom-clean.

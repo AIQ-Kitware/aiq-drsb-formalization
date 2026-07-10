@@ -164,23 +164,141 @@ of the correction vector `q / c^(k)`.  In coordinates, this controls the pairwis
 `|log ((q i / c_k i) / (q j / c_k j))|`.
 
 This avoids the stronger and generally unjustified pointwise-to-one claim
-`|log (q j / c_k j)| ≤ C γ^k`. -/
+`|log (q j / c_k j)| ≤ C γ^k`.
+
+⚠️ The proof needs the Birkhoff--Hopf coefficient for **both `G` and `Gᵀ`**.  The orbit alternates
+`a (k+1) = p / (G · b k)` and `b (k+1) = q / (Gᵀ · a k)`, so the contraction recursion uses each
+kernel on alternate half-steps.  Deriving `Gᵀ`'s coefficient from `G`'s would require knowing `γ` is
+the *sharp* Birkhoff constant — a strictly harder theorem.  Callers get both from
+`ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient_transpose`, whose explicit
+coefficient is transpose-invariant.
+
+**Proof.** Write `S k = Gᵀ · a k` and `T k = G · b k`, so `b (k+1) = q / S k` and `a (k+1) = p / T k`.
+Since `x ↦ c / x` is a projective isometry, with `α k = d(a (k+1), a k)` and `β k = d(b (k+1), b k)`,
+
+`β (k+1) = d(Gᵀ·a (k+1), Gᵀ·a k) ≤ γ · α k`  and  `α (k+1) = d(G·b (k+1), G·b k) ≤ γ · β k`.
+
+So `M k = max (α k) (β k)` satisfies `M (k+1) ≤ γ · M k`, hence `M k ≤ γ^k · M 0` — no parity
+argument is needed.  The target quantity is `|log ((b (k+1) i / b k i) / (b (k+1) j / b k j))|`,
+which is at most `β k ≤ M k`. -/
 theorem hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (a b : ℕ → ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
+    (hG : ∀ i j, 0 < G i j)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
     (_hbox : FranklinLorenzScalingBoxBounds a b)
-    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
-    (_hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k (ij : ι × ι),
           |Real.log
             ((q ij.1 / franklinLorenzCurrentColumnMarginal G a b k ij.1) /
               (q ij.2 / franklinLorenzCurrentColumnMarginal G a b k ij.2))| ≤ C * γ ^ k := by
-  sorry
+  classical
+  rcases isEmpty_or_nonempty ι with hι | hι
+  · haveI : IsEmpty ι := hι
+    exact ⟨0, le_rfl, fun _ ij => (IsEmpty.false ij.1).elim⟩
+  haveI : Nonempty ι := hι
+  set d : (ι → ℝ) → (ι → ℝ) → ℝ := ForMathlib.Matrix.finiteHilbertProjectiveLogSpread with hd
+  -- the two half-step images
+  set S : ℕ → ι → ℝ := fun k => ForMathlib.Matrix.positiveKernelApply (fun j i => G i j) (a k)
+    with hS
+  set T : ℕ → ι → ℝ := fun k => ForMathlib.Matrix.positiveKernelApply G (b k) with hT
+  have hS_pos : ∀ k j, 0 < S k j := fun k j =>
+    ForMathlib.Matrix.positiveKernelApply_pos (fun j' i => G i j') (fun j' i => hG i j')
+      (a k) (horbit.left_pos k) j
+  have hT_pos : ∀ k i, 0 < T k i := fun k i =>
+    ForMathlib.Matrix.positiveKernelApply_pos G hG (b k) (horbit.right_pos k) i
+  have hq_pos : ∀ j, 0 < q j := fun j => franklinLorenz_targetColumn_pos p q G a b hG horbit 0 j
+  have hp_pos : ∀ i, 0 < p i := by
+    intro i
+    rw [← horbit.row_update 0 i]
+    exact mul_pos (horbit.left_pos 1 i) (hT_pos 0 i)
+  have hS_val : ∀ k j, S k j = ∑ i, G i j * a k i := fun _ _ => rfl
+  have hT_val : ∀ k i, T k i = ∑ j, G i j * b k j := fun _ _ => rfl
+  -- the update equations, as function identities
+  have hb_eq : ∀ k, b (k + 1) = fun j => q j / S k j := by
+    intro k; funext j
+    rw [eq_div_iff (ne_of_gt (hS_pos k j)), hS_val k j]
+    exact horbit.column_update k j
+  have ha_eq : ∀ k, a (k + 1) = fun i => p i / T k i := by
+    intro k; funext i
+    rw [eq_div_iff (ne_of_gt (hT_pos k i)), hT_val k i]
+    exact horbit.row_update k i
+  -- one-step contraction of the two correction spreads
+  set α : ℕ → ℝ := fun k => d (a (k + 1)) (a k) with hα
+  set β : ℕ → ℝ := fun k => d (b (k + 1)) (b k) with hβ
+  have hα_nonneg : ∀ k, 0 ≤ α k := fun k =>
+    ForMathlib.Matrix.finiteHilbertProjectiveLogSpread_nonneg_of_pos _ _
+      (horbit.left_pos (k + 1)) (horbit.left_pos k)
+  have hβ_nonneg : ∀ k, 0 ≤ β k := fun k =>
+    ForMathlib.Matrix.finiteHilbertProjectiveLogSpread_nonneg_of_pos _ _
+      (horbit.right_pos (k + 1)) (horbit.right_pos k)
+  have hβ_step : ∀ k, β (k + 1) ≤ γ * α k := by
+    intro k
+    have hrw : β (k + 1) = d (S (k + 1)) (S k) := by
+      rw [hβ]
+      simp only
+      rw [hb_eq (k + 1), hb_eq k]
+      exact ForMathlib.Matrix.finiteHilbertProjectiveLogSpread_div_left q (S (k + 1)) (S k)
+        hq_pos (hS_pos _) (hS_pos _)
+    rw [hrw]
+    exact hγ_contract_transpose (a (k + 1)) (a k) (horbit.left_pos (k + 1)) (horbit.left_pos k)
+  have hα_step : ∀ k, α (k + 1) ≤ γ * β k := by
+    intro k
+    have hrw : α (k + 1) = d (T (k + 1)) (T k) := by
+      rw [hα]
+      simp only
+      rw [ha_eq (k + 1), ha_eq k]
+      exact ForMathlib.Matrix.finiteHilbertProjectiveLogSpread_div_left p (T (k + 1)) (T k)
+        hp_pos (hT_pos _) (hT_pos _)
+    rw [hrw]
+    exact hγ_contract (b (k + 1)) (b k) (horbit.right_pos (k + 1)) (horbit.right_pos k)
+  -- the max of the two decays with a single-step recursion
+  set M : ℕ → ℝ := fun k => max (α k) (β k) with hM
+  have hM_nonneg : ∀ k, 0 ≤ M k := fun k => le_trans (hα_nonneg k) (le_max_left _ _)
+  have hM_step : ∀ k, M (k + 1) ≤ γ * M k := by
+    intro k
+    refine max_le ?_ ?_
+    · exact le_trans (hα_step k) (mul_le_mul_of_nonneg_left (le_max_right _ _) hγ_nonneg)
+    · exact le_trans (hβ_step k) (mul_le_mul_of_nonneg_left (le_max_left _ _) hγ_nonneg)
+  have hM_geom : ∀ k, M k ≤ γ ^ k * M 0 := by
+    intro k
+    induction k with
+    | zero => simp
+    | succ n ih =>
+        calc M (n + 1) ≤ γ * M n := hM_step n
+          _ ≤ γ * (γ ^ n * M 0) := mul_le_mul_of_nonneg_left ih hγ_nonneg
+          _ = γ ^ (n + 1) * M 0 := by ring
+  refine ⟨M 0, hM_nonneg 0, ?_⟩
+  intro k ij
+  -- identify the correction ratio with `b (k+1) / b k`
+  have hcorr : ∀ i, q i / franklinLorenzCurrentColumnMarginal G a b k i = b (k + 1) i / b k i := by
+    intro i
+    unfold franklinLorenzCurrentColumnMarginal
+    rw [← horbit.column_update k i]
+    have h1 : (0 : ℝ) < ∑ i', G i' i * a k i' := hS_pos k i
+    have h2 : 0 < b k i := horbit.right_pos k i
+    field_simp
+  rw [hcorr ij.1, hcorr ij.2]
+  have hratio : (b (k + 1) ij.1 / b k ij.1) / (b (k + 1) ij.2 / b k ij.2)
+      = (b (k + 1) ij.1 * b k ij.2) / (b (k + 1) ij.2 * b k ij.1) := by
+    have h1 := (horbit.right_pos (k + 1) ij.1).ne'
+    have h2 := (horbit.right_pos (k + 1) ij.2).ne'
+    have h3 := (horbit.right_pos k ij.1).ne'
+    have h4 := (horbit.right_pos k ij.2).ne'
+    field_simp
+  rw [hratio]
+  calc |Real.log ((b (k + 1) ij.1 * b k ij.2) / (b (k + 1) ij.2 * b k ij.1))|
+      ≤ β k := ForMathlib.Matrix.finiteHilbertProjectiveLogSpread_abs_pair_le _ _
+        (horbit.right_pos (k + 1)) (horbit.right_pos k) ij.1 ij.2
+    _ ≤ M k := le_max_right _ _
+    _ ≤ γ ^ k * M 0 := hM_geom k
+    _ = M 0 * γ ^ k := by ring
 
 /-- Uniform finite-box bound for the right-column relative ratio `q / c_k`.
 
@@ -274,7 +392,9 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
     (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
     (hbox : FranklinLorenzScalingBoxBounds a b)
     (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k (ij : ι × ι),
@@ -290,7 +410,7 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
     p q G a b γ hγ_nonneg hγ_lt_one hratio_pos
     (franklinLorenz_right_column_relative_ratio_box_bound p q G a b hG horbit hbox)
     (hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound
-      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one hγ_contract)
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose)
 
 /-- Pure two-sequence Franklin--Lorenz right-column correction geometric bound.
 
@@ -306,14 +426,16 @@ theorem franklinLorenz_right_column_correction_spread_geometric_bound_of_birkhof
     (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b)
     (hbox : FranklinLorenzScalingBoxBounds a b)
     (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k, ForMathlib.Matrix.finitePairwiseRatioSpread q
             (franklinLorenzCurrentColumnMarginal G a b k) ≤ C * γ ^ k := by
   obtain ⟨C, hC_nonneg, hpair⟩ :=
     franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient
-      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one hγ_contract
+      p q G a b hG horbit hbox γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose
   refine ⟨(Fintype.card (ι × ι) : ℝ) * C,
     mul_nonneg (Nat.cast_nonneg _) hC_nonneg, ?_⟩
   intro k
@@ -397,7 +519,9 @@ theorem sinkhorn_phi1_column_marginal_correction_spread_geometric_bound_of_birkh
       φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
     ∃ C : ℝ,
       0 ≤ C ∧
         ∀ k, ForMathlib.Matrix.finitePairwiseRatioSpread q
@@ -409,7 +533,7 @@ theorem sinkhorn_phi1_column_marginal_correction_spread_geometric_bound_of_birkh
         φ0Iter φhat0Iter φ1Iter φhat1Iter hiter)
       (franklinLorenzScalingBoxBounds_of_sinkhornPhaseBoxBounds
         φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds)
-      γ hγ_nonneg hγ_lt_one hγ_contract
+      γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose
   refine ⟨C, hC_nonneg, ?_⟩
   intro k
   rw [sinkhorn_currentColumnMarginal_eq_franklinLorenzCurrentColumnMarginal
@@ -432,39 +556,115 @@ theorem sinkhorn_phi1_forward_ratio_spread_geometric_bound_of_birkhoff_coefficie
       φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φ1Iter k ≤ C * γ ^ k := by
   obtain ⟨C, hC_nonneg, hbound⟩ :=
     sinkhorn_phi1_column_marginal_correction_spread_geometric_bound_of_birkhoff_coefficient
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
+      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose
   refine ⟨C, hC_nonneg, ?_⟩
   intro k
   rw [sinkhorn_phi1_forward_ratio_spread_eq_column_marginal_correction_spread
     p q G φ0Iter φhat0Iter φ1Iter φhat1Iter hiter k]
   exact hbound k
 
+/-- The transposed Franklin--Lorenz orbit.
+
+`IsFiniteFranklinLorenzScalingOrbit` is symmetric under `(p, q, G, a, b) ↦ (q, p, Gᵀ, b, a)`: the
+row and column update equations swap into each other.  This is what makes the left-side
+row-correction theorem an instantiation of the right-side column-correction theorem rather than a
+second proof. -/
+theorem isFiniteFranklinLorenzScalingOrbit_transpose {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ) (a b : ℕ → ι → ℝ)
+    (horbit : IsFiniteFranklinLorenzScalingOrbit p q G a b) :
+    IsFiniteFranklinLorenzScalingOrbit q p (fun j i => G i j) b a :=
+  ⟨horbit.right_pos, horbit.left_pos, horbit.column_update, horbit.row_update⟩
+
+/-- The Sinkhorn four-phase iterate system induces the *transposed* two-sequence orbit
+`(φ1Iter, φhat0Iter)` for `(q, p, Gᵀ)`. -/
+theorem sinkhorn_isFiniteFranklinLorenzScalingOrbit_transpose {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    IsFiniteFranklinLorenzScalingOrbit q p (fun j i => G i j) φ1Iter φhat0Iter :=
+  isFiniteFranklinLorenzScalingOrbit_transpose p q G φhat0Iter φ1Iter
+    (sinkhorn_isFiniteFranklinLorenzScalingOrbit p q G φ0Iter φhat0Iter φ1Iter φhat1Iter hiter)
+
+/-- The four-phase Sinkhorn box bounds imply the transposed two-sequence box bounds. -/
+theorem franklinLorenzScalingBoxBounds_of_sinkhornPhaseBoxBounds_transpose {ι : Type*}
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter) :
+    FranklinLorenzScalingBoxBounds φ1Iter φhat0Iter := by
+  rcases hbounds with ⟨ε, B, hε, hB, _hφ0, hφhat0, hφ1, _hφhat1⟩
+  exact ⟨ε, B, hε, hB, hφ1, hφhat0⟩
+
+/-- Row analogue of `sinkhorn_phi1_forward_ratio_spread_eq_column_marginal_correction_spread`.
+
+The left forward correction `φhat0Iter (k+1) / φhat0Iter k` is `p / r_k`, where `r_k` is the current
+*row* marginal — which is exactly the current *column* marginal of the transposed orbit. -/
+theorem sinkhorn_phihat0_forward_ratio_spread_eq_row_marginal_correction_spread
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (G : ι → ι → ℝ)
+    (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (k : ℕ) :
+    finiteForwardRatioSpread φhat0Iter k =
+      ForMathlib.Matrix.finitePairwiseRatioSpread p
+        (franklinLorenzCurrentColumnMarginal (fun j i => G i j) φ1Iter φhat0Iter k) := by
+  classical
+  have hratio : ∀ i, φhat0Iter (k + 1) i / φhat0Iter k i
+      = p i / (φ0Iter k i * φhat0Iter k i) := by
+    intro i
+    have hφ0_ne : φ0Iter k i ≠ 0 := ne_of_gt (hiter.φ0_pos k i)
+    have hφhat0_ne : φhat0Iter k i ≠ 0 := ne_of_gt (hiter.φhat0_pos k i)
+    have hprod_ne : φ0Iter k i * φhat0Iter k i ≠ 0 := mul_ne_zero hφ0_ne hφhat0_ne
+    have hnorm := hiter.normalize_left k i
+    field_simp [hφhat0_ne, hprod_ne]
+    nlinarith [hnorm]
+  unfold finiteForwardRatioSpread ForMathlib.Matrix.finitePairwiseRatioSpread
+    franklinLorenzCurrentColumnMarginal
+  apply Finset.sum_congr rfl
+  intro ij _hij
+  rw [hratio ij.1, hratio ij.2, hiter.forward k ij.1, hiter.forward k ij.2]
+
 /-- Hard core 4: left-side Franklin--Lorenz row-correction geometric bound.
 
-This is the row-normalization analogue of the right-side `φ1` development.  It should become much
-less mysterious after the right-side log-error theorem is proved, because the remaining work should
-mostly be the row/column orientation mirror. -/
+This is the row-normalization analogue of the right-side `φ1` development, and it is an
+*instantiation* of it rather than a second proof: apply the right-side column theorem to the
+transposed orbit `(q, p, Gᵀ, φ1Iter, φhat0Iter)`.  Note the transpose of `Gᵀ` is `G`, so the two
+contraction hypotheses simply swap. -/
 theorem hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
     (φ0 φhat0 φ1 φhat1 : ι → ℝ)
-    (_hG : ∀ i j, 0 < G i j)
-    (_hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (hG : ∀ i j, 0 < G i j)
+    (hiter : IsFiniteSinkhornIterateSystem p q G φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (_hgauge : IsFiniteSinkhornGaugeNormalized φ0Iter φhat0Iter φ1Iter φhat1Iter
       φ0 φhat0 φ1 φhat1)
-    (_hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
-    (γ : ℝ) (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
-    (_hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
+    (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
+    (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
-  sorry
+  obtain ⟨C, hC_nonneg, hbound⟩ :=
+    franklinLorenz_right_column_correction_spread_geometric_bound_of_birkhoff_coefficient
+      q p (fun j i => G i j) φ1Iter φhat0Iter (fun i j => hG j i)
+      (sinkhorn_isFiniteFranklinLorenzScalingOrbit_transpose p q G
+        φ0Iter φhat0Iter φ1Iter φhat1Iter hiter)
+      (franklinLorenzScalingBoxBounds_of_sinkhornPhaseBoxBounds_transpose
+        φ0Iter φhat0Iter φ1Iter φhat1Iter hbounds)
+      γ hγ_nonneg hγ_lt_one hγ_contract_transpose hγ_contract
+  refine ⟨C, hC_nonneg, ?_⟩
+  intro k
+  rw [sinkhorn_phihat0_forward_ratio_spread_eq_row_marginal_correction_spread
+    p q G φ0Iter φhat0Iter φ1Iter φhat1Iter hiter k]
+  exact hbound k
 
 /-- Stable wrapper around hard core 4. -/
 theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient
@@ -478,12 +678,14 @@ theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coeffi
       φ0 φhat0 φ1 φhat1)
     (hbounds : SinkhornPhaseBoxBounds φ0Iter φhat0Iter φ1Iter φhat1Iter)
     (γ : ℝ) (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
-    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ) :
+    (hγ_contract : ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient G γ)
+    (hγ_contract_transpose :
+      ForMathlib.Matrix.IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ) :
     ∃ C : ℝ,
       0 ≤ C ∧ ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
   exact hard_core_sinkhorn_phihat0_forward_ratio_spread_geometric_bound
     p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-    hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
+    hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose
 
 /-- Harder/right-side Franklin--Lorenz core: geometric decay of the column-correction spread.
 
@@ -503,12 +705,12 @@ theorem sinkhorn_phi1_forward_ratio_spread_geometric_bound_from_franklin_lorenz
     ∃ C γ : ℝ,
       0 ≤ C ∧ 0 ≤ γ ∧ γ < 1 ∧
         ∀ k, finiteForwardRatioSpread φ1Iter k ≤ C * γ ^ k := by
-  obtain ⟨γ, hγ_nonneg, hγ_lt_one, hγ_contract⟩ :=
-    ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient G hG
+  obtain ⟨γ, hγ_nonneg, hγ_lt_one, hγ_contract, hγ_contract_transpose⟩ :=
+    ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient_transpose G hG
   obtain ⟨C, hC_nonneg, hbound⟩ :=
     sinkhorn_phi1_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
+      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose
   exact ⟨C, γ, hC_nonneg, hγ_nonneg, hγ_lt_one, hbound⟩
 
 /-- Left-side Franklin--Lorenz core: geometric decay of the row-correction spread. -/
@@ -525,12 +727,12 @@ theorem sinkhorn_phihat0_forward_ratio_spread_geometric_bound_from_franklin_lore
     ∃ C γ : ℝ,
       0 ≤ C ∧ 0 ≤ γ ∧ γ < 1 ∧
         ∀ k, finiteForwardRatioSpread φhat0Iter k ≤ C * γ ^ k := by
-  obtain ⟨γ, hγ_nonneg, hγ_lt_one, hγ_contract⟩ :=
-    ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient G hG
+  obtain ⟨γ, hγ_nonneg, hγ_lt_one, hγ_contract, hγ_contract_transpose⟩ :=
+    ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient_transpose G hG
   obtain ⟨C, hC_nonneg, hbound⟩ :=
     sinkhorn_phihat0_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient
       p q G φ0Iter φhat0Iter φ1Iter φhat1Iter φ0 φhat0 φ1 φhat1
-      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract
+      hG hiter hgauge hbounds γ hγ_nonneg hγ_lt_one hγ_contract hγ_contract_transpose
   exact ⟨C, γ, hC_nonneg, hγ_nonneg, hγ_lt_one, hbound⟩
 
 end ChenGeorgiouPavon2021

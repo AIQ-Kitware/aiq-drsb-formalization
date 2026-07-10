@@ -768,23 +768,18 @@ theorem positive_kernel_birkhoff_hopf_contraction {ι κ : Type*}
   exact positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound G hG
     (positive_kernel_apply_crossRatioBounded G hG)
 
-/-- Certified Birkhoff--Hopf coefficient seam for a strictly positive finite kernel.
+/-- The finite positive-kernel Birkhoff--Hopf contraction theorem without nonemptiness assumptions.
 
-This is the theorem shape that Franklin--Lorenz should consume: the chosen `γ` is not merely a
-number in `[0,1)`, but a genuine Hilbert-projective contraction coefficient for `G`.  The proof is
-parked here, rather than in the Sinkhorn-specific files, so that the remaining hard Birkhoff--Hopf
-work stays paper-agnostic and Mathlib-facing. -/
-theorem positive_kernel_strict_birkhoff_contraction_coefficient {ι κ : Type*}
+The substance is `positive_kernel_birkhoff_hopf_contraction`, which needs both index types nonempty.
+An empty coordinate type is not a positive cone, and every degenerate branch below reduces to
+`0 ≤ γ * 0`. -/
+theorem positive_kernel_birkhoff_hopf_contraction_of_fintype {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)
     (hG : ∀ i j, 0 < G i j) :
-    ∃ γ : ℝ, IsStrictBirkhoffHopfContractionCoefficient G γ := by
+    IsBirkhoffHopfContractionCoefficient G (positiveKernelBirkhoffCoefficient G) := by
   classical
-  obtain ⟨hγ_nonneg, hγ_lt_one⟩ := positiveKernelBirkhoffCoefficient_nonneg_lt_one G hG
-  refine ⟨positiveKernelBirkhoffCoefficient G, hγ_nonneg, hγ_lt_one, ?_⟩
-  -- The substance is `positive_kernel_birkhoff_hopf_contraction`, which needs both index types
-  -- nonempty.  An empty coordinate type is not a positive cone, and every degenerate branch below
-  -- reduces to `0 ≤ γ * 0`.
+  obtain ⟨hγ_nonneg, _⟩ := positiveKernelBirkhoffCoefficient_nonneg_lt_one G hG
   rcases isEmpty_or_nonempty ι with hι | hι
   · haveI : IsEmpty ι := hι
     intro x y hx hy
@@ -817,6 +812,101 @@ theorem positive_kernel_strict_birkhoff_contraction_coefficient {ι κ : Type*}
       simp
     · haveI : Nonempty κ := hκ
       exact positive_kernel_birkhoff_hopf_contraction G hG
+
+/-- Certified Birkhoff--Hopf coefficient seam for a strictly positive finite kernel.
+
+This is the theorem shape that Franklin--Lorenz consumes: the chosen `γ` is not merely a number in
+`[0,1)`, but a genuine Hilbert-projective contraction coefficient for `G`.  It is parked here,
+rather than in the Sinkhorn-specific files, so that the Birkhoff--Hopf work stays paper-agnostic
+and Mathlib-facing. -/
+theorem positive_kernel_strict_birkhoff_contraction_coefficient {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j) :
+    ∃ γ : ℝ, IsStrictBirkhoffHopfContractionCoefficient G γ := by
+  obtain ⟨hγ_nonneg, hγ_lt_one⟩ := positiveKernelBirkhoffCoefficient_nonneg_lt_one G hG
+  exact ⟨positiveKernelBirkhoffCoefficient G, hγ_nonneg, hγ_lt_one,
+    positive_kernel_birkhoff_hopf_contraction_of_fintype G hG⟩
+
+/-- The explicit finite cross-ratio bound is invariant under transposing the kernel.
+
+The four-index cross-ratio family of `Gᵀ` is the cross-ratio family of `G` reindexed along
+`Equiv.prodComm`, so the two finite sums agree. -/
+theorem positiveKernelCrossRatioBound_transpose {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ) :
+    positiveKernelCrossRatioBound (fun j i => G i j) = positiveKernelCrossRatioBound G := by
+  unfold positiveKernelCrossRatioBound
+  congr 1
+  refine Fintype.sum_equiv (Equiv.prodComm (κ × κ) (ι × ι)) _ _ ?_
+  intro q
+  unfold positiveKernelCrossRatio
+  simp only [Equiv.prodComm_apply, Prod.fst_swap, Prod.snd_swap]
+  ring_nf
+
+/-- The explicit finite Birkhoff coefficient is invariant under transposing the kernel. -/
+theorem positiveKernelBirkhoffCoefficient_transpose {ι κ : Type*} [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ) :
+    positiveKernelBirkhoffCoefficient (fun j i => G i j) = positiveKernelBirkhoffCoefficient G := by
+  unfold positiveKernelBirkhoffCoefficient
+  rw [positiveKernelCrossRatioBound_transpose]
+
+/-- Certified Birkhoff--Hopf coefficient seam covering a kernel **and its transpose** at once.
+
+Alternating scaling algorithms (Sinkhorn, Franklin--Lorenz) apply `G` on one half-step and `Gᵀ` on
+the other, so a coefficient for `G` alone is not enough to run the contraction recursion.  It would
+be circular to derive `Gᵀ`'s coefficient from `G`'s: that needs `γ` to be the *sharp* Birkhoff
+constant.  Instead the explicit coefficient is transpose-invariant, so one number serves both. -/
+theorem positive_kernel_strict_birkhoff_contraction_coefficient_transpose {ι κ : Type*}
+    [Fintype ι] [Fintype κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j) :
+    ∃ γ : ℝ, 0 ≤ γ ∧ γ < 1 ∧
+      IsBirkhoffHopfContractionCoefficient G γ ∧
+      IsBirkhoffHopfContractionCoefficient (fun j i => G i j) γ := by
+  obtain ⟨hγ_nonneg, hγ_lt_one⟩ := positiveKernelBirkhoffCoefficient_nonneg_lt_one G hG
+  refine ⟨positiveKernelBirkhoffCoefficient G, hγ_nonneg, hγ_lt_one,
+    positive_kernel_birkhoff_hopf_contraction_of_fintype G hG, ?_⟩
+  have h := positive_kernel_birkhoff_hopf_contraction_of_fintype
+    (fun j i => G i j) (fun j i => hG i j)
+  rwa [positiveKernelBirkhoffCoefficient_transpose] at h
+
+/-- Every coordinate log-cross-ratio is dominated in absolute value by the finite Hilbert log-spread.
+
+The defining supremum ranges over *ordered* pairs, so it dominates both `log r` and `log r⁻¹`. -/
+theorem finiteHilbertProjectiveLogSpread_abs_pair_le {ι : Type*} [Fintype ι] [Nonempty ι]
+    (x y : ι → ℝ) (hx : ∀ i, 0 < x i) (hy : ∀ i, 0 < y i) (i j : ι) :
+    |Real.log ((x i * y j) / (x j * y i))| ≤ finiteHilbertProjectiveLogSpread x y := by
+  have h1 := finiteHilbertProjectiveLogSpread_pair_le x y i j
+  have h2 := finiteHilbertProjectiveLogSpread_pair_le x y j i
+  have hneg : Real.log ((x j * y i) / (x i * y j)) = -Real.log ((x i * y j) / (x j * y i)) := by
+    rw [← Real.log_inv]
+    congr 1
+    have := (hx i).ne'; have := (hx j).ne'; have := (hy i).ne'; have := (hy j).ne'
+    field_simp
+  rw [hneg] at h2
+  exact abs_le.mpr ⟨by linarith, h1⟩
+
+/-- Hilbert projective spread is invariant under the coordinatewise reciprocal `x ↦ c / x`.
+
+The reciprocal map is a projective isometry: it sends the `(i,j)` cross-ratio to the `(j,i)` one, and
+the defining supremum ranges over all ordered pairs. -/
+theorem finiteHilbertProjectiveLogSpread_div_left {ι : Type*} [Fintype ι]
+    (c x y : ι → ℝ) (hc : ∀ i, 0 < c i) (hx : ∀ i, 0 < x i) (hy : ∀ i, 0 < y i) :
+    finiteHilbertProjectiveLogSpread (fun i => c i / x i) (fun i => c i / y i)
+      = finiteHilbertProjectiveLogSpread x y := by
+  unfold finiteHilbertProjectiveLogSpread
+  congr 1
+  have hfun : (fun ij : ι × ι => Real.log (((c ij.1 / x ij.1) * (c ij.2 / y ij.2)) /
+      ((c ij.2 / x ij.2) * (c ij.1 / y ij.1))))
+      = (fun ij : ι × ι => Real.log ((x ij.1 * y ij.2) / (x ij.2 * y ij.1))) ∘ Prod.swap := by
+    funext ij
+    simp only [Function.comp_apply, Prod.fst_swap, Prod.snd_swap]
+    congr 1
+    have h1 := (hc ij.1).ne'; have h2 := (hc ij.2).ne'
+    have h3 := (hx ij.1).ne'; have h4 := (hx ij.2).ne'
+    have h5 := (hy ij.1).ne'; have h6 := (hy ij.2).ne'
+    field_simp
+  rw [hfun, Set.range_comp, Prod.swap_surjective.range_eq, Set.image_univ]
 
 /-- Range-only Birkhoff--Hopf coefficient seam for a strictly positive finite kernel.
 

@@ -50,10 +50,22 @@ Paper analogue: Eveson--Nussbaum Lemma 3.12, cone-isomorphism invariance.  In th
 standard cone, positive diagonal maps are cone automorphisms, so Hilbert projective distances are
 unchanged after multiplying both vectors coordinatewise by the same positive scale. -/
 theorem quadrant_hilbert_coordScale_eq {ι : Type*} [Fintype ι]
-    (x y d : ι → ℝ) (_hd : ∀ i, 0 < d i) :
+    (x y d : ι → ℝ) (hd : ∀ i, 0 < d i) :
     finiteHilbertProjectiveLogSpread (fun i => d i * x i) (fun i => d i * y i) =
       finiteHilbertProjectiveLogSpread x y := by
-  sorry
+  unfold finiteHilbertProjectiveLogSpread
+  -- the scale factors cancel inside the log, coordinatewise
+  have hfun : (fun ij : ι × ι => Real.log (((d ij.1 * x ij.1) * (d ij.2 * y ij.2)) /
+      ((d ij.2 * x ij.2) * (d ij.1 * y ij.1))))
+      = (fun ij : ι × ι => Real.log ((x ij.1 * y ij.2) / (x ij.2 * y ij.1))) := by
+    funext ij
+    congr 1
+    have h1 : (d ij.1 * x ij.1) * (d ij.2 * y ij.2)
+        = (d ij.1 * d ij.2) * (x ij.1 * y ij.2) := by ring
+    have h2 : (d ij.2 * x ij.2) * (d ij.1 * y ij.1)
+        = (d ij.1 * d ij.2) * (x ij.2 * y ij.1) := by ring
+    rw [h1, h2, mul_div_mul_left _ _ (ne_of_gt (mul_pos (hd ij.1) (hd ij.2)))]
+  rw [hfun]
 
 /-- Paper route Step 2: invariance under permutation of finite coordinates.
 
@@ -62,7 +74,13 @@ theorem quadrant_hilbert_equivPerm_eq {ι ι' : Type*} [Fintype ι] [Fintype ι'
     (e : ι ≃ ι') (x y : ι' → ℝ) :
     finiteHilbertProjectiveLogSpread (fun i : ι => x (e i)) (fun i : ι => y (e i)) =
       finiteHilbertProjectiveLogSpread x y := by
-  sorry
+  unfold finiteHilbertProjectiveLogSpread
+  congr 1
+  -- reindexing the `Set.range` along a surjection leaves it unchanged
+  have hcomp : (fun ij : ι × ι => Real.log ((x (e ij.1) * y (e ij.2)) / (x (e ij.2) * y (e ij.1))))
+      = (fun ij : ι' × ι' => Real.log ((x ij.1 * y ij.2) / (x ij.2 * y ij.1)))
+        ∘ (Equiv.prodCongr e e) := rfl
+  rw [hcomp, Set.range_comp, (Equiv.prodCongr e e).surjective.range_eq, Set.image_univ]
 
 end BirkhoffHopf.PaperRoute
 end ForMathlib.Matrix

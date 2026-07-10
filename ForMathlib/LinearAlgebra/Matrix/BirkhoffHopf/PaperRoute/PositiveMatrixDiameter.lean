@@ -28,7 +28,18 @@ theorem positiveKernelApply_image_diameter_le_column_diameter {ι κ : Type*}
       (∀ j, 0 < x j) → (∀ j, 0 < y j) →
         finiteHilbertProjectiveLogSpread
           (positiveKernelApply G x) (positiveKernelApply G y) ≤ D := by
-  sorry
+  intro x y hx hy
+  -- `G · x = ∑ⱼ xⱼ · (column j)` is a nonnegative combination of the columns
+  have hxsum : 0 < ∑ j : κ, x j := Finset.sum_pos (fun j _ => hx j) Finset.univ_nonempty
+  have hysum : 0 < ∑ j : κ, y j := Finset.sum_pos (fun j _ => hy j) Finset.univ_nonempty
+  have hrwx : positiveKernelApply G x = fun i : ι => ∑ j : κ, x j * (fun j i => G i j) j i := by
+    funext i; simp only [positiveKernelApply]; exact Finset.sum_congr rfl (fun j _ => mul_comm _ _)
+  have hrwy : positiveKernelApply G y = fun i : ι => ∑ j : κ, y j * (fun j i => G i j) j i := by
+    funext i; simp only [positiveKernelApply]; exact Finset.sum_congr rfl (fun j _ => mul_comm _ _)
+  rw [hrwx, hrwy]
+  exact hilbert_diameter_nonnegativeHull_le_generator_diameter
+    (fun j i => G i j) (fun j i => hG i j) D hD x y
+    (fun j => (hx j).le) (fun j => (hy j).le) hxsum hysum
 
 /-- Paper route Step 4: column diameter is bounded by the explicit finite cross-ratio bound.
 
@@ -43,18 +54,30 @@ theorem positiveKernel_column_diameter_le_crossratio_bound {ι κ : Type*}
     ∀ j j' : κ,
       finiteHilbertProjectiveLogSpread (fun i : ι => G i j) (fun i : ι => G i j') ≤
         Real.log (positiveKernelCrossRatioBound G) := by
-  sorry
+  intro j j'
+  apply finiteHilbertProjectiveLogSpread_le_of_forall_pair
+  intro i i'
+  -- the `(i,i')` cross-ratio of columns `j, j'` *is* `positiveKernelCrossRatio G i i' j j'`
+  have hpos : 0 < (G i j * G i' j') / (G i' j * G i j') :=
+    div_pos (mul_pos (hG i j) (hG i' j')) (mul_pos (hG i' j) (hG i j'))
+  refine Real.log_le_log hpos ?_
+  have h := positiveKernelCrossRatio_le_bound G hG i i' j j'
+  unfold positiveKernelCrossRatio at h
+  calc (G i j * G i' j') / (G i' j * G i j')
+      = (G i j * G i' j') / (G i j' * G i' j) := by rw [mul_comm (G i' j) (G i j')]
+    _ ≤ positiveKernelCrossRatioBound G := h
 
 /-- Paper route Step 4: positive-matrix finite image diameter bound in the current API.
 
-This should replace the older image-diameter route once the column-diameter and convex-hull lemmas
-above are proved. -/
+Composition of the two Eveson--Nussbaum steps above: the image cone is the nonnegative hull of the
+positive columns, and the column diameter is bounded by the explicit cross-ratio bound. -/
 theorem positive_kernel_apply_hilbert_log_diameter_bound_paper_route {ι κ : Type*}
     [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ) (hG : ∀ i j, 0 < G i j) :
     PositiveKernelApplyHilbertLogDiameterBounded G
-      (Real.log (positiveKernelCrossRatioBound G)) := by
-  sorry
+      (Real.log (positiveKernelCrossRatioBound G)) :=
+  positiveKernelApply_image_diameter_le_column_diameter G hG _
+    (positiveKernel_column_diameter_le_crossratio_bound G hG)
 
 end BirkhoffHopf.PaperRoute
 end ForMathlib.Matrix

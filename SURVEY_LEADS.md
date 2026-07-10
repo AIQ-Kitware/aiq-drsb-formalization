@@ -184,13 +184,17 @@ missing, named precisely:
 | Gap | Needed for | Lean status | Source |
 |---|---|---|---|
 | **(A) lsc of the transport cost / `otCost` in `μ`** | weak closedness of the Wasserstein ball | **ABSENT everywhere** (Mathlib has no Kantorovich layer at all) | Villani, *Optimal Transport: Old and New*, Thm 4.1; Santambrogio, *OT for Applied Mathematicians*, §1.2 |
-| **(B) lsc of `klDiv`** | weak closedness of the Sinkhorn ball | **ABSENT** (pin has `convexOn_klFun`/`strictConvexOn_klFun` for the *integrand*, nothing for `klDiv`) | Dupuis–Ellis, *A Weak Convergence Approach to the Theory of Large Deviations*, Lemma 1.4.3 |
-| **(C) Donsker–Varadhan *dual* variational formula** | the standard route to (B): `KL(μ‖ν) = sup_f (∫f dμ − log ∫e^f dν)`, a sup of weakly-continuous functionals, hence lsc | **ABSENT**; ⚠ *we have the other Legendre transform.* `ForMathlib.MeasureTheory.isGreatest_donskerVaradhan` is the **Gibbs** formula `log ∫e^f dν = sup_μ (∫f dμ − KL(μ‖ν))` (sup over *measures*). The `≥` half of the dual formula is exactly our proved `integral_le_klDiv_add_log_integral_exp`; the missing half is **achievability** (truncate `llr` and pass to the limit). | Dupuis–Ellis Prop 1.4.2; Donsker–Varadhan 1975 |
+| **(B) lsc of `klDiv`** | weak closedness of the Sinkhorn ball | 🟡 **HALF-CLOSED (2026-07-10).** Setwise (τ-topology) lsc is **proved**: `ForMathlib.MeasureTheory.toReal_klDiv_le_of_tendsto_integral` — a `KL`-ball is closed under any convergence that integrates bounded **measurable** functions correctly. The *weak*-topology version needs the same sup over bounded **continuous** functions; upgrading is a regularity/Lusin argument on a Polish space. | Dupuis–Ellis, *A Weak Convergence Approach to the Theory of Large Deviations*, Lemma 1.4.3 |
+| **(C) Donsker–Varadhan *dual* variational formula** | the route to (B): `KL(μ‖ν) = sup_f (∫f dμ − log ∫e^f dν)` | ✅ **CLOSED (2026-07-10)** — `ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`, axiom-clean. Note this is *not* the Gibbs formula we already had (`isGreatest_donskerVaradhan`, sup over *measures*); it is the other Legendre transform, sup over *functions*, and unlike Gibbs its sup is **not attained**. | Dupuis–Ellis Prop 1.4.2; Donsker–Varadhan 1975 |
 
-(C) is the natural next new formalization: one direction is already proved here, it is a genuine
-Mathlib gap, and it unlocks (B). ⚠ Watch Lean's `llr` convention — `llr μ ν x = log (dμ/dν x)` and
-`Real.log 0 = 0`, so `exp (llr μ ν) = 1` on `{dμ/dν = 0}`, *not* `0`. The truncation argument must
-be done on `{dμ/dν > 0}` (a `μ`-full set) or it will not close.
+**(C) is done.** The `≥` half was our existing `integral_le_klDiv_add_log_integral_exp`; the new
+content is achievability. ⚠ The trap, and what the proof is built around: Lean's
+`llr μ ν x = log (dμ/dν x)` with `Real.log 0 = 0`, so `exp (llr μ ν) = 1` on `{dμ/dν = 0}`, *not*
+`0`. Truncating `llr` naively sends `∫ exp dν` to `1 + ν{dμ/dν = 0}` and the bound is off by
+`log (1 + ν{dμ/dν = 0})`. The fix (`truncLLR`) puts `-n`, not `0`, on the bad set; the bad set is
+`μ`-null so `∫ truncLLR n dμ` is unaffected, while `∫ exp (truncLLR n) dν → 1` exactly.
+
+**Remaining for `hattain`:** (A) lsc of the transport cost, and the continuous-`f` upgrade of (B).
 
 ## Continuum energy-identity: the three named gaps (re-survey 2026-07-04)
 

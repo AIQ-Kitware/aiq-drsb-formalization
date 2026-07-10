@@ -91,14 +91,15 @@ Needed, in order:
 1. **Tightness of the ambiguity ball** (Markov/moment bound around a tight nominal) → then Prokhorov.
 2. **Lower semicontinuity of the transport cost** in the coupling, and of `otCost`/`W2sq` in `μ`.
    **ABSENT.** Paper: Villani, *Optimal Transport: Old and New*, Thm 4.1; Santambrogio §1.2.
-3. **Lower semicontinuity of `klDiv`** (for the Sinkhorn ball). **ABSENT.** The standard route is the
-   Donsker–Varadhan **dual** variational formula `KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν)` — a sup of
-   weakly-continuous functionals, hence lsc (Dupuis–Ellis, Lemma 1.4.3). ⚠ **We do not have that
-   formula.** `ForMathlib.MeasureTheory.isGreatest_donskerVaradhan` is the *other* Legendre
-   transform (the **Gibbs** formula, sup over *measures*). The `≥` half of the dual formula is our
-   proved `integral_le_klDiv_add_log_integral_exp`; the missing half is achievability. ⚠ Lean's
-   `llr μ ν = log (dμ/dν)` and `Real.log 0 = 0`, so `exp (llr μ ν) = 1` on `{dμ/dν = 0}` — truncate
-   on the `μ`-full set `{dμ/dν > 0}` or the argument will not close.
+3. **Lower semicontinuity of `klDiv`** (for the Sinkhorn ball). 🟡 **Half-closed (2026-07-10).**
+   The Donsker–Varadhan **dual** variational formula `KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν)` is now
+   **proved** — `ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet` (axiom-clean). It is *not*
+   the Gibbs formula we already had (`isGreatest_donskerVaradhan`, sup over *measures*, attained);
+   it is the other Legendre transform, sup over *functions*, not attained. From it,
+   `toReal_klDiv_le_of_tendsto_integral` gives **setwise** lsc: a `KL`-ball is closed under any
+   convergence integrating bounded *measurable* functions. The **weak**-topology version needs the
+   sup over bounded *continuous* functions — a Lusin/regularity upgrade on a Polish space. That
+   upgrade is what remains.
 4. Upper semicontinuity of `μ ↦ 𝔼_μ[V]` → Portmanteau (in pin), for bounded usc `V`.
 
 This is the single highest-value target: **one theorem, four capstones**, and every piece is

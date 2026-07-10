@@ -7,6 +7,10 @@ proofs in `reference/WellKnown.lean`; they are re-stated here with placeholder w
 audit statements against the papers, per the first-pass "statements only" policy).
 
 One file per proposed Mathlib destination area:
+* `ForMathlib.MeasureTheory.DonskerVaradhanDual` — the DV **dual** variational formula
+  `KL(μ‖ν) = sup_f (∫f dμ − log ∫eᶠdν)` (sup over bounded measurable `f`, **not** attained), and
+  its corollary: setwise lower semicontinuity of `klDiv`, i.e. `KL`-balls are setwise closed.
+  Distinct from the Gibbs formula below, which sups over *measures* and *is* attained.
 * `ForMathlib.MeasureTheory.DonskerVaradhan` — the DV inequality / Gibbs variational
   identity (root fact under the Sinkhorn-DRO dual).
 * `ForMathlib.MeasureTheory.Normalization` — normalize a finite nonzero measure to a
@@ -43,6 +47,7 @@ One file per proposed Mathlib destination area:
   KL-limit that discharges the embedding edge of the continuum energy identity. PROVED.
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
+import ForMathlib.MeasureTheory.DonskerVaradhanDual
 import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic

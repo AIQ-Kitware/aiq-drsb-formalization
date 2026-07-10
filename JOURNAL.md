@@ -1243,3 +1243,62 @@ Girsanov" task against those repos. Corrected in place.
 
 Repo is `lake build` green with **zero warnings** (fixed a stray unused `simp` argument in
 `BirkhoffHopf/PaperRoute/TwoByTwo.lean`), sorry-free, and axiom-clean.
+
+---
+
+# Session journal — the Donsker–Varadhan *dual* formula (2026-07-10, Claude Opus 4.8)
+
+New formalization, closing the gap the previous entry named. `ForMathlib/MeasureTheory/
+DonskerVaradhanDual.lean`, axiom-clean, zero warnings.
+
+## What was proved
+
+`toReal_klDiv_eq_sSup_dvDualSet` : `KL(μ‖ν) = sup { ∫f dμ − log ∫eᶠdν : f bounded measurable }`.
+
+This is **not** the theorem we already had. `isGreatest_donskerVaradhan` is the **Gibbs** formula —
+its supremum runs over *measures* and is attained at `ν.tilted f`. This one is the other Legendre
+transform — its supremum runs over *functions* and is **not** attained (the optimal `f = llr μ ν`
+need not be bounded), which is why it is an `sSup` identity rather than an `IsGreatest`.
+
+The `≥` half was already ours (`integral_le_klDiv_add_log_integral_exp`). The content is
+achievability.
+
+## The trap, and the single choice that avoids it
+
+Lean's `llr μ ν x = Real.log ((dμ/dν) x)` and `Real.log 0 = 0`. So `exp (llr μ ν x) = 1` — **not
+`0`** — on `{dμ/dν = 0}`. Truncating `llr` naively therefore drives the partition function to
+`1 + ν{dμ/dν = 0}`, and every bound comes out short by `log (1 + ν{dμ/dν = 0}) > 0`.
+
+The fix is one line of the definition:
+
+```
+truncLLR μ ν n x = if 0 < dμ/dν x then clamp (llr μ ν x) (-n) n else -n
+```
+
+`-n`, not `0`, on the bad set. Then `exp (truncLLR n) → dμ/dν` pointwise *everywhere* (on the bad
+set both sides go to `0`), dominated by the integrable envelope `dμ/dν + 1`, so
+`∫ exp (truncLLR n) dν → ∫ dμ/dν dν = 1` **exactly**. Meanwhile `{dμ/dν = 0}` is `μ`-null, so
+`∫ truncLLR n dμ → ∫ llr dμ = KL(μ‖ν)` regardless of what we put there. Two dominated-convergence
+arguments, one on each measure, and the two limits combine to `KL − log 1 = KL`.
+
+## The payoff
+
+`toReal_klDiv_le_of_tendsto_integral`: **setwise lower semicontinuity of `klDiv`** — if `μs i → μ`
+in the sense that bounded measurable functions integrate correctly, and each `μs i` lies in the
+`KL`-ball of radius `C` around `ν`, then so does `μ`. A supremum of functionals each continuous
+along the convergence is lsc; that is the whole proof, once the sup formula exists.
+
+This is the entropic half of the `hattain` route: **ball closed** + Prokhorov (in the pin) ⇒ weakly
+compact ⇒ a usc objective attains its sup ⇒ `hattain`.
+
+## What remains for `hattain`
+
+- The **weak**-topology version of the above: the same sup, but over bounded *continuous* `f`. On a
+  Polish space that is a Lusin/regularity upgrade of `dvDualSet`, not new mathematics.
+- **(A) lsc of the transport cost** for the Wasserstein ball (Villani Thm 4.1). Still absent from
+  every Lean source; still the one genuinely missing analytic ingredient.
+
+## Also this session
+
+`hbddP` deleted from every duality theorem (see the previous entry). Repo builds with **zero
+warnings**, is sorry-free, and every card-path and ForMathlib declaration is axiom-clean.

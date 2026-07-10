@@ -87,22 +87,22 @@ Gibbs' inequality (KL ≥ 0) ✅ ─► DV **Gibbs** formula 🟢 (ForMathlib, P
                                                         ▼
                                         Sinkhorn-DRO WEAK duality 🟢 PROVED ─► STRONG duality ❌ (the `hattain` seam)
 
-DV **dual** formula ❌ (KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν))  ─►  lsc of klDiv ❌  ─►  Sinkhorn ball weakly closed  ─► hattain
+DV **dual** formula 🟢 PROVED (KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν))  ─►  lsc of klDiv 🟡 (setwise ✅ / weak ❌)  ─►  Sinkhorn ball closed  ─► hattain
 ```
 
-⚠ **The two Legendre transforms are not the same theorem.** We have proved the **Gibbs** direction
-(the sup runs over *measures* `μ`, and is attained at `ν.tilted f`). Lower semicontinuity of `klDiv`
-— and hence weak closedness of the Sinkhorn ball, and hence `hattain` — needs the **dual** direction,
-whose sup runs over *functions* `f`. Its `≥` half is exactly our proved
-`integral_le_klDiv_add_log_integral_exp`; the missing half is achievability (truncate `llr`, pass to
-the limit). ⚠ Lean's `llr μ ν = log (dμ/dν)` with `Real.log 0 = 0`, so `exp (llr μ ν) = 1` — not `0`
-— on `{dμ/dν = 0}`; the truncation must live on the `μ`-full set `{dμ/dν > 0}`.
+⚠ **The two Legendre transforms are not the same theorem**, and both are now proved here. The
+**Gibbs** direction (`isGreatest_donskerVaradhan`) has its sup over *measures* and attains it at
+`ν.tilted f`. The **dual** direction (`toReal_klDiv_eq_sSup_dvDualSet`, new 2026-07-10) has its sup
+over *functions* and does **not** attain it. Only the dual one yields lsc of `klDiv`.
+⚠ Lean's `llr μ ν = log (dμ/dν)` with `Real.log 0 = 0`, so `exp (llr μ ν) = 1` — not `0` — on
+`{dμ/dν = 0}`; `truncLLR` therefore puts `-n` (not `0`) there. That single choice is what makes the
+partition functions converge to exactly `1`.
 
 | Link | Mathlib | Effort | Search terms |
 |---|---|---|---|
 | DV **Gibbs** formula (sup over measures) | 🟢 **proved here — full equality** (`ForMathlib.MeasureTheory.{isGreatest_donskerVaradhan, log_integral_exp_eq_sSup}`) | — | `Donsker–Varadhan`, `Gibbs variational principle`, `Measure.tilted`, Dupuis–Ellis Prop 1.4.2 |
-| DV **dual** formula (sup over functions) | ❌ — `≥` half proved (`integral_le_klDiv_add_log_integral_exp`), achievability missing | M | `variational formula relative entropy`, `KL = sup ∫f dμ − log ∫ exp f dν`, Dupuis–Ellis Prop 1.4.2 / Donsker–Varadhan 1975 |
-| lower semicontinuity of `klDiv` | ❌ (pin has `convexOn_klFun` for the *integrand* only) | M | `lower semicontinuous relative entropy`, `klDiv lsc`, Dupuis–Ellis Lemma 1.4.3 |
+| DV **dual** formula (sup over functions) | 🟢 **PROVED here** (`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) — sup **not** attained, unlike Gibbs | — | Dupuis–Ellis Prop 1.4.2 / Donsker–Varadhan 1975 |
+| lower semicontinuity of `klDiv` | 🟡 **setwise version PROVED** (`toReal_klDiv_le_of_tendsto_integral`); weak-topology version needs bounded *continuous* test functions (Lusin upgrade) | S | `lower semicontinuous relative entropy`, `klDiv lsc`, Dupuis–Ellis Lemma 1.4.3 |
 | cumulant generating function = log-partition | ✅ (`Probability/Moments/Basic` `cgf`) | S | `cgf`, `mgf`, `cumulant generating function`, `log ∫ exp` |
 | Sinkhorn-DRO weak duality (outer `inf_λ`) | 🟢 **PROVED** (`WangGaoXie2023.sinkhorn_weak_duality_kernel` + `Drsb.sdrsb_cost_bound`, edge-free) | — | `Sinkhorn distributionally robust`, `entropic DRO dual`, `KL-DRO dual`, Wang–Gao–Xie 2021 (arXiv 2109.11926) |
 

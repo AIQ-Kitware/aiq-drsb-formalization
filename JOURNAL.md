@@ -816,3 +816,151 @@ Two findings worth not rediscovering:
 
 The ordered first-moves list (cheapest → hardest) lives in `STATUS.md`. No proofs were attempted this
 session; the only Lean edits were the two lint fixes recorded above.
+
+---
+
+# Session — the projective-metric frontier is closed (2026-07-10, Claude Opus 4.8)
+
+Started with **16 open goals**, all in the Birkhoff–Hopf / Sinkhorn-convergence effort. Ended with
+**0**. The repo is `sorry`-free and axiom-clean, and Sinkhorn convergence is proved end to end.
+
+## The result
+
+The finite Birkhoff–Hopf contraction theorem — which the previous session's survey established
+**exists nowhere in Lean**, in Mathlib or any external repo — is now proved here, **twice**, by two
+routes that share only the definitions and the elementary `sSup`/positivity lemmas. Grep-verified:
+no `PaperRoute` file references any Doeblin-route theorem.
+
+## What the inherited plan got wrong
+
+`STATUS.md` said to finish the Eveson–Nussbaum `PaperRoute`, sequester the Carroll route, and noted
+that the coarse constant `γ = (B−1)/B` "does **not** appear to make the proof easier — the analytic
+core is the same." **That note was wrong, and it was load-bearing.** It had steered the plan toward
+the harder of the two routes and toward proving the sharp `tanh` constant and weakening.
+
+The coarse constant makes the proof *dramatically* easier, via a third route in neither paper:
+
+1. Normalize `p_j ∝ a_j y_j`, `q_j ∝ b_j y_j` into probability vectors and set `t_j = x_j / y_j`.
+   The goal becomes `log (E_p[t] / E_q[t]) ≤ γ · D`.
+2. **Sum the pairwise weight hypothesis `a_j b_{j'} ≤ B (b_j a_{j'})` over one index.** It collapses
+   to the pointwise **Doeblin condition** `p_j ≤ B q_j` (and its mirror). *This replaces Carroll's
+   Step-3 linear program entirely* — no LP, no extremal-pair argument, no `n → 2` reduction.
+3. Hence `p − λq` and `q − λp` are nonnegative with total mass `1 − λ` (`λ = 1/B`), giving
+   `u ≤ λv + (1−λ)M` and `v ≥ λu + (1−λ)m`. Those two *linear* facts alone force
+   `u/v ≤ (λ+R)/(1+λR)` with `R = M/m` — one `nlinarith`, no case split, no division.
+4. Finish with `log((λ+R)/(1+λR)) ≤ (1−λ) log R`, which is **calculus-free**: weighted AM–GM
+   (`Real.geom_mean_le_arith_mean2_weighted`) on `(R⁻¹, 1)` with weights `(1−λ, λ)`, plus the
+   polynomial identity `R(1+λR) − (λ+R)((1−λ)+λR) = λ(R−1)(1−λ)`.
+
+`1 − λ = (B−1)/B` on the nose. The coarseness is *exactly* what makes step 4 elementary; the sharp
+constant is what would force the MVT.
+
+**Consequence: the arrow in both papers is reversed.** `two_point_weighted_average_…` — the two-atom
+case that Carroll and Eveson–Nussbaum both treat as the irreducible core — is now a **corollary**
+(instantiate the finite theorem at `κ = Fin 2`; the diagonal hypotheses come from `1 ≤ B`, `0 ≤ D`).
+It was proved, not deleted.
+
+## Why both routes were kept
+
+Per the coordinator: a Lean text that tracks a paper line-for-line is independently valuable, and two
+proofs of one theorem are worth studying against each other. The paper route earns it — each of
+Prop 2.9(b), Lemmas 3.11/3.12/5.1, Thms 5.3/6.2 has a named theorem — and it yields the **sharp**
+constant `(α−1)/(α+1)` where the Doeblin route only gets `(B−1)/B`. Two deliberate departures from
+the sources, both in the docstrings:
+
+- **Prop 2.9**: the *nonnegative-hull* statement is the general one — the argument never uses
+  `∑ w = 1` — so the convex-hull statement is its corollary, not a separate proof.
+- **Lemma 5.1**: the paper's doubly-stochastic + IVT normalization is unnecessary; explicit
+  closed-form witnesses exist (as the previous session predicted, now confirmed in Lean).
+
+`PaperRoute/Assemble.lean` (Lemma 3.11) reduces to two dimensions via `p = G·(x − m y)`,
+`q = G·(M y − x)`: the cone identities `p + q = (M−m)·Gy` and `Mp + mq = (M−m)·Gx` make the image
+cross-ratio at `(i,i')` the cross-ratio of the `2×2` matrix `[[pᵢ,qᵢ],[pᵢ',qᵢ']]` applied to `(M,m)`
+and `(1,1)`. The `(M−m)` factors cancel and the contraction lands on `(B−1)/B` **exactly** — no slack
+to absorb. That is why Prop 2.9 had to be proved in cone form: `p` and `q` have a zero coordinate at
+the argmax/argmin, so the strictly-positive-input image-diameter lemma does not apply to them.
+
+## A statement bug found and fixed
+
+`hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound` assumed
+`IsBirkhoffHopfContractionCoefficient G γ` **alone**. Insufficient: the orbit alternates
+`a(k+1) = p/(G·b k)` and `b(k+1) = q/(Gᵀ·a k)`, so the recursion applies each kernel on alternate
+half-steps. Deriving `Gᵀ`'s coefficient from `G`'s would require `γ` to be the **sharp** Birkhoff
+constant — strictly harder than the theorem being proved, and circular here. The hypothesis is now
+explicit, discharged by the new
+`positive_kernel_strict_birkhoff_contraction_coefficient_transpose` (the explicit coefficient is
+transpose-invariant: the cross-ratio index family of `Gᵀ` is that of `G` reindexed along
+`Equiv.prodComm`).
+
+> **General lesson for the next agent:** an alternating algorithm needs its operator's contraction
+> coefficient *and its transpose's*. Grep for any other seam taking a one-sided contraction
+> hypothesis.
+
+Also: the FranklinLorenz recursion needs **no parity argument**. With `α k = d(a(k+1), a k)` and
+`β k = d(b(k+1), b k)`, one has `β(k+1) ≤ γ·α k` and `α(k+1) ≤ γ·β k`, so `M k = max (α k) (β k)`
+obeys the single-step `M(k+1) ≤ γ·M k`. And hard core 4 (the left/row side) is an *instantiation*,
+not a second proof: `IsFiniteFranklinLorenzScalingOrbit` is symmetric under
+`(p,q,G,a,b) ↦ (q,p,Gᵀ,b,a)` — the row and column updates swap into each other.
+
+## A placeholder that was not a goal
+
+`positive_kernel_strict_birkhoff_contraction_coefficient` — the *sole* public seam
+`FranklinLorenz.lean` consumes — carried a `sorry` with **zero mathematical content**. The theorem two
+declarations above proves the identical statement; the seam merely drops the `[Nonempty ι]`/
+`[Nonempty κ]` instances. It was an empty-type case split where every branch is `0 ≤ γ·0`. Same class
+as the Session-3 `if False then True` landmine, in the opposite direction: not a false theorem
+hiding, but a real theorem *pretending* to be open. Both are found by reading the statement, not the
+`sorry` count.
+
+## Verification — and two traps
+
+- `lake build` green; `grep -w sorry` (excluding `.lake`, `.reference-clones`, `reference`) empty.
+- `#print axioms` on both Birkhoff–Hopf proofs, both seams, both Sinkhorn endpoints, and both DRSB
+  card claims: `[propext, Classical.choice, Quot.sound]`. No `sorryAx`.
+
+⚠️ **Trap 1 — stale `.olean`s.** `lake env lean <file>` typechecks *source*, but `#print axioms`
+resolves against the *compiled* `.olean`s. My first audit reported `sorryAx` on theorems I had just
+proved, purely because the imports were stale. **Run `lake build` before trusting an axiom audit.**
+
+⚠️ **Trap 2 — do not compute dependency closures with a metaprogram.** I wrote one to check whether
+Sinkhorn convergence actually *uses* the Birkhoff–Hopf work. It reported **zero** dependence, and I
+nearly recorded that the whole effort was an orphan branch. It was an artifact: `ConstantInfo.value?`
+returns `none` for theorem bodies loaded from `.olean`s, so the traversal saw only type signatures.
+**The kernel-authoritative test is to poison the theorem and watch `sorryAx` propagate.** Replacing
+both FranklinLorenz hard cores with `sorry` and rebuilding makes
+`sinkhorn_iterates_converge_to_potentials`, `sinkhorn_gauge_normalized_convergence_core`,
+`sinkhorn_gauge_normalized_subsequence_exists`, and the `_from_gauge_iterates` projective-lag theorem
+all pick up `sorryAx`. **The dependency is real and load-bearing.** (Poison, verify, `git checkout`,
+rebuild.)
+
+## Where this leaves the repo
+
+`sorry`-free is **not** assumption-free. The house style isolates hard content into named edge
+hypotheses, and those remain the real debt:
+
+- `hOT` — OT measurable-selection attainment (`Drsb`, `GaoKleywegt2023`, `BlanchetMurthy2019`). The
+  `≤` direction the cards need is proved; the `≥` rests on this.
+- `hCM` — Girsanov/Cameron–Martin, under `energy_identity` and all of `Continuum/`. The discrete
+  Euler–Maruyama instance is proved; the `Δt → 0` SDE limit is not.
+- `hHC` / `huniq` — Hopf–Cole verification and optimizer uniqueness (`SocOt/Dynamic.lean`).
+- `hglue` — path reconstruction, the direction KL data-processing does not give.
+
+## Handoff to the integration agent
+
+`STATUS.md` is rewritten and correct. **`PROOF_PIPELINE.md`, `AGENTS.md`, and this file's older
+entries still describe the projective-metric frontier as open** — `PROOF_PIPELINE.md` especially, since
+`STATUS.md` points at it for "next steps." Reconcile before trusting them.
+
+One concrete, bounded integration seam, found while verifying the above:
+`sinkhorn_iterates_converge_to_potentials` takes `hpotentials` (existence of a finite Sinkhorn
+potential system) as a hypothesis, but it is **dischargeable** — `sinkhorn_potentials_exist`
+(delegating to the proved `matrix_scaling_exists`) produces exactly such a system. So a fully
+unconditional statement is available: *for positive `p, q, G`, the gauge-normalized Sinkhorn iterates
+converge to the potentials.* Nobody has stated it, because composing the two requires aligning the
+gauge of the produced potentials with the gauge the iterates were normalized against. Easy to leave
+dangling — both halves are green.
+
+Upstreaming candidates, in dependency order: `finiteHilbertProjectiveLogSpread` + its `sSup` API →
+`positive_kernel_birkhoff_hopf_contraction` (the Doeblin proof is short and self-contained) →
+`matrix_scaling_exists`. Already queued from earlier passes: `toReal_klDiv_map_le` and
+`exists_measurableEmbedding_nat_of_separating`.

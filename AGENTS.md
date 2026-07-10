@@ -67,21 +67,6 @@ cards' empirical measurement rests on (`E_μ[V] ≤ E_worst-case[V]`, §3), and 
 from the real, downloaded, transcribed published sources (§4). The `Drsb` capstone states
 the card claims in those terms.
 
-> ⚠️ **The GaTech team's own DRSB manuscript is NOT a source and carries ~0 weight.**
-> Its internal labels (`drsbm_paper`, **"Eq. 47"**, **"Algorithm 5: Relaxed Schrödinger
-> Bridge"**) appear only in **GaTech code comments** — never on arXiv or any index — and
-> the manuscript itself was **wrong**. **Do not chase it, cite it as if published, or let
-> it steer a statement.** Do NOT add "get the manuscript from the team" as an action item.
-> Where a code label like "Eq. 47" is unavoidable, treat it purely as a *pointer at the
-> card's bound formula*, whose backing is Wang–Gao–Xie (§4) — not as a theorem to match.
->
-> ⚠️ Likewise a **"TwoPager Theorem 4" / PAC-Bayes** objective was previously carried here
-> and has been **excised** (see git log): it lives only in the `reference/` scratch
-> (`V1/V4`), is **not referenced by either card or the GaTech code**, and the theorem was
-> flawed. `reference/` as a whole is near-0-weight scratch (see `reference/README.md`) —
-> mine it only for a proof *pattern* that helps prove something the card actually needs.
-> Do not re-introduce its content into the canonical chain.
-
 ---
 
 ## 3. What DRSB actually does (so the theorems make sense)

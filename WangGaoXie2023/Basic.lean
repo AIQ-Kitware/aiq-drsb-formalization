@@ -641,10 +641,13 @@ multiplier + concavity of the entropic value function) and `ForMathlib.OT.sinkho
 `BddBelow` of the dual set — without which the `sInf` is the junk value `0` — is *derived*, from
 weak duality at a feasible point (`expect_le_sinkhornDualObjective`).
 
-**Slater is required.** `ht₀`/`ht₀ε` say some coupling is *strictly* feasible. Mere feasibility
-(`hfeas`) is not enough: the entropic objective has no zero, so `ε` is interior to the value
-function's domain only when it strictly exceeds the minimal achievable objective. See
-`ForMathlib/OptimalTransport/SinkhornStrongDualityGe.lean`. -/
+**Slater is required by this proof.** `ht₀`/`ht₀ε` say some coupling is *strictly* feasible: the
+entropic objective has no zero, so `ε` is interior to the value function's domain only when it
+strictly exceeds the minimal achievable objective, and a supergradient needs an interior point.
+Wang–Gao–Xie's Theorem 1(II) covers the boundary as well, by a `λ → ∞` limit rather than a
+multiplier; matching that is an open task. See
+`ForMathlib/OptimalTransport/SinkhornStrongDualityGe.lean` and
+`prose/distilled_literature/WangGaoXie2025_sinkhorn_dro_theorem1.tex`. -/
 theorem sinkhornDual_le_droValue [StandardBorelSpace X] [Nonempty X]
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
     (hc : ∀ x y, 0 ≤ c x y) (hcm : Measurable fun z : X × X => c z.1 z.2)

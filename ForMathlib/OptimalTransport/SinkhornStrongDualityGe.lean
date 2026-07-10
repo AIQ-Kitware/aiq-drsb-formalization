@@ -21,9 +21,12 @@ The Wasserstein assembly takes its supergradient at `δ > 0` knowing the value s
 `t = 0`: the diagonal coupling has zero cost. **The entropic objective has no zero** — even `γ = μ̂⊗ν`
 pays `∫∫c dμ̂dν`. So `ε` is interior to the value function's domain exactly when some coupling is
 *strictly* feasible, and we take that as the hypothesis `ht₀ : t₀ ∈ sinkhornDomain`, `ht₀ε : t₀ < ε`.
-Mere feasibility (`ε ≥ inf_γ obj γ`) is **not** enough for this argument, and no rearrangement of the
-proof avoids it. This is a strictly better assumption surface than `hge` itself: Slater is
-checkable, `hge` is the conclusion.
+Mere feasibility (`ε ≥ inf_γ obj γ`) is not enough for *this* argument: a supergradient needs an
+interior point. It is a strictly better assumption surface than `hge` itself — Slater is checkable,
+`hge` is the conclusion — but it is weaker than the literature. Wang–Gao–Xie Theorem 1(II) covers the
+boundary too, where the ambiguity set is a singleton and duality holds by a `λ → ∞` Jensen limit
+rather than a finite multiplier. Removing this hypothesis is an open task, not an impossibility; see
+`prose/distilled_literature/WangGaoXie2025_sinkhorn_dro_theorem1.tex`.
 
 ## The assembly
 

@@ -1828,3 +1828,41 @@ true, so that swap owed a receipt, and now has one:
 
 So the hypothesis that replaced `hge` is not merely weaker on paper; it is satisfiable, and satisfied
 by an explicit coupling. Axiom-clean, `#lint`-clean, build green.
+
+## 2026-07-10 (literature baseline) — reading Wang–Gao–Xie refuted two of my claims
+
+Wrote `prose/distilled_literature/WangGaoXie2025_sinkhorn_dro_theorem1.tex`: the full mathematics of
+Theorem 1 **as it appears in the paper**, not as we formalized it — Definition 1, eqs. (1)–(3),
+Assumption 1(I)–(IV), Condition 1, Theorem 1(I)–(IV), Lemma 1 (weak duality), Lemma 2 (the KL
+reformulation), Remark 4 (the worst-case law), and the boundary case. It exists to be diffed against
+our Lean, and the diff paid immediately.
+
+**(1) `pdftotext` silently drops the macron.** Every clause of Theorem 1 is stated in the *shifted*
+radius `ρ̄ := ρ + ϵ·𝔼_μ̂[log 𝔼_ν e^{−c/ϵ}]` (their eq. 2), and the text extraction renders `ρ̄` and `ρ`
+identically. Reading the extraction, Theorem 1(I) says "feasible iff ρ ≥ 0", which is false in
+Definition-1 coordinates — and this repo had already recorded the paper as mis-stated on that basis.
+Rendering p.7 of the PDF settles it: the paper says `ρ̄ ≥ 0`, and `ρ̄ ≥ 0 ⟺ ρ ≥ F` for the free energy
+`F = −ϵ𝔼_μ̂[log 𝔼_ν e^{−c/ϵ}] ≥ 0`. The paper is right; our earlier note was an artifact of the tool.
+
+**(2) I claimed Slater was unavoidable. It is not.** In STATUS.md, in
+`SinkhornStrongDualityGe.lean`, and in `WangGaoXie2023.strong_duality`'s docstring I wrote that mere
+feasibility "is not enough, and no rearrangement of the proof avoids it". Wang–Gao–Xie Theorem 1(II)
+proves `V = V_D` for `ρ̄ ≥ 0`, boundary included. At `ρ̄ = 0` the ambiguity set is the singleton
+`{P₀}`, `dP₀ = 𝔼_μ̂[dQ_{x,ϵ}]`, and duality holds because `λϵ·log 𝔼_{Q}[e^{f/(λϵ)}] ↓ 𝔼_Q[f]` as
+`λ → ∞` — a Jensen limit, not a finite multiplier. Our supergradient assembly cannot reach a boundary
+point, so *our proof* needs Slater; the *theorem* does not. All three sites corrected. Deleting the
+Slater hypothesis is now a scoped task with a known route.
+
+**(3) Writing it out caught an error in my own note.** I first wrote that the two dual forms — eq. (1)
+over `ν` with `ρ`, and (Dual) over `Q_{x,ϵ}` with `ρ̄` — agree "only when λ = 1". They agree for every
+`λ`: in the exponent the multiplier cancels against the cost,
+`(f − λc)/(λϵ) = f/(λϵ) − c/ϵ`. Checked numerically before committing.
+
+**(4) Two sharpenings fell out.** Our Slater receipt uses the *independent* coupling
+(`ε > 𝔼_{μ̂⊗ν}[c]`); the tight threshold is the free energy `F ≤ 𝔼[c]` (Jensen), attained by the
+*Gibbs* coupling, which we already have as `tiltedKernel`. And our `h_exp` quantifies over every
+`λ > 0` where Condition 1 needs only one.
+
+The lesson generalises: the distilled prose is worth writing precisely because it is the *literature's*
+argument, independent of ours. Three of my beliefs died on contact with it, and none would have died
+by re-reading our Lean.

@@ -181,13 +181,23 @@ domain exactly when some coupling is *strictly* feasible. Both capstones now tak
 
 `{t₀ : ℝ} (ht₀ : t₀ ∈ ForMathlib.OT.sinkhornDomain c f κ μ̂ ν) (ht₀ε : t₀ < ε)`
 
-in place of `hge`. Mere feasibility (`hfeas`, i.e. `ε ≥ inf_γ obj γ`) is **not** enough, and no
-rearrangement of the proof avoids it. This is a strictly better assumption surface: Slater is
-checkable, `hge` was the conclusion. And it is **checked**: `Drsb.sdrsb_strong_duality_of_radius_gt_independent_cost`
-discharges Slater from the single inequality `𝔼_{p₀⊗ν}[c] < ε`, because the independent coupling
-`p₀ ⊗ ν` has vanishing entropic term (`ForMathlib.OT.sinkhornObjective_prodCoupling`). So the
-capstone's hypotheses are jointly satisfiable, and the theorem is not vacuous. Whether duality survives at the boundary `ε = inf_γ obj γ` is
-not established here either way.
+in place of `hge`. Mere feasibility (`hfeas`, i.e. `ε ≥ inf_γ obj γ`) is not enough **for this
+argument**: the supergradient needs an interior point. This is a strictly better assumption surface
+than `hge` — Slater is checkable, `hge` was the conclusion — and it is proved satisfiable
+(`Drsb.sdrsb_strong_duality_of_radius_gt_independent_cost`), so the capstones are not vacuous.
+
+⚠ **But it is weaker than the literature, and we now know exactly why.** Wang–Gao–Xie Theorem 1(II)
+asserts `V = V_D` for `ρ̄ ≥ 0`, the **boundary included** (`ρ̄` is their free-energy-shifted radius;
+`ρ̄ ≥ 0 ⟺ ε ≥ F` with `F = −κ·𝔼_μ̂[log ∫ e^{−c/κ} dν] ≥ 0`). At `ρ̄ = 0` the ambiguity set is the
+*singleton* `{P₀}`, `dP₀ = 𝔼_μ̂[dQ_{x,κ}]`, and duality holds by a `λ → ∞` **Jensen limit**, not by a
+finite multiplier. So the boundary *is* reachable — just not by a supergradient. Removing Slater is an
+open, scoped task; see `prose/distilled_literature/WangGaoXie2025_sinkhorn_dro_theorem1.tex` §"Where
+our Lean development differs".
+
+Two further findings from that distillation: (a) our Slater receipt is **not tight** — it uses the
+independent coupling (`ε > 𝔼_{μ̂⊗ν}[c]`), whereas the exact threshold is the free energy `F ≤ 𝔼[c]`,
+attained by the *Gibbs* coupling `γ_x = Q_{x,κ}`, which we already have as `tiltedKernel`; (b) our
+`h_exp` quantifies over **every** `λ > 0` where the paper's Condition 1 needs only **one**.
 
 Also proved on the entropic side: the DV **dual** variational formula
 (`toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv` (`toReal_klDiv_le_of_tendsto_integral`).

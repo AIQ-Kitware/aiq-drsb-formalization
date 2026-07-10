@@ -12,13 +12,9 @@ never the research-grade `≥` (attainment) direction.
 Mathlib has NO optimal-transport / Kantorovich duality of any kind (grep-verified), so
 this is a from-scratch contribution. See `FOUNDATIONS.md` (Chain 1).
 
-STATUS: PROVED. Ported from `reference/V4.lean` (`wdro_lagrangian_bound`, proved against
-the reference-local `Expect`/`Couplings`/`couplingCost2` vocabulary) to the canonical
-`ForMathlib.OT` vocabulary (`expect`, `couplings`, `couplingCost`) and generalized from
-the DRSB quadratic cost `‖x − y‖²` to an arbitrary `c : X → X → ℝ`; the
-marginal-pushforward integral identities (`integral_map`, `integrable_map_measure`)
-carried over verbatim. Remaining for the card path: the `inf`/`sup` ASSEMBLY on top of
-this kernel (`GaoKleywegt2023.weak_duality_prop1`) — see `PROOF_PIPELINE.md`.
+STATUS: PROVED. Stated at full Kantorovich generality: two measurable spaces `α`, `β`, a cost
+`c : α → β → ℝ`, and **no algebraic or topological structure on either** — nothing in these bounds
+refers to a norm, to subtraction, or to `α = β`. The DRSB quadratic cost is one instantiation.
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
@@ -32,9 +28,8 @@ open ForMathlib.OT
 
 namespace ForMathlib.OT
 
-variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X]
+variable {α β : Type*} [MeasurableSpace α] [MeasurableSpace β]
 
-omit [NormedAddCommGroup X] in
 /-- **Optimal transport cost is bounded by any coupling's cost.** For a nonnegative cost
 `c` and any coupling `π ∈ Π(μ, ν)`, `otCost c μ ν ≤ couplingCost c π`. Immediate from
 `csInf_le` (the value set is bounded below by `0`, since `couplingCost = ∫ c dπ ≥ 0`).
@@ -43,15 +38,14 @@ The always-usable "upper bound by an explicit transport plan" direction of Kanto
 the reusable tool for showing a *constructed* measure lies in a Wasserstein ball
 (`otCost ≤ (explicit coupling cost) ≤ radius`), needed by every worst-case-measure
 construction (Gao–Kleywegt Cor 2(ii), Esfahani–Kuhn Thm 4.4 / Cor 4.6). -/
-theorem otCost_le_couplingCost (c : X → X → ℝ) (hc : ∀ x y, 0 ≤ c x y)
-    (μ ν : ProbabilityMeasure X) (π : ProbabilityMeasure (X × X))
+theorem otCost_le_couplingCost (c : α → β → ℝ) (hc : ∀ x y, 0 ≤ c x y)
+    (μ : ProbabilityMeasure α) (ν : ProbabilityMeasure β) (π : ProbabilityMeasure (α × β))
     (hπ : π ∈ couplings μ ν) :
     otCost c μ ν ≤ couplingCost c π := by
   refine csInf_le ⟨0, ?_⟩ ⟨π, hπ, rfl⟩
   rintro r ⟨π', _, rfl⟩
   exact integral_nonneg (fun z => hc z.1 z.2)
 
-omit [NormedAddCommGroup X] in
 /-- **Per-coupling Lagrangian bound** (the always-true `≤` half of OT-DRO duality).
 For any coupling `π ∈ Π(μ, ν)` of a source `μ` with the nominal `ν`, any cost `c`, and
 any multiplier `λ` (the `λ ≥ 0` gate matters only for the downstream assembly, not this
@@ -63,58 +57,56 @@ over `π` and use the marginals. Taking `inf_π 𝔼_π[c] = otCost c μ ν ≤ 
 `sup_μ`, `inf_λ` yields `droValue (ball) f ≤ dualValue`. The `sup` boundedness `hbdd`
 and the three integrability hypotheses make each expectation well defined.
 
-Ported from the complete proof in `reference/V4.lean` (`wdro_lagrangian_bound`),
-generalized from the DRSB quadratic cost `‖x − y‖²` to an arbitrary `c : X → X → ℝ`
-and restated in the canonical `ForMathlib.OT` vocabulary. -/
+Ported from the complete proof in `reference/V4.lean` (`wdro_lagrangian_bound`), generalized from
+the DRSB quadratic cost `‖x − y‖²` to an arbitrary `c : α → β → ℝ` between two measurable spaces. -/
 theorem expect_le_dualIntegrand_add_lam_couplingCost
-    (c : X → X → ℝ) (f : X → ℝ) (lam : ℝ) (_hlam : 0 ≤ lam)
-    (μ ν : ProbabilityMeasure X) (π : ProbabilityMeasure (X × X))
+    (c : α → β → ℝ) (f : α → ℝ) (lam : ℝ) (_hlam : 0 ≤ lam)
+    (μ : ProbabilityMeasure α) (ν : ProbabilityMeasure β) (π : ProbabilityMeasure (α × β))
     (hπ : π ∈ couplings μ ν)
-    (hbdd : ∀ y : X, BddAbove (Set.range (fun x => f x - lam * c x y)))
-    (hf : Integrable f (μ : Measure X))
-    (hφ : Integrable (fun y => sSup (Set.range (fun x => f x - lam * c x y))) (ν : Measure X))
-    (hcost : Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X))) :
+    (hbdd : ∀ y : β, BddAbove (Set.range (fun x => f x - lam * c x y)))
+    (hf : Integrable f (μ : Measure α))
+    (hφ : Integrable (fun y => sSup (Set.range (fun x => f x - lam * c x y))) (ν : Measure β))
+    (hcost : Integrable (fun z : α × β => c z.1 z.2) (π : Measure (α × β))) :
     expect μ f
       ≤ expect ν (fun y => sSup (Set.range (fun x => f x - lam * c x y)))
         + lam * couplingCost c π := by
   classical
-  set g : X → ℝ := fun y => sSup (Set.range (fun x => f x - lam * c x y)) with hgdef
+  set g : β → ℝ := fun y => sSup (Set.range (fun x => f x - lam * c x y)) with hgdef
   -- marginal identities: μ = fst_# π, ν = snd_# π
-  have hfst : (μ : Measure X) = Measure.map Prod.fst (π : Measure (X × X)) := hπ.1.symm
-  have hsnd : (ν : Measure X) = Measure.map Prod.snd (π : Measure (X × X)) := hπ.2.symm
-  have hfae : AEStronglyMeasurable f (Measure.map Prod.fst (π : Measure (X × X))) :=
+  have hfst : (μ : Measure α) = Measure.map Prod.fst (π : Measure (α × β)) := hπ.1.symm
+  have hsnd : (ν : Measure β) = Measure.map Prod.snd (π : Measure (α × β)) := hπ.2.symm
+  have hfae : AEStronglyMeasurable f (Measure.map Prod.fst (π : Measure (α × β))) :=
     hfst ▸ hf.1
-  have hgae : AEStronglyMeasurable g (Measure.map Prod.snd (π : Measure (X × X))) :=
+  have hgae : AEStronglyMeasurable g (Measure.map Prod.snd (π : Measure (α × β))) :=
     hsnd ▸ hφ.1
   -- rewrite both expectations as integrals against π via its marginals
-  have e1 : expect μ f = ∫ z, f z.1 ∂(π : Measure (X × X)) := by
+  have e1 : expect μ f = ∫ z, f z.1 ∂(π : Measure (α × β)) := by
     rw [expect, hfst, integral_map measurable_fst.aemeasurable hfae]
-  have e2 : expect ν g = ∫ z, g z.2 ∂(π : Measure (X × X)) := by
+  have e2 : expect ν g = ∫ z, g z.2 ∂(π : Measure (α × β)) := by
     rw [expect, hsnd, integral_map measurable_snd.aemeasurable hgae]
   -- transport the integrability hypotheses onto π
-  have hfpi : Integrable (fun z : X × X => f z.1) (π : Measure (X × X)) :=
+  have hfpi : Integrable (fun z : α × β => f z.1) (π : Measure (α × β)) :=
     (integrable_map_measure hfae measurable_fst.aemeasurable).mp (hfst ▸ hf)
-  have hgpi : Integrable (fun z : X × X => g z.2) (π : Measure (X × X)) :=
+  have hgpi : Integrable (fun z : α × β => g z.2) (π : Measure (α × β)) :=
     (integrable_map_measure hgae measurable_snd.aemeasurable).mp (hsnd ▸ hφ)
   -- pointwise: f(x) ≤ φ_λ(y) + λ c(x, y), from x being in the sup's range
-  have hpt : ∀ z : X × X, f z.1 ≤ g z.2 + lam * c z.1 z.2 := by
+  have hpt : ∀ z : α × β, f z.1 ≤ g z.2 + lam * c z.1 z.2 := by
     intro z
     have hmem : f z.1 - lam * c z.1 z.2
         ∈ Set.range (fun x => f x - lam * c x z.2) := ⟨z.1, rfl⟩
     have := le_csSup (hbdd z.2) hmem
     simp only [hgdef]; linarith
-  rw [e1, e2, show couplingCost c π = ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) from rfl]
-  calc ∫ z, f z.1 ∂(π : Measure (X × X))
-      ≤ ∫ z, (g z.2 + lam * c z.1 z.2) ∂(π : Measure (X × X)) :=
+  rw [e1, e2, show couplingCost c π = ∫ z, c z.1 z.2 ∂(π : Measure (α × β)) from rfl]
+  calc ∫ z, f z.1 ∂(π : Measure (α × β))
+      ≤ ∫ z, (g z.2 + lam * c z.1 z.2) ∂(π : Measure (α × β)) :=
         integral_mono hfpi (hgpi.add (hcost.const_mul lam)) hpt
-    _ = (∫ z, g z.2 ∂(π : Measure (X × X)))
-          + lam * ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) := by
+    _ = (∫ z, g z.2 ∂(π : Measure (α × β)))
+          + lam * ∫ z, c z.1 z.2 ∂(π : Measure (α × β)) := by
         rw [integral_add hgpi (hcost.const_mul lam), integral_const_mul]
 
-omit [NormedAddCommGroup X] in
 /-- **Ξ-restricted per-coupling Lagrangian bound.** The `Set.image`-over-`Ξ` variant of
 `expect_le_dualIntegrand_add_lam_couplingCost`: when the source `μ` is supported on `Ξ`
-(`hμΞ`, i.e. `μ ∈ P(Ξ)`), the conjugate `sup` restricts from all of `X` to `Ξ`,
+(`hμΞ`, i.e. `μ ∈ P(Ξ)`), the conjugate `sup` restricts from all of `α` to `Ξ`,
 `𝔼_μ[f] ≤ 𝔼_{y∼ν}[ sup_{x∈Ξ} (f x − λ c(x, y)) ] + λ · 𝔼_π[c]`.
 
 The proof is identical to the unrestricted kernel except the pointwise bound
@@ -126,54 +118,53 @@ data-driven **P(Ξ)-restricted** worst-case duality
 the uncertainty set `Ξ`. `MeasurableSet Ξ` (`hΞ`) is used only to push the a.e.-in-`Ξ`
 property through the `Prod.fst` marginal via `ae_map_iff`. -/
 theorem expect_le_dualIntegrand_add_lam_couplingCost_restrict
-    (c : X → X → ℝ) (f : X → ℝ) (lam : ℝ) (_hlam : 0 ≤ lam)
-    (μ ν : ProbabilityMeasure X) (Ξ : Set X) (hΞ : MeasurableSet Ξ)
-    (π : ProbabilityMeasure (X × X)) (hπ : π ∈ couplings μ ν)
-    (hμΞ : ∀ᵐ x ∂(μ : Measure X), x ∈ Ξ)
-    (hbdd : ∀ y : X, BddAbove ((fun x => f x - lam * c x y) '' Ξ))
-    (hf : Integrable f (μ : Measure X))
-    (hφ : Integrable (fun y => sSup ((fun x => f x - lam * c x y) '' Ξ)) (ν : Measure X))
-    (hcost : Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X))) :
+    (c : α → β → ℝ) (f : α → ℝ) (lam : ℝ) (_hlam : 0 ≤ lam)
+    (μ : ProbabilityMeasure α) (ν : ProbabilityMeasure β) (Ξ : Set α) (hΞ : MeasurableSet Ξ)
+    (π : ProbabilityMeasure (α × β)) (hπ : π ∈ couplings μ ν)
+    (hμΞ : ∀ᵐ x ∂(μ : Measure α), x ∈ Ξ)
+    (hbdd : ∀ y : β, BddAbove ((fun x => f x - lam * c x y) '' Ξ))
+    (hf : Integrable f (μ : Measure α))
+    (hφ : Integrable (fun y => sSup ((fun x => f x - lam * c x y) '' Ξ)) (ν : Measure β))
+    (hcost : Integrable (fun z : α × β => c z.1 z.2) (π : Measure (α × β))) :
     expect μ f
       ≤ expect ν (fun y => sSup ((fun x => f x - lam * c x y) '' Ξ))
         + lam * couplingCost c π := by
   classical
-  set g : X → ℝ := fun y => sSup ((fun x => f x - lam * c x y) '' Ξ) with hgdef
-  have hfst : (μ : Measure X) = Measure.map Prod.fst (π : Measure (X × X)) := hπ.1.symm
-  have hsnd : (ν : Measure X) = Measure.map Prod.snd (π : Measure (X × X)) := hπ.2.symm
-  have hfae : AEStronglyMeasurable f (Measure.map Prod.fst (π : Measure (X × X))) :=
+  set g : β → ℝ := fun y => sSup ((fun x => f x - lam * c x y) '' Ξ) with hgdef
+  have hfst : (μ : Measure α) = Measure.map Prod.fst (π : Measure (α × β)) := hπ.1.symm
+  have hsnd : (ν : Measure β) = Measure.map Prod.snd (π : Measure (α × β)) := hπ.2.symm
+  have hfae : AEStronglyMeasurable f (Measure.map Prod.fst (π : Measure (α × β))) :=
     hfst ▸ hf.1
-  have hgae : AEStronglyMeasurable g (Measure.map Prod.snd (π : Measure (X × X))) :=
+  have hgae : AEStronglyMeasurable g (Measure.map Prod.snd (π : Measure (α × β))) :=
     hsnd ▸ hφ.1
-  have e1 : expect μ f = ∫ z, f z.1 ∂(π : Measure (X × X)) := by
+  have e1 : expect μ f = ∫ z, f z.1 ∂(π : Measure (α × β)) := by
     rw [expect, hfst, integral_map measurable_fst.aemeasurable hfae]
-  have e2 : expect ν g = ∫ z, g z.2 ∂(π : Measure (X × X)) := by
+  have e2 : expect ν g = ∫ z, g z.2 ∂(π : Measure (α × β)) := by
     rw [expect, hsnd, integral_map measurable_snd.aemeasurable hgae]
-  have hfpi : Integrable (fun z : X × X => f z.1) (π : Measure (X × X)) :=
+  have hfpi : Integrable (fun z : α × β => f z.1) (π : Measure (α × β)) :=
     (integrable_map_measure hfae measurable_fst.aemeasurable).mp (hfst ▸ hf)
-  have hgpi : Integrable (fun z : X × X => g z.2) (π : Measure (X × X)) :=
+  have hgpi : Integrable (fun z : α × β => g z.2) (π : Measure (α × β)) :=
     (integrable_map_measure hgae measurable_snd.aemeasurable).mp (hsnd ▸ hφ)
   -- π-a.e. the first coordinate lies in Ξ (the source μ is Ξ-supported)
-  have hπΞ : ∀ᵐ z ∂(π : Measure (X × X)), z.1 ∈ Ξ :=
+  have hπΞ : ∀ᵐ z ∂(π : Measure (α × β)), z.1 ∈ Ξ :=
     (ae_map_iff measurable_fst.aemeasurable hΞ).mp (hfst ▸ hμΞ)
   -- pointwise (π-a.e.): f(x) ≤ φ_λ^Ξ(y) + λ c(x, y), from x ∈ Ξ being in the image's domain
-  have hpt : ∀ᵐ z ∂(π : Measure (X × X)), f z.1 ≤ g z.2 + lam * c z.1 z.2 := by
+  have hpt : ∀ᵐ z ∂(π : Measure (α × β)), f z.1 ≤ g z.2 + lam * c z.1 z.2 := by
     filter_upwards [hπΞ] with z hz
     have hmem : f z.1 - lam * c z.1 z.2
         ∈ (fun x => f x - lam * c x z.2) '' Ξ := ⟨z.1, hz, rfl⟩
     have := le_csSup (hbdd z.2) hmem
     simp only [hgdef]; linarith
-  rw [e1, e2, show couplingCost c π = ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) from rfl]
-  calc ∫ z, f z.1 ∂(π : Measure (X × X))
-      ≤ ∫ z, (g z.2 + lam * c z.1 z.2) ∂(π : Measure (X × X)) :=
+  rw [e1, e2, show couplingCost c π = ∫ z, c z.1 z.2 ∂(π : Measure (α × β)) from rfl]
+  calc ∫ z, f z.1 ∂(π : Measure (α × β))
+      ≤ ∫ z, (g z.2 + lam * c z.1 z.2) ∂(π : Measure (α × β)) :=
         integral_mono_ae hfpi (hgpi.add (hcost.const_mul lam)) hpt
-    _ = (∫ z, g z.2 ∂(π : Measure (X × X)))
-          + lam * ∫ z, c z.1 z.2 ∂(π : Measure (X × X)) := by
+    _ = (∫ z, g z.2 ∂(π : Measure (α × β)))
+          + lam * ∫ z, c z.1 z.2 ∂(π : Measure (α × β)) := by
         rw [integral_add hgpi (hcost.const_mul lam), integral_const_mul]
 
 /-! ## The entropic (Sinkhorn) analogue -/
 
-omit [NormedAddCommGroup X] in
 /-- **Sinkhorn per-conditional-family weak-duality kernel** (the entropic analogue of
 `expect_le_dualIntegrand_add_lam_couplingCost`). For a family of conditionals
 `P : X → Measure X` (each `≪` the reference `ν`), the nominal `p₀`, and `λ, κ > 0`,
@@ -187,31 +178,31 @@ no OT/entropic-DRO duality (grep-verified); this is a from-scratch contribution.
 The load-bearing `≤` half behind `WangGaoXie2023.strong_duality` / `Drsb.sdrsb_cost_bound`
 (once composed with a disintegration of the ball-witnessing coupling `γ = p₀ ⊗ₘ P`). -/
 theorem expect_kernel_le_lam_sinkhornBudget_add_logPartition
-    (p₀ ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
+    (p₀ : ProbabilityMeasure α) (ν : ProbabilityMeasure β) (c : α → β → ℝ) (f : β → ℝ) (κ lam : ℝ)
     (_hκ : 0 < κ) (hlam : 0 < lam)
-    (P : X → Measure X) (hP : ∀ x, IsProbabilityMeasure (P x))
-    (hac : ∀ x, P x ≪ (ν : Measure X))
+    (P : α → Measure β) (hP : ∀ x, IsProbabilityMeasure (P x))
+    (hac : ∀ x, P x ≪ (ν : Measure β))
     (hf_P : ∀ x, Integrable f (P x))
     (hc_P : ∀ x, Integrable (fun y => c x y) (P x))
-    (h_llr : ∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x))
+    (h_llr : ∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure β)) (P x))
     (h_exp : ∀ x, Integrable
-        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
-    (hI_f : Integrable (fun x => ∫ y, f y ∂(P x)) (p₀ : Measure X))
-    (hI_c : Integrable (fun x => ∫ y, c x y ∂(P x)) (p₀ : Measure X))
-    (hI_kl : Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X))
+        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure β))
+    (hI_f : Integrable (fun x => ∫ y, f y ∂(P x)) (p₀ : Measure α))
+    (hI_c : Integrable (fun x => ∫ y, c x y ∂(P x)) (p₀ : Measure α))
+    (hI_kl : Integrable (fun x => klReal (P x) (ν : Measure β)) (p₀ : Measure α))
     (hI_lp : Integrable (fun x => lam * κ *
-        Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
-        (p₀ : Measure X)) :
-    (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X))
-      ≤ lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+        Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)))
+        (p₀ : Measure α)) :
+    (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure α))
+      ≤ lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure β)) ∂(p₀ : Measure α))
         + ∫ x, (lam * κ *
-            Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
-          ∂(p₀ : Measure X) := by
+            Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)))
+          ∂(p₀ : Measure α) := by
   have hlamκ : (0 : ℝ) < lam * κ := mul_pos hlam _hκ
   have hne : lam * κ ≠ 0 := ne_of_gt hlamκ
   have hpt : ∀ x, (∫ y, f y ∂(P x))
-      ≤ lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
-        + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)) := by
+      ≤ lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure β)
+        + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)) := by
     intro x
     haveI := hP x
     have hsub : Integrable (fun y => f y - lam * c x y) (P x) :=
@@ -229,39 +220,39 @@ theorem expect_kernel_le_lam_sinkhornBudget_add_logPartition
     rw [hAeq] at hDV
     have hmul := mul_le_mul_of_nonneg_left hDV (le_of_lt hlamκ)
     rw [← mul_assoc, mul_inv_cancel₀ hne, one_mul, mul_add] at hmul
-    have hkl : (InformationTheory.klDiv (P x) (ν : Measure X)).toReal
-        = klReal (P x) (ν : Measure X) := rfl
+    have hkl : (InformationTheory.klDiv (P x) (ν : Measure β)).toReal
+        = klReal (P x) (ν : Measure β) := rfl
     rw [hkl] at hmul
     linarith [hmul]
   have hRHS_int : Integrable
-      (fun x => lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
-        + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
-      (p₀ : Measure X) :=
+      (fun x => lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure β)
+        + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)))
+      (p₀ : Measure α) :=
     ((hI_c.const_mul lam).add (hI_kl.const_mul (lam * κ))).add hI_lp
-  calc (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X))
-      ≤ ∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
-          + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
-          ∂(p₀ : Measure X) := integral_mono hI_f hRHS_int hpt
-    _ = lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
+  calc (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure α))
+      ≤ ∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure β)
+          + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)))
+          ∂(p₀ : Measure α) := integral_mono hI_f hRHS_int hpt
+    _ = lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure β)) ∂(p₀ : Measure α))
           + ∫ x, (lam * κ *
-              Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
-            ∂(p₀ : Measure X) := by
+              Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)))
+            ∂(p₀ : Measure α) := by
         have hAB : Integrable (fun x => lam * (∫ y, c x y ∂(P x))
-            + lam * κ * klReal (P x) (ν : Measure X)) (p₀ : Measure X) :=
+            + lam * κ * klReal (P x) (ν : Measure β)) (p₀ : Measure α) :=
           (hI_c.const_mul lam).add (hI_kl.const_mul (lam * κ))
-        have e1 : (∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
-              + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
-              ∂(p₀ : Measure X))
-            = lam * (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure X))
-              + lam * κ * (∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X))
-              + ∫ x, (lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X)))
-                  ∂(p₀ : Measure X) := by
+        have e1 : (∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure β)
+              + lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)))
+              ∂(p₀ : Measure α))
+            = lam * (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure α))
+              + lam * κ * (∫ x, klReal (P x) (ν : Measure β) ∂(p₀ : Measure α))
+              + ∫ x, (lam * κ * Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure β)))
+                  ∂(p₀ : Measure α) := by
           rw [integral_add hAB hI_lp,
             integral_add (hI_c.const_mul lam) (hI_kl.const_mul (lam * κ)),
             integral_const_mul, integral_const_mul]
-        have e2 : (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
-            = (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure X))
-              + κ * (∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X)) := by
+        have e2 : (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure β)) ∂(p₀ : Measure α))
+            = (∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure α))
+              + κ * (∫ x, klReal (P x) (ν : Measure β) ∂(p₀ : Measure α)) := by
           rw [integral_add hI_c (hI_kl.const_mul κ), integral_const_mul]
         rw [e1, e2]; ring
 

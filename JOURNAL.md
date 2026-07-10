@@ -1336,3 +1336,46 @@ requires moving `Drsb.hasSinkhornDisintegration_of_isSinkhornPlan` *below* `Wang
 import graph, since it presently sits above it.
 
 Repo restored to green: `lake build` clean, **zero warnings**, sorry-free, axiom-clean.
+
+---
+
+# Session journal — cost-parametrization, and the Kantorovich layer at proper generality (2026-07-10)
+
+Two changes, one prompted by the other.
+
+## The wart, fixed — and it paid for itself
+
+`sinkhornObjective`, `sinkhornObjectiveENN`, `Wkappa` and `sinkhornBall` now take the transport cost
+`c` as an argument, as Wang–Gao–Xie Definition 1 does. The hard-wired `‖x−y‖²` was ours, not the
+paper's, and it made `WangGaoXie2023.strong_duality`'s `hSinkAll` couple a *quadratic* ball to a
+*`c`*-budget — premises not jointly satisfiable, failing AGENTS.md §6's own honesty test.
+
+Fixing it exposed a better fact. `IsSinkhornPlan` can carry `integrable_cost` as a **derived field**:
+`couplingCostENN` has no bad branch, so its finiteness *is* integrability
+(`integrable_of_couplingCostENN_ne_top`). The plan therefore hands its consumer an integrable cost
+for free, and `hasSinkhornDisintegration_of_isSinkhornPlan`, `sdrsb_cost_bound` and
+`sdrsb_strong_duality` **no longer need `HasSecondMoment` at all**.
+
+`sdrsb_cost_bound` now assumes exactly: `0 < κ`, ball membership, `Integrable V μ`, and two
+integrability conditions on the *dual*. That is the minimal surface. `wdrsb_cost_bound` still needs
+its moments, and for a precise reason: `otCost` is real-valued, so it must exclude Bochner junk by
+hypothesis. The queued `otCost → ℝ≥0∞` refactor removes them the same way.
+
+## The Kantorovich layer, at the generality it actually has
+
+Prompted by the user: *"mathlib quality will want these standard sort of generalizations to common
+cases so the API is usable outside niche projects."* Correct, and the code was overfit.
+
+`couplings`, `couplingCost`, `couplingCostENN`, `otCost`, `prodMeasure`, `sinkhornObjective(ENN)`,
+`Wkappa`, `sinkhornBall`, `droValue`, `expect`, and **both Lagrangian kernels** now live between two
+measurable spaces `α`, `β` under a cost `c : α → β → ℝ`, with no norm, no subtraction, and no `α = β`.
+Nothing in their statements or proofs ever used those. Only `couplingCost2`, `W2sq` and
+`wassersteinBall` genuinely need a single normed group; they sit in their own `section Quadratic`.
+
+The evidence that this was overfitting rather than generalization-for-its-own-sake: **not one
+downstream library needed touching.** `BlanchetMurthy2019`, `GaoKleywegt2023`,
+`MohajerinEsfahaniKuhn2018`, `WangGaoXie2023` and `Drsb` all still compile unchanged, because they
+instantiate at `α = β = X`. And `WangGaoXie2023.strong_duality` and `primal_feasible_radius_nonneg`
+now `omit [NormedAddCommGroup X]` — they never needed a normed group either.
+
+Build green, **zero warnings**, sorry-free, axiom-clean.

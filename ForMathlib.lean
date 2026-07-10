@@ -20,7 +20,11 @@ One file per proposed Mathlib destination area:
   `mrdouglasny/gibbs-variational` (Apache-2.0; see the file header + README), plus the
   Euler–Maruyama discrete energy identity built on it.
 * `ForMathlib.OptimalTransport.Basic` — the shared OT / DRO vocabulary (couplings,
-  transport cost, Wasserstein-2 and Sinkhorn ambiguity balls, KL, DRO worst-case).
+  transport cost, Wasserstein-2 and Sinkhorn ambiguity balls, KL, DRO worst-case). The Kantorovich
+  layer (`couplings`, `couplingCost`, `couplingCostENN`, `otCost`, `prodMeasure`, and the Sinkhorn
+  objective/discrepancy/ball) is stated between **two** measurable spaces under a cost
+  `c : α → β → ℝ`, with no algebra or topology; only the quadratic `couplingCost2`/`W2sq`/
+  `wassersteinBall` need a single normed group.
 * `ForMathlib.OptimalTransport.Coupling` — coupling existence (product / diagonal plans),
   extraction of near-optimal plans from the `otCost` infimum, and "finite second moments
   ⟹ every coupling has integrable quadratic cost". These are what let the DRSB

@@ -22,7 +22,7 @@
 | Open goals | **0** — the repo is `sorry`-free |
 | DRSB card claims | ✅ **proved** (`wdrsb_cost_bound`, `sdrsb_cost_bound`) |
 | WDRSB card assumption surface | ✅ **minimal** — the `hOT` attainment edge is **deleted**, not assumed |
-| SDRSB card assumption surface | ✅ **minimal** — attainment, disintegration and transport edges all discharged |
+| SDRSB card assumption surface | ✅ **minimal** — attainment, disintegration and transport edges all discharged; **no second moments** (plan carries `integrable_cost`) |
 | Strong duality (all four) | ✅ **proved**, each `le_antisymm(weak, one explicit attainment edge)` |
 | `energy_identity` | ✅ **closed** — Girsanov content isolated to the explicit `hCM` edge |
 | Birkhoff–Hopf contraction | ✅ **proved twice**, by two independent routes |
@@ -75,7 +75,7 @@ These are the strong-duality and continuum capstones. Re-verified against the pi
 | Edge | Where | Status |
 |---|---|---|
 | ~~`hbddP`~~ | all four strong-duality thms | ✅ **DELETED (2026-07-10).** A function bounded above has bounded-above expectations, and a dual over `lam ≥ 0` already asserts `BddAbove (Set.range V)` as its `lam = 0` conjugate. `ForMathlib.OT.DroValue`. Four remain, only on worst-case-*structure* theorems (GK cor1/cor2ii, MEK), which carry no boundedness hypothesis to derive from. |
-| `hSinkAll` | `WangGaoXie2023.strong_duality` | ⚠ **Blocked by a statement wart, not by mathematics.** `sinkhornBall` is hard-wired to `‖x−y‖²` while that theorem quantifies over a free `c`, so for `c ≠ ‖·‖²` the edge couples a quadratic ball to a `c`-budget and its premises are not jointly satisfiable (AGENTS.md §6). **Fix first:** parametrize `sinkhornObjective(ENN)`/`Wkappa`/`sinkhornBall` by `c` (Wang–Gao–Xie Def 1 is stated for general `c`); `couplingCostENN` is already general, and the bridge lemmas need `0 ≤ c` + `Measurable (fun z => c z.1 z.2)` instead of the quadratic's typeclass positivity. *Then* `exists_isSinkhornPlan_of_mem_sinkhornBall` + `hasSinkhornDisintegration_of_isSinkhornPlan` discharge it — but the latter must first move below `WangGaoXie2023` in the import graph. |
+| `hSinkAll` | `WangGaoXie2023.strong_duality` | ⚠ The **cost wart is fixed** (2026-07-10): the Sinkhorn layer is now parametrized by `c`, so the ball and the budget speak the same cost. Discharging `hSinkAll` itself still needs `Drsb.hasSinkhornDisintegration_of_isSinkhornPlan` moved *below* `WangGaoXie2023` in the import graph (it presently sits above). Mechanical. |
 | `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
 | `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
 

@@ -275,21 +275,23 @@ A reader should never have to reason about which of two adjacent statements is c
   exception: `condKernel` is a Markov kernel on the nose.) Proofs then need
   `integral_mono_ae`, not `integral_mono`. This is what had kept
   `WangGaoXie2023.sinkhorn_weak_duality_kernel` from consuming a real disintegration.
-- **⚠ STATEMENT WART (open): the Sinkhorn ball is hard-wired to `‖x−y‖²`, but
-  `WangGaoXie2023.strong_duality` quantifies over its own cost `c`.** `sinkhornBall` →
-  `Wkappa` → `sinkhornObjectiveENN` → `couplingCost2ENN` is quadratic, while that theorem's
-  `hSinkAll` states the disintegrated budget in terms of a *free* `c`. For `c ≠ ‖·‖²` the
-  hypothesis therefore couples a quadratic ball to a `c`-budget, and its premises are **not
-  jointly satisfiable in the real problem** — the §6 honesty test above. The theorem is not
-  unsound (everything is hypothesis-driven), but the edge is not honest.
-  **Fix:** parametrize `sinkhornObjective`, `sinkhornObjectiveENN`, `Wkappa` and `sinkhornBall`
-  by `c` (Wang–Gao–Xie Definition 1 states the ball for a general cost), and have `Drsb`
-  instantiate `c := sqCost`. `couplingCostENN` is already general; the bridge lemmas
-  (`couplingCost_eq_toReal`, `integrable_of_couplingCostENN_ne_top`) then need
-  `hc : ∀ x y, 0 ≤ c x y` and `Measurable fun z => c z.1 z.2` in place of the quadratic's
-  typeclass-derived positivity/measurability. Discharging WGX's `hSinkAll` additionally needs
-  `Drsb.hasSinkhornDisintegration_of_isSinkhornPlan` moved below `WangGaoXie2023` in the
-  import graph, since it currently lives above it.
+- **State the Kantorovich layer between TWO spaces, with no algebra.** `couplings`,
+  `couplingCost`, `couplingCostENN`, `otCost`, `prodMeasure`, `sinkhornObjective(ENN)`,
+  `Wkappa`, `sinkhornBall` and both Lagrangian kernels take `c : α → β → ℝ` over
+  `[MeasurableSpace α] [MeasurableSpace β]`. Nothing in them refers to a norm, to
+  subtraction, or to `α = β`; only `couplingCost2`/`W2sq`/`wassersteinBall` do, and they
+  live in their own `section Quadratic`. Keep it that way — an API tied to one normed
+  space is unusable outside this project, and Mathlib will reject it.
+  *(A cost hard-wired into a ball is also a correctness trap, not just an aesthetic one:
+  `sinkhornBall` used to fix `‖x−y‖²` while `WangGaoXie2023.strong_duality` quantified over
+  its own `c`, so `hSinkAll` coupled a quadratic ball to a `c`-budget — premises not jointly
+  satisfiable, failing the §6 honesty test above. Fixed 2026-07-10 by parametrizing.)*
+- **Finiteness of an `ℝ≥0∞` quantity IS integrability.** `IsSinkhornPlan.integrable_cost` is a
+  derived *field*, not a hypothesis: `couplingCostENN` has no bad branch, so
+  `couplingCostENN c γ ≠ ⊤` gives `Integrable (fun z => c z.1 z.2) γ` outright
+  (`integrable_of_couplingCostENN_ne_top`). That is why `Drsb.sdrsb_cost_bound` needs **no
+  second moments**, while `wdrsb_cost_bound` still does — `otCost` is real-valued and must
+  exclude Bochner junk by hypothesis. The queued `otCost → ℝ≥0∞` refactor removes them too.
 - **No Mathlib SDE / path-measure theory.** `ChenGeorgiouPavon2021` captures the
   controlled dynamics via an abstract `structure` (`SBData`) with `grad`/`lap`/potentials
   as fields/hypotheses. This is expected; keep statements faithful and comment each

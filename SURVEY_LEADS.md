@@ -331,11 +331,25 @@ active — re-sweep before starting the corresponding chain, and again at PR-pre
 Ingredient (1), the converse Lagrangian bound, is **proved** and landed
 (`ForMathlib/OptimalTransport/SinkhornConverse.lean`). Two concrete gaps remain, both now named:
 
-1. **`klDiv_mix_ne_top`** (Lean gap, no known source). `klDiv (a•μ₁ + b•μ₂) ν ≠ ⊤` from
-   `klDiv μᵢ ν ≠ ⊤`. Mathlib has neither this nor the ENNReal-valued convexity
-   `klDiv (a•μ₁+b•μ₂) ν ≤ a·klDiv μ₁ ν + b·klDiv μ₂ ν` it would follow from. Route: joint convexity
-   of `x ↦ x log x` on the Radon–Nikodym derivatives, or `fDiv` convexity if Mathlib grows it.
-   Our `toReal_klDiv_mix_le` is *not* enough — it takes the mixture's finiteness as a hypothesis.
+1. **`klDiv_mix_le`, the ℝ≥0∞-valued convexity of `klDiv`** (Lean gap; **route verified to exist**).
+   Mathlib lacks `klDiv (a•μ₁ + b•μ₂) ν ≤ a·klDiv μ₁ ν + b·klDiv μ₂ ν`, but both ingredients of the
+   standard proof are present:
+
+   * `InformationTheory.klDiv_eq_lintegral_klFun_of_ac (h_ac : μ ≪ ν)` —
+     `klDiv μ ν = ∫⁻ x, ENNReal.ofReal (klFun (μ.rnDeriv ν x).toReal) ∂ν`;
+   * `InformationTheory.convexOn_klFun : ConvexOn ℝ (Ici 0) klFun`  (`klFun x = x log x − x + 1`).
+
+   So: push the mixture's Radon–Nikodym derivative through `Measure.rnDeriv_add` /
+   `rnDeriv_smul_left`, apply `convexOn_klFun` pointwise on the `toReal`'d derivatives, and integrate
+   (`lintegral_add`, `ofReal_add` — `klFun ≥ 0`, so `ofReal` is additive here). This is strictly
+   stronger than our `toReal_klDiv_mix_le`, which takes the mixture's finiteness as a *hypothesis*:
+   the ℝ≥0∞ form yields `klDiv_mix_ne_top` for free, and `toReal_klDiv_mix_le` becomes its corollary.
+   Upstreamable on its own — Mathlib has `klDiv_smul_same` and `klDiv_smul_right_eq_smul_left` but no
+   convexity in the first argument, in either ℝ or ℝ≥0∞.
+
+   Estimated shape, not effort: the a.e.-rewriting of `rnDeriv` through a `ℝ≥0∞`-scalar mixture is
+   the fiddly part. I am not predicting how long it takes; see this file's sibling note in
+   JOURNAL.md on my record at that.
 
 2. **A Slater (strict-feasibility) hypothesis** for the entropic ball. Unlike the Wasserstein cost,
    the Sinkhorn objective `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)` has no zero, so `ε` interior to the value

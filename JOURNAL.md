@@ -964,3 +964,76 @@ Upstreaming candidates, in dependency order: `finiteHilbertProjectiveLogSpread` 
 `positive_kernel_birkhoff_hopf_contraction` (the Doeblin proof is short and self-contained) →
 `matrix_scaling_exists`. Already queued from earlier passes: `toReal_klDiv_map_le` and
 `exists_measurableEmbedding_nat_of_separating`.
+
+---
+
+# Session journal — deleting the OT-attainment edge (2026-07-10, Claude Opus 4.8)
+
+**Goal:** complete the DRSB card claims with a minimal assumption surface.
+
+## What the audit found
+
+`Drsb.wdrsb_cost_bound` carried `hOT`: "the constraint `W₂²(μ,p₀) ≤ ε` is witnessed by a coupling of
+cost `≤ ε` with integrable cost." It was documented as *the* T4 optimal-transport seam, stated as an
+honest hypothesis. It was neither honest nor necessary — it was two separate claims glued together,
+and **both are theorems**:
+
+1. **Attainment was never used.** `W2sq` is an `sInf`. An `sInf ≤ ε` produces a plan of cost
+   `< ε + η` for every `η > 0`, and *never* one of cost `≤ ε` — demanding the latter is demanding a
+   minimizer, i.e. the attainment theorem, which is false without compactness/l.s.c. But the
+   Lagrangian kernel bound `𝔼_μ[V] ≤ 𝔼_{p₀}[Lc λ] + λ·𝔼_π[c]` run at `ε + η`, followed by
+   `le_of_forall_pos_le_add`, gives the *exact* conclusion. The card's `≤` half never touched T4.
+2. **Integrability was not an assumption.** `‖x − y‖² ≤ 2‖x‖² + 2‖y‖²`, and each square-norm is read
+   off a marginal by `integrable_map_measure`. So finite second moments of `μ` and `p₀` make **every**
+   coupling's cost integrable.
+
+So `hOT` is deleted. Replacing it: `HasSecondMoment μ`, `HasSecondMoment p₀`.
+
+## The receipt
+
+"We weakened the assumptions" is a claim, and claims get proved here. `wdrsb_cost_bound_of_ot_edge`
+derives the card bound *from the old hypothesis set*, via the new converse lemma
+`integrable_normSq_of_mem_couplings_of_integrable_cost` (one integrable-cost plan transfers a second
+moment across, `‖x‖² ≤ 2‖x−y‖² + 2‖y‖²`). Hence `{hOT, hp2} ⊢ {hμ2, hp2}`; the converse fails, since
+no moment condition manufactures a minimizer. `sdrsb_cost_bound_of_attained_witness` is the same
+receipt on the entropic side. Both are axiom-clean.
+
+## Why the moment hypotheses are not bookkeeping
+
+`couplingCost` is a **Bochner** integral: non-integrable cost silently evaluates to `0`. So if `p₀`
+has a second moment and `μ` does not, *no* coupling of the two has integrable cost, every one of them
+contributes `0` to the infimum, and `W₂²(μ,p₀) = 0 ≤ ε` — such a `μ` lies in `wassersteinBall p₀ ε`
+for **every** radius. Ball membership, on its own, constrains nothing. `hμ2` is exactly what excludes
+that degenerate membership. `klReal = (klDiv …).toReal` gives `sinkhornBall` the identical pathology.
+Recorded as a gotcha in AGENTS.md §6 — it is a trap for every future theorem quantifying over a ball.
+
+## Also landed
+
+- `wdrsb_strong_duality` additionally **discharges** `hfeas`: the diagonal coupling has zero cost, so
+  `W₂²(p₀,p₀) ≤ 0 ≤ ε` and the nominal is always in its own ball. Its `hOT` is discharged too. What
+  remains assumed is exactly the `≥`/worst-case-measure attainment (`hattain`, `hbddP`) — the real
+  T4 seam — plus regularity.
+- `sdrsb_cost_bound`'s edge is relaxed from an *attained* witness (budget `≤ ε`) to a **near-optimal**
+  one (`∀ η>0`, budget `≤ ε + η`), by the same `sInf` argument. The sprawling 12-conjunct hypothesis
+  is now the named `Drsb.IsSinkhornWitness p₀ ν V κ μ b`, with `.mono` in the budget. All attainment
+  content is gone from the SDRSB edge; what is left is disintegration + regularity.
+- New upstreamable module `ForMathlib/OptimalTransport/Coupling.lean`: `prodCoupling`/`diagCoupling`,
+  `couplings_nonempty`, `exists_coupling_couplingCost_lt`, the second-moment ⟹ cost-integrability
+  lemma and its converse, `W2sq_self_le_zero`, `mem_wassersteinBall_self`. Mathlib has no Kantorovich
+  layer, so all of it is a from-scratch contribution.
+
+## The frontier now
+
+The only edge left on the card path is `IsSinkhornWitness` — the entropic disintegration. It is no
+longer research-grade: Mathlib has the KL chain rule (`InformationTheory.klDiv_compProd_eq_add`), so
+on a `StandardBorelSpace` the witness is `γ.condKernel`. **The blocker is not the mathematics but a
+statement detail:** `IsSinkhornWitness` and `sinkhorn_weak_duality_kernel` demand `∀ x` (`P x ≪ ν`,
+integrability), while `condKernel` only ever gives `∀ᵐ x ∂p₀`. Weaken the kernel to a.e.
+(`integral_mono_ae` for `integral_mono`) *first*, or the disintegration cannot be plugged in at all.
+
+**General lesson, and the one worth carrying:** before writing an attainment edge, check whether
+`ε + η` suffices. It usually does, and the hypothesis then deletes outright rather than persisting as
+"honest debt."
+
+Everything `lake build` green; all card-path theorems and new lemmas
+`#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.

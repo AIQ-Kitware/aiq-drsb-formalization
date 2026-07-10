@@ -239,6 +239,23 @@ A reader should never have to reason about which of two adjacent statements is c
   header of `WangGaoXie2023/Basic.lean` and `prose/sinkhorn-dro-duality.md`.
 - **Esfahani–Kuhn uses the 1-Wasserstein metric** (unsquared `‖ξ−ξ̂‖`), whereas DRSB and
   Gao–Kleywegt use `W₂²`. Cost order differs; flagged in `MohajerinEsfahaniKuhn2018`.
+- **Bochner junk silently inflates the ambiguity balls.** `couplingCost` is `∫ c dπ` (a
+  *Bochner* integral) and `klReal` is `(klDiv …).toReal`. Both return `0` on the bad
+  branch — non-integrable cost, or `klDiv = ⊤`. So a `μ` of infinite second moment makes
+  *every* coupling cost evaluate to `0`, whence `W₂²(μ, p₀) = 0 ≤ ε` and `μ` lies in
+  `wassersteinBall p₀ ε` for **every** radius. Ball membership alone therefore constrains
+  nothing. Any theorem quantifying over a ball needs a moment/finiteness hypothesis to
+  exclude the junk members (`Drsb.HasSecondMoment`); `sinkhornBall` has the identical
+  pathology via `klReal`. Do not read `μ ∈ ball` as "`μ` is close to `p₀`".
+- **An `sInf` never hands you a minimizer.** `otCost`/`Wkappa` are infima, so `≤ ε` yields
+  a witness of cost `< ε + η` for each `η > 0`, not one of cost `≤ ε`. Assuming the latter
+  is assuming *attainment* — a research-grade theorem (T4). Almost always the `η ↓ 0` limit
+  (`le_of_forall_pos_le_add`) closes the goal and the attainment hypothesis can be deleted
+  outright; that is how `Drsb.wdrsb_cost_bound` lost its `hOT`. **Before writing an
+  attainment edge, check whether `ε + η` suffices.** When you do weaken an edge, leave a
+  machine-checked receipt that the old hypothesis implies the new one
+  (`wdrsb_cost_bound_of_ot_edge`, `sdrsb_cost_bound_of_attained_witness`) — otherwise
+  "we weakened the assumptions" is an unverified claim.
 - **No Mathlib SDE / path-measure theory.** `ChenGeorgiouPavon2021` captures the
   controlled dynamics via an abstract `structure` (`SBData`) with `grad`/`lap`/potentials
   as fields/hypotheses. This is expected; keep statements faithful and comment each

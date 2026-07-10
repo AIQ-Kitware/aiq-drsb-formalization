@@ -21,6 +21,8 @@
 | Mathlib | `e3b73828…` (2026-07-09), `inputRev = master` — **policy: track latest master** |
 | Open goals | **0** — the repo is `sorry`-free |
 | DRSB card claims | ✅ **proved** (`wdrsb_cost_bound`, `sdrsb_cost_bound`) |
+| WDRSB card assumption surface | ✅ **minimal** — the `hOT` attainment edge is **deleted**, not assumed |
+| SDRSB card assumption surface | ✅ attainment-free; one **disintegration** edge (`IsSinkhornWitness`) remains |
 | Strong duality (all four) | ✅ **proved**, each `le_antisymm(weak, one explicit attainment edge)` |
 | `energy_identity` | ✅ **closed** — Girsanov content isolated to the explicit `hCM` edge |
 | Birkhoff–Hopf contraction | ✅ **proved twice**, by two independent routes |
@@ -32,9 +34,55 @@ no `sorryAx`). ⚠️ `lake env lean <file>` typechecks source but `#print axiom
 
 ---
 
-## CURRENT FRONTIER (2026-07-10) — there isn't one
+## CURRENT FRONTIER (2026-07-10) — the SDRSB disintegration edge
 
-The projective-metric frontier is closed. The finite Birkhoff–Hopf contraction theorem, which the
+The WDRSB card claim now stands on **zero** optimal-transport hypotheses (see
+§ "The card claims' assumption surface" below). The one remaining edge anywhere on the card path is
+`Drsb.IsSinkhornWitness`: the entropic disintegration `γ = p₀ ⊗ₘ P`. It is now reducible rather than
+research-grade, because Mathlib gained the KL chain rule
+(`InformationTheory.klDiv_compProd_eq_add`). Closing it needs, in order:
+
+1. `[StandardBorelSpace X] [Nonempty X]`, then `γ.condKernel` and `Measure.compProd_fst_condKernel`
+   supply `P` with `γ.fst = p₀` — this is the disintegration.
+2. `Measure.integral_compProd` turns `expect μ V` into `∫∫ V dP dp₀` (`μ = γ.snd`).
+3. `klDiv_compProd_eq_add` + `klDiv_self = 0` give `KL(γ ‖ p₀⊗ν) = ∫ KL(P x ‖ ν) dp₀`, the budget.
+4. **The real friction**: `IsSinkhornWitness` and `sinkhorn_weak_duality_kernel` demand `∀ x`
+   (`P x ≪ ν`, integrability). `condKernel` only ever gives these `∀ᵐ x ∂p₀`. Weakening the kernel's
+   hypotheses to a.e. (`integral_mono_ae` in place of `integral_mono`) is a prerequisite, and should
+   be done *first* — otherwise the disintegration cannot be plugged in at all.
+5. `klReal` is `toReal`, so absolute continuity / finiteness must be assumed or derived; a `γ` not
+   `≪ p₀⊗ν` has `klReal = 0` (junk), so the Sinkhorn ball has the same junk-membership pathology the
+   Wasserstein ball had — see the Bochner-junk gotcha in AGENTS.md §6.
+
+## The card claims' assumption surface
+
+`wdrsb_cost_bound` used to assume `hOT`: that `W₂²(μ,p₀) ≤ ε` is witnessed by a coupling of cost
+`≤ ε` with integrable cost. **Both halves of that were theorems, and it is now deleted.**
+
+- *Attainment was never needed.* `W₂²` is defined as an `sInf`, so it yields a plan of cost `< ε + η`
+  for every `η > 0` and **never** one of cost `≤ ε` — that is the attainment theorem, false without
+  compactness/lower-semicontinuity. Run the Lagrangian bound at `ε + η` and let `η ↓ 0`
+  (`le_of_forall_pos_le_add`). The card's `≤` half never touched the T4 seam.
+- *Integrability was not an assumption.* Finite second moments of the marginals force **every**
+  coupling's quadratic cost to be integrable (`‖x−y‖² ≤ 2‖x‖² + 2‖y‖²`).
+
+What replaced it: `HasSecondMoment μ` and `HasSecondMoment p₀`. These are **strictly weaker**, and
+that is machine-checked, not asserted: `Drsb.wdrsb_cost_bound_of_ot_edge` derives the card bound from
+the *old* hypothesis set, using `integrable_normSq_of_mem_couplings_of_integrable_cost` to get `hμ2`
+out of `hOT` + `hp2`. The converse fails — no moment condition manufactures a minimizer.
+`sdrsb_cost_bound_of_attained_witness` is the same receipt on the entropic side.
+
+`wdrsb_strong_duality` additionally now **discharges** `hfeas` (the diagonal coupling gives
+`W₂²(p₀,p₀) ≤ 0 ≤ ε`) and `hOT`. Its surviving edges are exactly the `≥`/worst-case-measure
+attainment (`hattain`, `hbddP`) — the genuine T4 seam — plus regularity.
+
+New reusable layer: `ForMathlib/OptimalTransport/Coupling.lean` (product & diagonal couplings,
+`couplings_nonempty`, near-optimal plan extraction, second-moment ⟹ cost-integrability and its
+converse). Mathlib has no Kantorovich layer at all, so all of it is upstreamable.
+
+## The projective-metric frontier — closed
+
+The finite Birkhoff–Hopf contraction theorem, which the
 2026-07-10 survey found **exists nowhere in Lean** (`SURVEY_LEADS.md` § Projective-metric frontier),
 is now proved here from scratch — and proved *twice*, deliberately.
 

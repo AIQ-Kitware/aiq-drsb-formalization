@@ -17,6 +17,10 @@ One file per proposed Mathlib destination area:
   Euler–Maruyama discrete energy identity built on it.
 * `ForMathlib.OptimalTransport.Basic` — the shared OT / DRO vocabulary (couplings,
   transport cost, Wasserstein-2 and Sinkhorn ambiguity balls, KL, DRO worst-case).
+* `ForMathlib.OptimalTransport.Coupling` — coupling existence (product / diagonal plans),
+  extraction of near-optimal plans from the `otCost` infimum, and "finite second moments
+  ⟹ every coupling has integrable quadratic cost". These are what let the DRSB
+  Wasserstein cost bound drop its OT-*attainment* hypothesis.
 * `ForMathlib.OptimalTransport.WeakDuality` — the per-coupling Lagrangian bound (the
   always-true `≤` half of OT-DRO duality). STAGING (placeholder); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
@@ -39,6 +43,7 @@ import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.MeasureTheory.GaussianEntropy
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.Coupling
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling

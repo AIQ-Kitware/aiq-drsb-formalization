@@ -1,192 +1,797 @@
 \input{preamble}
-\title{Generalized Schr\"odinger Bridge Matching}
+\title{Modernized Proof Reconstruction of Generalized Schr\"odinger Bridge Matching}
 \author{}
 \date{Liu, Lipman, Nickel, Karrer, Theodorou, and Chen (2024)}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
-\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{liu-etal-2024_generalized-schrodinger-bridge-matching-GSBM__arXiv-2310.02233.pdf}}
-\item[Coverage] The two-stage GSBM construction, conditional stochastic-control bridge, path-integral representation, local convergence, and fixed-point characterization.
+\begin{sourceguide}
+\item[Primary source] Liu et al., arXiv:2310.02233v2 (ICLR 2024 source PDF).
+\item[Coverage] The mathematical development behind the GSBM alternating scheme: the fixed-marginal matching problem, conditional stochastic control, the quadratic closed form, path-integral reweighting, monotonicity, the fixed-point theorem, and the Appendix C derivations.
 \item[Source anchors]
 \begin{itemize}[leftmargin=2em]
-  \item Section 3
-  \item Propositions 1--2
-  \item Lemma 3
-  \item Proposition 4
-  \item Theorems 5--6
-  \item Appendix A proofs
+  \item equations (1)--(11) and Section 3;
+  \item Propositions 1--2, Lemma 3, Proposition 4, Theorems 5--6;
+  \item Appendix B, equations (17)--(28);
+  \item Appendix C.1, Lemma 7 and equations (29)--(30);
+  \item Appendix C.2, equations (31)--(33);
+  \item Appendix C.3, equations (34)--(35).
 \end{itemize}
-\end{description}
+\end{sourceguide}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+The exposition follows the source order and keeps the paper's proof devices.  In
+particular, the conditional-control decomposition is proved by disintegration and
+Fubini, the quadratic bridge is obtained from a cited killed-diffusion formula and
+linear SDE calculations, and the path-integral formula is obtained by changing the
+reference path law with Girsanov.  Later mathematical sources used to make omitted
+steps explicit are cited at the point of use.
 
-\section{The generalized bridge problem}
-Consider controlled diffusions on $[0,1]$,
-\[
- dX_t=u_t(X_t)\,dt+\sigma\,dW_t,
- \qquad X_0\sim\mu, X_1\sim\nu,
-\]
-with time marginals $p_t$.  The generalized Schr\"odinger bridge problem is
-\begin{equation}\label{eq:GSBM-main}
- \inf_u\int_0^1
- \E_{p_t}\left[\frac12\|u_t(X_t)\|^2+V_t(X_t)\right]dt
+\section{The generalized Schr\"odinger bridge problem}
+Let $(X_t)_{0\le t\le1}$ solve
+\begin{equation}
+  dX_t=u_t(X_t)\,dt+\sigma\,dW_t,
+  \qquad X_0\sim\mu,
+  \qquad X_1\sim\nu,
+  \tag{1}\label{eq:gsbm-sde}
 \end{equation}
-subject to the Fokker--Planck equation
-\[
- \partial_t p_t=-\nabla\cdot(p_tu_t)+\frac{\sigma^2}{2}\Delta p_t,
- \qquad p_0=\mu, p_1=\nu.
-\]
-The state cost $V_t$ may encode geometry, interactions, obstacles, or rewards.  When $V_t=0$ this
-reduces to the classical Schr\"odinger bridge kinetic-energy problem.
+with $\sigma\ge0$.  Its time marginal density $p_t$ is required to satisfy
+\begin{equation}
+  \partial_t p_t(x)
+  =-\nabla\!\cdot\bigl(u_t(x)p_t(x)\bigr)
+   +\frac{\sigma^2}{2}\Delta p_t(x),
+  \qquad p_0=\mu,
+  \qquad p_1=\nu.
+  \tag{2}\label{eq:gsbm-fpe}
+\end{equation}
+Given a state cost $V_t:\R^d\to\R$, the generalized Schr\"odinger bridge
+problem is
+\begin{equation}
+  \inf_{(p,u)}
+  \int_0^1\int_{\R^d}
+  \left(\frac12\|u_t(x)\|^2+V_t(x)\right)p_t(x)\,dx\,dt
+  \quad\text{subject to \eqref{eq:gsbm-fpe}.}
+  \tag{3}\label{eq:gsbm-main}
+\end{equation}
+When $V_t\equiv0$, this is the usual kinetic-action formulation of the
+Schr\"odinger bridge.  The new point is that the interior marginal path is no
+longer prescribed: it must be optimized jointly with the drift.
 
-\section{Stage 1: minimizing over drifts at fixed marginals}
-Fix a smooth positive probability path $(p_t)_{0\le t\le1}$.  Among all vector fields producing this
-path through the Fokker--Planck equation, the kinetic energy is uniquely minimized by a gradient
-field $u_t^*=\nabla s_t^*$.  The potential is characterized variationally by the entropic action
-functional
-\[
- \mathcal L_{\rm implicit}(s)
- =\E_\mu[s_0(X_0)]-E_\nu[s_1(X_1)]
- +\int_0^1\E_{p_t}
- \left[\partial_ts_t+\frac12\|\nabla s_t\|^2
-        +\frac{\sigma^2}{2}\Delta s_t\right]dt.
-\]
-Integration by parts using the Fokker--Planck equation shows
-\[
- \mathcal L_{\rm implicit}(s)-\mathcal L_{\rm implicit}(s^*)
- =\frac12\int_0^1\E_{p_t}
-   \|\nabla s_t-
-     \nabla s_t^*\|^2dt.
-\]
-The state-cost term in \eqref{eq:GSBM-main} is constant while $p_t$ is fixed, so this same gradient
-field is the unique Stage-1 minimizer of the full generalized objective.
+\section{Matching a prescribed marginal path}
+The paper first recalls two matching procedures for a fixed smooth positive
+probability path $(p_t)_{0\le t\le1}$.
 
-If the prescribed path is represented as a mixture of endpoint-conditioned paths
-$p_t=\int p_{0,1}(dx_0,dx_1)p_{t\mid0,1}(\cdot\mid x_0,x_1)$ with conditional drift
-$u_{t\mid0,1}$, then the explicit matching objective
+\subsection{Implicit matching}
+For a scalar potential $s_t(x)$, define
+\begin{equation}
+\begin{split}
+  \mathcal L_{\mathrm{implicit}}(s)
+  :=&\;\E_{\mu}[s_0(X_0)]-\E_{\nu}[s_1(X_1)]\\
+   &+\int_0^1\E_{p_t}\left[
+      \partial_t s_t(X_t)
+      +\frac12\|\nabla s_t(X_t)\|^2
+      +\frac{\sigma^2}{2}\Delta s_t(X_t)
+   \right]dt.
+\end{split}
+\tag{4}\label{eq:gsbm-implicit}
+\end{equation}
+Assume $u_t$ is any drift generating $p_t$.  Multiply the Fokker--Planck
+equation by $s_t$, integrate in $x$ and $t$, and integrate by parts.  Boundary
+terms in time give
 \[
- \mathcal L_{\rm explicit}(u)
- =\frac12\int_0^1\E
- \|u_t(X_t)-u_{t\mid0,1}(X_t\mid X_0,X_1)\|^2dt
+  \E_{\nu}[s_1]-\E_{\mu}[s_0]
+  =\int_0^1\E_{p_t}\left[
+    \partial_t s_t+u_t\cdot\nabla s_t
+    +\frac{\sigma^2}{2}\Delta s_t
+  \right]dt.
 \]
-is minimized by the conditional expectation of the bridge drift given $X_t$.  This Markovian
-projection produces the same marginal path.
+Substituting into \eqref{eq:gsbm-implicit} yields
+\[
+  \mathcal L_{\mathrm{implicit}}(s)
+  =\int_0^1\E_{p_t}\left[
+    \frac12\|\nabla s_t\|^2-u_t\cdot\nabla s_t
+  \right]dt.
+\]
+If $u_t^*=\nabla s_t^*$ is the gradient drift of least kinetic energy among all
+drifts producing $p_t$, then the weighted Helmholtz decomposition gives
+\[
+  u_t=u_t^*+w_t,
+  \qquad
+  \nabla\!\cdot(p_t w_t)=0,
+\]
+and hence
+\[
+  \int p_t w_t\cdot\nabla s_t\,dx=0.
+\]
+Completing the square gives
+\begin{equation}
+  \mathcal L_{\mathrm{implicit}}(s)
+  -\mathcal L_{\mathrm{implicit}}(s^*)
+  =\frac12\int_0^1\E_{p_t}
+    \|\nabla s_t-\nabla s_t^*\|^2dt.
+  \tag{4a}\label{eq:gsbm-implicit-square}
+\end{equation}
+Thus the minimizer is the unique gradient representative.  This is the
+variational fact used in Proposition 1.  The weighted decomposition is the
+modern form of the argument; see Ambrosio--Gigli--Savar\'e
+\cite{AmbrosioGigliSavare2008} and the action-matching discussion cited by the
+paper \cite{NeklyudovEtAl2023}.
 
-\section{Stage 2: conditional stochastic optimal control}
-Now fix the endpoint coupling $p_{0,1}$ induced by the current diffusion and optimize the interior
-marginals.  Disintegration and Fubini give
+\subsection{Explicit matching}
+Suppose the prescribed path is represented as a mixture of endpoint-conditioned
+paths:
 \[
- \mathcal J(u)
- =\int p_{0,1}(dx_0,dx_1)
- \int_0^1\E_{p_{t\mid0,1}}
- \left[\frac12\|u_{t\mid0,1}(X_t)\|^2+V_t(X_t)\right]dt.
+  p_t(x)=\int p_{t\mid0,1}(x\mid x_0,x_1)
+  \,p_{0,1}(dx_0,dx_1).
 \]
-The endpoint pairs do not interact in this expression.  Therefore Stage 2 factorizes into independent
-conditional control problems:
-\begin{equation}\label{eq:GSBM-condSOC}
+Assume each conditional path is generated by
+\[
+  dX_t=u_t(X_t\mid x_0,x_1)dt+\sigma dW_t.
+\]
+The paper's explicit regression loss is
+\begin{equation}
+  \mathcal L_{\mathrm{explicit}}(\theta)
+  :=\int_0^1\E_{p_{0,1}}
+    \E_{p_{t\mid0,1}}
+    \left[\frac12
+      \|u_t^\theta(X_t)-u_t(X_t\mid x_0,x_1)\|^2
+    \right]dt.
+  \tag{5}\label{eq:gsbm-explicit}
+\end{equation}
+Its pointwise regression minimizer is the conditional expectation of the
+conditional drift given $X_t=x$.  Appendix C.1 proves that this projected drift
+has the same Fokker--Planck marginals; the full calculation is reconstructed in
+Section \ref{sec:gsbm-lemma7} below.
+
+\section{The alternating GSBM decomposition}
+The algorithm alternates between two exact mathematical subproblems.
+
+\begin{proposition}[Proposition 1: Stage 1]
+Fix the marginal path $(p_t)$.  The unique Stage-1 minimizer of
+\eqref{eq:gsbm-main} is the gradient drift $\nabla s_t^*$ returned by implicit
+matching.
+\end{proposition}
+
+\begin{proof}
+For fixed $p_t$, the state-cost term
+\[
+  \int_0^1\E_{p_t}[V_t(X_t)]dt
+\]
+is constant in $u$.  Stage 1 therefore minimizes only the kinetic term among
+drifts satisfying the fixed Fokker--Planck equation.  Equation
+\eqref{eq:gsbm-implicit-square} identifies its unique gradient minimizer.
+This is exactly the one-line argument printed in Appendix B.
+\end{proof}
+
+\subsection{Stage 2 as conditional stochastic control}
+Let $p_{0,1}^\theta$ be the endpoint coupling induced by the current drift.  Stage
+2 fixes this coupling and varies the conditional interior laws.
+
+\begin{proposition}[Proposition 2: conditional SOC]
+Suppose
+\[
+  p_t(x)=\int p_{t\mid0,1}(x\mid x_0,x_1)
+  \,p_{0,1}^\theta(dx_0,dx_1).
+\]
+With $p_{0,1}^\theta$ fixed, Stage 2 decomposes into independent endpoint-pinned
+control problems
+\begin{equation}
 \begin{aligned}
- \inf_{u_{\cdot\mid0,1}}\quad&
- \int_0^1\E
- \left[\frac12\|u_t(X_t\mid x_0,x_1)\|^2+V_t(X_t)
-\right]dt,\\
- \text{s.t.}\quad&
- dX_t=u_t(X_t\mid x_0,x_1)dt+\sigma\,dW_t,
- \qquad X_0=x_0, X_1=x_1.
+  \inf_{u_{\cdot\mid0,1}}
+  \quad&\int_0^1
+  \E_{p_{t\mid0,1}}
+  \left[\frac12\|u_t(X_t\mid x_0,x_1)\|^2+V_t(X_t)\right]dt,\\
+  \text{subject to}\quad&
+  dX_t=u_t(X_t\mid x_0,x_1)dt+\sigma dW_t,\\
+  &X_0=x_0,\qquad X_1=x_1.
 \end{aligned}
+\tag{6}\label{eq:gsbm-cond-soc}
 \end{equation}
-Integrating the optimal conditional laws against $p_{0,1}$ yields the next marginal path.  This is the
-mathematical basis of the alternating scheme.
+\end{proposition}
 
-\section{Quadratic state cost}
-Let $V(x)=\alpha\|\sigma x\|^2$ with $\alpha,\sigma>0$ and put
-$\eta=\sigma\sqrt{2\alpha}$.  The solution of \eqref{eq:GSBM-condSOC} is a Gaussian bridge
+\begin{proof}
+Start from the objective in \eqref{eq:gsbm-main}.  By the law of total
+expectation and Fubini,
+\begin{align*}
+ &\int_0^1\E_{p_t}
+   \left[\frac12\|u_t\|^2+V_t\right]dt\\
+ &=\int_0^1\E_{p_{0,1}^\theta}
+   \E_{p_{t\mid0,1}}
+   \left[\frac12\|u_t\|^2+V_t\right]dt\\
+ &=\E_{p_{0,1}^\theta}
+   \left[
+     \int_0^1\E_{p_{t\mid0,1}}
+     \left[\frac12\|u_t\|^2+V_t\right]dt
+   \right].
+\end{align*}
+Because the mixing law is fixed, the outer expectation separates the endpoint
+pairs.
+
+The same disintegration is applied term by term to the Fokker--Planck equation.
+Under the regularity assumptions invoked in the paper
+\cite{Anderson1982,YongZhou1999}, differentiation and integration may be
+interchanged:
 \[
- X_t^*\sim\mathcal N(c_tx_0+e_tx_1,gamma_t^2I),
+  \partial_t p_t
+  =\E_{p_{0,1}^\theta}[\partial_t p_{t\mid0,1}],
+\]
+\[
+  \nabla\!\cdot(u_t p_t)
+  =\E_{p_{0,1}^\theta}
+    [\nabla\!\cdot(u_t p_{t\mid0,1})],
+\]
+and
+\[
+  \Delta p_t
+  =\E_{p_{0,1}^\theta}[\Delta p_{t\mid0,1}].
+\]
+The endpoint laws disintegrate as
+\[
+  p_0=\E_{p_{0,1}^\theta}[\delta_{x_0}],
+  \qquad
+  p_1=\E_{p_{0,1}^\theta}[\delta_{x_1}].
+\]
+Therefore each conditional component is required to satisfy
+\[
+  \partial_t p_{t\mid0,1}
+  =-\nabla\!\cdot(u_t p_{t\mid0,1})
+   +\frac{\sigma^2}{2}\Delta p_{t\mid0,1},
+  \qquad
+  p_{0\mid0,1}=\delta_{x_0},
+  \quad
+  p_{1\mid0,1}=\delta_{x_1},
+\]
+which is the Fokker--Planck form of \eqref{eq:gsbm-cond-soc}.
+\end{proof}
+
+\begin{remark}[Coefficient dropped in the printed Appendix B line]
+After correctly decomposing equation (17b), the paper's final displayed
+conditional Fokker--Planck equation prints $+\Delta p_{t\mid0,1}$ rather than
+$+(\sigma^2/2)\Delta p_{t\mid0,1}$.  The SDE in (6b), the preceding lines, and
+all later formulas retain $\sigma$, so this is a typographical omission rather
+than a change of model.
+\end{remark}
+
+\section{HJB and Hopf--Cole representation}
+The paper states that the optimal conditional control has gradient form
+\[
+  u_t^*(x\mid x_0,x_1)=\sigma^2\nabla\log\Psi_t(x\mid x_1).
+\]
+Its displayed equation (18) is
+\begin{equation}
+  \partial_t\Psi_t(x\mid x_1)
+  =-\frac{\sigma^2}{2}\Delta\Psi_t(x\mid x_1)
+   +V_t(x)\Psi_t(x\mid x_1),
+  \qquad
+  \Psi_1(x\mid x_1)=\delta_{x_1}(x).
+  \tag{18}\label{eq:gsbm-source-hopfcole}
+\end{equation}
+This is obtained from the HJB equation by an exponential transform.  With the
+unscaled running cost in \eqref{eq:gsbm-cond-soc}, the standard transform
+$\Psi=e^{-J/\sigma^2}$ produces a potential term $V_t/\sigma^2$ rather than
+$V_t$.  Equation \eqref{eq:gsbm-source-hopfcole} is therefore consistent if
+$V_t$ has already been rescaled by $\sigma^{-2}$; Proposition 4 later writes
+that scaling explicitly.  The source does not state this convention at equation
+(18), so both forms are recorded rather than silently identifying them.
+
+\section{Quadratic state cost: Lemma 3}
+Let
+\[
+  V(x)=\alpha\|\sigma x\|^2,
+  \qquad
+  \alpha>0,
+  \quad \sigma>0,
+  \qquad
+  \eta:=\sigma\sqrt{2\alpha}.
+\]
+
+\begin{lemma}[Lemma 3]
+The optimizer of \eqref{eq:gsbm-cond-soc} is Gaussian:
+\[
+  X_t^*\sim\mathcal N(c_t x_0+e_t x_1,\gamma_t^2 I_d),
 \]
 where
-\begin{align*}
- c_t&=\frac{\sinh(\eta(1-t))}{\sinh\eta},\\
- e_t&=\cosh(\eta(1-t))-c_t\cosh\eta,\\
- \gamma_t&=\sigma
- \sqrt{\frac{\sinh(\eta(1-t))}{\eta} e_t}.
-\end{align*}
-To derive this, solve the linear-quadratic Hamilton--Jacobi--Bellman equation with a terminal pinning
-condition.  A quadratic ansatz for the value function yields Riccati equations for its quadratic and
-linear coefficients.  Solving those equations gives the hyperbolic functions above; the covariance
-then follows from the associated linear diffusion.  The endpoint identities
-$c_0=1,e_0=0,gamma_0=0$ and $c_1=0,e_1=1,gamma_1=0$ verify the pinning.
-As $\alpha\downarrow0$, hyperbolic-function expansions give
-$c_t\to1-t$, $e_t\to t$, and $\gamma_t\to\sigma\sqrt{t(1-t)}$, the Brownian bridge.  Sending
-$\sigma\downarrow0$ further gives straight-line interpolation.
+\begin{align}
+  c_t&=\frac{\sinh(\eta(1-t))}{\sinh\eta},\label{eq:gsbm-ct}\\
+  e_t&=\cosh(\eta(1-t))-c_t\cosh\eta,\label{eq:gsbm-et}\\
+  \gamma_t&=\sigma
+  \sqrt{\frac{\sinh(\eta(1-t))}{\eta}e_t}.
+  \label{eq:gsbm-gammat}
+\end{align}
+As $\alpha\downarrow0$, these coefficients converge to those of the Brownian
+bridge; sending $\sigma\downarrow0$ afterward gives the straight line.
+\end{lemma}
 
-\section{Path-integral representation}
-Let $q(\cdot\mid x_0)$ be Brownian path measure with volatility $\sigma$ and initial point $x_0$.
-The terminal condition $X_1=x_1$ can be represented by the singular terminal cost
-$-\log\one_{\{x_1\}}(X_1)$.  The linearly solvable control identity gives the optimal path law
-\[
- p^*(d\bar X\mid x_0,x_1)
- \propto
- \exp\left(-\frac1{\sigma^2}\int_0^1V_t(X_t)dt\right)
- \one_{\{x_1\}}(X_1)q(d\bar X\mid x_0).
-\]
-To sample efficiently, choose any pinned proposal law
-$r(\cdot\mid x_0,x_1)\ll q(\cdot\mid x_0)$ generated by
-$dX_t=v_t(X_t)dt+\sigma\,dW_t$.  Girsanov's theorem gives
-\[
- \frac{dq}{dr}(\bar X)
- =\exp\left(-\int_0^1\frac{\|v_t(X_t)\|^2}{2\sigma^2}dt
-             -\int_0^1\frac{v_t(X_t)^\top}{\sigma}dW_t\right).
-\]
-Therefore
-\begin{equation}\label{eq:GSBM-path-integral}
- \frac{dp^*}{dr}(\bar X)
- =\frac1Z\exp\left[-\int_0^1
- \left(\frac{V_t(X_t)}{\sigma^2}
-       +\frac{\|v_t(X_t)\|^2}{2\sigma^2}
-       \right)dt
- -\int_0^1\frac{v_t(X_t)^\top}{\sigma}dW_t\right].
+\begin{proof}
+The source imports the conditioned killed-diffusion formula of
+Mazzolo--Monthus \cite[Eq.~(84)]{MazzoloMonthus2022}.  In the present notation,
+the optimal drift is
+\begin{equation}
+  u_t(x\mid x_0,x_1)
+  =\frac{\eta}{\sinh(\eta(1-t))}x_1
+   -\frac{\eta}{\tanh(\eta(1-t))}x.
+  \tag{19}\label{eq:gsbm-linear-drift}
 \end{equation}
-Thus an approximate conditional bridge can be corrected by importance weighting.  When $V=0$,
-the original formula reduces to Brownian motion conditioned on $X_1=x_1$.
-
-\section{Monotonicity of alternating minimization}
-Let $(p_t^n,u_t^n)$ be the feasible pair after the $n$th full iteration.  Stage 2 replaces each
-conditional law by a minimizer of \eqref{eq:GSBM-condSOC} while keeping the endpoint coupling
-$p_{0,1}^n$.  By Fubini,
+This is a linear SDE.  Its mean $\mu_t$ satisfies
 \[
- \mathcal J(p^n,u^n)
- \ge\mathcal J(p^{n+1},u^n).
+  \dot\mu_t
+  =\frac{\eta}{\sinh(\eta(1-t))}x_1
+   -\frac{\eta}{\tanh(\eta(1-t))}\mu_t.
 \]
-Stage 1 then chooses, among drifts with marginals $p_t^{n+1}$, the unique minimum-kinetic-energy
-drift.  Since the state-cost term depends only on the marginals,
+Let
 \[
- \mathcal J(p^{n+1},u^n)
- \ge\mathcal J(p^{n+1},u^{n+1}).
+  g_t:=\exp\left(
+    \int_0^t\frac{\eta}{\tanh(\eta(1-\tau))}\,d\tau
+  \right).
 \]
-Hence
+With $v_\tau=\sinh(\eta(1-\tau))$, the integral becomes a logarithmic
+derivative, giving
 \[
- \mathcal J(p^n,u^n)\ge\mathcal J(p^{n+1},u^{n+1}).
+  g_t=\frac{\sinh\eta}{\sinh(\eta(1-t))}.
 \]
-This is a local descent statement: exact execution of both stages never increases the generalized
-bridge objective.
+Variation of constants yields the source's equation (20):
+\[
+  \mu_t
+  =\frac{
+      x_1\int_0^t
+      \frac{\eta g_\tau}{\sinh(\eta(1-\tau))}\,d\tau+K
+    }{g_t}.
+\]
+The initial condition $\mu_0=x_0$ gives $K=x_0$.  Evaluating the integral and
+simplifying gives
+\[
+  \mu_t=c_t x_0+e_t x_1,
+\]
+with \eqref{eq:gsbm-ct}--\eqref{eq:gsbm-et}.
 
-\section{Global optimum as a fixed point}
-Let $(p_t^*,u_t^*)$ solve the generalized bridge problem.  Disintegrate its path law with respect to
-the optimal endpoint coupling.  The forward--backward stochastic representation of the optimality
-system shows that, for almost every endpoint pair, the conditional law solves
-\eqref{eq:GSBM-condSOC}; otherwise replacing that conditional component would lower the global
-objective.  Thus Stage 2 leaves $p^*$ unchanged.
+The covariance matrix $\Sigma_t$ obeys
+\[
+  \dot\Sigma_t
+  =-\frac{2\eta}{\tanh(\eta(1-t))}\Sigma_t+\sigma^2 I_d,
+  \qquad \Sigma_0=0.
+\]
+Applying the same integrating factor gives equation (22):
+\begin{align*}
+  \Sigma_t
+  &=\frac{\sigma^2}{\eta}
+  \sinh^2(\eta(1-t))
+  \bigl(\coth(\eta(1-t))-\coth\eta\bigr)I_d\\
+  &=\frac{\sigma^2}{\eta}
+  \sinh(\eta(1-t))e_t I_d.
+\end{align*}
+Thus $\Sigma_t=\gamma_t^2I_d$ with \eqref{eq:gsbm-gammat}.
 
-The global optimal drift is a gradient field.  Since Stage 1 returns the unique gradient drift of least
-kinetic energy compatible with $p_t^*$, implicit matching returns $u^*$.  The explicit matching
-operator is the reverse-KL Markovian projection of the reciprocal mixture of the optimal conditional
-bridges.  Because the globally optimal process is already Markov, this projection also returns
-$u^*$.  Therefore every global optimum is a fixed point of the exact alternating scheme.
+Finally, as $\eta\to0$,
+\[
+  c_t\to1-t,
+  \qquad
+  e_t\to t,
+  \qquad
+  \gamma_t\to\sigma\sqrt{t(1-t)},
+\]
+using the first-order expansions of $\sinh$ and $\cosh$.  These are the
+Brownian bridge coefficients.  If $\sigma\to0$ as well, the variance vanishes
+and the mean remains $(1-t)x_0+tx_1$.
+\end{proof}
+
+\section{Gaussian path approximation for general state costs}
+For nonlinear $V_t$, the paper approximates each conditional optimizer by a
+pinned isotropic Gaussian path
+\begin{equation}
+  p_t(\cdot\mid x_0,x_1)
+  \approx\mathcal N(\mu_t,\gamma_t^2I_d),
+  \quad
+  \mu_0=x_0,\ \mu_1=x_1,
+  \quad
+  \gamma_0=\gamma_1=0.
+  \tag{7}\label{eq:gsbm-gaussian-path}
+\end{equation}
+Writing
+\[
+  X_t=\mu_t+\gamma_t Z,
+  \qquad Z\sim\mathcal N(0,I_d),
+\]
+gives the deterministic probability-flow velocity
+\[
+  \partial_t\mu_t+\frac{\dot\gamma_t}{\gamma_t}(X_t-\mu_t)
+\]
+and the score
+\[
+  \nabla\log p_t(X_t)=-\frac{1}{\gamma_t^2}(X_t-\mu_t).
+\]
+Adding $(\sigma^2/2)$ times the score produces the conditional SDE drift
+\begin{equation}
+  u_t(X_t\mid x_0,x_1)
+  =\dot\mu_t+a_t(X_t-\mu_t),
+  \qquad
+  a_t:=\frac1{\gamma_t}
+  \left(\dot\gamma_t-\frac{\sigma^2}{2\gamma_t}\right).
+  \tag{8}\label{eq:gsbm-gaussian-drift}
+\end{equation}
+The paper parametrizes $\mu_t$ and $\gamma_t$ by splines and optimizes their
+control points by Monte Carlo evaluation of the conditional objective.  This is
+an approximation scheme, not an additional theorem about the exact optimizer.
+
+\section{Path-integral reweighting: Proposition 4}
+Let $q(d\bar X\mid x_0)$ denote Brownian path law with volatility $\sigma$ and
+initial condition $x_0$.  Let $r(d\bar X\mid x_0,x_1)$ be a pinned proposal
+associated with
+\[
+  dX_t=v_t(X_t)dt+\sigma dW_t,
+  \qquad X_0=x_0,
+  \quad X_1=x_1.
+\]
+
+\begin{proposition}[Proposition 4]
+Assuming the absolute-continuity relation used in the source, the optimal path
+law can be written
+\begin{equation}
+  p^*(d\bar X\mid x_0,x_1)
+  =\frac1Z\omega(\bar X\mid x_0,x_1)
+    r(d\bar X\mid x_0,x_1),
+  \tag{10}\label{eq:gsbm-pi-law}
+\end{equation}
+where
+\begin{equation}
+\begin{split}
+  \omega(\bar X\mid x_0,x_1)
+  :=\exp\Bigg(&-\int_0^1
+    \left[
+      \frac{V_t(X_t)}{\sigma^2}
+      +\frac{\|v_t(X_t)\|^2}{2\sigma^2}
+    \right]dt\\
+    &-\int_0^1\frac{v_t(X_t)^T}{\sigma}\,dW_t
+  \Bigg).
+\end{split}
+\tag{11}\label{eq:gsbm-pi-weight}
+\end{equation}
+\end{proposition}
+
+\begin{proof}
+The source enforces the terminal pinning by adding the singular cost
+$-\log\one_{\{x_1\}}(X_1)$ and dividing the whole objective by $\sigma^2$:
+\begin{align}
+  \inf_u\;&\int_0^1\E\left[
+    \frac{\|u_t\|^2}{2\sigma^2}
+    +\frac{V_t(X_t)}{\sigma^2}
+  \right]dt
+  -\E\log\one_{\{x_1\}}(X_1),
+  \tag{23a}\label{eq:gsbm-singular-cost}\\
+  &dX_t=u_t(X_t)dt+\sigma dW_t,
+  \qquad X_0=x_0.
+  \tag{23b}
+\end{align}
+The linearly solvable control identity of Kappen \cite{Kappen2005} gives
+\begin{equation}
+  p^*(d\bar X\mid x_0,x_1)
+  =\frac1{Z'}
+  \exp\left(-\int_0^1\frac{V_t(X_t)}{\sigma^2}dt\right)
+  \one_{\{x_1\}}(X_1)
+  q(d\bar X\mid x_0).
+  \tag{24}\label{eq:gsbm-source-pi}
+\end{equation}
+To avoid sampling an endpoint event of negligible probability, the source
+rebases \eqref{eq:gsbm-source-pi} to a pinned proposal $r$:
+\begin{equation}
+  p^*(d\bar X\mid x_0,x_1)
+  =\frac1Z
+  \exp\left(-\int_0^1\frac{V_t(X_t)}{\sigma^2}dt\right)
+  \frac{dq}{dr}(\bar X)
+  r(d\bar X\mid x_0,x_1).
+  \tag{25}\label{eq:gsbm-rebase}
+\end{equation}
+The information-theoretic control references cited by the paper are
+\cite{TheodorouBuchliSchaal2010,Theodorou2015}.  Girsanov's formula is then
+written as
+\begin{equation}
+  \frac{dq}{dr}(\bar X)
+  =\exp\left(
+    -\int_0^1\frac{\|v_t(X_t)\|^2}{2\sigma^2}dt
+    -\int_0^1\frac{v_t(X_t)^T}{\sigma}\,dW_t
+  \right).
+  \tag{26}\label{eq:gsbm-girsanov}
+\end{equation}
+Substituting \eqref{eq:gsbm-girsanov} into \eqref{eq:gsbm-rebase} gives
+\eqref{eq:gsbm-pi-law}--\eqref{eq:gsbm-pi-weight}.
+\end{proof}
+
+\begin{remark}[Pinned-path singularity in the source formulation]
+For a nondegenerate diffusion on $\R^d$, the event $X_1=x_1$ has probability
+zero under unconditioned Brownian path law.  Consequently
+$\one_{\{x_1\}}(X_1)$ and the assertion that an exactly pinned proposal is
+absolutely continuous with respect to unconditioned $q$ are formal shorthand.
+A rigorous version uses a Brownian bridge reference, a regular conditional law,
+or an approximating terminal density.  The reconstruction retains the source's
+indicator and Radon--Nikodym steps because those are the stated proof route,
+while making the singularity explicit.
+\end{remark}
+
+\section{Monotonicity of exact alternating optimization}
+Let $(p_t^{\theta_n},u_t^{\theta_n})$ be the result after $n$ iterations.  Write
+$p_{0,1}^{\theta_n}$ for its endpoint coupling and
+$p_{t\mid0,1}^{\theta_n}$ for its conditional law.  Let
+$p_{t\mid0,1}^*$ be the exact minimizer of the conditional problem.  Stage 2
+sets
+\begin{equation}
+  p_t^{\theta_{n+1}}
+  :=\int p_{t\mid0,1}^*(\cdot\mid x_0,x_1)
+  \,p_{0,1}^{\theta_n}(dx_0,dx_1).
+  \tag{27}\label{eq:gsbm-next-marginal}
+\end{equation}
+
+\begin{theorem}[Theorem 5: local descent]
+For exact Stage-1 and Stage-2 minimization,
+\[
+  \mathcal L(\theta_n)\ge\mathcal L(\theta_{n+1}).
+\]
+\end{theorem}
+
+\begin{proof}
+Disintegrate the $n$th objective:
+\begin{align*}
+  \mathcal L(\theta_n)
+  &=\int p_{0,1}^{\theta_n}(dx_0,dx_1)
+    \int_0^1\int
+    \left[
+      \frac12\|u_t^{\theta_n}\|^2+V_t
+    \right]
+    p_{t\mid0,1}^{\theta_n}(dx)dt.
+\end{align*}
+Conditional optimality in Stage 2 gives
+\begin{align*}
+  \mathcal L(\theta_n)
+  &\ge\int p_{0,1}^{\theta_n}(dx_0,dx_1)
+    \int_0^1\int
+    \left[
+      \frac12\|u_t^{\theta_n}\|^2+V_t
+    \right]
+    p_{t\mid0,1}^{*}(dx)dt\\
+  &=\int_0^1\int
+    \left[
+      \frac12\|u_t^{\theta_n}(x)\|^2+V_t(x)
+    \right]
+    p_t^{\theta_{n+1}}(x)\,dxdt,
+\end{align*}
+where the last line uses \eqref{eq:gsbm-next-marginal}.  Stage 1 then replaces
+$u^{\theta_n}$ by the minimum-kinetic-energy drift producing the new marginal
+path.  Since $V_t$ depends only on that path,
+\[
+  \int\frac12\|u_t^{\theta_n}\|^2p_t^{\theta_{n+1}}
+  \ge
+  \int\frac12\|u_t^{\theta_{n+1}}\|^2p_t^{\theta_{n+1}}.
+\]
+Adding the unchanged state cost and integrating gives
+\[
+  \mathcal L(\theta_n)\ge\mathcal L(\theta_{n+1}).
+\]
+This is the chain printed as equation (28).
+\end{proof}
+
+\begin{remark}[Meaning of ``local convergence'']
+The theorem proves monotonic nonincrease of objective values.  It does not by
+itself prove convergence of the iterates, convergence to a stationary point,
+or global optimality.  The source title ``Local convergence'' should therefore
+be read as a descent property for exact alternating minimization.
+\end{remark}
+
+\section{The optimum is a fixed point}
+\begin{theorem}[Theorem 6]
+Every optimal solution $(p_t^*,u_t^*)$ of the generalized bridge problem is a
+fixed point of the exact GSBM alternating scheme.
+\end{theorem}
+
+\begin{proof}
+Disintegrate the optimal path law over its endpoint coupling:
+\[
+  p_t^*(x)=\int p_{t\mid0,1}^*(x\mid x_0,x_1)
+  \,p_{0,1}^*(dx_0,dx_1).
+\]
+The proof has two source-stated steps.
+
+\paragraph{Step 1: conditional optimality.}
+The forward--backward SDE representation cited from Deep GSB
+\cite{LiuEtAl2022DeepGSB} says that, for $p_{0,1}^*$-almost every endpoint
+pair, the conditional optimal control satisfies the backward equation
+associated with the HJB problem \eqref{eq:gsbm-source-hopfcole}.  The source
+invokes uniqueness of that HJB/BSDE solution to conclude that
+$p_{t\mid0,1}^*$ solves the conditional problem \eqref{eq:gsbm-cond-soc}.
+Therefore Stage 2 leaves the optimal conditional mixture unchanged.
+
+\paragraph{Step 2: matching returns the optimal Markov drift.}
+The optimal drift $u_t^*$ is a gradient field in the cited GSB optimality
+system.  Implicit matching returns the unique gradient field compatible with
+$p_t^*$, so it returns $u_t^*$.  For explicit matching, the paper interprets
+\eqref{eq:gsbm-explicit} as the Markovian projection of the reciprocal mixture
+of endpoint bridges.  Since the mixture arising from the global optimum is
+already the Markov law generated by $u_t^*$, its closest Markovian projection
+is itself.  Hence explicit matching also returns $u_t^*$ at equilibrium.
+\end{proof}
+
+\begin{remark}[Dependence on external uniqueness results]
+Theorem 6 is not proved solely from the algebra in the paper.  Its first step
+uses the cited FBSDE representation and uniqueness of the conditional HJB/BSDE;
+its second uses the Markovian-projection interpretation developed in the
+Schr\"odinger bridge matching literature.  The reconstruction preserves this
+citation-dependent proof rather than replacing it by a new variational
+argument.
+\end{remark}
+
+\section{Appendix C.1: explicit matching preserves the marginals}
+\label{sec:gsbm-lemma7}
+\begin{lemma}[Lemma 7]
+Let
+\[
+  p_t(x)=\E_{p_{0,1}}
+  [p_{t\mid0,1}(x\mid X_0,X_1)]
+\]
+be a mixture of conditional diffusion paths.  Then the drift
+\begin{equation}
+  u_t^*(x)=
+  \frac{
+    \E_{p_{0,1}}
+    [u_t(x\mid X_0,X_1)p_{t\mid0,1}(x\mid X_0,X_1)]
+  }{p_t(x)}
+  \tag{29}\label{eq:gsbm-markov-projection}
+\end{equation}
+produces the marginal path $p_t$.
+\end{lemma}
+
+\begin{proof}
+Each conditional density satisfies
+\[
+  \partial_t p_{t\mid0,1}
+  =-\nabla\!\cdot(u_{t\mid0,1}p_{t\mid0,1})
+   +\frac{\sigma^2}{2}\Delta p_{t\mid0,1}.
+\]
+Average over $p_{0,1}$ and interchange expectation with differentiation:
+\begin{align*}
+  \partial_t p_t
+  &=-\nabla\!\cdot
+    \E_{p_{0,1}}[u_{t\mid0,1}p_{t\mid0,1}]
+    +\frac{\sigma^2}{2}\Delta
+    \E_{p_{0,1}}[p_{t\mid0,1}]\\
+  &=-\nabla\!\cdot(u_t^*p_t)
+    +\frac{\sigma^2}{2}\Delta p_t,
+\end{align*}
+where \eqref{eq:gsbm-markov-projection} is used in the last step.
+\end{proof}
+
+For any candidate $u_t^\theta(X_t)$, conditional least squares gives
+\begin{align*}
+ &\E\|u_t^\theta(X_t)-u_t(X_t\mid X_0,X_1)\|^2\\
+ &=\E\|u_t^\theta(X_t)-u_t^*(X_t)\|^2
+   +\E\|u_t^*(X_t)-u_t(X_t\mid X_0,X_1)\|^2.
+\end{align*}
+The second term is independent of $\theta$, so the paper writes
+\begin{equation}
+  \mathcal L_{\mathrm{explicit}}(\theta)
+  =\E_{p_t}\left[
+    \frac12\|u_t^\theta(X_t)-u_t^*(X_t)\|^2
+  \right]+O(1).
+  \tag{30}\label{eq:gsbm-explicit-square}
+\end{equation}
+Thus the explicit loss returns the Markovian projection
+\eqref{eq:gsbm-markov-projection}.  The paper notes that this need not equal the
+gradient minimizer of implicit matching away from equilibrium: the two differ by
+a weighted divergence-free field.
+
+\section{Appendix C.2: analytic drift and joint Gaussian sampling}
+Starting from \eqref{eq:gsbm-gaussian-path}, the paper combines the
+probability-flow velocity with half the diffusion score to obtain
+\begin{equation}
+  u_t(X_t\mid x_0,x_1)
+  =\dot\mu_t
+   +\frac1{\gamma_t}
+    \left(\dot\gamma_t-\frac{\sigma^2}{2\gamma_t}\right)
+    (X_t-\mu_t).
+  \tag{31}\label{eq:gsbm-app-c-drift}
+\end{equation}
+This is \eqref{eq:gsbm-gaussian-drift}.
+
+Write
+\[
+  a_t:=\frac1{\gamma_t}
+  \left(\dot\gamma_t-\frac{\sigma^2}{2\gamma_t}\right),
+  \qquad
+  b_t:=\dot\mu_t-a_t\mu_t,
+  \qquad
+  g_t:=\int_0^t a_\tau d\tau.
+\]
+The linear SDE has the integrating-factor solution
+\begin{equation}
+  X_t=e^{g_t}
+  \left(
+    x_0+\int_0^t e^{-g_\tau}b_\tau d\tau
+    +\int_0^t e^{-g_\tau}\sigma dW_\tau
+  \right).
+  \tag{32}\label{eq:gsbm-linear-solution}
+\end{equation}
+For $0\le s<t\le1$, independence of the It\^o increments on $[0,s]$ and
+$[s,t]$, followed by It\^o isometry, gives
+\begin{align*}
+  \Cov(X_s,X_t)
+  &=e^{g_s+g_t}
+    \E\left[
+      \left(\int_0^s e^{-g_\tau}\sigma dW_\tau\right)
+      \left(\int_0^t e^{-g_\tau}\sigma dW_\tau\right)^T
+    \right]\\
+  &=e^{g_s+g_t}\int_0^s e^{-2g_\tau}\sigma^2d\tau\,I_d\\
+  &=e^{g_t-g_s}\gamma_s^2I_d.
+\end{align*}
+By symmetry,
+\begin{equation}
+  \Cov(X_s,X_t)
+  =\gamma_{\min(s,t)}^2
+   e^{g_{\max(s,t)}-g_{\min(s,t)}}I_d.
+  \tag{33}\label{eq:gsbm-covariance}
+\end{equation}
+This formula permits joint path samples at a time grid by one covariance matrix
+and a Cholesky factorization rather than sequential Euler simulation.
+
+\section{Appendix C.3: the deterministic quadratic case}
+When $\sigma=0$, the conditional problem with quadratic state cost reduces to a
+finite-horizon linear quadratic regulator:
+\begin{equation}
+  \inf_u\left
+  \{x_1^TFx_1+
+  \int_0^1(x_t^TQx_t+u_t^TRu_t)dt\right\},
+  \qquad
+  \dot x_t=Ax_t+Bu_t.
+  \tag{34}\label{eq:gsbm-lqr}
+\end{equation}
+The optimal feedback is $u_t^*=-R^{-1}B^TP_tx_t$, where
+\[
+  -\dot P_t=A^TP_t+P_tA-P_tBR^{-1}B^TP_t+Q,
+  \qquad P_1=F.
+\]
+Writing $H_t=P_t^{-1}$ gives the equivalent Lyapunov/Riccati equation
+\begin{equation}
+  \dot H_t=AH_t+H_tA^T-BR^{-1}B^T+H_tQH_t,
+  \qquad H_1=F^{-1}.
+  \tag{35}\label{eq:gsbm-inverse-riccati}
+\end{equation}
+The endpoint constraint is represented by $F\to\infty$, hence $H_1=0$.  For
+$A=0$, $B=I_d$, $R=\frac12I_d$, and $Q=\alpha I_d$, the scalarized equation
+has a hyperbolic-tangent solution, matching the zero-noise limit of the
+stochastic formula.  This terminal-penalty argument is the one cited to the
+linear-bridge literature \cite{ChenGeorgiou2015LinearBridges}.
+
+\section{Source-fidelity notes}
+\begin{commentarynotes}
+\item Proposition 1 is genuinely a one-line reduction once the fixed-marginal
+matching theorem is accepted; the longer derivation above makes that imported
+fact explicit.
+\item Proposition 2's printed final conditional Fokker--Planck line drops the
+factor $\sigma^2/2$, although the source derivation and SDE retain it.
+\item Equation (18) is ambiguous by a factor $\sigma^{-2}$ in the state-cost
+term.  Proposition 4 uses the scaled potential explicitly.
+\item Lemma 3 is not derived from first principles in GSBM: equation (19) is
+imported from Mazzolo--Monthus, after which the mean and covariance ODEs are
+solved in the paper.
+\item Proposition 4 treats exact endpoint pinning through a singleton indicator
+and an absolute-continuity change from unconditioned Brownian motion.  In
+continuous state space this is formal shorthand for bridge conditioning or a
+terminal-density limit.
+\item Theorem 5 proves descent of objective values, not convergence of the
+iterates.
+\item Theorem 6 depends on cited FBSDE/HJB uniqueness and Markovian-projection
+results; those citations are part of the source proof.
+\end{commentarynotes}
+
+\section*{Checklist of reconstructed arguments}
+\begin{itemize}[leftmargin=2em]
+\item Equations (1)--(5) and both matching objectives.
+\item Proposition 1 and the kinetic-energy reduction.
+\item Proposition 2 with objective and Fokker--Planck disintegration.
+\item Equation (18) and its scaling ambiguity.
+\item Lemma 3, including equations (19)--(22) and all limiting calculations.
+\item Proposition 4, including equations (23)--(26) and Girsanov reweighting.
+\item Theorem 5 and the full inequality chain (27)--(28).
+\item Theorem 6 with both citation-dependent fixed-point steps.
+\item Lemma 7 and equations (29)--(30).
+\item Gaussian drift and covariance equations (31)--(33).
+\item The deterministic LQR equations (34)--(35).
+\end{itemize}
 
 \input{references_manual}
 \end{document}

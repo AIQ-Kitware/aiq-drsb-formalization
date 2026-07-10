@@ -240,15 +240,25 @@
       "source_files": [
         "BirkhoffHopf-Nussbaum1995-nusseveson1995.pdf"
       ],
-      "scope": "The complete elementary proof of the Birkhoff--Hopf theorem, including the two-dimensional cone classification, reduction to a normalized 2x2 matrix, calculus lemma, infinite-diameter case, and integral/matrix formulas.",
+      "scope": "Complete reconstruction of the abstract Birkhoff--Hopf theorem: order preliminaries, the exact N and k identities, two-dimensional cone classification, normalization to the symmetric 2x2 problem, the infinite-diameter reduction, and exact matrix and integral-kernel cross-ratio formulas.",
       "anchors": [
+        "Lemma 2.4",
+        "Lemma 2.7",
         "Proposition 2.9",
+        "Definition 3.3 and Lemma 3.4",
         "Theorems 3.5--3.6",
         "Lemmas 3.11--3.12",
         "Theorem 4.1 and Corollaries 4.2--4.5",
         "Lemmas 4.6--4.7",
         "Lemma 5.1 and Theorems 5.3--5.4",
-        "Section 6"
+        "Lemma 6.1 and Theorems 6.2--6.3",
+        "Remark 6.4"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 four-paper pass.",
+      "source_issues": [
+        "The scanned source frequently renders the projective-diameter symbol Delta as an OCR letter A.",
+        "Lemma 3.8 is cited rather than proved in the source.",
+        "Theorem 6.3 is explicitly attributed to Hopf; the paper supplies the cross-ratio proof in its unified notation."
       ]
     },
     "Fortet1940_schrodinger_system.tex": {
@@ -256,12 +266,24 @@
       "source_files": [
         "Fortet 1940 - JMPA_1940_9_19_1-4_83_0.pdf"
       ],
-      "scope": "Fortet's existence and uniqueness proof for the Schrödinger system, including truncation, monotone iteration, mass identities, limiting arguments, and Bernstein's conclusion.",
+      "scope": "Fortet’s complete existence and uniqueness route: reduction to one nonlinear equation, class (C), truncation and mass identity, the exact three-sequence clipped iteration and its two cases, class (B), Theorems I--III, and the Gaussian Bernstein application.",
       "anchors": [
-        "Theorems I--III",
-        "successive approximation construction",
-        "lemmas controlling truncation and limits",
-        "final Bernstein application"
+        "Hypotheses I--II and equations (3′)--(8)",
+        "class (C) and equations (9)--(14)",
+        "successive approximations, source pp. 90--94",
+        "Theorem I, source p. 96",
+        "class (B), source pp. 98--101",
+        "Theorem II, source pp. 101--102",
+        "Theorem III, source p. 104"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 four-paper pass.",
+      "source_issues": [
+        "The source compresses the zero-exclusion and uniform tail-control argument in the second iteration case.",
+        "The source invokes Beppo--Levi completed by de la Vallée Poussin; the modern reconstruction separates monotone convergence from uniform-integrability claims.",
+        "Uniqueness is modulo the scalar gauge, fixed temporarily at a point in Fortet’s proof."
+      ],
+      "supplementary_references": [
+        "Leonard2019"
       ]
     },
     "FranklinLorenz1989_matrix_scaling.tex": {
@@ -269,14 +291,24 @@
       "source_files": [
         "FranklinLorenz1989-1-s2.0-0024379589904904-main.pdf"
       ],
-      "scope": "Section 3's complete Hilbert-projective proof of geometric convergence of Sinkhorn iteration, including Lemmas 1--3, Theorem 4, and equation (3.9).",
+      "scope": "Section 3 in full: alternating row/column normalization, Hilbert's metric, Birkhoff contraction (Lemma 1), the two-step contraction (Lemma 2), the diagonal-equivalence metric and geometric tail estimate (Theorem 4), entrywise error conversion (Lemma 3), equations (3.9) and (3.12), and both numerical examples.",
       "anchors": [
-        "Section 3",
-        "Lemma 1",
-        "Lemma 2",
+        "Section 3, pp. 725--734",
+        "equations (3.1)--(3.12)",
+        "Lemmas 1--3",
         "Theorem 4",
-        "Lemma 3",
-        "equation (3.9)"
+        "Examples 1--2 and Tables 1--2"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 four-paper pass.",
+      "source_issues": [
+        "The printed diameter symbol is easily confused with an additive projective diameter; the proof uses the multiplicative cross-ratio quantity in equation (3.4).",
+        "Theorem 4's printed proof invokes Sinkhorn's earlier convergence theorem, while its completeness note explains how the same estimates yield an independent Cauchy argument.",
+        "The examples compare the computable bound with the actual error and are retained to preserve the paper's quantitative conclusion."
+      ],
+      "supplementary_references": [
+        "Birkhoff1957",
+        "Bauer1965",
+        "Bushell1973"
       ]
     },
     "GSBM2024_generalized_schrodinger_bridge_matching.tex": {
@@ -284,14 +316,37 @@
       "source_files": [
         "liu-etal-2024_generalized-schrodinger-bridge-matching-GSBM__arXiv-2310.02233.pdf"
       ],
-      "scope": "The two-stage GSBM construction, conditional stochastic-control bridge, path-integral representation, local convergence, and fixed-point characterization.",
+      "scope": "Complete reconstruction of the GSBM mathematical core: prescribed-path matching, the two alternating stages, conditional SOC, HJB/Hopf--Cole representation, the quadratic Gaussian bridge, path-integral reweighting, objective descent, fixed-point characterization, explicit Markovian projection, Gaussian joint sampling, and the deterministic LQR limit.",
       "anchors": [
-        "Section 3",
+        "equations (1)--(11), Section 3",
         "Propositions 1--2",
         "Lemma 3",
         "Proposition 4",
         "Theorems 5--6",
-        "Appendix A proofs"
+        "Appendix B, equations (17)--(28)",
+        "Appendix C.1, Lemma 7 and equations (29)--(30)",
+        "Appendix C.2, equations (31)--(33)",
+        "Appendix C.3, equations (34)--(35)"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 four-paper pass.",
+      "source_issues": [
+        "The final conditional Fokker--Planck display in the proof of Proposition 2 drops the factor sigma^2/2 although the preceding derivation and SDE retain it.",
+        "Equation (18) is ambiguous by a factor sigma^{-2} in the state-cost term; Proposition 4 later uses the scaled potential explicitly.",
+        "Proposition 4 uses a singleton endpoint indicator and absolute continuity of an exactly pinned proposal relative to unconditioned Brownian motion; in continuous state space this is formal bridge-conditioning shorthand.",
+        "Theorem 5 proves monotone objective descent, not convergence of iterates.",
+        "Theorem 6 relies on cited FBSDE/HJB uniqueness and Markovian-projection results."
+      ],
+      "supplementary_references": [
+        "Anderson1982",
+        "YongZhou1999",
+        "MazzoloMonthus2022",
+        "Kappen2005",
+        "TheodorouBuchliSchaal2010",
+        "Theodorou2015",
+        "AmbrosioGigliSavare2008",
+        "LiuEtAl2022DeepGSB",
+        "ChenGeorgiou2015LinearBridges",
+        "NeklyudovEtAl2023"
       ]
     },
     "GaoKleywegt2023_theorem1.tex": {

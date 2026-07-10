@@ -25,7 +25,7 @@
   \item Theorem 4.1 and Corollaries 4.2--4.5
   \item Lemmas 4.6--4.7
   \item Lemma 5.1 and Theorems 5.3--5.4
-  \item Section 6
+  \item Section 6, especially Theorems 6.2--6.3 and Remark 6.4
 \end{itemize}
 \end{description}
 
@@ -328,6 +328,42 @@ Because $d_D(Lx,Ly)=\log(M_D(Lx/Ly)/m_D(Lx/Ly))$, one has
   \Delta(L;C,D)=2\log\chi(L;C,D).
 \]
 
+\subsection{The two main statements before reduction}
+\begin{theorem}[Paper Theorem 3.5: finite projective diameter]
+Let $C\subset V$ and $D\subset W$ be cones in real vector spaces, and let
+$L:V\to W$ be linear with $L(C)\subset D$.  If
+$\Delta(L;C,D)<\infty$, then
+\[
+  k(L;C,D)=N(L;C,D)
+  =\tanh\!\left(\frac{\Delta(L;C,D)}{4}\right).
+\]
+Equivalently, since $\Delta=2\log\chi$,
+\[
+  k(L;C,D)=N(L;C,D)=\frac{\chi(L;C,D)-1}{\chi(L;C,D)+1}.
+\]
+\end{theorem}
+
+\begin{theorem}[Paper Theorem 3.6: infinite projective diameter]
+Under the same positivity assumptions, if $\Delta(L;C,D)=\infty$, then
+\[
+  k(L;C,D)=N(L;C,D)=1.
+\]
+\end{theorem}
+
+The paper proves Theorem 3.5 first.  Sections 3--5 reduce it to an explicit
+calculus problem for a normalized positive $2\times2$ matrix.  Theorem 3.6 is
+then deduced from Theorem 3.5 by restricting to two-dimensional subcones with
+arbitrarily large finite image diameter.  Thus the infinite-diameter statement
+is not a separate compactness theorem; it is a limiting consequence of the
+finite-diameter identity.
+
+\begin{remark}[Source typography]
+In the scanned source the projective-diameter symbol $\Delta$ is often read by
+OCR as the letter ``A.''  The reconstruction uniformly writes $\Delta$ and
+keeps the paper's relation $\Delta=2\log\chi$ visible so the constants in
+Theorems 3.5 and 5.3 can be checked directly.
+\end{remark}
+
 \subsection{Comparable vectors suffice for $N$}
 \begin{lemma}[Paper Lemma 3.4, expanded]
 The definition of $N(L;C,D)$ is unchanged if the test pairs are restricted from ``$x\in C$ dominates $y\in V$'' to ``$x,y\in C$ and $x\comp C y$''.
@@ -555,7 +591,11 @@ For $x\in C^\circ$ and $y\in V$, domination with respect to $C$ and $\clos C$ ar
 
 \begin{proof}[Proof details]
 The implication from $C$ to $\clos C$ is immediate, giving
-$M_C(y/x)\ge M_{\clos C}(y/x)$ and $m_C(y/x)\le m_{\clos C}(y/x)$.
+\[
+  M_C(y/x)\ge M_{\clos C}(y/x),
+  \qquad
+  m_C(y/x)\le m_{\clos C}(y/x).
+\]
 Using the translation identities
 \[
   M((y+\lambda x)/x)=M(y/x)+\lambda,
@@ -908,11 +948,27 @@ On $V=C(S)$ with the nonnegative cone, define
 \[
   (Ax)(s)=\int_S k(s,t)x(t)\,\mu(dt).
 \]
-The paper states Hopf's formula
+\begin{theorem}[Paper Theorem 6.3: Hopf's kernel formula]
+Suppose $S$ is compact Hausdorff, $\mu$ is a regular Borel measure of full
+support, and $k:S\times S\to(0,\infty)$ is continuous.  On $C(S)$ with its
+nonnegative cone define
+\[
+  (Ax)(s)=\int_S k(s,t)x(t)\,\mu(dt).
+\]
+Then every two nonzero images are comparable and
 \[
   \Delta(A;C,C)=
   \log\max_{s,t,u,v\in S}\frac{k(s,t)k(u,v)}{k(s,v)k(u,t)}.
 \]
+Consequently Theorem 3.5 gives the exact contraction ratio
+\[
+  k(A;C,C)=N(A;C,C)
+  =\tanh\!\left(
+     \frac14\log\max_{s,t,u,v\in S}
+       \frac{k(s,t)k(u,v)}{k(s,v)k(u,t)}
+   \right).
+\]
+\end{theorem}
 
 \begin{proof}[Proof details]
 For nonzero $x,y\in C$,
@@ -938,6 +994,26 @@ Hence equality holds, and $\Delta=2\log\chi$ gives the formula.
 If the measure lacks full support, the same expression is still an upper bound, but equality can fail.
 For merely measurable $L^\infty$ kernels, the essential-sup version gives an upper bound; the paper does not claim that the previous equality proof survives at that level of generality.
 \end{remark}
+
+\section{Source-fidelity notes}
+\begin{commentarynotes}
+\item The source deliberately works with cones that need not be closed or
+Archimedean.  Closure is introduced only after the proof has been reduced to a
+two-dimensional plane.  Replacing the whole argument by the standard closed-cone
+version would therefore change one of the paper's principal claims.
+\item Lemma 3.8 is cited by the paper from Schaefer's topological-vector-space
+text rather than reproved.  This reconstruction retains that citation-level
+status; it does not pretend that the elementary segment/interior fact originates
+in Eveson--Nussbaum.
+\item The integral-kernel formula is attributed by the authors to Hopf.  Their
+contribution in Section 6 is to place it inside the same $N=k=\tanh(\Delta/4)$
+framework and prove the exact cross-ratio identity under compactness,
+continuity, positivity, and full support.
+\item The proof of Theorem 5.4 uses the finite-dimensional restriction and the
+already established Theorem 3.5.  Any presentation that proves the
+infinite-diameter case by a different abstract argument should be labeled as a
+supplement, not as the paper's proof.
+\end{commentarynotes}
 
 \section{Proof dependency map}
 

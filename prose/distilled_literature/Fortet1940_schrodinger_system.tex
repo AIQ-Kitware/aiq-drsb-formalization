@@ -42,19 +42,42 @@ A solution is considered only up to the gauge
 \]
 Fortet calls a solution positive when $\varphi\ge0$ and $\psi\ge0$; he is mainly interested in such solutions.
 
-\subsection*{Hypotheses}
-The paper first lists basic hypotheses, then strengthens them to the working hypotheses used in the main existence and uniqueness arguments.
-In modern terms, the working assumptions are:
-\begin{enumerate}[leftmargin=2em]
-\item $g$ is continuous and bounded above by a positive finite constant.
-\item For each fixed $x$ or fixed $y$, $g(x,y)$ is not identically zero except possibly on a null exceptional set.
-\item $\omega_1$ and $\omega_2$ are continuous nonnegative functions.
-\item The total masses are normalized:
+\subsection*{Hypotheses I and II, as used by Fortet}
+Fortet separates the data assumptions into two groups.  His Hypotheses I are
 \[
-  \int_{J'} \omega_1(x)\,dx = \int_{J''}\omega_2(y)\,dy = 1. \tag{N}\label{eq:fortet-normalization}
+  \omega_1(x)\ge 0,\qquad \omega_2(y)\ge 0,
 \]
+with both masses finite, positive, and equal:
+\[
+  0<\int_{J'}\omega_1(x)\,dx
+    =\int_{J''}\omega_2(y)\,dy<\infty.
+\]
+He then normalizes the common mass to one:
+\begin{equation}
+  \int_{J'}\omega_1(x)\,dx
+  =\int_{J''}\omega_2(y)\,dy=1. \tag{3'}\label{eq:fortet-normalization}
+\end{equation}
+
+His standing Hypotheses II are:
+\begin{enumerate}[leftmargin=2em]
+\item $g:J'\times J''\to[0,\infty)$ is continuous and bounded above by a
+finite positive constant $\lambda$;
+\item for every fixed $x$, the function $y\mapsto g(x,y)$ is nonzero except
+possibly on a null set, and for every fixed $y$, the function
+$x\mapsto g(x,y)$ is nonzero except possibly on a null set;
+\item $\omega_1$ and $\omega_2$ are continuous.
 \end{enumerate}
-The probability interpretation of Schrodinger also often assumes $\int g(x,y)\,dy=1$, but Fortet's analytic argument for the system is stated for a broader normalized-marginal setting.
+These are the assumptions used in the existence and uniqueness sections.  The
+paper later remarks that continuity of the marginals can be weakened to Borel
+measurability with small changes.
+
+\begin{remark}[Relation to later reconstructions]
+L\'eonard's reconstruction \cite{Leonard2019} and the closely source-following
+account of Essid--Pavon make explicit several measurability and monotone-limit
+steps that Fortet compresses.  Whenever such a later argument is used below, it
+is labeled as supplemental; the iteration and comparison mechanism remains
+Fortet's own.
+\end{remark}
 
 \section{Reduction to one scalar fixed-point equation}
 From \eqref{eq:fortet-S2}, whenever the denominator is meaningful,
@@ -141,7 +164,10 @@ The monotone convergence theorem gives
 \[
   H'(x)=\lim_{n\to\infty}H'_n(x).
 \]
-Thus $H'$ is measurable.  Positivity and local lower bounds are inherited from the positivity/nontriviality of the kernel and marginal on finite intervals.  Finiteness a.e. on $A_1$ is not asserted directly from pointwise estimates; it is extracted from the mass identity below.
+Thus $H'$ is measurable.  Positivity and local lower bounds are inherited
+from the positivity and nontriviality of the kernel and marginal on finite
+intervals.  Finiteness almost everywhere on $A_1$ is not asserted directly
+from pointwise estimates; it is extracted from the mass identity below.
 
 \subsection{The normalization identity}
 Fortet defines the auxiliary nonnegative function
@@ -170,85 +196,182 @@ Similarly, if $H'\ge H$ a.e., then $H'/H\ge1$ and the same integral identity for
 This is the central fixed-point forcing step: one-sided comparison plus the mass identity collapses to equality.
 
 \section{Successive approximation: the first existence theorem}
-Fortet now constructs a sequence by alternating $Q$ with pointwise max/min truncations.  In modern notation, write pointwise maximum as $M(f,g)$ and pointwise minimum as $m(f,g)$.  The construction begins
+
+\subsection{The exact clipped iteration on source page 90}
+Fortet writes $M(f,g)=\max\{f,g\}$ and $m(f,g)=\min\{f,g\}$ pointwise.
+Starting from the constant function $H_1=1$, he defines three sequences:
+\begin{align*}
+  H_1'&=Q(H_1),
+  &H_1''&=m(H_1,H_1'),\\
+  H_n&=M\!\left(H_{n-1}'',\frac1n\right) \quad (n\ge2),
+  &H_n'&=Q(H_n),
+  &H_n''&=m(H_n,H_n').
+\end{align*}
+Thus the first two rounds are literally
 \[
-  H_1=1,
-  \qquad H'_1=Q(H_1),
-  \qquad H_2=m(H_1,H'_1),
+  H_1=1,\quad H_1'=Q(H_1),\quad H_1''=m(H_1,H_1'),
 \]
-then
 \[
-  H'_2=Q(H_2),
-  \qquad H'_3=Q(H'_2),
-  \qquad H_3=M(H'_3,1/2),
+  H_2=M(H_1'',1/2),\quad H_2'=Q(H_2),\quad
+  H_2''=m(H_2,H_2').
 \]
-and continues with a clipped monotone scheme, arranged so that each $H_n$ remains in class $(C)$ and
-\[
+The floor $1/n$ keeps every input $H_n$ in class $(C)$, while the minimum with
+$Q(H_n)$ creates the monotone envelope.  Fortet checks directly that
+\begin{equation}
   H_{n+1}\le H_n,
   \qquad
-  H'_n\le H'_{n+1}
+  H_{n+1}''\le H_n''. \tag{I}\label{eq:fortet-iterate-monotone}
+\end{equation}
+The verification is inductive.  Since $H_n''\le H_n$ and
+$1/(n+1)\le1/n$, one has
+\[
+  H_{n+1}=M(H_n'',1/(n+1))\le M(H_n,1/n)=H_n.
 \]
-in the appropriate alternating sense.  The exact min/max choices are less important than the two invariants Fortet maintains:
-\begin{enumerate}[leftmargin=2em]
-\item every iterate used as input to $Q$ is in class $(C)$;
-\item the output and input are eventually ordered, or else they generate monotone limits.
-\end{enumerate}
+The map $Q$ is order preserving: $H\le K$ implies
+$G(H,\cdot)\ge G(K,\cdot)$ and hence $Q(H)\le Q(K)$.  Therefore
+$H_{n+1}'\le H_n'$, and taking minima gives the second inequality in
+\eqref{eq:fortet-iterate-monotone}.
 
-\subsection{Case 1: an ordered iterate occurs}
-Suppose that for some $n_0$,
+\begin{remark}[Modern compact notation]
+The later formulation
 \[
-  H'_{n_0}\le H_{n_0}
-  \quad\hbox{a.e.}
+  u_{n+1}=\frac{U}{n+1}\vee\bigl(\Phi[u_n]\wedge U\bigr)
 \]
-Fortet cannot immediately apply the lemma if the relevant lower bound degenerates.  He therefore regularizes by
+used by L\'eonard \cite[Eq.~(3.3)]{Leonard2019} packages the same clipping
+idea into a single recurrence.  Fortet's paper uses the three displayed
+sequences $H_n,H_n',H_n''$ above, and that is the notation retained in the
+proof reconstruction.
+\end{remark}
+
+\subsection{First case: an ordered iterate occurs}
+Assume that for some $n_0$,
 \[
-  K_p=M(H'_{n_0},1/p).
+  H_{n_0}'\le H_{n_0}
+  \quad\text{almost everywhere}.
 \]
-Then $K_p\in(C)$ and $K_p\downarrow H'_{n_0}$.  Set $K'_p=Q(K_p)$.  Monotone convergence shows that $K'_p$ decreases to a limit $K'$.  The comparison inequalities give
+Then $H_{n_0}''=H_{n_0}'$ almost everywhere.  The function
+$H_{n_0}'$ may fail the strict positive lower bound required in class $(C)$,
+so Fortet regularizes it by
 \[
-  K'_p\le H_{n_0+1},
+  K_p=M\!\left(H_{n_0}',\frac1p\right),
+  \qquad K_p'=Q(K_p).
+\]
+As $p\to\infty$, $K_p\downarrow H_{n_0}'$.  Because $Q$ is increasing,
+$K_p'$ decreases to a measurable limit $K'$, and Beppo--Levi applied twice
+gives
+\[
+  K'=\lim_{p\to\infty}Q(K_p)=Q(H_{n_0}')
+\]
+
+after interpreting the reciprocal denominators with the paper's nonnegative
+integral conventions.
+
+The monotone bounds used by Fortet imply
+\[
+  H_{n_0}'\le K_p\le H_{n_0},
   \qquad
-  K'\le H'_{n_0}.
+  H_{n_0}'\le K_p'\le H_{n_0+1}'
 \]
-The mass identity applied to $K_p$ gives
+together with a uniform integrability estimate for the quotients $K_p'/K_p$.
+For each $p$, the mass identity gives
 \[
-  \int_{J'}\frac{K'_p}{K_p}\omega_1\,dx=1.
+  \int_{J'}\frac{K_p'(x)}{K_p(x)}\omega_1(x)\,dx=1.
 \]
-Passing to the limit gives
+Passing to the limit yields Fortet's equation (14):
+\begin{equation}
+  \int_{J'}\frac{K'(x)}{H_{n_0}'(x)}\omega_1(x)\,dx=1. \tag{14}
+\end{equation}
+The order inequalities give $K'\le H_{n_0}'$.  Hence the quotient in
+(14) is at most one, and because $\int\omega_1=1$ it must equal one
+almost everywhere on $A_1=\{\omega_1>0\}$.  Thus
 \[
-  \int_{J'}\frac{K'}{H'_{n_0}}\omega_1\,dx=1.
+  K'=H_{n_0}' \quad\text{a.e. on }A_1.
 \]
-Since $K'\le H'_{n_0}$, the comparison part of the lemma forces
+The defining denominator calculation then shows
 \[
-  K'=H'_{n_0}\quad\hbox{a.e. on }A_1.
+  Q(K')=Q(H_{n_0}')=K',
 \]
-Finally, the denominator identity shows $Q(K')=K'$, hence $K'$ is a positive solution of the fixed-point equation \eqref{eq:fortet-fixed-point}.  Formula \eqref{eq:fortet-recover} gives a positive solution of the Schrodinger system.
+so $K'$ is a positive fixed point of $Q$ and
+\eqref{eq:fortet-recover} supplies a positive solution of the original
+Schr\"odinger system.
 
-\subsection{Case 2: no ordered iterate occurs}
-In the second case, no $H'_n$ falls below the corresponding $H_n$ on a set large enough to trigger Case 1.  Fortet takes monotone limits
+\subsection{Second case: no ordered iterate occurs}
+Assume instead that for every $n$, the set on which $H_n'>H_n$ has positive
+measure.  The monotonicity in \eqref{eq:fortet-iterate-monotone} gives
+pointwise limits
 \[
-  H=\lim_n H_n,
+  H=\lim_{n\to\infty}H_n,
   \qquad
-  H'=\lim_n H'_n,
+  H''=\lim_{n\to\infty}H_n''.
 \]
-and obtains
+The floors $1/n$ disappear in the limit, and the identities
+$H_{n+1}=M(H_n'',1/(n+1))$ give $H=H''$.  Passing through the two
+nonnegative integrals defining $Q$ yields a limiting image $H'=Q(H)$ and
+the source obtains
+\begin{equation}
+  H\le H'. \tag{15}\label{eq:fortet-limit-order}
+\end{equation}
+
+The delicate point is exclusion of the zero fixed point.  Fortet argues that
+if $H_n'(x_0)\downarrow0$ at one point $x_0$, then
+$G(H_n,\cdot)^{-1}$ tends to zero in measure.  Splitting the integral for
+$H_n'(x)$ into a finite central part and two tails, using continuity of $g$
+on the central part and the integrability hypothesis on the tails, he obtains
+$H_n'(x)\to0$ uniformly in $x$.  For sufficiently large $n$ this forces
+$H_n'<H_n$ everywhere because $H_n\ge1/n$, contradicting the assumption of
+the second case.  Hence the limit is strictly positive.
+
+Now pass the mass identity to the limit:
 \[
-  H\le H'. \tag{L}\label{eq:fortet-limit-order}
+  \int_{J'}\frac{H'(x)}{H(x)}\omega_1(x)\,dx=1.
 \]
-He first proves that neither limit can vanish at an isolated point without vanishing a.e.; the positivity/nontriviality of $g$ and the recursive formula propagate vanishing through the integral equation.  The mass identity is then passed to the limit to obtain
-\[
-  \int_{J'} \frac{H'}{H}\omega_1\,dx=1.
-\]
-Together with \eqref{eq:fortet-limit-order}, this forces $H=H'$ a.e. on $A_1$, again by the comparison part of the lemma.  Thus the limit is a fixed point of $Q$, and \eqref{eq:fortet-recover} yields a positive solution of the system.
+By \eqref{eq:fortet-limit-order}, the quotient is at least one; therefore it
+is one almost everywhere on $A_1$.  Consequently $H'=H$ almost everywhere,
+and the regularity part of the fundamental lemma upgrades the resulting
+kernel integrals to the pointwise/continuous form needed to recover
+$(\varphi,\psi)$.
 
-\subsection{Theorem I}
-Fortet's first existence theorem can be modernized as follows.
+\begin{remark}[Compressed point in the source]
+The source's zero-exclusion argument occupies pp.~92--94 and uses several
+``uniformly in $x$'' statements with the tail integrals.  L\'eonard
+\cite[Lemmas 5.10--5.12 and Theorem 5.6]{Leonard2019} isolates this as the
+only step needing hypotheses beyond monotonicity and the mass identity.  The
+modern citation clarifies the bookkeeping but does not replace Fortet's
+contradiction mechanism.
+\end{remark}
 
-\begin{distilled}[Fortet Theorem I, schematic modern form]
-Assume the working hypotheses and the additional integrability/regularity hypotheses needed for the successive-approximation construction on the full intervals.  Then the Schrodinger system \eqref{eq:fortet-S1}--\eqref{eq:fortet-S2} has a positive solution $(\varphi,\psi)$, with $\varphi$ and $\psi$ recovered from a fixed point $h=Q(h)$ by \eqref{eq:fortet-recover}.
-\end{distilled}
+\subsection{Theorem I with its exact integrability condition}
+\begin{theorem}[Fortet Theorem I, source p.~96]
+Assume Hypotheses I and II and suppose
+\begin{equation}
+  \int_{J''}
+  \frac{\omega_2(y)}{\displaystyle\int_{J'}g(z,y)\omega_1(z)\,dz}
+  \,dy<\infty. \tag{T1}\label{eq:fortet-theorem1-integrability}
+\end{equation}
+Then the system \eqref{eq:fortet-S1}--\eqref{eq:fortet-S2} has a positive
+solution.  The factor $\varphi$ is continuous and vanishes exactly where
+$\omega_1$ vanishes.  The factor $\psi$ is Borel measurable and, up to a
+null set, vanishes only where $\omega_2$ vanishes.
+\end{theorem}
 
-The proof is not a contraction proof.  It is an order/compactness proof: build monotone envelopes, use Beppo-Levi to pass to limits, and use the normalization identity to turn one-sided inequalities into equality.
+\begin{proof}[Assembly from the preceding construction]
+Condition \eqref{eq:fortet-theorem1-integrability} is precisely the estimate
+used in the second-case tail control and in showing that the candidate kernel
+integrals are finite and continuous.  The clipped iteration yields a strictly
+positive fixed point $h$ of $Q$ in either case.  Because $h\le1$ in Fortet's
+normalization, the denominator in \eqref{eq:fortet-recover} is finite.  The
+continuity estimate on source pp.~94--95 splits
+$|h(x)-h(x_0)|$ into a finite-domain kernel-difference term and a uniformly
+small tail term; continuity of $g$ handles the first and
+\eqref{eq:fortet-theorem1-integrability} the second.  The recovered
+$\varphi=\omega_1/h$ and $\psi=\omega_2/G(h,\cdot)$ have the stated zero sets
+by the nonnegativity of all integrands and the slice nondegeneracy of $g$.
+\end{proof}
+
+Fortet remarks that the roles of the two marginals may be interchanged in
+\eqref{eq:fortet-theorem1-integrability}.  He also observes that if $J''$ is
+finite, boundedness of $g$ already makes the relevant tail conditions much
+easier to satisfy.
 
 \section{The class $(B)$ and the second existence theorem}
 Fortet then isolates a condition on the kernel that implies the hypotheses needed in the first theorem locally and gives continuity of the recovered solution.
@@ -277,14 +400,15 @@ Let $A_1=\{x:\omega_1(x)>0\}$.  Fortet fixes a compact interval $\mathcal F\subs
 \]
 plus integrability inequalities making Theorem I applicable to the restricted system.  Solving the restricted system gives a local positive pair.  He then sets up a second fixed-point equation on $A_1$ and repeats the monotone argument.  The class $(B)$ property makes the kernel integrals uniformly convergent on compact subintervals of $A_1$, and therefore the recovered $h$ and hence $\varphi$ are continuous on $A_1$.
 
-\begin{distilled}[Fortet Theorem II, modern form]
-Under the working hypotheses, if $g$ is of class $(B)$ in $x$, then the system has a solution with
+\begin{theorem}[Fortet Theorem II, source pp.~101--102]
+Under Hypotheses I and II, if $g$ is of class $(B)$ in the $x$ variable, then
+the system has a solution with
 \begin{enumerate}[leftmargin=2em]
 \item $\varphi(x)=0$ when $\omega_1(x)=0$;
 \item $\varphi(x)>0$ and continuous when $\omega_1(x)>0$;
 \item $\psi(y)\ge0$ is Borel measurable and vanishes, modulo null sets, only where $\omega_2(y)=0$.
 \end{enumerate}
-\end{distilled}
+\end{theorem}
 
 Fortet then notes that if $\omega_1>0$ on $A_1$ and $\omega_2>0$ on $A_2$, solving the restricted system on $A_1\times A_2$ and extending by zero outside those sets gives a solution on the original domains.
 
@@ -333,10 +457,90 @@ and hence the integrands force $h=h_1$ a.e.  Similarly $h=h_2$ a.e.  Therefore
 \]
 Undoing the substitution $h_i=\omega_1/\varphi_i$ gives $\varphi_1=\varphi_2$ after the chosen gauge normalization.  Without a fixed gauge, the result is uniqueness up to multiplication of one factor by a positive constant and the other by its reciprocal.
 
-\begin{distilled}[Fortet Theorem III]
-Under the working hypotheses, the Schrodinger system has at most one positive Borel solution modulo the scalar gauge $(\varphi,
-\psi)\sim(c\varphi,c^{-1}\psi)$.
-\end{distilled}
+\begin{theorem}[Fortet Theorem III, source p.~104]
+Under Hypotheses I and II, the Schr\"odinger system has at most one positive
+Borel solution, where solutions differing by the scalar gauge
+$(\varphi,\psi)\mapsto(c\varphi,c^{-1}\psi)$ are identified.
+\end{theorem}
+
+
+\section{Fortet's three closing remarks}
+Fortet appends three remarks after Theorem III.  They are not used in the
+existence proof, but they clarify the exact scope of the result and the role
+of positivity.
+
+\subsection*{Remark I: continuity of the marginals can be weakened}
+The arguments of Sections 2--4 continue, with only minor changes in the
+statements, if $\omega_1$ and $\omega_2$ are assumed merely Borel measurable
+rather than continuous.  What is lost is the automatic continuity conclusion
+for the recovered factor; the order, truncation, and mass-identity arguments
+remain measure-theoretic.
+
+\subsection*{Remark II: bounded solutions on a finite second interval}
+Assume $\omega_1$ is continuous, $J''$ is finite, and restrict attention to
+solutions for which both factors are bounded.  Then
+\[
+  x\longmapsto \int_{J''}g(x,y)\psi(y)\,dy
+\]
+is continuous, and therefore so is
+\[
+  \varphi(x)=
+  \frac{\omega_1(x)}{\int_{J''}g(x,y)\psi(y)\,dy}.
+\]
+If $\omega_1$ never vanishes, a continuous $\varphi$ could change sign only by
+passing through zero.  At such a point the displayed quotient would require
+the denominator to become infinite, contradicting boundedness of $\psi$ and
+finiteness of $J''$.  Thus, under these extra hypotheses, every bounded
+solution has a fixed sign and can be put in the positive class by the scalar
+gauge.  Fortet concludes that Theorem I then supplies the only bounded
+solution, not merely the only positive one.
+
+\subsection*{Remark III: zeros of the marginals permit signed solutions}
+Fortet gives an explicit warning that uniqueness among positive solutions does
+not imply uniqueness among all signed solutions when a marginal vanishes.
+Take
+\[
+  J'=J''=[0,3\pi]
+\]
+and define
+\[
+  \omega_1(x)=
+  \begin{cases}
+    \frac14\sin x,&0\le x\le\pi,\\
+    0,&\pi\le x\le2\pi,\\
+    \frac14\sin x,&2\pi\le x\le3\pi,
+  \end{cases}
+  \qquad
+  \varphi(x)=
+  \begin{cases}
+    \sin x,&0\le x\le\pi,\\
+    0,&\pi\le x\le2\pi,\\
+    -\sin x,&2\pi\le x\le3\pi.
+  \end{cases}
+\]
+Choose a continuous kernel $g$ whose values on the two active $x$-blocks are
+\[
+  g(x,y)=
+  \begin{cases}
+    \frac14,&0\le y\le\pi,\\
+    \frac18,&2\pi\le y\le3\pi,
+  \end{cases}
+  \quad 0\le x\le\pi,
+\]
+and
+\[
+  g(x,y)=
+  \begin{cases}
+    \frac18,&0\le y\le\pi,\\
+    \frac14,&2\pi\le y\le3\pi,
+  \end{cases}
+  \quad 2\pi\le x\le3\pi,
+\]
+with an arbitrary continuous interpolation elsewhere.  Direct substitution
+shows that $\varphi$ solves the reduced integral equation while changing sign.
+The example is deliberately elementary: the zero strip in $\omega_1$ allows
+the two active components to carry opposite signs without violating the
+marginal equation.
 
 \section{Bernstein's Gaussian case}
 Fortet's motivating special case, attributed to Bernstein, has
@@ -354,10 +558,31 @@ In the Gaussian Bernstein case, the Schrodinger system admits a positive continu
 
 \section{Structural commentary}
 \begin{commentarynotes}
-\item The fixed-point operator  the continuum analogue of composing the two quotient updates in matrix scaling.
+\item The fixed-point operator is the continuum analogue of composing the two quotient updates in matrix scaling.
 \item The mass identity \eqref{eq:fortet-mass-identity} is the device that removes residual scalar freedom from one-sided comparison arguments.
 \item Fortet's proof is an order-and-compactness argument, not a Hilbert-metric contraction proof; its distinctive ingredients are truncation, monotone iteration, the mass identity, and local uniform compactness.
-\item The finite-dimensional specialization retains the same algebraic skeleton: denominator map  update map  mass identity, and max--min comparison.
+\item The finite-dimensional specialization retains the same algebraic skeleton: denominator map $\to$ update map $\to$ mass identity, and max--min comparison.
+\end{commentarynotes}
+
+\section{Source-fidelity and correction notes}
+\begin{commentarynotes}
+\item The exact three-sequence clipping scheme on source p.~90 is retained.
+Replacing it by untruncated iteration $H_{n+1}=Q(H_n)$ would not be Fortet's
+proof and would reintroduce the zero and infinity fixed points that the floors
+and ceilings are designed to avoid.
+\item Fortet invokes a Beppo--Levi theorem ``completed by de la Vall\'ee
+Poussin'' when passing the two truncation limits in the mass identity.  In
+modern language, Tonelli and monotone convergence justify the nonnegative
+integrals; any additional uniform-integrability passage is stated separately.
+\item The continuity and strict-positivity proof in the second case is terse.
+The reconstruction preserves its finite-part/tail-splitting argument and cites
+L\'eonard only for a modern organization of the same step.
+\item Theorem III is uniqueness only after quotienting by the scalar gauge.
+Fortet fixes the gauge by choosing a point $x_0$ at which the two first factors
+are equal before applying the maximum argument.
+\item The title and formulas in the 1940 paper use ``Schr\"odinger'' with
+historical typography and no modern measure-kernel notation.  The normalized
+notation here changes presentation, not the order-theoretic proof.
 \end{commentarynotes}
 
 \section*{Checklist of details retained}
@@ -371,6 +596,7 @@ In the Gaussian Bernstein case, the Schrodinger system admits a positive continu
 \item The two-case successive-approximation proof.
 \item The class $(B)$ local-uniform-convergence condition and the Gaussian/Bernstein application.
 \item The uniqueness proof using $h=\max(h_1,h_2)$.
+\item Fortet's three closing remarks, including the explicit signed-solution example.
 \end{itemize}
 
 \input{references_manual}

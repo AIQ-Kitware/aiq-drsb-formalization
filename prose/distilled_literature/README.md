@@ -12,7 +12,23 @@ The primary paper must remain the visible source of the reconstructed proof rout
 
 ## Current state
 
-The corpus is under active expansion. Several classical projective-metric, matrix-scaling, and path-measure notes are already long proof-level reconstructions. The DRO, Schrödinger-bridge, and modern generative-model notes have received a substantial first expansion but still require a source-by-source fidelity pass before they should be treated as complete.
+The corpus currently represents **21 unique source papers** in 25 paper-specific TeX files. The file count is larger because Blanchet--Murthy, Gao--Kleywegt, and Wang--Gao--Xie each have both a broad note and a theorem-focused companion; `ClassicalFoundations_DV_KLconvexity_supergradient.tex` is a multi-source synthesis and is not counted as a paper.
+
+As of the 2026-07-10 four-paper pass, **11/21 papers** have completed source-order proof reconstructions:
+
+- Adjoint Matching (2025);
+- Birkhoff (1957);
+- Blanchet--Murthy (2019);
+- Chen--Georgiou--Pavon (2021);
+- Cameron--Martin (1945);
+- Carroll (2004);
+- Diffusion Schrödinger Bridge Matching (2023);
+- Eveson--Nussbaum (1995);
+- Fortet (1940);
+- Franklin--Lorenz (1989), Section 3;
+- Generalized Schrödinger Bridge Matching (2024).
+
+The remaining ten papers retain expanded first-pass notes but still require the same source-by-source fidelity review before being marked complete. Completion status and exact source anchors are recorded in `source_manifest.json`.
 
 ## Building a note
 

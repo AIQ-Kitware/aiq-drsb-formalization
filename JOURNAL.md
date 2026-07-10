@@ -1520,3 +1520,56 @@ earlier today, and only after actually proving the selector. Corrected in FOUNDA
 SURVEY_LEADS.
 
 Build green, zero warnings, sorry-free, axiom-clean.
+
+---
+
+# Session journal — the optimal multiplier (2026-07-10)
+
+Ingredient (2) of `hge` is proved. `ForMathlib/Analysis/Supergradient.lean`, axiom-clean.
+
+Mathlib has `ConcaveOn`, `ConvexOn` and the slope-monotonicity lemmas, but **no subgradient or
+supergradient existence theorem anywhere** — grep-verified, not assumed. So the one-dimensional case
+had to be written:
+
+* `exists_supergradient_of_concaveOn` — at an interior `δ`, a concave `h` on `Icc a b` admits `m`
+  with `h t ≤ h δ + m·(t − δ)`. The witness is the supremum of the *right-hand* slopes at `δ`;
+  concavity (`ConcaveOn.slope_anti_adjacent`) makes every *left-hand* slope an upper bound for that
+  set, which is exactly what handles `t < δ`.
+* `exists_nonneg_supergradient_of_concaveOn` — nondecreasing ⇒ `m ≥ 0`, by testing at `b`.
+* `exists_nonneg_multiplier` — the same inequality rearranged into the form the DRO step needs:
+  `h t + λ*·(δ − t) ≤ h δ`, i.e. *the Lagrangian relaxation at `λ*` never exceeds the constrained
+  optimum*. That is complementary slackness, abstracted away from measures entirely.
+
+## Where `hge` stands now
+
+Three ingredients; two proved.
+
+1. ✅ the Lagrangian value is achieved by a pushforward (`exists_coupling_lagrangian_ge`, built on a
+   measurable ε-argmax that needs no KRN);
+2. ✅ the optimal multiplier (`exists_nonneg_multiplier`);
+3. ❌ the DRO value function `h t = sup{𝔼_μ[f] : ∃π ∈ Π(μ,ν), 𝔼_π[c] ≤ t}` is concave, nondecreasing
+   and finite near `δ`.
+
+Assembly, once (3) lands:
+`dualValue = inf_λ (λδ + 𝔼_ν[φ_λ]) ≤ λ*δ + 𝔼_ν[φ_{λ*}] = sup_π (𝔼_μ[f] + λ*(δ − 𝔼_π[c]))`
+`≤ sup_t (h t + λ*(δ − t)) ≤ h δ = primalValue`.
+
+(3) is concavity by *mixing two couplings* — `a·π₁ + (1−a)·π₂` couples `a·μ₁ + (1−a)·μ₂` with `ν`,
+and `couplingCost`/`expect` are affine in the coupling — plus Slater (`0 < δ`) for finiteness, plus
+continuity of a concave function on the interior to identify `h δ` with `primalValue`. It is
+measure-theoretic bookkeeping about convex combinations of probability measures, not new analysis.
+
+## The scoreboard on my own claims about `hge`
+
+I have now been wrong about it twice, and each time the error was caught by trying to *do* the thing
+rather than by thinking harder about it.
+
+* "It's an extreme-value argument, reachable by Prokhorov." **False** — it bundles the vanishing gap
+  with attainment.
+* "It needs Kuratowski–Ryll-Nardzewski." **False** — a continuous integrand on a separable domain
+  makes the selection countable.
+
+Both are corrected in FOUNDATIONS, STATUS and SURVEY_LEADS with the error named. The lesson is the
+repo's own: *verify before you trust*, including when the thing you'd be trusting is yourself.
+
+Build green, zero warnings, sorry-free, axiom-clean.

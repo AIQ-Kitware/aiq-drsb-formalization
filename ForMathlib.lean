@@ -37,6 +37,11 @@ One file per proposed Mathlib destination area:
 * `ForMathlib.OptimalTransport.DroValue` — the DRO worst-case value `sSup`: a function bounded
   above has bounded-above expectations, so the `BddAbove` side condition of every strong-duality
   theorem is a consequence of its own `λ = 0` conjugate hypothesis, not an assumption.
+* `ForMathlib.Analysis.Supergradient` — **supergradient existence for concave functions on `ℝ`**
+  (Mathlib has `ConcaveOn` and slope lemmas but no sub/supergradient existence, grep-verified), and
+  the **DRO optimal multiplier** `exists_nonneg_multiplier`: for a nondecreasing concave value
+  function there is `λ* ≥ 0` with `h t + λ*(δ − t) ≤ h δ`. This is ingredient (2) of the last open
+  edge `hge`.
 * `ForMathlib.OptimalTransport.ConverseLagrangian` — the **converse** of that bound: the Lagrangian
   value `𝔼_ν[φ_λ]` is *achieved*, to within `ε`, by pushing the nominal forward along a measurable
   near-maximizer of the `c`-transform. Together with `WeakDuality` this pins the Lagrangian
@@ -65,6 +70,7 @@ import ForMathlib.MeasureTheory.DonskerVaradhanDual
 import ForMathlib.MeasureTheory.MeasurableArgmax
 import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.MeasureTheory.GaussianEntropy
+import ForMathlib.Analysis.Supergradient
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Coupling
 import ForMathlib.OptimalTransport.ConverseLagrangian

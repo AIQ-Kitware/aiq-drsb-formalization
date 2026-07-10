@@ -74,10 +74,13 @@ Sion's minimax theorem ✅ (Mathlib.Topology.Sion) ──┘                    
 > along it gives the **converse Lagrangian bound** `ForMathlib.OT.exists_coupling_lagrangian_ge`.
 > With the forward bound this pins `sup_π (𝔼_μ[f] − λ·𝔼_π[c]) = 𝔼_ν[φ_λ]` exactly.
 >
-> ❌ What remains of `hge` is the *other* ingredient: an **optimal multiplier `λ*` with complementary
-> slackness**. That is one-dimensional concave duality (a supergradient of the concave value function
-> at the radius), not measurable selection. So the `XL` KRN row is **off** the critical path after
-> all — but for a different reason than the one I gave earlier, and only after proving the selector.
+> ✅ The **optimal multiplier** is proved too: `ForMathlib.Analysis.exists_nonneg_multiplier`
+> (Mathlib has no sub/supergradient existence at all; the 1-D case is now in `ForMathlib`).
+>
+> ❌ What remains of `hge` is only that the **DRO value function is concave, nondecreasing and finite
+> near `δ`** — concavity being "mix two couplings", i.e. measure-theoretic bookkeeping rather than new
+> analysis. So the `XL` KRN and Fenchel rows are both **off** the critical path — but for different
+> reasons than the one I first gave, and only after actually proving the two analytic ingredients.
 >
 > Prokhorov / `IsTightMeasureSet` / Portmanteau *are* now in the pin, and they remain the tool for
 > the separate statement "the worst-case measure exists" (`GaoKleywegt2023.worstCase_structure_cor1`

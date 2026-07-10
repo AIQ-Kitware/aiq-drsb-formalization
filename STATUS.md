@@ -79,46 +79,53 @@ These are the strong-duality and continuum capstones. Re-verified against the pi
 | `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
 | `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
 
-### Tier 1 — the duality gap `hge`: **ingredient (1) of 2 is now proved**
+### Tier 1 — the duality gap `hge`: **both analytic ingredients are proved**
 
 The last edge on all four strong-duality capstones is **`hge : dualValue ≤ primalValue`** — the
-duality gap is zero. It replaced `hattain` (which bundled the gap with attainment of the primal sup;
-receipts: `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure`,
+duality gap is zero. It replaced `hattain`, which bundled the gap with attainment of the primal sup
+(receipts: `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure`,
 `WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure`).
 
-⚠ **Correction, recorded because it was asserted here in error.** `hge` is **not** an extreme-value
-argument and Prokhorov does not reach it. Compactness delivers attainment of the sup, which `hge` no
-longer requires. `hge` is Blanchet–Murthy Thm 1.
+⚠ **Two corrections, recorded because both were asserted here in error.** (i) `hge` is *not* an
+extreme-value argument and Prokhorov does not reach it. (ii) `hge` does *not* need
+Kuratowski–Ryll-Nardzewski. Both claims were mine, and both were wrong; the truth is below.
 
-Its proof has exactly two ingredients:
+`hge` is Blanchet–Murthy Thm 1, and its proof has three ingredients. **Two are now proved,
+axiom-clean:**
 
-1. ✅ **A measurable near-maximizer of the `c`-transform, and the resulting pushforward coupling.**
-   **PROVED (2026-07-10)**, axiom-clean:
-   * `ForMathlib.MeasureTheory.exists_measurable_eps_argmax` — measurable ε-argmax over a *countable*
-     index set (`Nat.find` on an enumeration; measurability is a Boolean combination via
-     `Nat.find_eq_iff`);
-   * `..._of_separable` — over a separable domain with a continuous integrand, since the supremum is
-     already achieved to within `ε` on a countable dense subset (`sSup_image_dense_eq`).
-     **This sidesteps Kuratowski–Ryll-Nardzewski entirely** — KRN is *not* needed for a continuous
-     integrand on a separable space, which is exactly the DRSB setting.
-   * `ForMathlib.OT.exists_coupling_lagrangian_ge` — the **converse Lagrangian bound**:
-     `𝔼_ν[φ_λ] − ε ≤ 𝔼_μ[f] − λ·𝔼_π[c]` for the pushforward coupling. With the forward bound
-     `expect_le_dualIntegrand_add_lam_couplingCost` this pins the Lagrangian value exactly:
-     `sup_π (𝔼_μ[f] − λ·𝔼_π[c]) = 𝔼_ν[φ_λ]`.
+1. ✅ **The Lagrangian value is achieved by a pushforward.**
+   `ForMathlib.MeasureTheory.exists_measurable_eps_argmax{,_of_separable}` — a measurable ε-argmax,
+   with **no KRN**: for a countable index set `Nat.find` on an enumeration gives the selector, and a
+   *continuous* integrand on a *separable* domain is a countable problem (`sSup_image_dense_eq`).
+   Then `ForMathlib.OT.exists_coupling_lagrangian_ge` — the **converse Lagrangian bound**
+   `𝔼_ν[φ_λ] − ε ≤ 𝔼_μ[f] − λ·𝔼_π[c]`. With the forward bound this pins
+   `sup_π (𝔼_μ[f] − λ·𝔼_π[c]) = 𝔼_ν[φ_λ]` exactly.
 
-2. ❌ **An optimal multiplier `λ*` with complementary slackness** (`𝔼_π[c] = δ` at the optimum), to
-   pass from `inf_λ (λδ + 𝔼_ν[φ_λ])` to the constrained supremum. This is one-dimensional concave
-   duality: `h(t) = sup{𝔼_μ[f] : 𝔼_π[c] ≤ t}` is concave, and `λ*` is a supergradient at `t = δ`.
-   Mathlib has `ConvexOn`/slope lemmas but no supergradient existence; this is the remaining work.
-   Papers: Blanchet–Murthy 2019 Thm 1; Gao–Kleywegt 2023 Thm 1 (Prop 2 for the `κ < ∞` gate).
+2. ✅ **The optimal multiplier.** `ForMathlib.Analysis.exists_nonneg_multiplier`: a nondecreasing
+   concave value function `h` on an interval has, at an interior `δ`, a supergradient `λ* ≥ 0` with
+   `h t + λ*·(δ − t) ≤ h δ` for all `t` — i.e. the Lagrangian relaxation at `λ*` never exceeds the
+   constrained optimum. Mathlib has `ConcaveOn` and the slope lemmas but **no sub/supergradient
+   existence at all** (grep-verified); `ForMathlib/Analysis/Supergradient.lean` supplies the
+   one-dimensional case.
+
+3. ❌ **The DRO value function is concave, nondecreasing, and finite near `δ`.**
+   `h t = sup { 𝔼_μ[f] : ∃ π ∈ Π(μ,ν), 𝔼_π[c] ≤ t }`. Concavity is *mixing two couplings*:
+   `a·π₁ + (1−a)·π₂` couples `a·μ₁ + (1−a)·μ₂` with `ν`, and both `couplingCost` and `expect` are
+   affine in the coupling. Monotone is relaxing the budget. Finiteness near `δ` is the Slater
+   condition (`0 < δ`, `κ < ∞` in Gao–Kleywegt). Then `primalValue = h δ` needs continuity of a
+   concave function on the interior. **This is the remaining work**, and it is measure-theoretic
+   bookkeeping — convex combinations of probability measures and their marginals — not new analysis.
+
+Assembly, once (3) lands: `dualValue = inf_λ (λδ + 𝔼_ν[φ_λ]) ≤ λ*δ + 𝔼_ν[φ_{λ*}]`
+`= sup_π (𝔼_μ[f] + λ*(δ − 𝔼_π[c]))` (by (1)) `≤ sup_t (h t + λ*(δ − t)) ≤ h δ = primalValue` (by (2)).
 
 Prokhorov / `IsTightMeasureSet` / Portmanteau are in the pin and remain the tool for the *separate*
 worst-case-measure-existence statements (`GaoKleywegt2023.worstCase_structure_cor1`,
 `MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment.
 
 On the entropic side, the Donsker–Varadhan **dual** variational formula
-(`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv`
-(`toReal_klDiv_le_of_tendsto_integral`) are proved. Both serve the attainment statements, not `hge`.
+(`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv` are proved.
+Both serve the attainment statements, not `hge`.
 
 ### Tier 2 — Schrödinger-bridge structure (`ChenGeorgiouPavon2021.SocOt`)
 

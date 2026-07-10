@@ -31,7 +31,12 @@ earlier `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` omitted this hypothesi
 was therefore under-specified; it is added here (`hsum`) and the paper library now
 delegates to this corrected statement.
 -/
-import Mathlib
+import Mathlib.Analysis.SpecialFunctions.Log.Deriv
+import Mathlib.Analysis.Calculus.LocalExtr.Basic
+import Mathlib.Topology.Order.Compact
+import Mathlib.Topology.MetricSpace.Bounded
+import Mathlib.Analysis.Normed.Group.Constructions
+import Mathlib.Data.Finset.Max
 
 set_option autoImplicit false
 open scoped BigOperators

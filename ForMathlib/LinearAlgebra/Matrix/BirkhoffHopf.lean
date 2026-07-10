@@ -709,13 +709,17 @@ theorem finite_weighted_average_log_crossratio_contraction_of_crossratio_bound {
 This is now only the matrix instantiation of the weighted-average scalar core above.  The remaining
 nontrivial proof debt is no longer matrix bookkeeping: it is the finite weighted-average
 Birkhoff--Hopf inequality
-`finite_weighted_average_log_crossratio_contraction_of_crossratio_bound`. -/
-theorem positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_apply_hilbert_log_diameter_bound
+`finite_weighted_average_log_crossratio_contraction_of_crossratio_bound`.
+
+This `_of_crossratio_bound` form carries the minimal hypotheses: the estimate is proved from strict
+positivity and the explicit pointwise cross-ratio bound
+(`positive_kernel_pointwise_crossRatioBounded`), **not** from the Hilbert-log-diameter certificate
+`PositiveKernelApplyHilbertLogDiameterBounded`. The source/context-facing wrapper
+`..._of_apply_hilbert_log_diameter_bound` re-adds that certificate. -/
+theorem positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_crossratio_bound
     {ι κ : Type*} [Fintype ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)
     (hG : ∀ i j, 0 < G i j)
-    (_hdiam : PositiveKernelApplyHilbertLogDiameterBounded G
-      (Real.log (positiveKernelCrossRatioBound G)))
     (x y : κ → ℝ)
     (hx : ∀ j, 0 < x j) (hy : ∀ j, 0 < y j)
     (i i' : ι) :
@@ -738,12 +742,37 @@ theorem positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_ap
       (positive_kernel_pointwise_crossRatioBounded G hG i i')
   simpa [positiveKernelApply, positiveKernelBirkhoffCoefficient] using hcore
 
+/-- Source/context-facing wrapper for
+`positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_crossratio_bound`.
+
+The `_hdiam : PositiveKernelApplyHilbertLogDiameterBounded ...` is compatibility/context data, **not**
+a used mathematical premise: the pointwise estimate is derived from the explicit cross-ratio bound in
+the `_of_crossratio_bound` core, not from the diameter certificate. -/
+theorem positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_apply_hilbert_log_diameter_bound
+    {ι κ : Type*} [Fintype ι] [Fintype κ] [Nonempty κ]
+    (G : ι → κ → ℝ)
+    (hG : ∀ i j, 0 < G i j)
+    (_hdiam : PositiveKernelApplyHilbertLogDiameterBounded G
+      (Real.log (positiveKernelCrossRatioBound G)))
+    (x y : κ → ℝ)
+    (hx : ∀ j, 0 < x j) (hy : ∀ j, 0 < y j)
+    (i i' : ι) :
+    Real.log (((positiveKernelApply G x i) * (positiveKernelApply G y i')) /
+        ((positiveKernelApply G x i') * (positiveKernelApply G y i))) ≤
+      positiveKernelBirkhoffCoefficient G * finiteHilbertProjectiveLogSpread x y :=
+  positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_crossratio_bound
+    G hG x y hx hy i i'
+
 /-- Birkhoff's oscillation estimate from finite image diameter.
 
 The only nontrivial ingredient is the pointwise four-coordinate oscillation estimate above.  This
 wrapper just packages those pointwise inequalities into the finite supremum defining Hilbert
 projective spread.  The coefficient here is the deliberately coarse explicit coefficient
-`(B - 1) / B`, which is above the standard `tanh (Δ / 4)` coefficient when `B = exp Δ`. -/
+`(B - 1) / B`, which is above the standard `tanh (Δ / 4)` coefficient when `B = exp Δ`.
+
+The `hdiam` diameter certificate is threaded here as source-shaped API only.  The pointwise estimate
+that does the real work is proved by the explicit cross-ratio machinery in
+`..._pointwise_log_crossratio_contraction_of_crossratio_bound`, not from `hdiam`. -/
 theorem positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_bound
     {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)

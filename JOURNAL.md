@@ -691,3 +691,96 @@ New target modules:
 Source scan after this overlay finds 27 executable theorem-target placeholders, all in the new scaffold
 or in the newly promoted continuum target statements.  The existing proved finite sequence Gaussian
 and finite Wiener dyadic layers remain theorem-bearing and should not be downgraded to assumptions.
+
+## Session 10 (2026-07-10) — repo re-orientation: Mathlib bump, doc de-staling, projective-metric survey
+
+**Author:** Claude Opus 4.8, coordinated by Jon Crall. **No proofs attempted this session** — the goal
+was to hand a fresh agent a clean, accurate repo. Nothing in the open-goal set was touched.
+
+### What we found: the docs had drifted badly from the tree
+`AGENTS.md` described a repo with **one** open goal (`energy_identity`, the continuum Girsanov edge)
+on toolchain `v4.31.0-rc2` / Mathlib `476fb97`. Reality: **16** open goals, none of them
+`energy_identity` (closed in Session 3), on `v4.32.0-rc1` / Mathlib `69b866d8`. The Session-9
+theorem-target scaffold had also been converted from executable placeholders into
+hypothesis/structure interfaces, so its "27 placeholders" no longer existed either.
+
+The actual frontier — invisible in every doc — is **Sinkhorn convergence via the Birkhoff–Hopf
+contraction**: `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf{,/PaperRoute/*}`,
+`ForMathlib/Analysis/ExpLogBounds.lean`, and `…/Sinkhorn/Convergence/Compactness/FranklinLorenz.lean`.
+
+### Changes landed
+- **Mathlib bumped to latest master** `e3b73828` (2026-07-09), same toolchain `v4.32.0-rc1`, so no
+  toolchain migration. Recorded a standing policy: *track latest master; older toolchains are not
+  kept on disk.*
+- **Grep hygiene enforced.** Per the repo rule, Lean comments must never contain the words `sorry` or
+  `axiom` (they destroy the proof-debt inventory). Found and fixed the **single** violation, a
+  docstring in `BirkhoffHopf.lean`. The rule — and the now-exact grep recipe it buys — is written
+  into `AGENTS.md` §5, where it had never been recorded.
+- **Docs restructured.** `AGENTS.md` is now **evergreen** (purpose, conventions, traps) and carries
+  no counts or revisions; all dated state moved to a new **`STATUS.md`**. `AGENTS.md` §9 is a pointer.
+  Both files open with the two commands that re-derive the pin and the open-goal count, so no future
+  agent has to trust a doc. Also promoted two long-buried house rules into the evergreen conventions:
+  *isolate content to an explicit satisfiable edge* and the *`if False then True` landmine check*.
+- **`FOUNDATIONS.md` Chain 3 corrected.** It still framed the chain as "Perron–Frobenius ⇒ Sinkhorn".
+  Both halves were wrong: Sinkhorn **existence** is done and used *no* PF (log-domain convex
+  minimization), and the live need is Sinkhorn **convergence**, which wants Birkhoff–Hopf instead.
+
+### Survey: is any of this vendorable? (the question that prompted the session)
+Two independent sweeps — pinned/master Mathlib, and external Lean repos. Recorded in
+`SURVEY_LEADS.md` § *Projective-metric frontier*.
+
+- **Hilbert projective metric: does not exist in Lean. Anywhere.** Not Mathlib, not any repo.
+- **Birkhoff–Hopf contraction (`tanh(Δ/4)`): does not exist in Lean. Anywhere.** Strongest negative.
+- **Perron–Frobenius: exists, sorry-free, permissive** — `mkaratarakis/HopfieldNet` (MIT, most
+  complete; and it *is* the source behind Mathlib PRs #39919/#39920, correcting an earlier note that
+  called it independent) and `mrdouglasny/spectral-positivity` (Apache-2.0, cleanest headers).
+  **But PF is off our critical path** — nothing downstream consumes an eigenvector.
+- **Mathlib PF PR cluster #39917/#39918/#39919/#39920: all still OPEN**, none merged; #39919 has a
+  merge conflict and #39920 is blocked on it. A pin bump does not deliver PF. Docs-site 404 confirms.
+- **`gpeyre/flow-sinkhorn` re-examined:** zero hits for `hilbert|birkhoff|tanh|projective`. Its
+  Sinkhorn convergence goes by KL-descent + Pinsker, *not* the Hilbert metric; no Franklin–Lorenz.
+- ⚠️ **Name-collision traps recorded**: Mathlib's `Analysis/Convex/Birkhoff` is Birkhoff–**von
+  Neumann**, `Order/Birkhoff` is Birkhoff **representation**, `Dynamics/BirkhoffSum` is **ergodic**;
+  every `Hilbert` hit is Hilbert **space**/**projection**; `Analysis/Oscillation` is modulus of
+  continuity; `Gauge` is **Minkowski**. None is our target.
+- Method caveat: no GitHub token in the survey env, so authenticated **code**-search never ran. Repo
+  search + web + clone inspection agreed, but a keyed code-search is the one stone left unturned.
+
+**Conclusion: the two theorems we need must be authored in-house.** That is what `BirkhoffHopf.lean`
+is already doing, so the direction was right — it just wasn't written down.
+
+### Audit of the frontier (statements checked, not proved)
+- `IsBirkhoffHopfContractionCoefficient` is **non-vacuous and correct**: `∀ x y > 0,
+  logSpread(Gx,Gy) ≤ γ · logSpread(x,y)`, and the diagonal `i=i'` term forces `spread ≥ 0`.
+- Its coefficient `γ = (B−1)/B`, `B = 1 + Σ cross-ratios`, is **deliberately coarser** than the sharp
+  Birkhoff constant `tanh(Δ/4) = (√B−1)/(√B+1)`; since `B ≥ 1+M ≥ √B+1`, the coarse statement is a
+  true, weaker corollary. ⚠️ But coarseness does **not** buy an easier proof — the analytic core is
+  the same. Prefer proving Carroll's sharp constant and weakening.
+- **Two parallel unfinished routes to the same theorem** were discovered: `BirkhoffHopf.lean` is
+  Carroll (2004) (3 open goals); `BirkhoffHopf/PaperRoute/*` is Eveson–Nussbaum (1995) (10 open),
+  and its own header calls itself "the intended replacement spine for the currently parked
+  weighted-average route". **Someone must pick one.** Carroll is far closer to done.
+- Verified by dependency audit that `positive_kernel_birkhoff_hopf_contraction` — which *reads* as
+  proved — is placeholder-backed through
+  `finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound`.
+- `PaperRoute/Assemble.lean`'s "public" theorem is `exact` of an open goal: **zero content**.
+- `FranklinLorenz.lean` is correctly decoupled: its hard cores take the contraction coefficient as an
+  explicit hypothesis, so the two efforts can proceed independently.
+
+### The distilled TeX is the right tool and maps 1:1 onto the open goals
+`prose/distilled_literature/` (with original PDFs in `prose/papers/`) already contains
+`Carroll2004_birkhoff_contraction.tex`, `EvesonNussbaum1995_birkhoff_hopf.tex`,
+`FranklinLorenz1989_matrix_scaling.tex`, `LemmensNussbaum2013_hilbert_metric_survey.tex`,
+`Birkhoff1957_extensions_jentzsch.tex`. The goal→source map is now in `STATUS.md`. Highlights:
+- Carroll **Step 4** (the two-coordinate inequality) is elementary — AM-GM `1+rsy² ≥ 2y√(rs)` then two
+  mean-value comparisons. Its analogue `symmetricTwoByTwoPhi_le` is **already proved** in `TwoByTwo.lean`.
+- Carroll **Step 3** (reduce *n* coordinates to 2, by linear programming) and Eveson–Nussbaum **Lemma
+  3.11** (two-dimensional subspace reduction) are the two genuinely hard goals.
+- Eveson–Nussbaum **Lemma 5.1**'s doubly-stochastic + IVT normalization is **unnecessary** for the
+  Lean statement as written: `α = √(cross-ratio)` and the row/column scalings have explicit closed
+  forms (the `hdet ≠` hypothesis is exactly "cross-ratio ≠ 1", and a row swap fixes `α > 1`).
+
+### Takeaway for the next agent
+Read `STATUS.md`, not this file, for where things are. Then, before writing a single tactic: **decide
+between the Carroll and Eveson–Nussbaum routes and delete or explicitly park the loser.** Two
+half-built proofs of one theorem is the largest avoidable cost in the current tree.

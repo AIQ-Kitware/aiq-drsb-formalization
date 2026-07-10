@@ -12,15 +12,12 @@ library per source paper, a paper-agnostic `ForMathlib` staging library, a
 > is **not a source** — ~0 weight, §2), the published-theorem chain, the working
 > conventions, and the known traps. This README is just the build + library map.
 
-> **Status: proof-pass active; sequence-model Cameron–Martin milestone complete.** The
-> card-level DRSB inequalities and most paper-library links are proved dependency-clean. The iid
-> Gaussian sequence-model Cameron–Martin/Kakutani layer is now built and `lake build` green:
-> finite-prefix densities, square-summability ⇒ absolute continuity, the finite-energy KL
-> identity, and the nonsummable/infinite-KL converse are all staged in
-> `ForMathlib/MeasureTheory/GaussianCameronMartin.lean`, with honest CGP-facing wrappers under
-> `ChenGeorgiouPavon2021/`. The public `ChenGeorgiouPavon2021/Basic.lean` file is now only an
-> aggregate import over smaller CGP modules. The remaining research seam is still the continuum
-> Wiener/SDE path-law transport documented in [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md).
+> **Status → [`STATUS.md`](STATUS.md).** Deliberately not duplicated here, because it goes stale.
+> In one line: the card-level DRSB inequalities and all four strong-duality equalities are proved
+> dependency-clean; the live frontier is Sinkhorn **convergence** via the Birkhoff–Hopf contraction
+> (`ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf*`). Two other research seams remain documented:
+> the continuum Wiener/SDE path-law transport ([`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md))
+> and the Itô/Girsanov wall behind the continuum `hCM` edge ([`ROADMAP_ENERGY_IDENTITY.md`](ROADMAP_ENERGY_IDENTITY.md)).
 
 ## What DRSB claims
 
@@ -129,13 +126,22 @@ continuity), not hidden placeholders.
 
 ## Project theorem-target progress bar
 
-As of the 2026-07-08 theorem-target scaffold, the remaining DRSB mathematics is imported by:
+The 2026-07-08 theorem-target scaffold collects the remaining DRSB mathematics under:
 
 ```lean
 import ChenGeorgiouPavon2021.ProjectTheoremTargets
 ```
 
-The executable placeholders in these target modules are intended to be the project-wide progress bar for
-missing mathematics.  Final assembly lemmas should consume these targets and remain proof-bearing;
-when the target placeholders are all discharged, the expected remaining work is integration/rewiring, not
-new theorem scaffolding.
+Its modules were originally staged with executable placeholders as a project-wide progress bar.
+**They have since been converted to hypothesis/structure interfaces and now carry zero open goals** —
+so this scaffold is no longer the progress bar. Assembly lemmas consume those interfaces and remain
+proof-bearing.
+
+For the live open-goal inventory (and the frontier they belong to), see [`STATUS.md`](STATUS.md), or
+just run the grep:
+
+```bash
+grep -rn --include=*.lean --exclude-dir=.lake --exclude-dir=.reference-clones --exclude-dir=reference -w sorry .
+```
+
+(Lean comments in this repo never contain that word — see `AGENTS.md` §5 — so the match is exact.)

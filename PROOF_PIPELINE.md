@@ -6,8 +6,53 @@ the **proof-pass work plan**: it ranks every remaining placeholder by difficulty
 **who should do it** (us vs. a Fable 5 agent), and defines the **ForMathlib pipeline**
 of Mathlib-contributable lemmas that the paper libraries consume.
 
-Update it as placeholders close. Keep the counts honest (`grep -rn "s[o]rry$" --include=*.lean
-. | grep -vE '\.lake|reference/'`).
+Update it as placeholders close. Keep the counts honest — because Lean comments never contain the
+literal token (AGENTS.md §5 grep hygiene), a bare word-match is an exact inventory:
+
+```bash
+grep -rn --include=*.lean --exclude-dir=.lake --exclude-dir=.reference-clones --exclude-dir=reference -w sorry .
+```
+
+---
+
+## −1. Projective-metric frontier (2026-07-10) — THE CURRENT WORK
+
+> Sections 0–5 below describe the **DRSB card + duality** pass, which is **done**. They are
+> retained as history. The live frontier is **Sinkhorn convergence via Birkhoff–Hopf**, upstream
+> `ForMathlib` infrastructure that no card claim depends on. Full orientation: **[`STATUS.md`](STATUS.md)**.
+
+**16 open goals.** Two *parallel, both-unfinished* routes to the same theorem — resolve this first:
+
+| Route | Location | Open | Source paper |
+|---|---|---|---|
+| **Carroll (2004)** weighted-average | `ForMathlib/…/BirkhoffHopf.lean` | 3 | `prose/distilled_literature/Carroll2004_birkhoff_contraction.tex` |
+| **Eveson–Nussbaum (1995)** cone route | `ForMathlib/…/BirkhoffHopf/PaperRoute/*` | 10 | `…/EvesonNussbaum1995_birkhoff_hopf.tex` |
+| Franklin–Lorenz consumers | `ChenGeorgiouPavon2021/…/Compactness/FranklinLorenz.lean` | 2 | `…/FranklinLorenz1989_matrix_scaling.tex` |
+| analysis tail | `ForMathlib/Analysis/ExpLogBounds.lean` | 1 | — |
+
+**Dependency facts (Lean-verified, not eyeballed):**
+- `positive_kernel_birkhoff_hopf_contraction` *looks* proved but its dependency audit reports the
+  placeholder marker — the whole chain rests on the single open goal
+  `finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound`, which in turn should
+  reduce to `two_point_weighted_average_log_crossratio_contraction_of_crossratio_bound`.
+- `PaperRoute/Assemble.lean`'s "public" theorem is `exact` of an open goal → **zero content**.
+- Some `PaperRoute` goals are *already proved elsewhere* or near-trivial. Before proving anything
+  there, check whether `BirkhoffHopf.lean` already has it: e.g.
+  `positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound` (proved, and
+  **not** itself placeholder-backed) has the same statement as PaperRoute's
+  `positive_kernel_apply_hilbert_log_diameter_bound_paper_route` (open). Likewise
+  `quadrant_hilbert_coordScale_eq` / `_equivPerm_eq` are near-trivial (the scale factors cancel
+  inside the log; the two `Set.range`s are literally equal).
+
+**Difficulty (honest):** the two genuinely hard goals are Carroll **Step 3** (reduce *n* coordinates
+to 2, by linear programming) and Eveson–Nussbaum **Lemma 3.11** (2-dimensional subspace reduction).
+Everything else is elementary algebra/calculus. Carroll **Step 4** (the two-coordinate inequality) is
+AM-GM plus two mean-value comparisons, and its analogue is **already proved** as
+`PaperRoute/TwoByTwo.lean`'s `symmetricTwoByTwoPhi_le`.
+
+**Vendoring: impossible.** The Hilbert projective metric and the Birkhoff–Hopf contraction exist
+**nowhere in Lean** (swept 2026-07-10 — `SURVEY_LEADS.md` § Projective-metric frontier). PF exists
+externally and sorry-free, but is **off the critical path** (our Sinkhorn existence proof avoided it).
 
 ---
 
@@ -47,7 +92,10 @@ capstones, but the cards do not depend on it.
 
 ---
 
-## 2. Ranked remaining placeholders (0)
+## 2. Ranked placeholders of the card + duality pass (all closed)
+
+*Historical. This pass is finished — the count here is 0. For the live inventory see §−1 and
+[`STATUS.md`](STATUS.md).*
 
 > **Soundness fix (2026-07 audit — see `JOURNAL.md`).** Four of the five former placeholders were
 > **false as stated** (they equated `u*`/`dens*` to *free* operator/function arguments with no
@@ -59,8 +107,8 @@ capstones, but the cards do not depend on it.
 > strong-duality equalities. Lean dependency audit on all four (+ `neg_grad_value`) is now clean
 > (`propext/Classical.choice/Quot.sound`, no `unsound dependency marker`).
 
-> **Zero placeholders (2026-07, `energy_identity` closed).** The last placeholder is gone — **the whole repo
-> is now complete and dependency-clean**. `energy_identity` (CGP 4.19) was reshaped from a
+> **`energy_identity` closed (2026-07)** — this pass's last placeholder, and with it every card and
+> duality result is proved and dependency-clean. `energy_identity` (CGP 4.19) was reshaped from a
 > monolithic placeholder into a *proved* disintegration (`ROADMAP_ENERGY_IDENTITY.md`): KL invariance
 > under a start-plus-centered-path measurable iso (`klDiv_map_measurableEquiv`) + the KL chain rule
 > on the compProd factorizations (new `ForMathlib.toReal_klDiv_compProd_eq_add`) + the conditional

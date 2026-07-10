@@ -8,8 +8,10 @@ status**, and lists **search terms** for surveying existing (AI- or human-author
 proofs to pull from. It is the DRSB analog of DKPS's `docs/planning/mathlib-candidates.md`.
 
 Companion: [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (per-placeholder ranking + us/Fable
-split). Gap claims verified by `grep` against the pinned Mathlib
-(`476fb97b621c…`, `lean4:v4.31.0-rc2`) on 2026-07-03 — **re-grep before porting**, and
+split). Gap claims below were verified by `grep` against the Mathlib pin *as of the date noted on
+each claim* — the Chain 3 rows were last re-verified **2026-07-10**; older rows date from 2026-07-03
+(then-pin `476fb97b621c…`, `lean4:v4.31.0-rc2`). **The repo now tracks latest Mathlib master, so any
+undated gap claim here may be stale: re-grep `.lake/packages/mathlib` before porting**, and
 prefer verifying over trusting memory (a recalled lemma name may be stale).
 **Grep hygiene** (learned the hard way): never `head`-truncate a gap-verification grep.
 The initial pass wrongly marked **Sion's minimax ABSENT** because `head -5` cut off
@@ -90,39 +92,44 @@ equality side needs the same `ENNReal`/`EReal` care).
 
 ---
 
-## Chain 3 — Perron–Frobenius ⇒ Sinkhorn scaling  (self-contained, finite-dim)
+## Chain 3 — Sinkhorn scaling: existence ✅ / convergence 🚧  (self-contained, finite-dim)
 
-Powers `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` (now delegating to
+Powers `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` (delegating to
 `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling`).
 
 ```
-Birkhoff polytope / doubly-stochastic ✅ ─┐
-                                          ├─► Hilbert projective metric / Birkhoff contraction ❌ ─► Perron–Frobenius (positive matrix) 🟡 ─► Sinkhorn–Knopp / matrix scaling ❌ (staged)
-positive-matrix irreducibility defs 🟡 ───┘
+EXISTENCE (done):  log-domain convex minimization ✅ ─► matrix_scaling_exists ✅ ─► sinkhorn_potentials_exist ✅
+                   (no Brouwer, no Perron–Frobenius, no Birkhoff contraction)
+
+CONVERGENCE (live frontier):
+  Hilbert projective metric ❌ ─► Birkhoff–Hopf contraction ❌ ─► Franklin–Lorenz geometric decay 🚧
+  (all three absent from Mathlib and from every other Lean repo; being authored in-house)
+
+OFF THE PATH:  Perron–Frobenius ❌(open PRs) · Birkhoff–von Neumann / doubly-stochastic ✅(different theorem)
 ```
 
 | Link | Mathlib | Effort | Search terms |
 |---|---|---|---|
 | Doubly-stochastic / Birkhoff–von Neumann | ✅ (`Analysis/Convex/Birkhoff`, `LinearAlgebra/Matrix/DoublyStochasticMatrix`) | — | `doublyStochastic`, `Birkhoff polytope`, `Birkhoff von Neumann` |
-| Perron–Frobenius (dominant eigenvalue/eigenvector of a positive matrix) | 🟡 **active Mathlib PR cluster** #39919 (Collatz–Wielandt / Perron root bounds), #39920 (PF for primitive matrices), #39917 (aux matrix/topology lemmas); merged #28728 (Irreducible+Primitive+Quiver). External `mrdouglasny/spectral-positivity` (PF, Jentzsch, Collatz–Wielandt) | L | `Perron Frobenius`, `Collatz–Wielandt`, `primitive matrix`, `spectral radius nonneg matrix` |
-| Hilbert projective metric / Birkhoff contraction | ❌ | L | `Hilbert projective metric`, `Birkhoff contraction`, `Garrett Birkhoff`, `cone contraction` |
+| Perron–Frobenius (dominant eigenvalue/eigenvector of a positive matrix) | ❌ **absent from pin AND master** (re-checked 2026-07-10). PR cluster #39917/#39918/#39919/#39920 **all still OPEN, none merged** (#39920 blocked-by #39919; #39919 has a merge conflict) — a pin bump does **not** get you PF. Merged #28728 supplies only `Matrix.IsIrreducible`/`IsPrimitive` **definitions**, no eigenvalue theory. Sorry-free external: `mkaratarakis/HopfieldNet` (MIT, = the PRs' own source), `mrdouglasny/spectral-positivity` (Apache-2.0) | L | `Perron Frobenius`, `Collatz–Wielandt`, `primitive matrix`, `spectral radius nonneg matrix` |
+| Hilbert projective metric / Birkhoff contraction | ❌ **absent from Mathlib AND from every other Lean repo** (re-checked 2026-07-10 — it exists nowhere in Lean). **Now being authored in-house:** `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean` (+ `BirkhoffHopf/PaperRoute/*`). ⚠ Every Mathlib `Birkhoff`/`Hilbert` grep hit is a *different theorem* — see the name-collision traps in `SURVEY_LEADS.md` | L | `Hilbert projective metric`, `Birkhoff contraction`, `Garrett Birkhoff`, `cone contraction` |
 | **Sinkhorn–Knopp / matrix scaling (DAD)** | ❌ core (staged, placeholder); external **`gpeyre/flow-sinkhorn`** has Lean Sinkhorn / KL-projection / duality / primal-dual-bounds files — inspect | L | `Sinkhorn Knopp`, `matrix scaling`, `RAS`, `DAD theorem`, `iterative proportional fitting`; in flow-sinkhorn: `KLProjection`, `DualConvergence`, `PrimalDualBounds` |
 
-*Purely finite-dimensional and self-contained — a strong **Fable ticket (F2)**, provable
-without any measure theory. Survey (2026-07) upgraded this chain twice: the **PF
-sub-layer has an active Mathlib-native PR cluster** (#39919/#39920/#39917 — build on
-these so the upstream composes; better than the archived Zulip thread), and
-**`gpeyre/flow-sinkhorn`** is a live external Lean Sinkhorn/OT repo (verify its placeholder
-inventory and license before depending). Sinkhorn scaling in core Mathlib is still
-new — but no longer obviously from-scratch.*
+*Purely finite-dimensional and self-contained, provable without any measure theory.*
 
-> **Recommended build path (revised by survey).** Don't start from Perron–Frobenius
-> alone. **Start from Mathlib's doubly-stochastic / Birkhoff API**
-> (`Analysis/Convex/Birkhoff`, `Analysis/Convex/DoublyStochasticMatrix`,
-> `LinearAlgebra/Matrix/Stochastic`), then add the row/column scaling maps, positivity
-> preservation, and KL / I-projection convergence — pulling auxiliary lemmas from
-> `gpeyre/flow-sinkhorn`, `StatLean`, and the active PF PRs. PF becomes a sub-lemma, not
-> the foundation. (See `SURVEY_LEADS.md`.)
+**Sinkhorn *existence* is done, and it needs nothing from this chain.**
+`ForMathlib.matrix_scaling_exists` / `sinkhorn_potentials_exist` are proved by **log-domain convex
+minimization** — no Brouwer, no Perron–Frobenius, no Birkhoff contraction.
+
+**The live need is Sinkhorn *convergence*,** which does want the Birkhoff–Hopf contraction; that is
+why `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf*` exists. It is the current frontier — see
+`PROOF_PIPELINE.md` §−1 and `STATUS.md`.
+
+> **Build path.** Perron–Frobenius is **not** on the critical path: nothing downstream consumes an
+> eigenvector. Mathlib's doubly-stochastic API is likewise irrelevant — it is Birkhoff–**von Neumann**,
+> a different theorem. The route that matters is the one the papers give: **Carroll (2004)** for the
+> contraction coefficient by elementary algebra, or **Eveson–Nussbaum (1995)** for the cone-theoretic
+> route. Both are distilled in `prose/distilled_literature/`.
 
 ---
 

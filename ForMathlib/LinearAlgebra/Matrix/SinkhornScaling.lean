@@ -276,30 +276,62 @@ private theorem stationarity_pairwise_residual_eq
   show (∑ i, aa i * G i j) - q j / bs j = (∑ i, aa i * G i j₀) - q j₀ / bs j₀
   linarith [hval0]
 
-/-- **Matrix scaling / Sinkhorn existence.** For a strictly positive kernel `G` on a
-finite index set and strictly positive marginals `p, q` of equal total mass, there exist
-strictly positive scalings `a, b` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
-
-Proved via log-domain minimization; see the module docstring. Dependency-clean; a genuine
-Mathlib gap (Sinkhorn/matrix scaling is not in Mathlib). -/
-theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
-    (p q : ι → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
-    (hsum : ∑ i, p i = ∑ j, q j)
-    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j) :
-    ∃ a b : ι → ℝ, (∀ i, 0 < a i) ∧ (∀ j, 0 < b j) ∧
-      (∀ i, a i * ∑ j, G i j * b j = p i) ∧
-      (∀ j, b j * ∑ i, G i j * a i = q j) := by
+/-- **[M4c] A continuous function attains its minimum on a truncated finite simplex.**
+The set `{b | (∀ i, δ ≤ b i) ∧ ∑ b = 1}` is compact (closed, and bounded from the lower
+bounds plus normalization), so a `ContinuousOn` function attains its minimum there. Needs
+`0 ≤ δ` for the unit-ball boundedness step; the witness `u` supplies nonemptiness, so no
+`[Nonempty ι]`. Objective-agnostic finite-dimensional EVT plumbing. -/
+private theorem exists_isMinOn_truncated_simplex
+    {ι : Type*} [Fintype ι]
+    (f : (ι → ℝ) → ℝ) (δ : ℝ) (hδ_nonneg : 0 ≤ δ)
+    (u : ι → ℝ) (hu_lower : ∀ i, δ ≤ u i) (hu_sum : ∑ i, u i = 1)
+    (hcont : ContinuousOn f {b | (∀ i, δ ≤ b i) ∧ ∑ i, b i = 1}) :
+    ∃ b, b ∈ {b | (∀ i, δ ≤ b i) ∧ ∑ i, b i = 1} ∧
+      IsMinOn f {b | (∀ i, δ ≤ b i) ∧ ∑ i, b i = 1} b := by
   classical
-  rcases isEmpty_or_nonempty ι with hempty | hne
-  · exact ⟨fun _ => 1, fun _ => 1, fun i => isEmptyElim i, fun j => isEmptyElim j,
-      fun i => isEmptyElim i, fun j => isEmptyElim j⟩
-  -- nonempty case
-  -- global minimum index for G
+  set K : Set (ι → ℝ) := {b | (∀ i, δ ≤ b i) ∧ ∑ i, b i = 1} with hK
+  have hu_mem : u ∈ K := ⟨hu_lower, hu_sum⟩
+  have hK_closed : IsClosed K := by
+    rw [hK, Set.setOf_and]
+    refine IsClosed.inter ?_ ?_
+    · rw [Set.setOf_forall]
+      exact isClosed_iInter (fun l => isClosed_le continuous_const (continuous_apply l))
+    · exact isClosed_eq (continuous_finsetSum _ (fun l _ => continuous_apply l)) continuous_const
+  have hK_bdd : Bornology.IsBounded K := by
+    apply (Metric.isBounded_closedBall (x := (0 : ι → ℝ)) (r := 1)).subset
+    intro b hb
+    obtain ⟨hb1, hb2⟩ := hb
+    rw [Metric.mem_closedBall, dist_zero_right, pi_norm_le_iff_of_nonneg zero_le_one]
+    intro l
+    rw [Real.norm_eq_abs, abs_le]
+    refine ⟨by linarith [hb1 l, hδ_nonneg], ?_⟩
+    calc b l ≤ ∑ m, b m :=
+          Finset.single_le_sum (fun m _ => le_trans hδ_nonneg (hb1 m)) (Finset.mem_univ l)
+      _ = 1 := hb2
+  have hK_compact : IsCompact K := Metric.isCompact_of_isClosed_isBounded hK_closed hK_bdd
+  exact hK_compact.exists_isMinOn ⟨u, hu_mem⟩ hcont
+
+/-- **[M4d] The Sinkhorn log-domain objective has a strict interior minimizer.** For
+positive marginals `p, q` and a positive kernel `G` on a nonempty finite index set, the
+objective `ψ b = ∑ᵢ pᵢ·log(∑ⱼ Gᵢⱼ bⱼ) − ∑ⱼ qⱼ·log bⱼ` attains its minimum over the
+truncated simplex `{b | (∀ l, δ ≤ b l) ∧ ∑ b = 1}` at a point `bs` bounded strictly away
+from the boundary (`δ < bs l` for all `l`). Packages exactly the data
+`stationarity_pairwise_residual_eq` (M3a) consumes; combines the M4a bounds, the M4b
+logarithmic barrier, and the M4c compactness plumbing. The interface returns the strict
+bound `δ < bs l` rather than the intermediate `δ0` (an internal construction detail). -/
+private theorem exists_sinkhorn_interior_minimizer
+    {ι : Type*} [Fintype ι] [Nonempty ι]
+    (p q : ι → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
+    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j) :
+    ∃ (δ : ℝ) (bs : ι → ℝ), 0 < δ ∧ (∀ l, 0 < bs l) ∧ (∑ l, bs l = 1) ∧
+      IsMinOn (fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j))
+        {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} bs ∧
+      (∀ l, δ < bs l) := by
+  classical
   obtain ⟨gmin, hgmin_pos, hgmin⟩ : ∃ c, 0 < c ∧ ∀ i j, c ≤ G i j := by
     obtain ⟨ij, -, hij⟩ := Finset.exists_min_image (Finset.univ : Finset (ι × ι))
       (fun ij => G ij.1 ij.2) Finset.univ_nonempty
     exact ⟨G ij.1 ij.2, hG _ _, fun i j => hij (i, j) (Finset.mem_univ _)⟩
-  -- min of q
   obtain ⟨qq, hqq_pos, hqq⟩ : ∃ c, 0 < c ∧ ∀ j, c ≤ q j := by
     obtain ⟨j1, -, hj1⟩ := Finset.exists_min_image (Finset.univ : Finset ι) q Finset.univ_nonempty
     exact ⟨q j1, hq _, fun j => hj1 j (Finset.mem_univ _)⟩
@@ -313,7 +345,6 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
     rw [hN]; field_simp
   set ψ : (ι → ℝ) → ℝ :=
     fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j) with hψ
-  -- lower bound helpers
   have hGb_ge : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, gmin ≤ ∑ j, G i j * b j :=
     fun b hb0 hb1 i => lower_bound_le_weighted_sum (fun j => G i j) b gmin (hgmin i) hb0 hb1
   have hGb_pos : ∀ b : ι → ℝ, (∀ l, 0 ≤ b l) → (∑ l, b l = 1) → ∀ i, 0 < ∑ j, G i j * b j :=
@@ -352,8 +383,7 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
     have h1 := min_le_right δ0 N⁻¹
     have h2 : (0:ℝ) ≤ N⁻¹ := by positivity
     linarith
-  -- sublevel bound
-  -- objective-specific wrapper: the Sinkhorn sublevel supplies the `hlogsum` premise (M4b)
+  -- objective-specific wrapper: the Sinkhorn sublevel supplies the M4b `hlogsum` premise
   have hsublevel : ∀ b : ι → ℝ, (∀ l, 0 < b l) → (∑ l, b l = 1) → ψ b ≤ ψ u → ∀ j, δ0 ≤ b j := by
     intro b hbpos hbsum hble
     have hb0 : ∀ l, 0 ≤ b l := fun l => le_of_lt (hbpos l)
@@ -364,28 +394,7 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
       rw [hM]; linarith [hlb, hble, hψb]
     rw [hδ0]
     exact exp_neg_div_le_coord_of_weighted_log_sum_ge q b qq M hqq_pos hqq hM_nonneg hbpos hbsum hlogsum
-  -- the compact feasible set
-  set K : Set (ι → ℝ) := {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} with hK
-  have hu_mem : u ∈ K := ⟨fun l => by rw [hu]; exact hδ_le_N, hu_sum⟩
-  have hK_closed : IsClosed K := by
-    rw [hK, Set.setOf_and]
-    refine IsClosed.inter ?_ ?_
-    · rw [Set.setOf_forall]
-      exact isClosed_iInter (fun l => isClosed_le continuous_const (continuous_apply l))
-    · exact isClosed_eq (continuous_finsetSum _ (fun l _ => continuous_apply l)) continuous_const
-  have hK_bdd : Bornology.IsBounded K := by
-    apply (Metric.isBounded_closedBall (x := (0 : ι → ℝ)) (r := 1)).subset
-    intro b hb
-    obtain ⟨hb1, hb2⟩ := hb
-    rw [Metric.mem_closedBall, dist_zero_right, pi_norm_le_iff_of_nonneg zero_le_one]
-    intro l
-    rw [Real.norm_eq_abs, abs_le]
-    refine ⟨by linarith [hb1 l, hδ_pos], ?_⟩
-    calc b l ≤ ∑ m, b m :=
-          Finset.single_le_sum (fun m _ => le_of_lt (lt_of_lt_of_le hδ_pos (hb1 m))) (Finset.mem_univ l)
-      _ = 1 := hb2
-  have hK_compact : IsCompact K := Metric.isCompact_of_isClosed_isBounded hK_closed hK_bdd
-  have hψ_cont : ContinuousOn ψ K := by
+  have hψ_cont : ContinuousOn ψ {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} := by
     rw [hψ]
     apply ContinuousOn.sub
     · apply continuousOn_finsetSum
@@ -405,27 +414,49 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
       · intro b hb
         obtain ⟨hb1, hb2⟩ := hb
         exact ne_of_gt (lt_of_lt_of_le hδ_pos (hb1 j))
-  obtain ⟨bs, hbs_mem, hbs_min⟩ := hK_compact.exists_isMinOn ⟨u, hu_mem⟩ hψ_cont
+  obtain ⟨bs, hbs_mem, hbs_min⟩ :=
+    exists_isMinOn_truncated_simplex ψ δ (le_of_lt hδ_pos) u (fun _ => hδ_le_N) hu_sum hψ_cont
   have hbs_ge_δ : ∀ l, δ ≤ bs l := hbs_mem.1
   have hbs_sum : ∑ l, bs l = 1 := hbs_mem.2
   have hbs_pos : ∀ l, 0 < bs l := fun l => lt_of_lt_of_le hδ_pos (hbs_ge_δ l)
+  have hu_mem : u ∈ {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} := ⟨fun _ => hδ_le_N, hu_sum⟩
   have hbs_le_u : ψ bs ≤ ψ u := isMinOn_iff.mp hbs_min u hu_mem
   have hbs_ge_δ0 : ∀ j, δ0 ≤ bs j := hsublevel bs hbs_pos hbs_sum hbs_le_u
-  -- row marginals of bs
+  exact ⟨δ, bs, hδ_pos, hbs_pos, hbs_sum, hbs_min, fun l => lt_of_lt_of_le hδ_lt_δ0 (hbs_ge_δ0 l)⟩
+
+/-- **Matrix scaling / Sinkhorn existence.** For a strictly positive kernel `G` on a
+finite index set and strictly positive marginals `p, q` of equal total mass, there exist
+strictly positive scalings `a, b` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
+
+Proved via log-domain minimization; see the module docstring. Dependency-clean; a genuine
+Mathlib gap (Sinkhorn/matrix scaling is not in Mathlib). -/
+theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)
+    (hsum : ∑ i, p i = ∑ j, q j)
+    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j) :
+    ∃ a b : ι → ℝ, (∀ i, 0 < a i) ∧ (∀ j, 0 < b j) ∧
+      (∀ i, a i * ∑ j, G i j * b j = p i) ∧
+      (∀ j, b j * ∑ i, G i j * a i = q j) := by
+  classical
+  rcases isEmpty_or_nonempty ι with hempty | hne
+  · exact ⟨fun _ => 1, fun _ => 1, fun i => isEmptyElim i, fun j => isEmptyElim j,
+      fun i => isEmptyElim i, fun j => isEmptyElim j⟩
+  -- nonempty case: obtain the strict interior minimizer (M4d), then read off the scalings
+  haveI := hne
+  obtain ⟨δ, bs, hδ_pos, hbs_pos, hbs_sum, hbs_min, hbs_gt⟩ :=
+    exists_sinkhorn_interior_minimizer p q hp hq G hG
+  obtain ⟨j0⟩ := hne
+  -- row marginals `D2 i = ∑ⱼ Gᵢⱼ bsⱼ > 0` and the scaling `aa := p / D2`
   set D2 : ι → ℝ := fun i => ∑ j, G i j * bs j with hD2
   have hD2_pos : ∀ i, 0 < D2 i := fun i => by
-    rw [hD2]; exact hGb_pos bs (fun l => le_of_lt (hbs_pos l)) hbs_sum i
-  -- the scaling a
+    rw [hD2]
+    exact Finset.sum_pos (fun jj _ => mul_pos (hG i jj) (hbs_pos jj)) ⟨j0, Finset.mem_univ j0⟩
   set aa : ι → ℝ := fun i => p i / D2 i with haa
   have haa_pos : ∀ i, 0 < aa i := fun i => by rw [haa]; exact div_pos (hp i) (hD2_pos i)
-  -- fix a base index
-  obtain ⟨j0⟩ := hne
-  -- KEY: the residual `(∑ i, aa i * G i j) - q j / bs j` is independent of `j` (M3a);
-  -- `hbs_gt : δ < bs l` comes from `δ < δ0 ≤ bs l`, and ψ/K are reconstructed inside M3a.
+  -- KEY: the residual `(∑ i, aa i * G i j) - q j / bs j` is independent of `j` (M3a)
   have key : ∀ j, (∑ i, aa i * G i j) - q j / bs j
       = (∑ i, aa i * G i j0) - q j0 / bs j0 := fun j =>
-    stationarity_pairwise_residual_eq p q G hG δ hδ_pos bs
-      (fun l => lt_of_lt_of_le hδ_lt_δ0 (hbs_ge_δ0 l)) hbs_sum hbs_min j j0
+    stationarity_pairwise_residual_eq p q G hG δ hδ_pos bs hbs_gt hbs_sum hbs_min j j0
   -- the common column residual `μ`, constant in `j` by `key`, packaged as `∑ = μ + q/bs`
   set μ := (∑ i, aa i * G i j0) - q j0 / bs j0
   have hresid : ∀ j, (∑ i, aa i * G i j) = μ + q j / bs j := fun j => by

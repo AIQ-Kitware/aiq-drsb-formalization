@@ -86,8 +86,9 @@ Single theorem, `ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean:49–354`.
 | **M4a.1** `lower_bound_le_weighted_sum` | constant ≤ normalized nonneg weighting | `hGb_ge` | **LANDED** |
 | **M4a.2** `simplex_coord_le_one` | coord ≤ 1 on the simplex | `hle1` | **LANDED** |
 | **M4b** `exp_neg_div_le_coord_of_weighted_log_sum_ge` | pure log barrier (no ψ/G) | `hsublevel` | **LANDED** (ψ-wrapper retained) |
-| **M4 (rest)** compact simplex + `ContinuousOn ψ` + `exists_isMinOn` | EVT plumbing | inline | pending; review as `exists_interior_minimizer` |
-| **M5** assembly | short public-theorem body | tail | tail done; M4-EVT still inline |
+| **M4c** `exists_isMinOn_truncated_simplex` | generic finite-simplex EVT (no ψ/G) | inline | **LANDED** |
+| **M4d** `exists_sinkhorn_interior_minimizer` | Sinkhorn strict interior minimizer | inline | **LANDED** |
+| **M5** assembly | short public-theorem body | tail | **DONE** — `matrix_scaling_exists` now 47 lines |
 
 **Heartbeat finding:** after M1–M4b the module compiles under **default** heartbeats;
 `set_option maxHeartbeats 1000000` **removed**. Mathlib helper search: no clean
@@ -119,5 +120,12 @@ explicit first. Do **not** start M4 in the M3 overlay.
   ψ-specific `hsublevel` reduced to a thin wrapper that only proves the `hlogsum` premise.
   `hle1` local deleted (M4b calls `simplex_coord_le_one` directly). Removed the module's
   `maxHeartbeats 1000000` — default heartbeats now suffice. `lake env lean` exit 0.
-- Next: M4 EVT plumbing (compact simplex + continuity + `exists_isMinOn`) as
-  `exists_interior_minimizer`, pending reviewer go-ahead.
+- 2026-07-10: reviewer chose the two-lemma split. Landed M4c
+  (`exists_isMinOn_truncated_simplex`, generic; added `0 ≤ δ` for the unit-ball bound;
+  witness `u` gives nonemptiness so no `[Nonempty ι]`) and M4d
+  (`exists_sinkhorn_interior_minimizer`, `[Nonempty ι]`, returns the strict bound
+  `δ < bs l` and drops `δ0` from the interface). `matrix_scaling_exists` is now **47 lines**
+  (empty case → M4d → D2/aa → M3a → M1 → M2 → assemble). `lake env lean` exit 0.
+- **The `matrix_scaling_exists` decomposition (A1) is complete.** Public statement
+  unchanged across M1–M4d. Remaining audit overlays: A0 (docs), A2 (hypothesis min),
+  A3 (ProjectiveLag), A4 (continuum honesty).

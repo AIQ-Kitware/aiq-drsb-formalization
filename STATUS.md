@@ -75,7 +75,7 @@ These are the strong-duality and continuum capstones. Re-verified against the pi
 | Edge | Where | Status |
 |---|---|---|
 | ~~`hbddP`~~ | all four strong-duality thms | ✅ **DELETED (2026-07-10).** A function bounded above has bounded-above expectations, and a dual over `lam ≥ 0` already asserts `BddAbove (Set.range V)` as its `lam = 0` conjugate. `ForMathlib.OT.DroValue`. Four remain, only on worst-case-*structure* theorems (GK cor1/cor2ii, MEK), which carry no boundedness hypothesis to derive from. |
-| `hSinkAll` | `WangGaoXie2023.strong_duality` | ⚠ The **cost wart is fixed** (2026-07-10): the Sinkhorn layer is now parametrized by `c`, so the ball and the budget speak the same cost. Discharging `hSinkAll` itself still needs `Drsb.hasSinkhornDisintegration_of_isSinkhornPlan` moved *below* `WangGaoXie2023` in the import graph (it presently sits above). Mechanical. |
+| ~~`hSinkAll`~~ | `WangGaoXie2023.strong_duality` | ✅ **DISCHARGED (2026-07-10).** The cost wart is fixed (Sinkhorn layer parametrized by `c`), the disintegration machinery moved into `WangGaoXie2023` next to `logPartition`, and `sinkhorn_cost_bound` is now edge-free. `strong_duality` assumes only regularity + `hattain`, and no longer needs a normed group. |
 | `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
 | `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
 

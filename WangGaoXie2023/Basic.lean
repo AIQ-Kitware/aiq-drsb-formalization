@@ -26,10 +26,14 @@ matching `sinkhornBall μhat κ ε`.
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
+import ForMathlib.OptimalTransport.Coupling
+import ForMathlib.OptimalTransport.DroValue
+import ForMathlib.MeasureTheory.KLChainRule
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.Normalization
 set_option autoImplicit false
 open MeasureTheory
+open scoped ProbabilityTheory
 open scoped ENNReal
 open ForMathlib.OT
 
@@ -53,6 +57,201 @@ noncomputable def logPartition
     (ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ) (xhat : X) : ℝ :=
   lam * κ *
     Real.log (∫ ζ, Real.exp ((f ζ - lam * c xhat ζ) / (lam * κ)) ∂(ν : Measure X))
+
+/-! ## The Sinkhorn disintegration (the entropic counterpart of a transport plan) -/
+
+/-- **A Sinkhorn disintegration** of the source `μ` at budget `b`: the conditional family `P`
+(each `P x ≪ ν`) whose `p₀`-mixture is `μ`, whose disintegrated entropic budget
+`∫ (𝔼_{P_x}[c(x,·)] + κ·KL(P_x‖ν)) dp₀` is `≤ b`, and which carries the Donsker–Varadhan /
+aggregate integrability the dual bound needs.
+
+The entropic counterpart of a transport plan, and a `structure` rather than a nested `∃ _ ∧ _`
+so that every consumer gets stable field names instead of a twelve-deep anonymous constructor.
+
+The conditions on the conditionals are `p₀`-**a.e.**, because `Measure.condKernel` — the only
+thing that ever produces `P` — is determined only up to a `p₀`-null set. `isProbabilityMeasure`
+stays `∀ x` since `condKernel` is a Markov kernel on the nose.
+
+`integrable_exp` and `integrable_logPartition` are the odd ones out: they constrain the *dual*
+(the log-partition of `f` against `ν`) and say nothing about `P`. They ride along because the
+Donsker–Varadhan aggregation needs them at the same `lam`. -/
+structure IsSinkhornDisintegration (c : X → X → ℝ) (p₀ ν : ProbabilityMeasure X) (f : X → ℝ) (κ : ℝ)
+    (μ : ProbabilityMeasure X) (b : ℝ) (P : X → Measure X) : Prop where
+  /-- Each conditional is a probability measure (`condKernel` is a Markov kernel). -/
+  isProbabilityMeasure : ∀ x, IsProbabilityMeasure (P x)
+  /-- Each conditional is absolutely continuous against the reference, `p₀`-a.e. -/
+  absolutelyContinuous : ∀ᵐ x ∂(p₀ : Measure X), P x ≪ (ν : Measure X)
+  /-- The `p₀`-mixture of the conditionals reproduces `μ`'s expectation of `V`. -/
+  expect_eq : expect μ f = ∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X)
+  /-- The disintegrated Sinkhorn budget is within `b`. -/
+  budget_le : (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
+      ∂(p₀ : Measure X)) ≤ b
+  /-- `V` is integrable against each conditional, `p₀`-a.e. -/
+  integrable_V : ∀ᵐ x ∂(p₀ : Measure X), Integrable f (P x)
+  /-- The transport cost is integrable against each conditional, `p₀`-a.e. -/
+  integrable_cost : ∀ᵐ x ∂(p₀ : Measure X), Integrable (fun y => c x y) (P x)
+  /-- The log-likelihood ratio is integrable, `p₀`-a.e. (the Donsker–Varadhan hypothesis). -/
+  integrable_llr : ∀ᵐ x ∂(p₀ : Measure X),
+      Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x)
+  /-- The Gibbs tilt is `ν`-integrable at every positive multiplier (a condition on the dual). -/
+  integrable_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+      (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X)
+  /-- The conditional mean of `V` is `p₀`-integrable. -/
+  integrable_integral_V : Integrable (fun x => ∫ y, f y ∂(P x)) (p₀ : Measure X)
+  /-- The conditional mean cost is `p₀`-integrable. -/
+  integrable_integral_cost : Integrable (fun x => ∫ y, c x y ∂(P x)) (p₀ : Measure X)
+  /-- The conditional relative entropy is `p₀`-integrable. -/
+  integrable_klReal : Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X)
+  /-- The log-partition is `p₀`-integrable at every positive multiplier (a condition on the dual). -/
+  integrable_logPartition : ∀ lam, 0 < lam → Integrable
+      (fun x => logPartition ν c f κ lam x) (p₀ : Measure X)
+
+/-- **The source `μ` admits a Sinkhorn disintegration at budget `b`.** The existential over the
+conditional family; this is what the SDRSB cost bound consumes, one witness per `η > 0`.
+
+Discharged by `hasSinkhornDisintegration_of_isSinkhornPlan`: on a standard-Borel `X` you hand
+over a *transport plan* `γ`, not a conditional family, and `condKernel` + the KL chain rule build
+the disintegration. -/
+def HasSinkhornDisintegration (c : X → X → ℝ) (p₀ ν : ProbabilityMeasure X) (f : X → ℝ) (κ : ℝ)
+    (μ : ProbabilityMeasure X) (b : ℝ) : Prop :=
+  ∃ P : X → Measure X, IsSinkhornDisintegration c p₀ ν f κ μ b P
+
+omit [NormedAddCommGroup X] in
+/-- A disintegration at a tighter budget is one at a looser budget. -/
+theorem IsSinkhornDisintegration.mono {c : X → X → ℝ} {p₀ ν : ProbabilityMeasure X} {f : X → ℝ} {κ : ℝ}
+    {μ : ProbabilityMeasure X} {b b' : ℝ} {P : X → Measure X}
+    (h : IsSinkhornDisintegration c p₀ ν f κ μ b P) (hb : b ≤ b') :
+    IsSinkhornDisintegration c p₀ ν f κ μ b' P :=
+  { h with budget_le := h.budget_le.trans hb }
+
+omit [NormedAddCommGroup X] in
+/-- A witness for a tighter budget is a witness for a looser one. -/
+theorem HasSinkhornDisintegration.mono {c : X → X → ℝ} {p₀ ν : ProbabilityMeasure X} {f : X → ℝ} {κ : ℝ}
+    {μ : ProbabilityMeasure X} {b b' : ℝ} (h : HasSinkhornDisintegration c p₀ ν f κ μ b)
+    (hb : b ≤ b') : HasSinkhornDisintegration c p₀ ν f κ μ b' :=
+  let ⟨P, hP⟩ := h; ⟨P, hP.mono hb⟩
+
+omit [NormedAddCommGroup X] in
+/-- **The SDRSB disintegration edge, discharged.** On a standard-Borel `X` you do not have to
+supply a conditional family at all: hand over a **coupling** `γ ∈ Π(p₀, μ)` of finite entropy
+relative to `p₀ ⊗ ν`, and `Measure.condKernel` + the KL chain rule build the witness.
+
+Everything the old edge asked you to assert about `P` is now derived:
+
+* `P := γ.condKernel`, and `p₀ ⊗ₘ P = γ` because `γ.fst = p₀` (`γ` is a coupling);
+* `expect μ f = ∫∫ f dP dp₀` because `γ.snd = μ` (`Measure.integral_compProd`);
+* the disintegrated budget equals `sinkhornObjective c κ p₀ ν γ`, by `integral_compProd` on the
+  cost and `ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_integral` (the chain rule with
+  `η := Kernel.const X ν`, whose `p₀`-marginal term vanishes) on the entropy;
+* `P x ≪ ν` and `Integrable (llr (P x) ν) (P x)` hold `p₀`-**a.e.**, because a finite conditional
+  KL has a.e. finite slices (`ae_klDiv_kernel_ne_top`) and `klDiv_ne_top_iff` splits each finite
+  slice into exactly those two facts. This is why the kernel had to be weakened to a.e. first.
+* `hI_kl` is `integrable_toReal_klDiv_kernel`, and the two slice-integrability facts are
+  `Measure.integrable_compProd_iff`.
+
+Residual hypotheses are the log-partition conditions on `ν`/`V`, which concern the dual and not the
+transport, plus `hV`. **No second moments are needed**: `IsSinkhornPlan.integrable_cost` is derived
+from the finiteness of the plan's `ℝ≥0∞` cost. The plan itself comes from ball membership
+(`ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall`), so no edge survives. -/
+theorem hasSinkhornDisintegration_of_isSinkhornPlan
+    [StandardBorelSpace X] [Nonempty X]
+    {c : X → X → ℝ} {p₀ ν μ : ProbabilityMeasure X} {κ b : ℝ} {γ : ProbabilityMeasure (X × X)}
+    (hplan : ForMathlib.OT.IsSinkhornPlan c κ p₀ ν μ b γ) (f : X → ℝ)
+    (hf : Integrable f (μ : Measure X))
+    (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
+    (hI_lp : ∀ lam, 0 < lam → Integrable
+        (fun x => logPartition ν c f κ lam x) (p₀ : Measure X)) :
+    HasSinkhornDisintegration c p₀ ν f κ μ b := by
+  classical
+  obtain ⟨hγ, hac, hfin, hcγ, hbudget⟩ := hplan
+  have hfstγ : Measure.map Prod.fst (γ : Measure (X × X)) = (p₀ : Measure X) := hγ.1
+  have hsndγ : Measure.map Prod.snd (γ : Measure (X × X)) = (μ : Measure X) := hγ.2
+  -- the conditional family is the coupling's conditional kernel
+  set P : ProbabilityTheory.Kernel X X := (γ : Measure (X × X)).condKernel with hPdef
+  have hfst' : (γ : Measure (X × X)).fst = (p₀ : Measure X) := hfstγ
+  have hdis : (p₀ : Measure X) ⊗ₘ P = (γ : Measure (X × X)) := by
+    rw [← hfst']; exact (γ : Measure (X × X)).disintegrate P
+  have href : (p₀ : Measure X) ⊗ₘ (ProbabilityTheory.Kernel.const X (ν : Measure X))
+      = prodMeasure p₀ ν := Measure.compProd_const
+  have hac' : (p₀ : Measure X) ⊗ₘ P
+      ≪ (p₀ : Measure X) ⊗ₘ (ProbabilityTheory.Kernel.const X (ν : Measure X)) := by
+    rw [hdis, href]; exact hac
+  have hfin' : InformationTheory.klDiv ((p₀ : Measure X) ⊗ₘ P)
+      ((p₀ : Measure X) ⊗ₘ (ProbabilityTheory.Kernel.const X (ν : Measure X))) ≠ ⊤ := by
+    rw [hdis, href]; exact hfin
+  -- a.e. slice facts: absolute continuity, finiteness, and hence integrable `llr`
+  have hac_slice : ∀ᵐ x ∂(p₀ : Measure X), P x ≪ (ν : Measure X) := by
+    have := Measure.absolutelyContinuous_compProd_right_iff.mp hac'
+    simpa using this
+  have hfin_slice : ∀ᵐ x ∂(p₀ : Measure X),
+      InformationTheory.klDiv (P x) (ν : Measure X) ≠ ⊤ := by
+    have := ForMathlib.MeasureTheory.ae_klDiv_kernel_ne_top (p₀ : Measure X) P
+      (ProbabilityTheory.Kernel.const X (ν : Measure X)) hac' hfin'
+    simpa using this
+  have h_llr : ∀ᵐ x ∂(p₀ : Measure X),
+      Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x) := by
+    filter_upwards [hfin_slice] with x hx
+    exact (InformationTheory.klDiv_ne_top_iff.mp hx).2
+  have hI_kl : Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X) := by
+    have := ForMathlib.MeasureTheory.integrable_toReal_klDiv_kernel (p₀ : Measure X) P
+      (ProbabilityTheory.Kernel.const X (ν : Measure X)) hac' hfin'
+    simpa [klReal] using this
+  -- the entropy term disintegrates (KL chain rule, constant second kernel)
+  have hKL : klReal (γ : Measure (X × X)) (prodMeasure p₀ ν)
+      = ∫ x, klReal (P x) (ν : Measure X) ∂(p₀ : Measure X) := by
+    have := ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_integral (p₀ : Measure X) P
+      (ProbabilityTheory.Kernel.const X (ν : Measure X)) hac' hfin'
+    rw [hdis, href] at this
+    simpa [klReal] using this
+  -- integrability of the two integrands against `γ`
+  have hfae : AEStronglyMeasurable f (Measure.map Prod.snd (γ : Measure (X × X))) := hsndγ ▸ hf.1
+  have hfγ : Integrable (fun z : X × X => f z.2) (γ : Measure (X × X)) :=
+    (integrable_map_measure hfae measurable_snd.aemeasurable).mp (hsndγ ▸ hf)
+  have hfcp : Integrable (fun z : X × X => f z.2) ((p₀ : Measure X) ⊗ₘ P) := by rw [hdis]; exact hfγ
+  have hccp : Integrable (fun z : X × X => c z.1 z.2) ((p₀ : Measure X) ⊗ₘ P) := by
+    rw [hdis]; exact hcγ
+  -- slice integrability and integrability of the inner integrals
+  have hf_P : ∀ᵐ x ∂(p₀ : Measure X), Integrable f (P x) := by
+    have := ((Measure.integrable_compProd_iff hfcp.aestronglyMeasurable).mp hfcp).1
+    simpa using this
+  have hc_P : ∀ᵐ x ∂(p₀ : Measure X), Integrable (fun y => c x y) (P x) :=
+    ((Measure.integrable_compProd_iff hccp.aestronglyMeasurable).mp hccp).1
+  have hI_V : Integrable (fun x => ∫ y, f y ∂(P x)) (p₀ : Measure X) := by
+    have h := hfcp
+    rw [Measure.compProd] at h
+    simpa using h.integral_compProd
+  have hI_c : Integrable (fun x => ∫ y, c x y ∂(P x)) (p₀ : Measure X) := by
+    have h := hccp
+    rw [Measure.compProd] at h
+    simpa using h.integral_compProd
+  -- the two disintegration identities
+  have hfdis : expect μ f = ∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X) := by
+    have h1 : expect μ f = ∫ z : X × X, f z.2 ∂(γ : Measure (X × X)) := by
+      rw [expect, ← hsndγ, integral_map measurable_snd.aemeasurable hfae]
+    rw [h1, ← hdis, Measure.integral_compProd hfcp]
+  have hcostdis : couplingCost c γ = ∫ x, (∫ y, c x y ∂(P x)) ∂(p₀ : Measure X) := by
+    show ∫ z : X × X, c z.1 z.2 ∂(γ : Measure (X × X)) = _
+    rw [← hdis, Measure.integral_compProd hccp]
+  -- the disintegrated budget IS the Sinkhorn objective
+  have hbud : (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
+      ∂(p₀ : Measure X)) ≤ b := by
+    rw [integral_add hI_c (hI_kl.const_mul κ), integral_const_mul, ← hcostdis, ← hKL]
+    exact hbudget
+  exact ⟨fun x => P x,
+    { isProbabilityMeasure := fun x => inferInstance
+      absolutelyContinuous := hac_slice
+      expect_eq := hfdis
+      budget_le := hbud
+      integrable_V := hf_P
+      integrable_cost := hc_P
+      integrable_llr := h_llr
+      integrable_exp := h_exp
+      integrable_integral_V := hI_V
+      integrable_integral_cost := hI_c
+      integrable_klReal := hI_kl
+      integrable_logPartition := hI_lp }⟩
+
 
 /-- **Sinkhorn-DRO dual objective** at multiplier `λ` (prose Eq. `(1)`, the `(Dual)`
 integrand):
@@ -300,36 +499,86 @@ theorem sinkhorn_weak_duality_kernel
         rw [e1, e2]; ring
 
 omit [NormedAddCommGroup X] in
+/-! ## The Sinkhorn cost bound (weak duality), edge-free -/
+
+omit [NormedAddCommGroup X] in
+omit [NormedAddCommGroup X] in
+/-- **Sinkhorn weak duality, given near-optimal disintegrations.** If for every `η > 0` the source
+`μ` admits a Sinkhorn disintegration of budget `≤ ε + η`, its expected reward is bounded by the
+log-partition dual. Only *near-optimal* disintegrations are needed, never an attained one —
+`W_{κ,ν}` is an infimum and supplies the former only. -/
+theorem sinkhorn_cost_bound_of_disintegrations (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ)
+    (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (μ : ProbabilityMeasure X)
+    (hSink : ∀ η : ℝ, 0 < η → HasSinkhornDisintegration c μhat ν f κ μ (ε + η)) :
+    expect μ f
+      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam } := by
+  refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
+  rintro v ⟨lam, hlam, rfl⟩
+  refine le_of_forall_pos_le_add ?_
+  intro δ hδ
+  obtain ⟨P, hd⟩ := hSink (δ / lam) (div_pos hδ hlam)
+  have key := sinkhorn_weak_duality_kernel μhat ν c f κ lam hκ hlam P
+    hd.isProbabilityMeasure hd.absolutelyContinuous hd.integrable_V hd.integrable_cost
+    hd.integrable_llr (hd.integrable_exp lam hlam) hd.integrable_integral_V
+    hd.integrable_integral_cost hd.integrable_klReal (hd.integrable_logPartition lam hlam)
+  have hb := mul_le_mul_of_nonneg_left hd.budget_le (le_of_lt hlam)
+  rw [show lam * (ε + δ / lam) = lam * ε + δ by field_simp] at hb
+  rw [hd.expect_eq]
+  simp only [sinkhornDualObjective, expect]
+  linarith [key, hb]
+
+omit [NormedAddCommGroup X] in
+/-- **The Sinkhorn cost bound, with no transport, attainment or disintegration edge.**
+Ball membership alone produces everything: `exists_isSinkhornPlan_of_mem_sinkhornBall` extracts a
+near-optimal finite-entropy plan (a theorem, because `Wkappa` infimises the `ℝ≥0∞` objective),
+`hasSinkhornDisintegration_of_isSinkhornPlan` turns it into a conditional family, and
+`sinkhorn_cost_bound_of_disintegrations` runs Donsker–Varadhan and lets `η ↓ 0`.
+
+Surviving hypotheses are checkable regularity: `hc`/`hcm` on the cost, `hf`, and `h_exp`/`hI_lp`,
+which constrain the *dual* and say nothing about transport. No second moments — the plan's
+`integrable_cost` is derived from the finiteness of its `ℝ≥0∞` cost. -/
+theorem sinkhorn_cost_bound [StandardBorelSpace X] [Nonempty X]
+    (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
+    (hc : ∀ x y, 0 ≤ c x y) (hcm : Measurable fun z : X × X => c z.1 z.2)
+    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall c μhat ν κ ε)
+    (hf : Integrable f (μ : Measure X))
+    (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
+    (hI_lp : ∀ lam, 0 < lam → Integrable
+        (fun x => logPartition ν c f κ lam x) (μhat : Measure X)) :
+    expect μ f
+      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam } :=
+  sinkhorn_cost_bound_of_disintegrations μhat ν c f κ ε hκ μ fun η hη => by
+    obtain ⟨γ, hplan⟩ := ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall
+      c hc hcm μhat ν μ κ ε η hκ hη hμ
+    exact hasSinkhornDisintegration_of_isSinkhornPlan hplan f hf h_exp hI_lp
+
+omit [NormedAddCommGroup X] in
 /-- **Theorem 1 (Strong Duality), part (II)** — `V = V_D`: the Sinkhorn-DRO worst-case
 value over the ball equals the log-partition dual. `le_antisymm` of `droValue ≤ dual`
 (each source's Sinkhorn cost bound, inlined from `sinkhorn_weak_duality_kernel` + `le_csInf`,
 via `csSup_le`) and `dual ≤ droValue` (the attaining worst-case measure, `le_csSup`).
 
-The paper's Assumption 1 is replaced by the operational **edges** that make it provable:
-`hSinkAll` (the `∀ μ` attainment+disintegration bundle — the OT measurable-selection +
-`condKernel` disintegration + KL chain rule, §6) and `hattain`; the dual runs over `0 < lam`
-(the `lam=0` `logPartition` is junk, cf. `Drsb.sdrsb_cost_bound`).
+**The `hSinkAll` edge is gone.** The `≤` half is `sinkhorn_cost_bound`, which is edge-free: ball
+membership yields a near-optimal finite-entropy plan (`exists_isSinkhornPlan_of_mem_sinkhornBall`),
+`condKernel` and the KL chain rule turn it into a conditional family
+(`hasSinkhornDisintegration_of_isSinkhornPlan`), and Donsker–Varadhan plus `η ↓ 0` finishes.
+`BddAbove` is likewise derived, from `hfbdd`. The dual runs over `0 < lam` (the `lam=0`
+`logPartition` is junk, cf. `Drsb.sdrsb_cost_bound`); since there is no `lam = 0` conjugate term to
+read `hfbdd` off, it is stated explicitly.
 
-The `BddAbove` gate is **not** a hypothesis: `hfbdd` (`f` bounded above) gives it via
-`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`. Unlike the Wasserstein duals, this one runs
-over `0 < lam` only, so there is no `lam = 0` conjugate term to read `hfbdd` off; it is explicit. -/
-theorem strong_duality
+**What remains assumed is exactly `hattain`** — the `≥`/worst-case-measure attainment, the OT
+measurable-selection seam (§6) — plus checkable regularity (`hc`/`hcm` on the cost, `hfAll`,
+`h_exp`, `hI_lp`). -/
+theorem strong_duality [StandardBorelSpace X] [Nonempty X]
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
-    (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε →
-        ∃ P : X → Measure X,
-          (∀ x, IsProbabilityMeasure (P x)) ∧ (∀ x, P x ≪ (ν : Measure X)) ∧
-          expect μ f = (∫ x, (∫ y, f y ∂(P x)) ∂(μhat : Measure X)) ∧
-          (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
-              ∂(μhat : Measure X)) ≤ ε ∧
-          (∀ x, Integrable f (P x)) ∧ (∀ x, Integrable (fun y => c x y) (P x)) ∧
-          (∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x)) ∧
-          (∀ lam, 0 < lam → ∀ x, Integrable
-              (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X)) ∧
-          Integrable (fun x => ∫ y, f y ∂(P x)) (μhat : Measure X) ∧
-          Integrable (fun x => ∫ y, c x y ∂(P x)) (μhat : Measure X) ∧
-          Integrable (fun x => klReal (P x) (ν : Measure X)) (μhat : Measure X) ∧
-          (∀ lam, 0 < lam → Integrable
-              (fun x => logPartition ν c f κ lam x) (μhat : Measure X)))
+    (hc : ∀ x y, 0 ≤ c x y) (hcm : Measurable fun z : X × X => c z.1 z.2)
+    (hfAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε →
+        Integrable f (μ : Measure X))
+    (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
+    (hI_lp : ∀ lam, 0 < lam → Integrable
+        (fun x => logPartition ν c f κ lam x) (μhat : Measure X))
     (hfbdd : BddAbove (Set.range f))
     (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε ∧
         expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
@@ -337,43 +586,15 @@ theorem strong_duality
     droValue (sinkhornBall c μhat ν κ ε) f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = sinkhornDualObjective μhat ν c f κ ε lam } := by
-  -- the `BddAbove` gate is a consequence of `f` being bounded above, not an assumption.
-  -- `f`'s `μ`-integrability is not available here, but the disintegration supplies the bound
-  -- one layer down: each conditional mean `∫ f dP x` is `≤ M`, hence so is their `μhat`-average.
-  haveI : IsProbabilityMeasure (μhat : Measure X) := μhat.2
-  obtain ⟨M, hM⟩ := hfbdd
-  have hfM : ∀ x, f x ≤ M := fun x => hM ⟨x, rfl⟩
+  -- the `BddAbove` gate follows from `f` being bounded above; it is not an assumption
   have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-      μ ∈ sinkhornBall c μhat ν κ ε ∧ r = expect μ f } := by
-    refine ⟨M, ?_⟩
-    rintro r ⟨μ, hμ, rfl⟩
-    obtain ⟨P, hP, -, hfdis, -, hf_P, -, -, -, hI_f, -, -, -⟩ := hSinkAll μ hμ
-    have hslice : ∀ x, (∫ y, f y ∂(P x)) ≤ M := by
-      intro x
-      haveI := hP x
-      calc ∫ y, f y ∂(P x) ≤ ∫ _y, M ∂(P x) :=
-            integral_mono (hf_P x) (integrable_const M) hfM
-        _ = M := by simp
-    rw [hfdis]
-    calc (∫ x, (∫ y, f y ∂(P x)) ∂(μhat : Measure X))
-        ≤ ∫ _x, M ∂(μhat : Measure X) := integral_mono hI_f (integrable_const M) hslice
-      _ = M := by simp
+      μ ∈ sinkhornBall c μhat ν κ ε ∧ r = expect μ f } :=
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ f hfbdd hfAll
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
     · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ f, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
-      obtain ⟨P, hP, hac, hVdis, hbudget, hf_P, hc_P, h_llr, h_exp, hI_f, hI_c, hI_kl, hI_lp⟩ :=
-        hSinkAll μ hμ
-      refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
-      rintro d ⟨lam, hlam, rfl⟩
-      have key := sinkhorn_weak_duality_kernel μhat ν c f κ lam hκ hlam P hP
-        (Filter.Eventually.of_forall hac) (Filter.Eventually.of_forall hf_P)
-        (Filter.Eventually.of_forall hc_P) (Filter.Eventually.of_forall h_llr)
-        (h_exp lam hlam) hI_f hI_c hI_kl (hI_lp lam hlam)
-      have hb := mul_le_mul_of_nonneg_left hbudget (le_of_lt hlam)
-      rw [hVdis]
-      simp only [sinkhornDualObjective, expect]
-      linarith [key, hb]
+      exact sinkhorn_cost_bound μhat ν c f κ ε hκ hc hcm μ hμ (hfAll μ hμ) h_exp hI_lp
   · obtain ⟨μ, hμ, hμeq⟩ := hattain
     rw [← hμeq]
     exact le_csSup hbddP ⟨μ, hμ, rfl⟩

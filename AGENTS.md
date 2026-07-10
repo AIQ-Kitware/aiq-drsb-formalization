@@ -285,7 +285,8 @@ A reader should never have to reason about which of two adjacent statements is c
   *(A cost hard-wired into a ball is also a correctness trap, not just an aesthetic one:
   `sinkhornBall` used to fix `‖x−y‖²` while `WangGaoXie2023.strong_duality` quantified over
   its own `c`, so `hSinkAll` coupled a quadratic ball to a `c`-budget — premises not jointly
-  satisfiable, failing the §6 honesty test above. Fixed 2026-07-10 by parametrizing.)*
+  satisfiable, failing the §6 honesty test above. Fixed 2026-07-10 by parametrizing, after which
+  `hSinkAll` was discharged outright.)*
 - **Finiteness of an `ℝ≥0∞` quantity IS integrability.** `IsSinkhornPlan.integrable_cost` is a
   derived *field*, not a hypothesis: `couplingCostENN` has no bad branch, so
   `couplingCostENN c γ ≠ ⊤` gives `Integrable (fun z => c z.1 z.2) γ` outright

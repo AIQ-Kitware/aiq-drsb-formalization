@@ -1379,3 +1379,31 @@ instantiate at `α = β = X`. And `WangGaoXie2023.strong_duality` and `primal_fe
 now `omit [NormedAddCommGroup X]` — they never needed a normed group either.
 
 Build green, **zero warnings**, sorry-free, axiom-clean.
+
+---
+
+# Session journal — `hSinkAll` discharged; the last Tier-0 edge is gone (2026-07-10)
+
+With the Sinkhorn layer parametrized by the cost, the obstacle to discharging
+`WangGaoXie2023.strong_duality`'s `hSinkAll` was purely the import graph:
+`hasSinkhornDisintegration_of_isSinkhornPlan` lived in `Drsb`, *above* `WangGaoXie2023`.
+
+Its natural home was always `WangGaoXie2023`, next to the `logPartition` it consumes. Moved it
+there, generalized from `(sqCost, V)` to `(c, f)`, and added the two theorems it enables:
+
+- `sinkhorn_cost_bound_of_disintegrations` — weak duality from near-optimal disintegrations;
+- `sinkhorn_cost_bound` — **edge-free**: ball membership → near-optimal finite-entropy plan →
+  `condKernel` + KL chain rule → Donsker–Varadhan → `η ↓ 0`.
+
+`strong_duality` now takes no `hSinkAll` and no `hbddP`. What it assumes is exactly `hattain` (the
+`≥`/worst-case-measure attainment seam) plus checkable regularity: `0 ≤ c`, `Measurable (c ∘ ·)`,
+`Integrable f μ` on the ball, the two dual-side integrability conditions, and `BddAbove (range f)`.
+It also no longer needs `[NormedAddCommGroup X]`.
+
+`Drsb` deletes its duplicate structures and specializes: `Drsb.HasSinkhornDisintegration` is now an
+`abbrev` for `WangGaoXie2023.HasSinkhornDisintegration sqCost …`.
+
+**Every Tier-0 edge in STATUS.md is now closed** — `hbddP`, the cost wart, and `hSinkAll`. On all
+four strong-duality capstones the only remaining hypothesis is `hattain`.
+
+Build green, zero warnings, sorry-free; the seven audited declarations axiom-clean.

@@ -158,6 +158,24 @@ theorem integrable_normSq_of_mem_couplings_of_integrable_cost [OpensMeasurableSp
     (measurable_norm.pow_const 2).aestronglyMeasurable
   exact hfst ▸ (integrable_map_measure hae measurable_fst.aemeasurable).mpr hfstπ
 
+/-! ## The `klReal` junk value
+
+The entropic counterpart of the Bochner-junk trap above, made explicit rather than asserted. -/
+
+/-- **A singular pair has `klReal = 0`, not `klReal = ∞`.** `klReal` is `(klDiv · ·).toReal` and
+`klDiv μ ν = ∞` when `μ ⋠ ν`, so `toReal` collapses the *largest possible* divergence to the
+*smallest possible* real number.
+
+Consequence for `sinkhornObjective` / `Wkappa` / `sinkhornBall`: a coupling `γ` with infinite
+entropy relative to `p₀ ⊗ ν` is scored as though it had **zero** entropy, so it can drive the
+`Wkappa` infimum arbitrarily low. Membership in `sinkhornBall p₀ ν κ ε` therefore does not
+produce a finite-entropy coupling, and `Drsb.sdrsb_cost_bound_of_plans` must ask for one
+(`hplan`) rather than derive it. The fix is to make the objective `ℝ≥0∞`-valued, where the
+singular coupling correctly scores `⊤` and drops out of the infimum. -/
+theorem klReal_eq_zero_of_not_absolutelyContinuous {μ ν : Measure X} (h : ¬ μ ≪ ν) :
+    klReal μ ν = 0 := by
+  rw [klReal, InformationTheory.klDiv_of_not_ac h, ENNReal.toReal_top]
+
 /-! ## The diagonal coupling: Wasserstein balls are nonempty -/
 
 /-- The **diagonal coupling** `(id, id)_# μ ∈ Π(μ, μ)`, of zero quadratic cost. -/

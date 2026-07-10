@@ -22,7 +22,7 @@
 | Open goals | **0** — the repo is `sorry`-free |
 | DRSB card claims | ✅ **proved** (`wdrsb_cost_bound`, `sdrsb_cost_bound`) |
 | WDRSB card assumption surface | ✅ **minimal** — the `hOT` attainment edge is **deleted**, not assumed |
-| SDRSB card assumption surface | ✅ attainment-free; one **disintegration** edge (`IsSinkhornWitness`) remains |
+| SDRSB card assumption surface | ✅ attainment- and disintegration-free (`sdrsb_cost_bound_of_plans`); blocked from fully edge-free only by `Wkappa`'s `toReal` |
 | Strong duality (all four) | ✅ **proved**, each `le_antisymm(weak, one explicit attainment edge)` |
 | `energy_identity` | ✅ **closed** — Girsanov content isolated to the explicit `hCM` edge |
 | Birkhoff–Hopf contraction | ✅ **proved twice**, by two independent routes |
@@ -34,25 +34,47 @@ no `sorryAx`). ⚠️ `lake env lean <file>` typechecks source but `#print axiom
 
 ---
 
-## CURRENT FRONTIER (2026-07-10) — the SDRSB disintegration edge
+## CURRENT FRONTIER (2026-07-10) — a definitional wart, then the deferred campaign
 
-The WDRSB card claim now stands on **zero** optimal-transport hypotheses (see
-§ "The card claims' assumption surface" below). The one remaining edge anywhere on the card path is
-`Drsb.IsSinkhornWitness`: the entropic disintegration `γ = p₀ ⊗ₘ P`. It is now reducible rather than
-research-grade, because Mathlib gained the KL chain rule
-(`InformationTheory.klDiv_compProd_eq_add`). Closing it needs, in order:
+**Both card claims now stand on transport-level hypotheses only.** The SDRSB disintegration edge is
+closed: `Drsb.isSinkhornWitness_of_coupling` builds the conditional family from a *coupling* via
+`Measure.condKernel` and the KL chain rule, so `Drsb.sdrsb_cost_bound_of_plans` needs no conditional
+family and no attainment — only a near-optimal, finite-entropy transport plan. See
+§ "The card claims' assumption surface".
 
-1. `[StandardBorelSpace X] [Nonempty X]`, then `γ.condKernel` and `Measure.compProd_fst_condKernel`
-   supply `P` with `γ.fst = p₀` — this is the disintegration.
-2. `Measure.integral_compProd` turns `expect μ V` into `∫∫ V dP dp₀` (`μ = γ.snd`).
-3. `klDiv_compProd_eq_add` + `klDiv_self = 0` give `KL(γ ‖ p₀⊗ν) = ∫ KL(P x ‖ ν) dp₀`, the budget.
-4. **The real friction**: `IsSinkhornWitness` and `sinkhorn_weak_duality_kernel` demand `∀ x`
-   (`P x ≪ ν`, integrability). `condKernel` only ever gives these `∀ᵐ x ∂p₀`. Weakening the kernel's
-   hypotheses to a.e. (`integral_mono_ae` in place of `integral_mono`) is a prerequisite, and should
-   be done *first* — otherwise the disintegration cannot be plugged in at all.
-5. `klReal` is `toReal`, so absolute continuity / finiteness must be assumed or derived; a `γ` not
-   `≪ p₀⊗ν` has `klReal = 0` (junk), so the Sinkhorn ball has the same junk-membership pathology the
-   Wasserstein ball had — see the Bochner-junk gotcha in AGENTS.md §6.
+### The one thing blocking a fully edge-free SDRSB: `Wkappa` is `toReal`-valued
+
+`klReal = (klDiv · ·).toReal`, and `klDiv μ ν = ∞` when `μ ⋠ ν`. So `toReal` collapses the *largest*
+divergence to the *smallest* real — proved, not asserted:
+`ForMathlib.OT.klReal_eq_zero_of_not_absolutelyContinuous`. A coupling of infinite entropy is
+therefore scored as though it had **zero** entropy and can drive the `Wkappa` infimum arbitrarily
+low. Hence `μ ∈ sinkhornBall p₀ ν κ ε` does **not** yield a finite-entropy coupling, and
+`sdrsb_cost_bound_of_plans` has to ask for one (`hplan`) instead of deriving it.
+
+**The fix is definitional, not mathematical:** make `sinkhornObjective` / `Wkappa` `ℝ≥0∞`-valued
+(`couplingCost` as a `lintegral`, `klDiv` un-`toReal`'d). Then a singular coupling correctly scores
+`⊤` and drops out of the infimum, `hplan` becomes a theorem by the same `sInf`/`ε + η` argument as
+WDRSB, and SDRSB joins WDRSB as edge-free. This touches `ForMathlib.OT.{sinkhornObjective, Wkappa,
+sinkhornBall}` and the `WangGaoXie2023` statements built on them (`strong_duality`,
+`primal_feasible_radius_nonneg`). It is the next task. Note `wassersteinBall` has the identical
+Bochner-junk pathology, presently neutralised by the `HasSecondMoment` hypotheses rather than by a
+better definition.
+
+### Then: the deferred campaign (not closable now — taken on after this polish)
+
+These are unchanged and remain the real research seams. Nothing above touches them.
+
+1. **Worst-case-measure attainment** (`hattain`, `hbddP`) — the `≥` direction of all four
+   strong-duality theorems. The OT measurable-selection fact. The *cards* never need it: they are
+   `≤`-only, which is the whole point of the edge deletions above. Keep as honest edges.
+2. **Continuum `hCM` (Itô/Girsanov)** — `ChenGeorgiouPavon2021`. Blocked on a Mathlib-PR-scale port;
+   `raphaelrrcoelho/formal-mathfin` has 1-D Itô/Girsanov. See `ROADMAP_ENERGY_IDENTITY.md`.
+3. **Kolmogorov extension for dependent projective families** — the continuum reference measure.
+   `RemyDegenne/brownian-motion` has it; vendor or bump the pin when it lands on master.
+4. **Infinite-product absolute continuity (Kakutani dichotomy)** — no Lean source anywhere.
+
+Items 2–4 are grep-verified absent from the current pin; see `SURVEY_LEADS.md` and
+[`FOUNDATIONS.md`](FOUNDATIONS.md). Item 1 is a statement we deliberately do not need.
 
 ## The card claims' assumption surface
 
@@ -76,9 +98,26 @@ out of `hOT` + `hp2`. The converse fails — no moment condition manufactures a 
 `W₂²(p₀,p₀) ≤ 0 ≤ ε`) and `hOT`. Its surviving edges are exactly the `≥`/worst-case-measure
 attainment (`hattain`, `hbddP`) — the genuine T4 seam — plus regularity.
 
-New reusable layer: `ForMathlib/OptimalTransport/Coupling.lean` (product & diagonal couplings,
-`couplings_nonempty`, near-optimal plan extraction, second-moment ⟹ cost-integrability and its
-converse). Mathlib has no Kantorovich layer at all, so all of it is upstreamable.
+On the entropic side, `sdrsb_cost_bound`'s edge lost its attainment content the same way (a witness
+of budget `≤ ε + η`, never `≤ ε`), and then lost its *disintegration* content outright:
+
+- `Drsb.isSinkhornWitness_of_coupling` — hand over a coupling `γ ∈ Π(p₀, μ)` with `γ ≪ p₀ ⊗ ν` and
+  finite `klDiv`; `Measure.condKernel` supplies `P`, `Measure.integral_compProd` moves both the
+  reward and the cost onto the slices, and the chain rule (`η := Kernel.const X ν`) turns the
+  entropy into `∫ KL(P x ‖ ν) dp₀`. The a.e. slice facts — `P x ≪ ν`, `Integrable (llr (P x) ν)` —
+  fall out of `klDiv_ne_top_iff` applied to the a.e. finite slices.
+- **Prerequisite:** `WangGaoXie2023.sinkhorn_weak_duality_kernel` and `IsSinkhornWitness` had to be
+  weakened from `∀ x` to `∀ᵐ x ∂p₀`. A `condKernel` is only determined up to a `p₀`-null set, so the
+  `∀ x` form was unusable by its one intended caller. `IsProbabilityMeasure (P x)` stays `∀ x`
+  (`condKernel` is a Markov kernel on the nose).
+- `Drsb.sdrsb_cost_bound_of_plans` is the resulting card bound: no conditional family, no attainment.
+
+New reusable layers, both upstreamable (Mathlib has no Kantorovich layer at all):
+`ForMathlib/OptimalTransport/Coupling.lean` (product & diagonal couplings, `couplings_nonempty`,
+near-optimal plan extraction, second-moment ⟹ cost-integrability and its converse, the `klReal` junk
+lemma) and, in `ForMathlib/MeasureTheory/KLChainRule.lean`, the slice consequences of a finite
+conditional KL (`aemeasurable_klDiv_kernel`, `ae_klDiv_kernel_ne_top`,
+`integrable_toReal_klDiv_kernel`).
 
 ## The projective-metric frontier — closed
 

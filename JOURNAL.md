@@ -1037,3 +1037,70 @@ integrability), while `condKernel` only ever gives `∀ᵐ x ∂p₀`. Weaken th
 
 Everything `lake build` green; all card-path theorems and new lemmas
 `#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.
+
+---
+
+# Session journal — closing the SDRSB disintegration edge (2026-07-10, Claude Opus 4.8)
+
+Continuation of the edge-deletion session above. **Goal:** close out SDRSB, then housekeeping.
+
+## The prerequisite nobody could have skipped
+
+`IsSinkhornWitness` and `WangGaoXie2023.sinkhorn_weak_duality_kernel` stated their conditions on the
+conditional family as `∀ x`: `P x ≪ ν`, slice integrability, integrable `llr`. But the *only* thing
+that ever produces `P` is `Measure.condKernel`, which is determined only up to a `p₀`-null set. The
+`∀ x` form was therefore not "slightly stronger" — it was **unusable by its sole intended caller**,
+and would have stranded the edge permanently.
+
+So both were weakened to `∀ᵐ x ∂p₀` (`integral_mono_ae` for `integral_mono`; `filter_upwards` over
+the four a.e. hypotheses). `IsProbabilityMeasure (P x)` stays `∀ x` — `condKernel` *is* a Markov
+kernel on the nose. Recorded as a gotcha in AGENTS.md §6.
+
+## The edge, discharged
+
+`Drsb.isSinkhornWitness_of_coupling`: on `[StandardBorelSpace X] [Nonempty X]` you hand over a
+**coupling** `γ ∈ Π(p₀, μ)` with `γ ≪ p₀ ⊗ ν` and `klDiv γ (p₀⊗ν) ≠ ⊤`. Then
+
+- `P := γ.condKernel` and `p₀ ⊗ₘ P = γ`, since `γ.fst = p₀` (`Measure.disintegrate`);
+- `expect μ V = ∫∫ V dP dp₀` and `couplingCost2 γ = ∫∫ ‖x−y‖² dP dp₀` (`Measure.integral_compProd`),
+  using `γ.snd = μ`;
+- `klReal γ (p₀⊗ν) = ∫ KL(P x ‖ ν) dp₀` — the chain rule at `η := Kernel.const X ν`, whose marginal
+  term `KL(p₀‖p₀)` vanishes. The repo already had this as `toReal_klDiv_compProd_eq_integral`;
+- **the a.e. slice facts fall out of finiteness.** `klDiv_ne_top_iff` splits a finite slice into
+  exactly `P x ≪ ν` *and* `Integrable (llr (P x) ν) (P x)` — the two conditions the edge used to
+  assume. A finite conditional KL has a.e. finite slices, so both hold a.e.
+
+To get that last step I factored three lemmas out of `KLChainRule.lean`'s private proof:
+`aemeasurable_klDiv_kernel`, `ae_klDiv_kernel_ne_top`, `integrable_toReal_klDiv_kernel`. The third
+also discharges `hI_kl`, which was previously assumed.
+
+`Drsb.sdrsb_cost_bound_of_plans` is the payoff: the SDRSB card bound with **no conditional family and
+no attainment** — only a near-optimal, finite-entropy transport plan.
+
+## What stops SDRSB from being fully edge-free — and it is a definitional wart, not mathematics
+
+`hplan` is *not* derivable from `μ ∈ sinkhornBall p₀ ν κ ε`. Reason, now machine-checked as
+`ForMathlib.OT.klReal_eq_zero_of_not_absolutelyContinuous`: `klReal = (klDiv · ·).toReal`, and
+`klDiv μ ν = ∞` when `μ ⋠ ν`, so **`toReal` collapses the largest possible divergence to the smallest
+possible real**. A singular coupling is scored as though it had zero entropy and can drive the
+`Wkappa` infimum arbitrarily low. Ball membership thus yields no finite-entropy coupling.
+
+The fix is to make `sinkhornObjective`/`Wkappa` `ℝ≥0∞`-valued (cost as a `lintegral`, `klDiv`
+un-`toReal`'d): the singular coupling then scores `⊤` and drops out of the infimum, and `hplan`
+becomes a theorem by the same `sInf` + `ε + η` argument that killed WDRSB's `hOT`. Touches
+`ForMathlib.OT.{sinkhornObjective, Wkappa, sinkhornBall}` and the `WangGaoXie2023` statements above
+them. `wassersteinBall` has the identical Bochner-junk pathology, currently neutralised by
+`HasSecondMoment` rather than by a better definition. **This is the next task.**
+
+## The deferred campaign, recorded so it is not lost
+
+Untouched by any of the above, and taken on after this polish:
+
+1. **Worst-case-measure attainment** (`hattain`/`hbddP`) — the `≥` half of all four strong-duality
+   theorems, the OT measurable-selection fact. The cards are `≤`-only and never need it.
+2. **Continuum `hCM`** — Itô/Girsanov; Mathlib-PR-scale port (`formal-mathfin` has 1-D).
+3. **Kolmogorov extension for dependent projective families** — `RemyDegenne/brownian-motion` has it.
+4. **Infinite-product absolute continuity (Kakutani)** — no Lean source anywhere.
+
+Everything `lake build` green (8748 jobs); all card-path theorems, the weakened kernel, and the new
+`ForMathlib` lemmas `#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.

@@ -219,15 +219,23 @@ integral_le_klDiv_add_log_integral_exp`) applied to `A_x = (f − λc(x,·))/(λ
 point `x`, then integrated over `p₀`. It is the load-bearing `≤` half behind
 `WangGaoXie2023.strong_duality` and `Drsb.sdrsb_cost_bound` (once composed with a
 disintegration of the ball-witnessing coupling `γ = p₀ ⊗ₘ P`). The many integrability
-hypotheses make the per-point DV bound apply and the aggregate integrals well defined. -/
+hypotheses make the per-point DV bound apply and the aggregate integrals well defined.
+
+The conditions on the conditionals (`hac`, `hf_P`, `hc_P`, `h_llr`) are `p₀`-**a.e.**, not
+`∀ x`. This is essential, not cosmetic: the only way anyone produces the family `P` is by
+disintegrating a coupling (`Measure.condKernel`), and a `condKernel` is determined only up
+to a `p₀`-null set — it satisfies these conditions a.e. and nothing stronger. Demanding
+`∀ x` here would make the kernel unusable by its sole intended caller
+(`Drsb.isSinkhornWitness_of_coupling`). `hP` stays `∀ x` because `condKernel` *is* a Markov
+kernel on the nose. -/
 theorem sinkhorn_weak_duality_kernel
     (p₀ ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
     (hκ : 0 < κ) (hlam : 0 < lam)
     (P : X → Measure X) (hP : ∀ x, IsProbabilityMeasure (P x))
-    (hac : ∀ x, P x ≪ (ν : Measure X))
-    (hf_P : ∀ x, Integrable f (P x))
-    (hc_P : ∀ x, Integrable (fun y => c x y) (P x))
-    (h_llr : ∀ x, Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x))
+    (hac : ∀ᵐ x ∂(p₀ : Measure X), P x ≪ (ν : Measure X))
+    (hf_P : ∀ᵐ x ∂(p₀ : Measure X), Integrable f (P x))
+    (hc_P : ∀ᵐ x ∂(p₀ : Measure X), Integrable (fun y => c x y) (P x))
+    (h_llr : ∀ᵐ x ∂(p₀ : Measure X), Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x))
     (h_exp : ∀ x, Integrable
         (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
     (hI_f : Integrable (fun x => ∫ y, f y ∂(P x)) (p₀ : Measure X))
@@ -239,22 +247,22 @@ theorem sinkhorn_weak_duality_kernel
         + ∫ x, logPartition ν c f κ lam x ∂(p₀ : Measure X) := by
   have hlamκ : (0 : ℝ) < lam * κ := mul_pos hlam hκ
   have hne : lam * κ ≠ 0 := ne_of_gt hlamκ
-  -- per-nominal-point Gibbs/DV bound
-  have hpt : ∀ x, (∫ y, f y ∂(P x))
+  -- per-nominal-point Gibbs/DV bound, `p₀`-a.e.
+  have hpt : ∀ᵐ x ∂(p₀ : Measure X), (∫ y, f y ∂(P x))
       ≤ lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
         + logPartition ν c f κ lam x := by
-    intro x
+    filter_upwards [hac, hf_P, hc_P, h_llr] with x hacx hf_Px hc_Px h_llrx
     haveI := hP x
     have hsub : Integrable (fun y => f y - lam * c x y) (P x) :=
-      (hf_P x).sub ((hc_P x).const_mul lam)
+      hf_Px.sub (hc_Px.const_mul lam)
     have hA_int : Integrable (fun y => (f y - lam * c x y) / (lam * κ)) (P x) :=
       hsub.div_const _
     have hDV := ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp
-      (hac x) hA_int (h_llr x) (h_exp x)
+      hacx hA_int h_llrx (h_exp x)
     have hAeq : (∫ y, (f y - lam * c x y) / (lam * κ) ∂(P x))
         = (lam * κ)⁻¹ * ((∫ y, f y ∂(P x)) - lam * ∫ y, c x y ∂(P x)) := by
       simp_rw [div_eq_mul_inv]
-      rw [integral_mul_const, integral_sub (hf_P x) ((hc_P x).const_mul lam),
+      rw [integral_mul_const, integral_sub hf_Px (hc_Px.const_mul lam),
         integral_const_mul]
       ring
     rw [hAeq] at hDV
@@ -275,7 +283,7 @@ theorem sinkhorn_weak_duality_kernel
     ((hI_c.const_mul lam).add (hI_kl.const_mul (lam * κ))).add hI_lp
   calc (∫ x, (∫ y, f y ∂(P x)) ∂(p₀ : Measure X))
       ≤ ∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
-          + logPartition ν c f κ lam x) ∂(p₀ : Measure X) := integral_mono hI_f hRHS_int hpt
+          + logPartition ν c f κ lam x) ∂(p₀ : Measure X) := integral_mono_ae hI_f hRHS_int hpt
     _ = lam * (∫ x, ((∫ y, c x y ∂(P x)) + κ * klReal (P x) (ν : Measure X)) ∂(p₀ : Measure X))
           + ∫ x, logPartition ν c f κ lam x ∂(p₀ : Measure X) := by
         have e1 : (∫ x, (lam * (∫ y, c x y ∂(P x)) + lam * κ * klReal (P x) (ν : Measure X)
@@ -338,8 +346,10 @@ theorem strong_duality
         hSinkAll μ hμ hμ
       refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
       rintro d ⟨lam, hlam, rfl⟩
-      have key := sinkhorn_weak_duality_kernel μhat ν c f κ lam hκ hlam P hP hac
-        hf_P hc_P h_llr (h_exp lam hlam) hI_f hI_c hI_kl (hI_lp lam hlam)
+      have key := sinkhorn_weak_duality_kernel μhat ν c f κ lam hκ hlam P hP
+        (Filter.Eventually.of_forall hac) (Filter.Eventually.of_forall hf_P)
+        (Filter.Eventually.of_forall hc_P) (Filter.Eventually.of_forall h_llr)
+        (h_exp lam hlam) hI_f hI_c hI_kl (hI_lp lam hlam)
       have hb := mul_le_mul_of_nonneg_left hbudget (le_of_lt hlam)
       rw [hVdis]
       simp only [sinkhornDualObjective, expect]

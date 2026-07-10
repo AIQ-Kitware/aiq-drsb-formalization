@@ -256,6 +256,14 @@ A reader should never have to reason about which of two adjacent statements is c
   machine-checked receipt that the old hypothesis implies the new one
   (`wdrsb_cost_bound_of_ot_edge`, `sdrsb_cost_bound_of_attained_witness`) — otherwise
   "we weakened the assumptions" is an unverified claim.
+- **State conditions on a disintegration `∀ᵐ x`, never `∀ x`.** A `Measure.condKernel` is
+  determined only up to a null set of the first marginal, so it satisfies `P x ≪ ν`, slice
+  integrability, etc. only `p₀`-a.e. A hypothesis written `∀ x` is not "slightly stronger" —
+  it is **unusable** by the only construction that ever produces `P`, and will silently
+  strand the theorem as an un-dischargeable edge. (`IsProbabilityMeasure (P x)` is the
+  exception: `condKernel` is a Markov kernel on the nose.) Proofs then need
+  `integral_mono_ae`, not `integral_mono`. This is what had kept
+  `WangGaoXie2023.sinkhorn_weak_duality_kernel` from consuming a real disintegration.
 - **No Mathlib SDE / path-measure theory.** `ChenGeorgiouPavon2021` captures the
   controlled dynamics via an abstract `structure` (`SBData`) with `grad`/`lap`/potentials
   as fields/hypotheses. This is expected; keep statements faithful and comment each

@@ -104,6 +104,32 @@ theorem klDiv_compProd_eq_lintegral
   filter_upwards [κ.rnDeriv_eq_rnDeriv_measure (η := η) (a := x)] with y hy
   rw [hy]
 
+/-- The slice divergence `x ↦ D(κ x ‖ η x)` is `μ`-a.e. measurable. It need not be measurable on
+the nose — that is precisely why Mathlib defers the integral form of the chain rule — but it is
+a.e. equal to the manifestly measurable slice lintegral of the jointly measurable
+`Kernel.rnDeriv κ η` (`Measurable.lintegral_kernel_prod_right'`). -/
+theorem aemeasurable_klDiv_kernel
+    (μ : Measure 𝓧) (κ η : Kernel 𝓧 𝓨)
+    [MeasurableSpace.CountableOrCountablyGenerated 𝓧 𝓨]
+    [IsFiniteMeasure μ] [IsMarkovKernel κ] [IsMarkovKernel η]
+    (h_ac : μ ⊗ₘ κ ≪ μ ⊗ₘ η) :
+    AEMeasurable (fun x ↦ klDiv (κ x) (η x)) μ := by
+  have hmeas : Measurable (fun p : 𝓧 × 𝓨 ↦ κ.rnDeriv η p.1 p.2) := κ.measurable_rnDeriv η
+  have hg_meas : Measurable
+      (fun x ↦ ∫⁻ y, ENNReal.ofReal (klFun (κ.rnDeriv η x y).toReal) ∂(η x)) :=
+    Measurable.lintegral_kernel_prod_right' (κ := η)
+      ((measurable_klFun.comp hmeas.ennreal_toReal).ennreal_ofReal)
+  have h_ac_ker : ∀ᵐ x ∂μ, κ x ≪ η x :=
+    Measure.absolutelyContinuous_compProd_right_iff.mp h_ac
+  have key : (fun x ↦ klDiv (κ x) (η x))
+      =ᵐ[μ] (fun x ↦ ∫⁻ y, ENNReal.ofReal (klFun (κ.rnDeriv η x y).toReal) ∂(η x)) := by
+    filter_upwards [h_ac_ker] with x hx
+    rw [klDiv_eq_lintegral_klFun_of_ac hx]
+    refine lintegral_congr_ae ?_
+    filter_upwards [κ.rnDeriv_eq_rnDeriv_measure (η := η) (a := x)] with y hy
+    rw [hy]
+  exact ⟨_, hg_meas, key⟩
+
 /-- **Conditional KL divergence = averaged pointwise KL (cond), real / integral form.**
 `(klDiv (μ ⊗ₘ κ) (μ ⊗ₘ η)).toReal = ∫ x, (klDiv (κ x) (η x)).toReal ∂μ` — the exact statement of the
 roadmap's step (cond): the (finite) conditional relative entropy equals the `μ`-average of the
@@ -121,24 +147,41 @@ theorem toReal_klDiv_compProd_eq_integral
     [IsFiniteMeasure μ] [IsMarkovKernel κ] [IsMarkovKernel η]
     (h_ac : μ ⊗ₘ κ ≪ μ ⊗ₘ η) (h_fin : klDiv (μ ⊗ₘ κ) (μ ⊗ₘ η) ≠ ∞) :
     (klDiv (μ ⊗ₘ κ) (μ ⊗ₘ η)).toReal = ∫ x, (klDiv (κ x) (η x)).toReal ∂μ := by
-  have hmeas : Measurable (fun p : 𝓧 × 𝓨 ↦ κ.rnDeriv η p.1 p.2) := κ.measurable_rnDeriv η
-  -- the slice map is μ-a.e. the measurable slice lintegral of the kernel derivative
-  have hg_meas : Measurable
-      (fun x ↦ ∫⁻ y, ENNReal.ofReal (klFun (κ.rnDeriv η x y).toReal) ∂(η x)) :=
-    Measurable.lintegral_kernel_prod_right' (κ := η)
-      ((measurable_klFun.comp hmeas.ennreal_toReal).ennreal_ofReal)
-  have h_ac_ker : ∀ᵐ x ∂μ, κ x ≪ η x :=
-    Measure.absolutelyContinuous_compProd_right_iff.mp h_ac
-  have key : (fun x ↦ klDiv (κ x) (η x))
-      =ᵐ[μ] (fun x ↦ ∫⁻ y, ENNReal.ofReal (klFun (κ.rnDeriv η x y).toReal) ∂(η x)) := by
-    filter_upwards [h_ac_ker] with x hx
-    rw [klDiv_eq_lintegral_klFun_of_ac hx]
-    refine lintegral_congr_ae ?_
-    filter_upwards [κ.rnDeriv_eq_rnDeriv_measure (η := η) (a := x)] with y hy
-    rw [hy]
-  have haem : AEMeasurable (fun x ↦ klDiv (κ x) (η x)) μ := ⟨_, hg_meas, key⟩
+  have haem := aemeasurable_klDiv_kernel μ κ η h_ac
   have h_lint : ∫⁻ x, klDiv (κ x) (η x) ∂μ ≠ ∞ := by
     rwa [← klDiv_compProd_eq_lintegral μ κ η h_ac]
   rw [klDiv_compProd_eq_lintegral μ κ η h_ac, ← integral_toReal haem (ae_lt_top' haem h_lint)]
+
+/-! ## Slice consequences of a finite conditional KL
+
+The three facts a *disintegration* consumer needs, and which `toReal_klDiv_compProd_eq_integral`
+was already proving privately. Splitting them out is what lets a caller turn a coupling into a
+conditional family: a finite conditional KL forces the slices to be a.e. absolutely continuous
+with a.e. finite divergence, hence (`klDiv_ne_top_iff`) a.e. integrable log-likelihood ratio. -/
+
+/-- **A finite conditional KL has a.e. finite slices.** -/
+theorem ae_klDiv_kernel_ne_top
+    (μ : Measure 𝓧) (κ η : Kernel 𝓧 𝓨)
+    [MeasurableSpace.CountableOrCountablyGenerated 𝓧 𝓨]
+    [IsFiniteMeasure μ] [IsMarkovKernel κ] [IsMarkovKernel η]
+    (h_ac : μ ⊗ₘ κ ≪ μ ⊗ₘ η) (h_fin : klDiv (μ ⊗ₘ κ) (μ ⊗ₘ η) ≠ ∞) :
+    ∀ᵐ x ∂μ, klDiv (κ x) (η x) ≠ ∞ := by
+  have haem := aemeasurable_klDiv_kernel μ κ η h_ac
+  have h_lint : ∫⁻ x, klDiv (κ x) (η x) ∂μ ≠ ∞ := by
+    rwa [← klDiv_compProd_eq_lintegral μ κ η h_ac]
+  filter_upwards [ae_lt_top' haem h_lint] with x hx using hx.ne
+
+/-- **A finite conditional KL makes the slice divergence integrable.** The `hI_kl` hypothesis of
+any Donsker–Varadhan aggregation is therefore a theorem, not an assumption. -/
+theorem integrable_toReal_klDiv_kernel
+    (μ : Measure 𝓧) (κ η : Kernel 𝓧 𝓨)
+    [MeasurableSpace.CountableOrCountablyGenerated 𝓧 𝓨]
+    [IsFiniteMeasure μ] [IsMarkovKernel κ] [IsMarkovKernel η]
+    (h_ac : μ ⊗ₘ κ ≪ μ ⊗ₘ η) (h_fin : klDiv (μ ⊗ₘ κ) (μ ⊗ₘ η) ≠ ∞) :
+    Integrable (fun x ↦ (klDiv (κ x) (η x)).toReal) μ := by
+  have haem := aemeasurable_klDiv_kernel μ κ η h_ac
+  have h_lint : ∫⁻ x, klDiv (κ x) (η x) ∂μ ≠ ∞ := by
+    rwa [← klDiv_compProd_eq_lintegral μ κ η h_ac]
+  exact integrable_toReal_of_lintegral_ne_top haem h_lint
 
 end ForMathlib.MeasureTheory

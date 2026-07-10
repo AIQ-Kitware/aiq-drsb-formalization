@@ -1720,3 +1720,26 @@ assembly, which mirror `DroValueFunction.lean` / `StrongDualityGe.lean` line for
 written up in SURVEY_LEADS.md. I am not going to estimate the effort.
 
 Build green (8758 jobs), zero warnings, zero `sorry`, all new declarations axiom-clean.
+
+## 2026-07-10 (later) — `klDiv` is convex, and the gap I had just documented is closed
+
+Within the hour I wrote into SURVEY_LEADS.md that `klDiv_mix_ne_top` was "a Lean gap, no known
+source", then (checking rather than assuming) found `klDiv_eq_lintegral_klFun_of_ac` and
+`convexOn_klFun` sitting in the pin, recorded the route, and then proved it:
+`ForMathlib/MeasureTheory/KLConvex.lean`, `a8a661b`.
+
+`klDiv_mix_le` is the `ℝ≥0∞`-valued convexity, with **no finiteness hypotheses** — strictly stronger
+than the `toReal_klDiv_mix_le` I proved earlier today from the Donsker–Varadhan dual formula, which
+had to *assume* the mixture's KL was finite (`toReal` sends `⊤` to the junk value `0`, and the
+inequality is false without it). The ENNReal form derives that finiteness instead. Upstreamable on
+its own: Mathlib has `klDiv_smul_same` and `klDiv_smul_right_eq_smul_left` but no convexity in the
+first argument in either `ℝ` or `ℝ≥0∞`.
+
+Lean friction worth remembering: `a • μ` for `a : ℝ≥0` and `μ : Measure α` elaborates to the
+`ℝ≥0`-action, but `ENNReal.smul_def` in a `simp only` set rewrites it to the `ℝ≥0∞`-action *and* so
+desynchronises the goal from `Measure.rnDeriv_smul_left'`. Split the `simp only` in two: clear the
+measures first (`Pi.smul_apply`), then normalise the scalars. Added to AGENTS.md §6.
+
+So ingredient (3) of the Sinkhorn `hge` now has all its mathematical ingredients. What is left is the
+entropic value-function file and the assembly — both close mirrors of the Wasserstein originals — plus
+the Slater restatement (which no proof can supply; see the previous entry). I am not estimating that.

@@ -326,6 +326,11 @@ A reader should never have to reason about which of two adjacent statements is c
 
 ---
 
+* **`ENNReal.smul_def` in a `simp only` set is a trap.** `a • μ` (`a : ℝ≥0`, `μ : Measure α`) is the
+  `ℝ≥0`-action; `ENNReal.smul_def` rewrites it to the `ℝ≥0∞`-action, desynchronising the goal from
+  `Measure.rnDeriv_smul_left'`. Split the `simp only`: clear the measures (`Pi.smul_apply`) first,
+  then normalise scalars. Same family as the `Pi.add` wart below.
+
 ## 7. Build / environment
 
 - **Policy: track the latest Mathlib master** (`inputRev = master`). Bump with `lake update mathlib`,

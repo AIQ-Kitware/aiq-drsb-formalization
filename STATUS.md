@@ -134,17 +134,24 @@ statement than `hge`, and one the cards never need.
 
 * **(2) the optimal multiplier** — `ForMathlib.Analysis.exists_nonneg_multiplier'`, unchanged.
 
-* **(3) concavity of the entropic value function — NOT yet proved.** `klDiv` *is* now known convex
-  in its first argument (`ForMathlib.MeasureTheory.toReal_klDiv_mix_le`), but that lemma **assumes
-  the mixture's KL is finite** (`hac`, `hllr` for the mixed measure) — it does not derive it. So the
-  value function's concavity is blocked on a missing lemma:
+* **(3) concavity of the entropic value function — ingredients now complete; the file is not.**
+  `klDiv` is convex in its first argument, in `ℝ≥0∞` and with **no finiteness hypotheses**:
+  `ForMathlib.MeasureTheory.klDiv_mix_le` (from `klDiv_eq_lintegral_klFun_of_ac` +
+  `convexOn_klFun`). Its corollary `klDiv_mix_ne_top` supplies the mixture finiteness that
+  `toReal_klDiv_mix_le` had to assume, and `toReal_klDiv_mix_le_of_ne_top` is the ℝ-valued form
+  with that hypothesis discharged. Together with `couplingCost_mix` (affine) and `mix_mem_couplings`
+  (the coupling set is convex), the Sinkhorn objective is convex in `γ`, hence
+  `{γ : obj γ ≤ t}` is convex and the value function is concave.
 
-  > **`klDiv_mix_ne_top`** — `klDiv (a•μ₁ + b•μ₂) ν ≠ ⊤` given `klDiv μᵢ ν ≠ ⊤`. True by convexity
-  > of `x ↦ x log x` pointwise on the Radon–Nikodym derivatives, but absent from Mathlib and not a
-  > corollary of the DV dual formula (which gives the `toReal` inequality only *after* finiteness).
+  **What is still unwritten** is the value-function file itself — the entropic analogue of
+  `ForMathlib/OptimalTransport/DroValueFunction.lean` (`sinkhornValueSet`, `sinkhornValueAt`,
+  `bddAbove`, `monotoneOn`, `concaveOn`) — and the assembly, the analogue of
+  `StrongDualityGe.lean`. Both mirror the Wasserstein files closely; neither is done.
 
-  An earlier revision of this file claimed ingredient (3) was finished. It is not; the claim was
-  made before the proof was attempted, and the `hllr` hypothesis is exactly what it missed.
+  An earlier revision of this file recorded ingredient (3) as *proved* (it was not: the mixture's
+  KL-finiteness was assumed, not derived), and a later one recorded `klDiv_mix_ne_top` as a Mathlib
+  gap with no known source. It is now proved. Both entries were written before the proof was
+  attempted.
 
 * **(4) a Slater / strict-feasibility hypothesis — newly identified, and unavoidable.** The
   Wasserstein assembly takes the supergradient at `δ > 0` with the value set nonempty at `t = 0`,

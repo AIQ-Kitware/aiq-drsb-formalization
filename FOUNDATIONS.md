@@ -48,15 +48,30 @@ Sion's minimax theorem ✅ (Mathlib.Topology.Sion) ──┘                    
 | Rockafellar interchange `∫ inf = inf ∫` | 🟡 (`lintegral` monotone-conv only) | L | `interchange integral infimum`, `Rockafellar–Wets Thm 14.60`, `normal integrand`, `decomposable space` |
 | Measurable selection (Kuratowski–Ryll-Nardzewski) | ❌ | XL | `measurable selection`, `Kuratowski Ryll-Nardzewski`, `Jankov von Neumann`, `exists_measurable_selector`, `measurableSet_of_isMinOn` |
 
-> **Payoff shortcut (now partly banked):** the evaluation **cards need only the
-> WEAK-duality node** (the `≤`, boxed ⚑) — no minimax, no Kantorovich, no selection. Its
-> reusable kernel, the **per-coupling Lagrangian bound, is now PROVED**:
-> `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` (ported from
-> `reference/V4.lean::wdro_lagrangian_bound`, generalized to arbitrary cost `c`). What
-> remains for the card path is the *assembly* (`inf_π 𝔼_π[c] = otCost ≤ δ`, then `sup_μ`,
-> `inf_λ`) → `GaoKleywegt2023.weak_duality_prop1` → the cost bounds. The rest of Chain 1
-> (Fenchel + selection) is only for the STRONG-duality capstones — defer; and **Sion is
-> now available** for the minimax step if the assembly wants it.
+> **Payoff shortcut — fully banked (2026-07-10).** The evaluation **cards need only the
+> WEAK-duality node** (the `≤`, boxed ⚑): no minimax, no Kantorovich, no selection. Both card
+> claims (`Drsb.{wdrsb,sdrsb}_cost_bound`) are now **proved and edge-free** — the per-coupling
+> Lagrangian bound `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` plus a
+> *near-optimal* plan and a limit `η ↓ 0`. Nothing in this chain's ❌ column is on the card path.
+>
+> **A second shortcut, for the STRONG-duality `≥` seam.** The remaining edge is `hattain`
+> (`hbddP` was deleted 2026-07-10 — it is a consequence of `hbdd` at `lam = 0`). Note that
+> `hattain` asserts only that the *worst-case measure exists*, i.e. that a usc functional attains
+> its sup on the ball. **That is an extreme-value argument, not a duality theorem** — it needs
+> neither Kantorovich duality, nor Fenchel–Rockafellar, nor measurable selection. The route is:
+>
+> ```
+> ball tight ──► Prokhorov ✅ (Mathlib.MeasureTheory.isCompact_closure_of_isTightMeasureSet)
+>                     │
+> lsc of otCost ❌ ───┴──► ball weakly compact ──┐
+>                                                 ├──► sup attained  ⇒  hattain
+> μ ↦ 𝔼_μ[V] usc ✅ (Portmanteau, for bdd usc V) ─┘
+> ```
+>
+> So the `XL`-effort `Kantorovich duality` / `measurable selection` rows below are **not** the
+> critical path to `hattain`. The critical path is the single `M`-effort gap **lsc of the transport
+> cost** (Villani Thm 4.1), plus **lsc of `klDiv`** for the entropic ball (Chain 2). Both are
+> genuine Mathlib gaps and both are upstreamable. Re-scope before spending effort on Fenchel.
 
 ---
 
@@ -65,19 +80,31 @@ Sion's minimax theorem ✅ (Mathlib.Topology.Sion) ──┘                    
 Powers `WangGaoXie2023.strong_duality` (the SDRSB card's log-partition bound term).
 
 ```
-Gibbs' inequality (KL ≥ 0) ✅ ─► Donsker–Varadhan variational formula 🟢 (ForMathlib, PROVED)
+Gibbs' inequality (KL ≥ 0) ✅ ─► DV **Gibbs** formula 🟢 (ForMathlib, PROVED: log∫eᶠdν = sup_μ (∫f dμ − KL(μ‖ν)))
                                           │
    cgf / log-partition ✅ (Mathlib mgf,cgf) ─┴─► entropic inner soft-max 🟢 (logPartition_eq_gibbs_sSup, PROVED)
                                                         │
                                                         ▼
-                                        Sinkhorn-DRO WEAK duality ❌ (outer inf over λ + ball Lagrangian) ─► STRONG duality ❌ (`≥` seam)
+                                        Sinkhorn-DRO WEAK duality 🟢 PROVED ─► STRONG duality ❌ (the `hattain` seam)
+
+DV **dual** formula ❌ (KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν))  ─►  lsc of klDiv ❌  ─►  Sinkhorn ball weakly closed  ─► hattain
 ```
+
+⚠ **The two Legendre transforms are not the same theorem.** We have proved the **Gibbs** direction
+(the sup runs over *measures* `μ`, and is attained at `ν.tilted f`). Lower semicontinuity of `klDiv`
+— and hence weak closedness of the Sinkhorn ball, and hence `hattain` — needs the **dual** direction,
+whose sup runs over *functions* `f`. Its `≥` half is exactly our proved
+`integral_le_klDiv_add_log_integral_exp`; the missing half is achievability (truncate `llr`, pass to
+the limit). ⚠ Lean's `llr μ ν = log (dμ/dν)` with `Real.log 0 = 0`, so `exp (llr μ ν) = 1` — not `0`
+— on `{dμ/dν = 0}`; the truncation must live on the `μ`-full set `{dμ/dν > 0}`.
 
 | Link | Mathlib | Effort | Search terms |
 |---|---|---|---|
-| Donsker–Varadhan variational formula | 🟢 **proved here — full equality** (`ForMathlib.MeasureTheory.DonskerVaradhan`) | — | `Donsker–Varadhan`, `Gibbs variational principle`, `Measure.tilted`, `variational formula relative entropy`, Dupuis–Ellis |
+| DV **Gibbs** formula (sup over measures) | 🟢 **proved here — full equality** (`ForMathlib.MeasureTheory.{isGreatest_donskerVaradhan, log_integral_exp_eq_sSup}`) | — | `Donsker–Varadhan`, `Gibbs variational principle`, `Measure.tilted`, Dupuis–Ellis Prop 1.4.2 |
+| DV **dual** formula (sup over functions) | ❌ — `≥` half proved (`integral_le_klDiv_add_log_integral_exp`), achievability missing | M | `variational formula relative entropy`, `KL = sup ∫f dμ − log ∫ exp f dν`, Dupuis–Ellis Prop 1.4.2 / Donsker–Varadhan 1975 |
+| lower semicontinuity of `klDiv` | ❌ (pin has `convexOn_klFun` for the *integrand* only) | M | `lower semicontinuous relative entropy`, `klDiv lsc`, Dupuis–Ellis Lemma 1.4.3 |
 | cumulant generating function = log-partition | ✅ (`Probability/Moments/Basic` `cgf`) | S | `cgf`, `mgf`, `cumulant generating function`, `log ∫ exp` |
-| Sinkhorn-DRO weak duality (outer `inf_λ`) | ❌ | L | `Sinkhorn distributionally robust`, `entropic DRO dual`, `KL-DRO dual`, Wang–Gao–Xie 2021 (arXiv 2109.11926) |
+| Sinkhorn-DRO weak duality (outer `inf_λ`) | 🟢 **PROVED** (`WangGaoXie2023.sinkhorn_weak_duality_kernel` + `Drsb.sdrsb_cost_bound`, edge-free) | — | `Sinkhorn distributionally robust`, `entropic DRO dual`, `KL-DRO dual`, Wang–Gao–Xie 2021 (arXiv 2109.11926) |
 
 *Healthiest chain, and we are AHEAD of the external art here.* Survey (2026-07) found
 `mrdouglasny/gibbs-variational` (Mathlib-only Gibbs/DV work over Mathlib's `klDiv`), but
@@ -219,3 +246,11 @@ Mirror DKPS's `Challenge/MathlibCandidate/<Name>/`:
   `∑pᵢ = ∑qⱼ` hypothesis added — the statement was under-specified).
 - Proved & staged `ForMathlib.MeasureTheory.Normalization`; consumed by `exists_worstCase_gibbs`.
 - Proved `ChenGeorgiouPavon2021.staticSB_eq_entropicOT` (T0).
+
+**2026-07-10.** Card path closed and edge-free; `hbddP` deleted from every duality theorem
+(`ForMathlib.OT.DroValue`). Chain 1's `hattain` re-scoped: it is an **extreme-value** argument, not
+a duality theorem — Prokhorov/Tight/Portmanteau are now in the pin, so the critical path is lsc of
+the transport cost (Villani Thm 4.1), *not* Kantorovich duality or measurable selection. Chain 2
+split the two Legendre transforms: the **Gibbs** formula is proved here, the **dual** formula (and
+hence lsc of `klDiv`) is not. Corrected the standing claim that `formal-mathfin` contains Girsanov —
+it does not (see `SURVEY_LEADS.md`).

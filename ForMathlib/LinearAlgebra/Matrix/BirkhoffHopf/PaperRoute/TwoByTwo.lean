@@ -88,7 +88,7 @@ theorem positiveKernelApply_symmetricTwoByTwo_one (α : ℝ) (x : Fin 2 → ℝ)
     positiveKernelApply (symmetricTwoByTwoKernel α) x (1 : Fin 2) =
       x (0 : Fin 2) + α * x (1 : Fin 2) := by
   rw [positiveKernelApply, Fin.sum_univ_two]
-  simp [symmetricTwoByTwoKernel, add_comm]
+  simp [symmetricTwoByTwoKernel]
 
 /-- On `Fin 2` the Hilbert projective spread is exactly the absolute log cross-ratio of the two
 coordinates: the `sSup` ranges over four ordered pairs, two of which are `log 1 = 0` and the other

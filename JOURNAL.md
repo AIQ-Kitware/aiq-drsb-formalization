@@ -1181,3 +1181,65 @@ Schrödinger-bridge structure edges (`hglue`, `hprod_exists`, `hHC`), and contin
 
 Everything `lake build` green (8748 jobs); all card-path theorems, the renamed declarations, and the
 new `ForMathlib` lemmas `#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.
+
+---
+
+# Session journal — deleting `hbddP`; re-scoping `hattain` (2026-07-10, Claude Opus 4.8)
+
+## `hbddP` was never an edge
+
+Every strong-duality theorem carried `hbddP : BddAbove {r | ∃ μ ∈ ball, r = expect μ f}` as an
+opaque side condition. It is a consequence of its own neighbours. A function bounded above has
+bounded-above expectations, uniformly over any set of probability measures that integrates it — and
+a dual ranging over `λ ≥ 0` *already asserts* that boundedness, as the `λ = 0` case of its conjugate
+hypothesis `hbdd` (`sup_x (f x − 0·c x y)` finite **is** `BddAbove (Set.range f)`).
+
+New `ForMathlib/OptimalTransport/DroValue.lean` (upstreamable) makes that precise, and `hbddP` is
+deleted from `Drsb.wdrsb_strong_duality`, `GaoKleywegt2023.{strong_duality_thm1,
+dataDriven_strongDuality_cor2i}`, and `BlanchetMurthy2019.{wdro_strong_duality, _dualFn}`.
+
+The two duals that run over `0 < lam` only (`Drsb.sdrsb_strong_duality`,
+`WangGaoXie2023.strong_duality`) have no `λ = 0` term to read the bound off, so they take the
+strictly weaker, checkable `BddAbove (Set.range V)` instead. WGX needed a bespoke proof: `Integrable
+f μ` is not available there, but its disintegration supplies the bound one layer down, through the
+conditional means `∫ f dP x`.
+
+Four `hbddP` survive, all on worst-case-*structure* theorems (GK cor1/cor2ii, MEK
+worstCase_program/_exists) which carry no boundedness hypothesis to derive from. Recorded, not faked.
+
+**So `hattain` is now the only edge on all four duality capstones.**
+
+## Re-scoping `hattain` — it is not a duality theorem
+
+`hattain` says the worst-case measure *exists*: a usc functional attains its sup on the ball. That is
+an **extreme-value argument**. It needs neither Kantorovich duality, nor Fenchel–Rockafellar, nor
+measurable selection — the three `XL` rows FOUNDATIONS Chain 1 had it blocked behind. The route is
+tightness → Prokhorov → weak compactness → Portmanteau, and **Prokhorov, `IsTightMeasureSet` and
+Portmanteau are all in the current pin**. What is actually missing is one `M`-effort lemma per ball:
+lsc of the transport cost (Villani Thm 4.1), and lsc of `klDiv` (Dupuis–Ellis Lemma 1.4.3).
+
+## A correction the survey needed
+
+`FOUNDATIONS.md` Chain 2 recorded the Donsker–Varadhan variational formula as "proved here — full
+equality". That conflates **two different Legendre transforms.** What we proved
+(`isGreatest_donskerVaradhan`) is the **Gibbs** formula `log∫eᶠdν = sup_μ (∫f dμ − KL(μ‖ν))`, a sup
+over *measures*. Lower semicontinuity of `klDiv` needs the **dual** formula `KL(μ‖ν) = sup_f (∫f dμ −
+log∫eᶠdν)`, a sup over *functions*. Its `≥` half is exactly our proved
+`integral_le_klDiv_add_log_integral_exp`; the missing half is achievability. Both docs now say so.
+
+Also flagged for whoever attempts it: Lean's `llr μ ν = log (dμ/dν)` and `Real.log 0 = 0`, so
+`exp (llr μ ν) = 1` — not `0` — on `{dμ/dν = 0}`. The truncation argument has to live on the `μ`-full
+set `{dμ/dν > 0}` or it will not close.
+
+## And a correction the lit review needed
+
+`SURVEY_LEADS.md` claimed `raphaelrrcoelho/formal-mathfin` has "full Itô/SDE/Girsanov". Re-audited:
+its `Foundations/Girsanov.lean` contains exactly one theorem, `bs_discounted_isQMartingale`
+(Black–Scholes-specific); `GaussianGirsanov.lean` is a finite-dimensional Esscher tilt;
+`Binomial/Girsanov.lean` is the discrete binomial analogue. **Girsanov and the stochastic exponential
+are absent from every Lean source surveyed**, including `brownian-motion`, whose stochastic integral
+covers only simple processes (`DoobMeyer.lean` has 25 open goals). Nobody should plan a "port the
+Girsanov" task against those repos. Corrected in place.
+
+Repo is `lake build` green with **zero warnings** (fixed a stray unused `simp` argument in
+`BirkhoffHopf/PaperRoute/TwoByTwo.lean`), sorry-free, and axiom-clean.

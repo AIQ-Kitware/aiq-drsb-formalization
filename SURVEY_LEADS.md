@@ -46,6 +46,7 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 | Mathlib PF merged infra | https://github.com/leanprover-community/mathlib4/pull/28728 | 3 | Irreducible+Primitive matrices + Quiver links (merged Jul 2025). |
 | Mathlib `cgf`/`mgf` | https://leanprover-community.github.io/mathlib4_docs/Mathlib/Probability/Moments/Basic.html | 2 | log-partition = `ProbabilityTheory.cgf`. Use. |
 | ⭐ **`StatLean` / `Stat-Lean`** | GitHub code search: `KLDivergence.lean`, `Entropy.lean`, `PinskerInequality.lean`, `GaussianKLMulti.lean`, `Fano/MutualInformation.lean` | 2 | native KL / entropy / Pinsker / Gaussian-KL / Fano / mutual-info; "for-Mathlib" quality — **first repo to inspect after Mathlib for Chain 2** |
+| ⭐ **Mathlib `Measure/Prokhorov`, `Measure/Tight`, `Measure/Portmanteau`** ✅**NEW IN PIN, verified 2026-07-10** | `MeasureTheory.isCompact_closure_of_isTightMeasureSet`, `IsTightMeasureSet`, `Measure/Portmanteau.lean` | 1 | **The compactness half of worst-case-measure attainment (`hattain`) is now in Mathlib.** Tight ambiguity ball ⇒ compact closure ⇒ the `sSup` of a usc functional is attained. What is still missing is *closedness* of the ball: lsc of the transport cost, and lsc of `klDiv`. **Start `hattain` here.** |
 | ⭐ **Mathlib doubly-stochastic API** | `Analysis/Convex/Birkhoff.lean`, `Analysis/Convex/DoublyStochasticMatrix.lean`, `LinearAlgebra/Matrix/Stochastic.lean` | 3 | native finite-dim stochastic/doubly-stochastic matrix API — **start the Sinkhorn build here**, not from PF (see FOUNDATIONS.md Chain 3) |
 
 ## Projective-metric frontier: Birkhoff–Hopf / Hilbert metric / PF / Sinkhorn (re-survey 2026-07-10)
@@ -164,9 +165,32 @@ No `gh` CLI / GitHub token in the survey environment, so authenticated **code**-
 | Lead | Link | Note |
 |---|---|---|
 | ⭐ `RemyDegenne/brownian-motion` 🔁 ✅RE-AUDITED 2026-07-04 | https://github.com/RemyDegenne/brownian-motion | **Apache-2.0**. **RE-AUDIT (2026-07-04, for continuum gap #1):** README confirms it **constructs the projective family of Gaussians AND its projective limit via the Kolmogorov extension theorem**, giving a **full Brownian measure on `ℝ≥0`-indexed path space** — the exact piece the pinned Mathlib lacks (Mathlib's `Probability.BrownianMotion.GaussianProjectiveFamily` proves the family consistent but says the extension "is not in Mathlib yet"). Results are **"now migrating to Mathlib"** — so **gap #1 (Kolmogorov extension → continuum reference measure) is a *vendor / wait-for-upstream*, NOT a from-scratch port.** Itô "in progress" (building toward Itô's lemma); still **NO Girsanov, no KL** (gap #2 remains open). **Re-check before Phase-2 continuum work.** (We upgraded our pin to latest master `d3716e6d` on 2026-07-04 — the extension is **still not landed** there; keep watching.) |
-| ⭐ `raphaelrrcoelho/formal-mathfin` 🔁 ✅AUDITED 2026-07-03 | https://github.com/raphaelrrcoelho/formal-mathfin | **Apache-2.0** (reusable) · **AUDITED (survey note was badly stale — it is NOT immature):** 227 files, ~45k lines, **build-enforced dependency-clean** (`DependencyAudit.lean` `#guard_msgs`; the only real placeholder is one càdlàg-modification lemma). **Full continuous stochastic-analysis stack**: Itô integral + Itô formula (general `ItoIntegralProcessGeneral`, `ItoFormulaUnrestricted`, L² isometry, local martingales, quadratic variation), **`SDEExistence.lean`** (Picard–Banach existence/uniqueness — but **scalar 1-D**), **`Girsanov.lean`/`GaussianGirsanov.lean`** (but **Black–Scholes-specific**, `bs_discounted_isQMartingale`), `FeynmanKacHeatEquation.lean`, `ChangeOfMeasure`/`MarkovPathMeasure`, and `ConvexDuality`/`SuperhedgingDuality`/`ConvexSeparation`. **Scope caveat:** 1-D / finance-flavoured, and **no relative-entropy/KL** (grep-empty) — so it does NOT drop-in-close our multi-D Schrödinger-bridge controls (`energy_identity` needs KL between path measures). But it is the **real Itô/SDE foundation** to refound `ChenGeorgiouPavon2021`'s abstract `SBData` on, and `ConvexDuality` may feed Chain-1. Likely AI-assisted (45k lines, fast cadence). |
+| ⭐ `raphaelrrcoelho/formal-mathfin` 🔁 ✅AUDITED 2026-07-03 | https://github.com/raphaelrrcoelho/formal-mathfin | **Apache-2.0** (reusable) · **AUDITED (survey note was badly stale — it is NOT immature):** 227 files, ~45k lines, **build-enforced dependency-clean** (`DependencyAudit.lean` `#guard_msgs`; the only real placeholder is one càdlàg-modification lemma). **Substantial Itô development** (`ItoIntegralProcess*`, `ItoFormula*`, `ItoProcessQV`, isometry lemmas — note `ito_isometry_discrete*` are the *discrete* isometries), **`SDEExistence.lean`** (Picard–Banach existence/uniqueness — but **scalar 1-D**), `FeynmanKacHeatEquation.lean`, `ChangeOfMeasure`/`MarkovPathMeasure`, and `ConvexDuality`/`SuperhedgingDuality`/`ConvexSeparation`. ⚠ **RE-AUDIT 2026-07-10: it does NOT contain the Girsanov theorem.** `Foundations/Girsanov.lean` has exactly one theorem, `bs_discounted_isQMartingale` (Black–Scholes-specific); `GaussianGirsanov.lean` is a finite-dimensional Gaussian Esscher tilt; `Binomial/Girsanov.lean` is the discrete binomial analogue. **Do not plan a "port the Girsanov" task against this repo — there is nothing to port.** Verify the Itô layer's generality yourself before planning against it too. **Scope caveat:** 1-D / finance-flavoured, and **no relative-entropy/KL** (grep-empty) — so it does NOT drop-in-close our multi-D Schrödinger-bridge controls (`energy_identity` needs KL between path measures). But it is the **real Itô/SDE foundation** to refound `ChenGeorgiouPavon2021`'s abstract `SBData` on, and `ConvexDuality` may feed Chain-1. Likely AI-assisted (45k lines, fast cadence). |
 | Brownian motion in Lean (paper) | https://arxiv.org/abs/2511.20118 | construction of Brownian motion |
 | Verified math-finance library (paper) | https://arxiv.org/abs/2606.01356 | L2 Itô integral, risk-neutral pricing measure |
+
+## The `hattain` capstone: three newly-named gaps (survey 2026-07-10)
+
+`hattain` — existence of the worst-case measure — is **one theorem serving all four strong-duality
+capstones** (`Drsb.{wdrsb,sdrsb}_strong_duality`, `BlanchetMurthy2019.wdro_strong_duality`,
+`WangGaoXie2023.strong_duality`, `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`). Its
+`BddAbove` companion `hbddP` is **no longer an edge** (deleted 2026-07-10;
+`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`).
+
+The classical proof is: ball tight ⇒ Prokhorov ⇒ compact closure; ball weakly closed; `μ ↦ 𝔼_μ[V]`
+usc; extreme-value. **Prokhorov, `IsTightMeasureSet` and Portmanteau are now IN THE PIN.** What is
+missing, named precisely:
+
+| Gap | Needed for | Lean status | Source |
+|---|---|---|---|
+| **(A) lsc of the transport cost / `otCost` in `μ`** | weak closedness of the Wasserstein ball | **ABSENT everywhere** (Mathlib has no Kantorovich layer at all) | Villani, *Optimal Transport: Old and New*, Thm 4.1; Santambrogio, *OT for Applied Mathematicians*, §1.2 |
+| **(B) lsc of `klDiv`** | weak closedness of the Sinkhorn ball | **ABSENT** (pin has `convexOn_klFun`/`strictConvexOn_klFun` for the *integrand*, nothing for `klDiv`) | Dupuis–Ellis, *A Weak Convergence Approach to the Theory of Large Deviations*, Lemma 1.4.3 |
+| **(C) Donsker–Varadhan *dual* variational formula** | the standard route to (B): `KL(μ‖ν) = sup_f (∫f dμ − log ∫e^f dν)`, a sup of weakly-continuous functionals, hence lsc | **ABSENT**; ⚠ *we have the other Legendre transform.* `ForMathlib.MeasureTheory.isGreatest_donskerVaradhan` is the **Gibbs** formula `log ∫e^f dν = sup_μ (∫f dμ − KL(μ‖ν))` (sup over *measures*). The `≥` half of the dual formula is exactly our proved `integral_le_klDiv_add_log_integral_exp`; the missing half is **achievability** (truncate `llr` and pass to the limit). | Dupuis–Ellis Prop 1.4.2; Donsker–Varadhan 1975 |
+
+(C) is the natural next new formalization: one direction is already proved here, it is a genuine
+Mathlib gap, and it unlocks (B). ⚠ Watch Lean's `llr` convention — `llr μ ν x = log (dμ/dν x)` and
+`Real.log 0 = 0`, so `exp (llr μ ν) = 1` on `{dμ/dν = 0}`, *not* `0`. The truncation argument must
+be done on `{dμ/dν > 0}` (a `μ`-full set) or it will not close.
 
 ## Continuum energy-identity: the three named gaps (re-survey 2026-07-04)
 
@@ -282,7 +306,7 @@ exhausted.
 | **Generated-proof corpora** | **no** | the remaining frontier — bulk-query it |
 | Chain 3 sources | no | Mathlib doubly-stochastic base + `flow-sinkhorn` still to inspect |
 | Chain 2 sources | mostly | `gibbs-variational` AUDITED (Gaussian-KL lemmas reusable); `flow-sinkhorn` AUDITED (finite KL/Pinsker); DV Zulip + `YuanheZ/lean-stat-learning-theory` (ICML2026 SLT, 91⭐) still to skim |
-| Chain 4 sources | AUDITED | `formal-mathfin` (⭐ Apache-2.0, full Itô/SDE/Girsanov but 1-D/finance, no KL), `brownian-motion` (Apache-2.0, no Girsanov). Real foundation to refound `SBData` on; not drop-in. |
+| Chain 4 sources | AUDITED, **claim corrected 2026-07-10** | `formal-mathfin` (⭐ Apache-2.0): has a real Itô development, but **NOT Girsanov** — `Foundations/Girsanov.lean` is the single Black–Scholes statement `bs_discounted_isQMartingale`, and `GaussianGirsanov.lean` is a finite-dimensional Esscher tilt. `brownian-motion` (Apache-2.0): Brownian existence is sorry-free, but its stochastic integral covers only **simple processes** (`DoobMeyer.lean` carries 25 open goals). **Girsanov and the stochastic exponential (Doléans-Dade) are ABSENT from every Lean source surveyed.** Nothing drop-in; nothing shortcuts the port. |
 | Chain 1-heavy OT | mostly (manually) | likely absent bar finite/scaffold fragments |
 | Chain 4 | enough for now | defer |
 

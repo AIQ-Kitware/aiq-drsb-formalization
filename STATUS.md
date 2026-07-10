@@ -72,27 +72,33 @@ These are the strong-duality and continuum capstones. Re-verified against the pi
 
 ### Tier 0 — no new mathematics; wiring only
 
-| Edge | Where | Why it is not research |
+| Edge | Where | Status |
 |---|---|---|
-| `hbddP` (×8) | all four strong-duality thms | Derivable: `hbdd` at `lam = 0` already asserts `BddAbove (Set.range V)`, and `expect μ V ≤ sup V` by `integral_mono`. Verified in Lean. |
-| `hSinkAll` | `WangGaoXie2023.strong_duality` | Now discharged by `exists_isSinkhornPlan_of_mem_sinkhornBall` + `hasSinkhornDisintegration_of_isSinkhornPlan`, once those are generalised from `sqCost` to a general nonneg cost `c`. |
+| ~~`hbddP`~~ | all four strong-duality thms | ✅ **DELETED (2026-07-10).** A function bounded above has bounded-above expectations, and a dual over `lam ≥ 0` already asserts `BddAbove (Set.range V)` as its `lam = 0` conjugate. `ForMathlib.OT.DroValue`. Four remain, only on worst-case-*structure* theorems (GK cor1/cor2ii, MEK), which carry no boundedness hypothesis to derive from. |
+| `hSinkAll` | `WangGaoXie2023.strong_duality` | Discharged by `exists_isSinkhornPlan_of_mem_sinkhornBall` + `hasSinkhornDisintegration_of_isSinkhornPlan`, once those are generalised from `sqCost` to a general nonneg cost `c`. |
 | `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
 | `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
 
 ### Tier 1 — one theorem, papers exist, no Lean source: **worst-case-measure attainment**
 
-`hattain` is the *same* edge in all four strong-duality theorems (Groups A–C). It is now genuinely
-attackable because **Prokhorov and Portmanteau landed in the pin**
+`hattain` is now the **only** edge on all four strong-duality theorems (`hbddP` is gone). It is an
+**extreme-value argument, not a duality theorem** — it needs neither Kantorovich duality nor
+measurable selection, so the `XL` rows in FOUNDATIONS Chain 1 are off its critical path. It is
+genuinely attackable because **Prokhorov, `IsTightMeasureSet` and Portmanteau landed in the pin**
 (`MeasureTheory.isCompact_closure_of_isTightMeasureSet`, `Measure/Tight.lean`, `Portmanteau.lean`).
 
 Needed, in order:
 1. **Tightness of the ambiguity ball** (Markov/moment bound around a tight nominal) → then Prokhorov.
 2. **Lower semicontinuity of the transport cost** in the coupling, and of `otCost`/`W2sq` in `μ`.
    **ABSENT.** Paper: Villani, *Optimal Transport: Old and New*, Thm 4.1; Santambrogio §1.2.
-3. **Lower semicontinuity of `klDiv`** (for the Sinkhorn ball). **ABSENT** — but reachable *from our
-   own* Donsker–Varadhan lemma: relative entropy is a sup of continuous functionals, hence lsc
-   (Dupuis–Ellis, *A Weak Convergence Approach*, Lemma 1.4.3). Mathlib has `convexOn_klFun` but no
-   `klDiv` lsc.
+3. **Lower semicontinuity of `klDiv`** (for the Sinkhorn ball). **ABSENT.** The standard route is the
+   Donsker–Varadhan **dual** variational formula `KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν)` — a sup of
+   weakly-continuous functionals, hence lsc (Dupuis–Ellis, Lemma 1.4.3). ⚠ **We do not have that
+   formula.** `ForMathlib.MeasureTheory.isGreatest_donskerVaradhan` is the *other* Legendre
+   transform (the **Gibbs** formula, sup over *measures*). The `≥` half of the dual formula is our
+   proved `integral_le_klDiv_add_log_integral_exp`; the missing half is achievability. ⚠ Lean's
+   `llr μ ν = log (dμ/dν)` and `Real.log 0 = 0`, so `exp (llr μ ν) = 1` on `{dμ/dν = 0}` — truncate
+   on the `μ`-full set `{dμ/dν > 0}` or the argument will not close.
 4. Upper semicontinuity of `μ ↦ 𝔼_μ[V]` → Portmanteau (in pin), for bounded usc `V`.
 
 This is the single highest-value target: **one theorem, four capstones**, and every piece is

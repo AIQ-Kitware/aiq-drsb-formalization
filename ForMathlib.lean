@@ -75,6 +75,7 @@ One file per proposed Mathlib destination area:
   KL-limit that discharges the embedding edge of the continuum energy identity. PROVED.
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
+import ForMathlib.MeasureTheory.TiltedKernel
 import ForMathlib.MeasureTheory.DonskerVaradhanDual
 import ForMathlib.MeasureTheory.MeasurableArgmax
 import ForMathlib.MeasureTheory.Normalization
@@ -83,6 +84,7 @@ import ForMathlib.Analysis.Supergradient
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Coupling
 import ForMathlib.OptimalTransport.ConverseLagrangian
+import ForMathlib.OptimalTransport.SinkhornConverse
 import ForMathlib.OptimalTransport.Convexity
 import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.OptimalTransport.DroValueFunction

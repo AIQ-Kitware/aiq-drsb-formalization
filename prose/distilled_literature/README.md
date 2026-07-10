@@ -14,7 +14,7 @@ The primary paper must remain the visible source of the reconstructed proof rout
 
 The corpus currently represents **21 unique source papers** in 25 paper-specific TeX files. The file count is larger because Blanchet--Murthy, Gao--Kleywegt, and Wang--Gao--Xie each have both a broad note and a theorem-focused companion; `ClassicalFoundations_DV_KLconvexity_supergradient.tex` is a multi-source synthesis and is not counted as a paper.
 
-As of the 2026-07-10 four-paper pass, **11/21 papers** have completed source-order proof reconstructions:
+As of the 2026-07-10 four-paper pass, **16/21 papers** have completed source-order proof reconstructions:
 
 - Adjoint Matching (2025);
 - Birkhoff (1957);

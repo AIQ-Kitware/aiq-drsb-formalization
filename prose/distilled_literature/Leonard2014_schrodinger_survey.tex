@@ -1,259 +1,328 @@
 \input{preamble}
-\title{The Schr\"odinger Problem, $(f,g)$-Transforms, and Entropic Interpolation}
+\title{The Schr\"odinger Problem, $(f,g)$-Transforms, and the Slow-Noise Limit}
 \author{}
-\date{L\'eonard (2014)}
+\date{L\'eonard (2014): Sections 2--5}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
 \begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
 \item[Primary source] \texttt{\detokenize{leonard-2013_survey-schrodinger-problem-optimal-transport__arXiv-1308.0215.pdf}}
-\item[Coverage] The survey's proof-level core: entropy disintegration, dynamic/static equivalence, (f,g)-transform, Schrödinger system, reciprocal/Markov structure, and small-noise convergence to optimal transport.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Sections 2--3
-  \item Propositions 2.3 and 2.5
-  \item Section 4
-  \item Theorems 4.1--4.2
-  \item Section 5
-\end{itemize}
+\item[Coverage] Definitions 2.1--2.2, Proposition 2.3, Lemma 2.4, Propositions 2.5--2.7, Theorems 2.8--2.9, Proposition 2.10 and Claim 2.11, Theorem 2.12, Definition 3.2, Theorems 3.3--3.4, Propositions 4.1--4.2, the Section 5 Laplace-principle derivation, and Theorem 5.2.
+\item[Source anchors] equations (2.2)--(2.12), (3.2)--(3.9), (4.1)--(4.16), and (5.1)--(5.3).
 \end{description}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+This note follows the survey's order.  Proofs supplied in the survey are expanded.  Results that the
+survey imports from earlier work---notably the existence of additive Schr\"odinger potentials in full
+generality and the rigorous Gamma-convergence theorems---retain that citation-dependent status.
 
-\section{Path-space and endpoint formulations}
-Let $\Omega$ be a path space over a Polish state space $\mathcal X$, let
-$X_t(\omega)=\omega_t$ be the canonical process, and let $R$ be a Markov reference
-measure on $\Omega$.  Its endpoint law and bridge disintegration are denoted by
+\section{Sigma-finite entropy and the two Schr\"odinger problems}
+Let \(\Omega\) be a Polish path space over a Polish state space \(\mathcal X\), with canonical
+coordinate \(X_t\).  The reference \(R\in\mathcal M_+(\Omega)\) may be sigma-finite.  L\'eonard
+defines relative entropy with respect to such an \(R\) by choosing a nonnegative weight \(W\) for
+which
 \[
- R_{01}=(X_0,X_1)_\#R,
+ z_W=\int e^{-W}dR<\infty,
  \qquad
- R(d\omega)=R^{xy}(d\omega)R_{01}(dx,dy).
+ R_W=z_W^{-1}e^{-W}R\in\mathcal P(\Omega),
 \]
-For prescribed endpoint laws $\mu_0,\mu_1\in\mathcal P(\mathcal X)$, the dynamic
-Schr\"odinger problem is
-\begin{equation}\label{eq:Leonard-Sdyn}
- \inf\bigl\{H(P\mid R):P\in\mathcal P(\Omega),\ P_0=\mu_0,\ P_1=\mu_1\bigr\},
+and setting
+\begin{equation}\label{eq:leo-sigmafinite-entropy}
+ H(P\mid R)=H(P\mid R_W)-\int WdP-\log z_W.
 \end{equation}
-and the static problem is
-\begin{equation}\label{eq:Leonard-S}
- \inf\bigl\{H(\pi\mid R_{01}):\pi\in\mathcal P(\mathcal X^2),\
-                 \pi_0=\mu_0,\ \pi_1=\mu_1\bigr\}.
-\end{equation}
-Relative entropy is strictly convex on probability measures absolutely continuous with
-respect to the reference measure, so either problem has at most one minimizer.
+The value is independent of the admissible weight.
 
-\subsection{Entropy disintegration}
-Disintegrate any admissible $P$ as
+For prescribed \(\mu_0,\mu_1\in\mathcal P(\mathcal X)\), define
+\begin{align}
+ (S_{\rm dyn})\quad&	ext{minimize }H(P\mid R)
+   \text{ over }P\in\mathcal P(\Omega),\ P_0=\mu_0,\ P_1=\mu_1,
+   \label{eq:leo-Sdyn}\\
+ (S)\quad&	ext{minimize }H(\pi\mid R_{01})
+   \text{ over }\pi\in\mathcal P(\mathcal X^2),\ \pi_0=\mu_0,\ \pi_1=\mu_1.
+   \label{eq:leo-S}
+\end{align}
+
+\section{Proposition 2.3: dynamic--static equivalence}
+Disintegrate
 \[
+ R(d\omega)=R^{xy}(d\omega)R_{01}(dx,dy),
+ \qquad
  P(d\omega)=P^{xy}(d\omega)P_{01}(dx,dy).
 \]
-The chain rule for relative entropy gives
-\begin{equation}\label{eq:Leonard-chain}
- H(P\mid R)=H(P_{01}\mid R_{01})
- +\int_{\mathcal X^2}H(P^{xy}\mid R^{xy})\,P_{01}(dx,dy).
+The entropy chain rule on Polish spaces gives
+\begin{equation}\label{eq:leo-chain}
+ H(P\mid R)=H(P_{01}\mid R_{01})+
+ \int H(P^{xy}\mid R^{xy})P_{01}(dx,dy).
 \end{equation}
-The second term is nonnegative.  It is zero precisely when
-$P^{xy}=R^{xy}$ for $P_{01}$-almost every $(x,y)$.  Consequently:
+Thus \(H(P\mid R)\ge H(P_{01}\mid R_{01})\), with equality at finite entropy exactly when
+\(P^{xy}=R^{xy}\) for \(P_{01}\)-almost every endpoint pair.
 
-\begin{proposition}[Dynamic--static equivalence]
-The infima in \eqref{eq:Leonard-Sdyn} and \eqref{eq:Leonard-S} are equal.  If
-$\widehat\pi$ solves the static problem, then
-\begin{equation}\label{eq:Leonard-bridge-mixture}
- \widehat P(d\omega)=\int_{\mathcal X^2}R^{xy}(d\omega)\,\widehat\pi(dx,dy)
+\begin{proposition}[Proposition 2.3]
+The two problems have at most one minimizer.  Their infima agree.  If \(\widehat\pi\) solves the
+static problem, then
+\begin{equation}\label{eq:leo-bridge-mixture}
+ \widehat P(\cdot)=\int R^{xy}(\cdot)\widehat\pi(dx,dy)
 \end{equation}
-solves the dynamic problem.  Conversely, the endpoint law of every dynamic minimizer
-solves the static problem, and every dynamic minimizer shares its bridges with $R$.
+solves the dynamic problem.  Conversely, the endpoint law of a dynamic minimizer is the static
+minimizer and the dynamic minimizer shares all endpoint bridges with \(R\).
 \end{proposition}
 
-\begin{proof}
-For every admissible $P$, \eqref{eq:Leonard-chain} implies
-$H(P\mid R)\ge H(P_{01}\mid R_{01})$.  Conversely, for any admissible $\pi$,
-the bridge mixture \eqref{eq:Leonard-bridge-mixture} has endpoints $\pi$ and makes the
-conditional entropy term in \eqref{eq:Leonard-chain} vanish.  Taking infima gives equality,
-and equality in the chain rule gives the bridge characterization.
-\end{proof}
-
-\section{Existence and the static entropy problem}
-Suppose there exists at least one coupling $\pi$ of $\mu_0$ and $\mu_1$ with
-$H(\pi\mid R_{01})<\infty$.  Under the standard tightness assumptions used for entropy
-minimization, a minimizing sequence is tight because its marginals are fixed.  Relative
-entropy is lower semicontinuous under weak convergence, so a weak cluster point is a
-minimizer.  Strict convexity gives uniqueness.
-
-When $R$ is allowed to be $\sigma$-finite rather than probabilistic, choose a nonnegative
-measurable weight $W$ such that
+\section{Lemma 2.4 and Proposition 2.5: existence}
+Let \(B:\mathcal X\to[0,\infty)\) satisfy
 \[
- z_W:=\int e^{-W}\,dR<\infty
-\]
-and define the probability measure $R_W=z_W^{-1}e^{-W}R$.  Then
-\begin{equation}\label{eq:Leonard-unbounded-entropy}
- H(P\mid R)=H(P\mid R_W)-\int W\,dP-\log z_W.
-\end{equation}
-This definition is independent of the admissible weight $W$ and extends the usual
-relative entropy.  Formula \eqref{eq:Leonard-unbounded-entropy} reduces compactness and
-lower-semicontinuity arguments to the probability-reference case.
-
-\section{The Schr\"odinger system and endpoint factorization}
-Assume that the endpoint reference law has a strictly positive kernel representation
-\begin{equation}\label{eq:Leonard-kernel}
- R_{01}(dx,dy)=r(x,y)m(dx)m(dy),
- \qquad r(x,y)>0.
-\end{equation}
-Assume also that the static problem has finite value and that the endpoint constraints
-are regular enough for convex duality.  Introduce Lagrange multipliers $\varphi$ and
-$\psi$ for the two marginal constraints.  Pointwise minimization of
-\[
- h\longmapsto h\log h-h-(\varphi(x)+\psi(y))h
-\]
-shows that the density of the minimizer must have multiplicative form
-\begin{equation}\label{eq:Leonard-fg-endpoint}
- \frac{d\widehat\pi}{dR_{01}}(x,y)=f_0(x)g_1(y),
- \qquad f_0=e^{\varphi},\quad g_1=e^{\psi}.
-\end{equation}
-The marginal constraints are therefore equivalent to the Schr\"odinger system
-\begin{align}
- f_0(x)\int g_1(y)R_{01}(dy\mid x)&=\frac{d\mu_0}{dR_0}(x),
- \label{eq:Leonard-sch1}\\
- g_1(y)\int f_0(x)R_{01}(dx\mid y)&=\frac{d\mu_1}{dR_1}(y).
- \label{eq:Leonard-sch2}
-\end{align}
-The pair $(f_0,g_1)$ is determined only up to reciprocal scaling
-$(f_0,g_1)\mapsto(cf_0,c^{-1}g_1)$, whereas the coupling
-$f_0(X_0)g_1(X_1)R$ is unique.
-
-\begin{theorem}[$(f,g)$ representation of the bridge]
-Under the preceding existence and integrability assumptions, the dynamic minimizer is
-\begin{equation}\label{eq:Leonard-fg-path}
- \widehat P=f_0(X_0)g_1(X_1)R,
-\end{equation}
-where $(f_0,g_1)$ solves \eqref{eq:Leonard-sch1}--\eqref{eq:Leonard-sch2}.
-Conversely, every probability measure of the form \eqref{eq:Leonard-fg-path} with the
-prescribed endpoints is the unique Schr\"odinger bridge.
-\end{theorem}
-
-\begin{proof}
-The endpoint density of \eqref{eq:Leonard-fg-path} is
-$f_0(x)g_1(y)R_{01}(dx,dy)$, so the Schr\"odinger system is exactly the endpoint
-constraint.  For every competitor $P$ with the same endpoints,
-\[
- \log\frac{d\widehat P}{dR}=\log f_0(X_0)+\log g_1(X_1).
-\]
-Hence the integral of this logarithm is the same under $P$ and $\widehat P$.  The entropy
-chain rule relative to $\widehat P$ yields
-\[
- H(P\mid R)=H(P\mid\widehat P)+H(\widehat P\mid R),
-\]
-so $\widehat P$ is the unique minimizer.
-\end{proof}
-
-\section{$(f,g)$-transforms of a Markov measure}
-For $0\le t\le1$, define
-\begin{equation}\label{eq:Leonard-ft-gt}
- f_t(x):=E_R[f_0(X_0)\mid X_t=x],
+ \int e^{-B(x)-B(y)}R_{01}(dx,dy)<\infty,
  \qquad
- g_t(x):=E_R[g_1(X_1)\mid X_t=x].
-\end{equation}
-The Markov property implies
-\begin{equation}\label{eq:Leonard-marginal-density}
- \frac{d\widehat P_t}{dR_t}(x)=f_t(x)g_t(x).
-\end{equation}
-For $0\le s\le t\le1$, the forward and backward transition kernels are tilted by
-\begin{align}
- \widehat P(X_t\in dy\mid X_s=x)
- &=\frac{g_t(y)}{g_s(x)}R(X_t\in dy\mid X_s=x),\label{eq:Leonard-forward-kernel}\\
- \widehat P(X_s\in dx\mid X_t=y)
- &=\frac{f_s(x)}{f_t(y)}R(X_s\in dx\mid X_t=y).
- \label{eq:Leonard-backward-kernel}
-\end{align}
-Thus an $(f,g)$-transform of a Markov measure is Markov.  Its bridges are unchanged,
-because conditioning simultaneously on $X_s$ and $X_t$ cancels the endpoint factors.
-The bridge belongs to the reciprocal class of $R$.
-
-If $R$ has generator $L$ and carr\'e du champ $\Gamma$, then the forward and backward
-generators of the transform are
-\begin{align}
- \overrightarrow A_tu&=Lu+\frac{\Gamma(g_t,u)}{g_t},\\
- \overleftarrow A_tu&=Lu+\frac{\Gamma(f_t,u)}{f_t},
-\end{align}
-where the second formula is understood with reversed time orientation.  Writing
-$\psi_t=\log g_t$ and $\varphi_t=\log f_t$, the linear Kolmogorov equations for $f$ and
-$g$ become nonlinear Hamilton--Jacobi equations
-\begin{align}
- (\partial_t+B)\psi&=0,\\
- (-\partial_t+B)\varphi&=0,
- \qquad Bu=e^{-u}Le^u.
-\end{align}
-
-\section{Brownian reference and stochastic control}
-For reversible Brownian motion on $\mathbb R^d$, $L=\tfrac12\Delta$ and
-\[
- Bu=\frac12\Delta u+\frac12|\nabla u|^2.
+ \int Bd\mu_0+\int Bd\mu_1<\infty.
 \]
-The forward drift of the bridge is $\nabla\psi_t$, and its marginal density satisfies
-\begin{equation}\label{eq:Leonard-FP}
- (\partial_t-\tfrac12\Delta)\mu_t+\nabla\cdot(\mu_t\nabla\psi_t)=0.
+Then the constraint set \(\Pi(\mu_0,\mu_1)\) is weakly compact by tightness of its fixed marginals.
+After tilting \(R_{01}\) to a probability, the entropy differs by a constant on this constraint set;
+therefore it is lower semicontinuous and bounded below.  Lemma 2.4 concludes:
+\begin{equation}\label{eq:leo-existence-criterion}
+ \text{a minimizer exists}
+ \quad\Longleftrightarrow\quad
+ \exists\pi^o\in\Pi(\mu_0,\mu_1):H(\pi^o\mid R_{01})<\infty.
 \end{equation}
-The potential solves
-\begin{equation}\label{eq:Leonard-HJB}
- \partial_t\psi_t+\frac12\Delta\psi_t+\frac12|\nabla\psi_t|^2=0.
-\end{equation}
-If $Q$ is any path law of finite entropy with respect to Brownian reference $R$, Girsanov's
-theorem supplies a progressively measurable drift $\beta$ such that
-\begin{equation}\label{eq:Leonard-Girsanov-energy}
- H(Q\mid R)=H(Q_0\mid R_0)+
- E_Q\int_0^1\frac12|\beta_t|^2\,dt.
-\end{equation}
-Consequently, after fixing $Q_0=\mu_0$, entropy minimization is equivalent to the
-minimum-action problem
-\begin{equation}\label{eq:Leonard-min-action}
- \inf_{(\nu,v)}\int_0^1\int_{\mathbb R^d}\frac12|v_t(x)|^2\,\nu_t(dx)\,dt,
-\end{equation}
-subject to the controlled Fokker--Planck equation
-\[
- (\partial_t-\tfrac12\Delta)\nu+\nabla\cdot(\nu v)=0,
- \qquad \nu_0=\mu_0,\quad\nu_1=\mu_1.
-\]
-The unique minimizing marginal flow is the entropic interpolation
-$\mu_t=\widehat P_t$, and the minimizing drift is $v_t=\nabla\psi_t$.
 
-\section{Small-noise limit and optimal transport}
-Let $R^\varepsilon$ be Brownian motion with variance parameter $\varepsilon$.  Its
-endpoint kernel has the logarithmic asymptotic
+Suppose \(R_0=R_1=m\).  Proposition 2.5 first notes the necessary conditions
+\(H(\mu_0\mid m),H(\mu_1\mid m)<\infty\), by data processing.  For sufficiency, assume
 \[
- -\varepsilon\log r_{01}^\varepsilon(x,y)\longrightarrow \frac12d(x,y)^2.
+ R_{01}(dx,dy)\ge e^{-A(x)-A(y)}m(dx)m(dy)
+\]
+and suitable integrability of \(A+B\) under both marginals.  Testing
+\eqref{eq:leo-existence-criterion} with \(\mu_0\otimes\mu_1\) gives finite entropy relative to
+\(R_{01}\).  Exponential integrability of \(A+B\) under \(m\), together with finite marginal
+entropy and the entropy variational formula, implies the required first moments.
+
+\section{Duality and additive potentials}
+For a weight \(B\), let \(C_B(\mathcal X)\) be the continuous functions growing at most like \(B\).
+The static dual is
+\begin{equation}\label{eq:leo-dual}
+ \sup_{\varphi,\psi\in C_B}
+ \left\{
+  \int\varphi d\mu_0+\int\psi d\mu_1
+  -\log\int e^{\varphi(x)+\psi(y)}R_{01}(dx,dy)
+ \right\}.
+\end{equation}
+The survey states the dual equality and explains that if the dual is attained, equality in the
+entropy variational formula forces
+\[
+ \frac{d\widehat\pi}{dR_{01}}=e^{\varphi\oplus\psi}.
+\]
+In general, existence of separately measurable potentials is subtler.  Proposition 2.6 uses an
+``internal constraint'' condition to ensure positivity and additive form.  Proposition 2.7 uses
+\(R_{01}\ll R_0\otimes R_1\) to obtain separately measurable versions.  The alternative domination
+\(R_0\otimes R_1\ll R_{01}\) also makes an \(R_{01}\)-measurable sum product-measurable.
+
+\section{Theorem 2.8: the Schr\"odinger system}
+Assume the seven hypotheses listed by the survey: common endpoint reference \(m\), a lower kernel
+bound with weight \(A\), an integrable tilt with weight \(B\), one of the two product-domination
+conditions, finite marginal entropies, integrability of \(A+B\), and internality of the constraint.
+Then the unique static minimizer is
+\begin{equation}\label{eq:leo-static-factor}
+ \widehat\pi(dx,dy)=f_0(x)g_1(y)R_{01}(dx,dy),
+\end{equation}
+where \(f_0,g_1>0\) are \(m\)-measurable and solve
+\begin{align}
+ f_0(x)E_R[g_1(X_1)\mid X_0=x]&=\frac{d\mu_0}{dm}(x),\label{eq:leo-system1}\\
+ g_1(y)E_R[f_0(X_0)\mid X_1=y]&=\frac{d\mu_1}{dm}(y).\label{eq:leo-system2}
+\end{align}
+The factors need not be integrable individually; nonnegative conditional integration suffices.  They
+are determined only up to \((f_0,g_1)\mapsto(cf_0,c^{-1}g_1)\).
+
+Theorem 2.9 combines \eqref{eq:leo-bridge-mixture} and \eqref{eq:leo-static-factor}:
+\begin{equation}\label{eq:leo-dynamic-factor}
+ \widehat P=f_0(X_0)g_1(X_1)R.
+\end{equation}
+A direct entropy proof of optimality is useful.  For every competitor with the same endpoints,
+\[
+ \int\log(f_0(X_0)g_1(X_1))dP
+ =\int\log(f_0(X_0)g_1(X_1))d\widehat P.
 \]
 Therefore
 \[
- \varepsilon H(\pi\mid R_{01}^\varepsilon)
- =\int\frac12d(x,y)^2\,d\pi+o(1)
+ H(P\mid R)=H(P\mid\widehat P)+H(\widehat P\mid R),
 \]
-up to terms depending only on the fixed marginals.  Large-deviation and
-$\Gamma$-convergence arguments imply that minimizers of the Schr\"odinger problem
-converge, along subsequences, to optimal couplings for quadratic transport.  The bridge
-mixture then concentrates on minimizing geodesics, so entropic interpolations converge
-to displacement interpolations.
+which proves uniqueness.
 
-\section{Summary theorem chain}
-The mathematical structure is
+\section{Proposition 2.10 and Claim 2.11: Markov inheritance}
+Assume \(R\) is Markov.  Fix \(t\), a time marginal \(\eta\), and prescribed conditional laws of
+the past and future given \(X_t=z\).  Claim 2.11 says that among all path laws with those data, the
+unique entropy minimizer relative to \(R\) is the conditionally independent gluing
 \[
- \boxed{
- \begin{array}{c}
- \text{path-space entropy minimization}\\
- \Updownarrow\\
- \text{endpoint entropy minimization}\\
- \Updownarrow\\
- \text{multiplicative Schr\"odinger system}\\
- \Downarrow\\
- \text{$(f,g)$-transform, Markov bridge, and entropic interpolation}\\
- \Downarrow\\
- \text{quadratic-energy stochastic control for Brownian reference}.
- \end{array}}
+ P^*(d\omega)=\int Q^{z}_{<}(d\omega_{[0,t]})
+                  Q^{z}_{>}(d\omega_{[t,1]})\eta(dz).
 \]
-The small-noise limit connects this chain to quadratic optimal transport.
+The proof disintegrates entropy at \(X_t\), then disintegrates each conditional path law into past and
+future.  Since \(R\) is conditionally independent, convexity of entropy gives
+\[
+ H\!\left(\int K_u\alpha(du)\middle|R_{>}^{z}\right)
+ \le\int H(K_u\mid R_{>}^{z})\alpha(du),
+\]
+with equality exactly for the independent gluing.  If \(\widehat P\) were not Markov, replacing its
+conditional past/future coupling by this gluing would preserve every one-time marginal, hence the
+endpoint constraints, and strictly lower entropy.  Thus Proposition 2.10: the Schr\"odinger bridge of
+a Markov reference is Markov.
+
+Theorem 2.12 is the survey's more efficient Markov theorem.  Under its kernel and entropy
+hypotheses, the minimizer has the factor form \eqref{eq:leo-dynamic-factor} without the same
+internality assumption required in Theorem 2.8; positivity and the Markov structure allow the
+potentials to be constructed on the effective support.
+
+\section{$(f,g)$-transforms: Definition 3.2 and Theorems 3.3--3.4}
+For nonnegative measurable \(f_0,g_1\) with
+\(E_R[f_0(X_0)g_1(X_1)]<\infty\), define
+\[
+ P=f_0(X_0)g_1(X_1)R.
+\]
+Set
+\begin{equation}\label{eq:leo-ftgt}
+ f_t(z)=E_R[f_0(X_0)\mid X_t=z],
+ \qquad
+ g_t(z)=E_R[g_1(X_1)\mid X_t=z].
+\end{equation}
+Theorem 3.3 proves that the transform is Markov and gives the tilted forward and backward kernels:
+\begin{align}
+ P(X_t\in dy\mid X_s=x)
+ &=\frac{g_t(y)}{g_s(x)}R(X_t\in dy\mid X_s=x),\label{eq:leo-forward}\\
+ P(X_s\in dx\mid X_t=y)
+ &=\frac{f_s(x)}{f_t(y)}R(X_s\in dx\mid X_t=y).\label{eq:leo-backward}
+\end{align}
+The marginal density is
+\begin{equation}\label{eq:leo-marginal}
+ \frac{dP_t}{dR_t}=f_tg_t.
+\end{equation}
+These formulas follow by inserting the endpoint factor and using the conditional independence of
+past and future under \(R\).
+
+Theorem 3.4, called the Euclidean analogue of Born's formula, states that the time marginal of the
+Schr\"odinger bridge is the product of the forward and backward propagated factors:
+\[
+ \mu_t(dz)=f_t(z)g_t(z)m(dz)
+\]
+when the reference time marginal is the reversible measure \(m\).  Writing
+\(\varphi_t=\log f_t\), \(\psi_t=\log g_t\) gives the additive potential representation
+\(d\mu_t/dm=e^{\varphi_t+\psi_t}\).
+
+\section{Continuous Brownian example: Proposition 4.1}
+For reversible Brownian reference on \(\mathbb R^n\), the forward drift of the
+\((f,g)\)-transform is \(\nabla\psi_t\), where \(\psi_t=\log g_t\), and
+\begin{equation}\label{eq:leo-hjb}
+ \partial_t\psi+\frac12\Delta\psi+\frac12|\nabla\psi|^2=0.
+\end{equation}
+Girsanov's formula gives, for any path law with initial law \(\mu_0\) and forward drift \(\beta\),
+\begin{equation}\label{eq:leo-energy}
+ H(P\mid R)=H(\mu_0\mid m)+
+ E_P\int_0^1\frac12|\beta_t|^2dt.
+\end{equation}
+Therefore the bridge solves the minimum-action problem
+\[
+ \inf\int_0^1\int\frac12|v_t(x)|^2\nu_t(dx)dt
+\]
+subject to
+\[
+ (\partial_t-\tfrac12\Delta)\nu+
+ \nabla\cdot(\nu v)=0,
+ \qquad \nu_0=\mu_0,\ \nu_1=\mu_1.
+\]
+The survey's proof completes the square using \eqref{eq:leo-hjb}.  For a competitor \((\nu,v)\),
+integrate the HJB equation against \(\nu\), use the Fokker--Planck equation, and obtain
+\[
+ \int\tfrac12|v|^2d\nu dt
+ =\int\tfrac12|v-\nabla\psi|^2d\nu dt+
+   \int\psi_1d\mu_1-\int\psi_0d\mu_0.
+\]
+The boundary term is fixed; equality occurs only for \(v=\nabla\psi\).
+
+\section{Random-walk example: Proposition 4.2}
+For a reversible continuous-time random walk with jump kernel \(J_x(dy)\), the transformed jump
+rate is
+\[
+ j^\psi(t,x;y)=\exp(\psi_t(y)-\psi_t(x)).
+\]
+The nonlinear equation is
+\[
+ (\partial_t+L)\psi_t(x)+
+ \int\theta(\psi_t(y)-\psi_t(x))J_x(dy)=0,
+ \qquad
+ \theta(a)=e^a-a-1.
+\]
+Its convex conjugate is
+\[
+ \theta^*(b)=(b+1)\log(b+1)-b,
+ \qquad b>-1.
+\]
+Proposition 4.2 identifies the unique minimizer of the discrete action
+\[
+ \int_0^1\int\theta^*(j(t,x;y)-1)\nu_t(dx)J_x(dy)dt
+\]
+under the forward master equation and endpoint constraints.  The proof is the same Fenchel/HJB
+completion as in Proposition 4.1, using
+\[
+ \theta(a)+\theta^*(b)\ge ab
+\]
+with equality at \(b=e^a-1\).
+
+\section{Slowing down and the optimal-transport limit}
+Let \(R^k\) have generator \(L/k\), and suppose \(R^k\) obeys a path-space large-deviation
+principle with speed \(\alpha_k\to\infty\) and rate \(C\).  The scaled dynamic and static problems are
+\[
+ \alpha_k^{-1}H(P\mid R^k),
+ \qquad
+ \alpha_k^{-1}H(\pi\mid R^k_{01}).
+\]
+Their dual objectives contain
+\[
+ \alpha_k^{-1}\log E_{R^k}
+ \exp\{\alpha_k[\varphi(X_0)+\psi(X_1)]\}.
+\]
+The Laplace--Varadhan lemma gives the limit
+\[
+ \sup_{\omega\in\Omega}
+ \{\varphi(X_0(\omega))+\psi(X_1(\omega))-C(\omega)\}.
+\]
+After the harmless additive normalization of \(\varphi\oplus\psi\), the limiting constraint is
+\[
+ \varphi(x)+\psi(y)\le c(x,y),
+ \qquad
+ c(x,y)=\inf\{C(\omega):\omega_0=x,\omega_1=y\}.
+\]
+This is the Kantorovich dual.  The survey labels the general statement informal because pointwise
+dual convergence alone does not prove convergence of minimizers; the rigorous result is
+Gamma-convergence.
+
+\section{Theorem 5.2: rigorous graph limit}
+For the slowed random walk, the speed is \(\log k\) and the rate counts jumps, so the induced static
+cost is the graph distance \(d_\sim\).  Define
+\begin{align*}
+ I^k(P)&=(\log k)^{-1}H(P\mid R^k)+
+  \iota_{\{P_0=\mu_0,P_1=\mu_1\}},\\
+ J^k(\pi)&=(\log k)^{-1}H(\pi\mid R^k_{01})+
+  \iota_{\{\pi_0=\mu_0,\pi_1=\mu_1\}}.
+\end{align*}
+Theorem 5.2, quoted from L\'eonard's companion work, states that these families are equicoercive and
+Gamma-converge to the dynamic and static Monge--Kantorovich functionals.  Hence optimal values
+converge, and every cluster point of Schr\"odinger minimizers is an optimal-transport minimizer.
+The source further states uniqueness of the selected limit: among all dynamic optimal-transport
+laws, the slowed bridges select the unique minimizer of entropy relative to the geodesic reference
+measure obtained as the limit of \(R^{k,xy}\).
+
+For Brownian slowing, the corresponding rate is
+\(C(\omega)=\tfrac12\int_0^1|\dot\omega_t|^2dt\), the endpoint cost is
+\(c(x,y)=\tfrac12|x-y|^2\), and the reference bridges concentrate on constant-speed line segments.
+The survey refers the rigorous diffusion Gamma-convergence to separate work.
+
+\section{Source-faithfulness remarks}
+\begin{enumerate}[leftmargin=2em]
+\item The survey distinguishes general sigma-finite entropy, static/dynamic reduction, and the
+stronger product-form theorem.  These are not one theorem and are kept separate here.
+\item The product form under Theorem 2.8 depends on internality and domination assumptions.  The
+survey explicitly warns that without internality the density can have a more complicated support
+structure.
+\item The Markov property is proved by an entropy-improving conditional-independence replacement,
+not merely inferred from the endpoint factorization.
+\item Section 5's dual calculation is heuristic until supplemented by the cited Gamma-convergence
+theorems.  The distinction is retained.
+\end{enumerate}
 
 \input{references_manual}
 \end{document}

@@ -32,7 +32,7 @@
 \section*{Source map and scope}
 \begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
 \item[Primary source] \texttt{\detokenize{Lemmens#U2013Nussbaum-2013-1304.7921v1.pdf}}
-\item[Coverage] Sections 2--3: Hilbert's projective metric, order-cone formulas, nonexpansiveness and contraction, positive-matrix diameter, and the special-cone models whose proofs are given in the survey.
+\item[Coverage] Sections 2--4: Hilbert's projective metric, order-cone formulas, nonexpansiveness and contraction, positive-matrix diameter, special-cone models, periodic-orbit results, and Denjoy--Wolff-type boundary dynamics.
 \item[Source anchors]
 \begin{itemize}[leftmargin=2em]
   \item Lemma 2.1
@@ -40,6 +40,7 @@
   \item Theorems 2.11 and 2.14
   \item Lemma 3.1
   \item Theorems 3.3--3.7
+  \item Theorems 4.1 and 4.4--4.11, Corollary 4.2, and Remark 4.3
 \end{itemize}
 \end{description}
 
@@ -669,20 +670,162 @@ For positive definite matrices, this specializes to
   \lambda_-(A,B)=\lambda_{\min}(B^{-1/2}AB^{-1/2}).
 \]
 
-\section{Later dynamics results recorded as theorem seams}
-The survey's final section concerns nonexpansive maps on Hilbert geometries, especially normalized order-preserving homogeneous maps
-\[
-  g(x)=\frac{f(x)}{\varphi(f(x))}
-\]
-on a base \(\Sigma_\varphi^\circ\).  The structural conclusion is that order-preserving homogeneous maps are automatically Hilbert-nonexpansive, while finite projective diameter gives strict contraction.
+\section{Nonexpansive dynamics on Hilbert geometries}
+The survey's Section 4 changes status: most results are quoted from the cited literature rather than
+proved in the survey.  A faithful reconstruction must therefore preserve both the statements and their
+source status.  The deductions made inside the survey---notably Corollary 4.2 from Theorems 3.5 and
+4.1---are written out below; externally cited theorems are not presented as arguments supplied by
+Lemmens and Nussbaum.
 
-The survey records the following high-level results:
+Let \((\Omega,\delta)\) be a Hilbert geometry.  Important nonlinear examples arise from a
+continuous order-preserving homogeneous map \(f:C^\circ\to C^\circ\) and its normalization on a
+base
+\[
+ \Sigma_\varphi^\circ=\{x\in C^\circ:\varphi(x)=1\},
+ \qquad
+ g(x)=\frac{f(x)}{\varphi(f(x))}.
+\]
+By Proposition 2.6 and Corollary 2.7, both maps are Hilbert-nonexpansive on each part.  Section 4
+uses this fact as the bridge from cone order to metric dynamics.
+
+\subsection{Periodic orbits when a fixed point exists}
+For a map \(f\), write
+\[
+ \omega(x;f)=\{y:\ f^{k_i}(x)\to y\text{ for some }k_i\to\infty\}.
+\]
+An orbit converges to a periodic orbit of period \(p\) when \(f^{kp}(x)\) converges to a periodic
+point of least period \(p\).
+
+\begin{theorem}[Theorem 4.1, quoted from the finite-dimensional sup-norm theory]
+Let \(X\) be a closed subset of \((\R^N,\|\cdot\|_\infty)\), and let
+\(f:X\to X\) be nonexpansive with a fixed point.  Every orbit converges to a periodic orbit.  Its
+period is at most
+\[
+ \max_{0\le k\le N}2^k\binom Nk.
+\]
+\end{theorem}
+The survey cites the proof and historical discussion to the nonlinear Perron--Frobenius literature;
+the numerical bound is due to Lemmens and Scheutzow.  No proof is supplied in the survey.
+
+\begin{corollary}[Corollary 4.2]
+If \((\Omega,\delta)\) is a polytopal Hilbert geometry whose defining polytope has \(m\) facets,
+and \(f:D\to D\) is a nonexpansive self-map of a closed subset with a fixed point, then every orbit
+converges to a periodic orbit of period at most
+\[
+ \max_{0\le k\le N}2^k\binom Nk,
+ \qquad N=\frac{m(m-1)}2.
+\]
+\end{corollary}
+\begin{proof}
+Theorem 3.5 embeds \((\Omega,\delta)\) isometrically into
+\((\R^N,\|\cdot\|_\infty)\) using the logarithmic facet-ratio coordinates
+\(\Psi_{ij}(x)=\log(\psi_i(x)/\psi_j(x))\).  Conjugate \(f\) by this embedding and apply Theorem
+4.1 to the closed embedded domain.  Pull the periodic limit back through the isometry.
+\end{proof}
+
+Remark 4.3 observes a geometric consequence: a Euclidean plane cannot embed isometrically in a
+polytopal Hilbert geometry, since an irrational rotation would be a nonexpansive map with bounded
+orbits that do not converge to periodic orbits.  Thus the Euclidean rank of a polytopal Hilbert
+geometry is one.
+
+The survey next records the sharper cone-specific classification.
+\begin{theorem}[Theorem 4.4, quoted]
+Let \(C\) be a polyhedral cone with nonempty interior and \(m\) facets, and let
+\(f:C\to C\) be continuous, order-preserving, and homogeneous.
 \begin{enumerate}[leftmargin=2em]
-\item Nussbaum-type bounds on periods of periodic orbits for nonexpansive maps on finite-dimensional Hilbert geometries.
-\item Denjoy--Wolff type alternatives for fixed-point-free nonexpansive maps: orbits converge toward boundary faces or horofunctions under additional geometric hypotheses.
-\item For polytopal Hilbert geometries, the isometric embedding into \(\ell_\infty^N\) converts nonexpansive dynamics into finite-dimensional normed-space dynamics.
+\item Every norm-bounded orbit converges to a periodic orbit, with period at most
+\[
+ \frac{m!}{\lfloor m/3\rfloor!\,\lfloor(m+1)/3\rfloor!\,\lfloor(m+2)/3\rfloor!}.
+\]
+\item If \(C\) is an \(n\)-dimensional simplicial cone, the possible periods are exactly the
+integers \(p=q_1q_2\) for which, for some \(0\le k\le n\),
+\[
+ 1\le q_1\le\binom{k}{\lfloor k/2\rfloor},
+ \qquad
+ 1\le q_2\le\binom{n}{k}.
+\]
+\item If \(f(v)=\lambda v\) for some \(v\in C^\circ\), then every orbit of the normalized map
+\(g\) converges to a periodic orbit of period at most \(\binom{m}{\lfloor m/2\rfloor}\).  For a
+simplicial cone the bound is sharp.
 \end{enumerate}
-These are not the main dependencies for finite Sinkhorn scaling, but they justify using Hilbert metric as a general nonlinear Perron--Frobenius tool.
+\end{theorem}
+This theorem is quoted from Akian--Gaubert--Lemmens--Nussbaum and related work.  The survey gives
+the concrete example on \(\R_+^3\)
+\[
+ f(x_1,x_2,x_3)=
+ \begin{pmatrix}
+ (3x_1\wedge x_2)\vee(3x_2\wedge x_3)\\
+ (3x_1\wedge x_3)\vee(3x_3\wedge x_2)\\
+ (3x_2\wedge x_1)\vee(3x_3\wedge x_1)
+ \end{pmatrix},
+\]
+for which \((1,2,0)\) has period six.  Hence periods on \(\R_+^3\) include
+\(1,2,3,4,6\) but not five.
+
+\begin{theorem}[Theorem 4.5, quoted]
+Let \((\Omega,\delta)\) be strictly convex and suppose no two-dimensional affine section
+\(H\cap\Omega\) is an ellipsoid.  If a nonexpansive map \(f:\Omega\to\Omega\) has a fixed point,
+then every orbit converges to a periodic orbit.  In fact there is a common \(q\ge1\) such that
+\(f^{kq}(x)\) converges for every \(x\in\Omega\).
+\end{theorem}
+
+\subsection{Fixed-point-free maps and Denjoy--Wolff phenomena}
+Calka's theorem, cited by the survey, says that if a Hilbert-nonexpansive map has no fixed point,
+then every orbit's accumulation points lie on \(\partial\Omega\).  Define the attractor
+\[
+ A_f=\bigcup_{x\in\Omega}\omega(x;f)\subseteq\partial\Omega.
+\]
+The survey compares this problem with the classical disc theorem.
+
+\begin{theorem}[Theorem 4.6, classical Denjoy--Wolff]
+A fixed-point-free analytic self-map of the open unit disc has a unique boundary point
+\(\eta\) such that \(f^k(x)\to\eta\) for every \(x\), uniformly on compact subsets.
+\end{theorem}
+
+\begin{theorem}[Theorem 4.7, Beardon, quoted]
+If \((\Omega,\delta)\) is a strictly convex Hilbert geometry and
+\(f:\Omega\to\Omega\) is fixed-point-free and nonexpansive, then there is a unique
+\(\eta\in\partial\Omega\) with \(f^k(x)\to\eta\) for every \(x\), uniformly on compact subsets.
+\end{theorem}
+Strict convexity is essential: on the open two-simplex, Lins constructs fixed-point-free
+nonexpansive maps whose total \(\omega\)-limit set is an arbitrary convex boundary subset.
+
+The Karlsson--Nussbaum conjecture recorded by the survey asserts that for every fixed-point-free
+Hilbert-nonexpansive map there should be a convex \(\Lambda\subseteq\partial\Omega\) containing
+\(\omega(x;f)\) for every \(x\).  The paper lists the following partial results.
+
+\begin{theorem}[Theorem 4.8, Lins, quoted]
+The conjectured convex boundary set exists for every polytopal Hilbert geometry.
+\end{theorem}
+The survey explains the proof mechanism: Theorem 3.5 embeds the geometry in a finite-dimensional
+normed space, allowing construction of a horofunction \(h\) with
+\(h(f^k(x))\to-\infty\).  Such a horofunction need not exist for general Hilbert geometries.
+
+\begin{theorem}[Theorem 4.9, Karlsson, quoted]
+If some \(z\in\Omega\) has positive linear escape rate,
+\[
+ \lim_{k\to\infty}\frac{\delta(f^k(z),z)}k>0,
+\]
+then a convex \(\Lambda\subseteq\partial\Omega\) contains all \(\omega(x;f)\).
+\end{theorem}
+
+\begin{theorem}[Theorem 4.10, Karlsson--Noskov, quoted]
+There is \(\eta\in\partial\Omega\) such that for every \(y\in A_f\), the Euclidean line segment
+\([y,\eta]\) lies in \(\partial\Omega\).  Thus \(A_f\) is star-shaped in the stated boundary sense.
+\end{theorem}
+
+\begin{theorem}[Theorem 4.11, Nussbaum, quoted]
+If some \(z\in\Omega\) satisfies
+\[
+ \liminf_{k\to\infty}\delta(f^{k+1}(z),f^k(z))=0,
+\]
+then a convex \(\Lambda\subseteq\partial\Omega\) contains all \(\omega(x;f)\).
+\end{theorem}
+
+The survey ends by emphasizing that these theorems do not settle the full Karlsson--Nussbaum
+conjecture.  Their proofs belong to the cited papers; the survey's contribution here is the organized
+connection between cone-induced Hilbert nonexpansiveness, finite-dimensional embeddings, and the
+boundary-dynamics problem.
 
 \section{Core theorem chain}
 The core finite-dimensional statements are:
@@ -701,11 +844,18 @@ The core finite-dimensional statements are:
 \item If a proof only needs asymptotic regularity or uniqueness of projective cluster points, it may be enough to combine finite diameter with monotone/nonexpansive arguments, postponing the exact contraction coefficient as a theorem seam.
 \end{enumerate}
 
-\begin{thebibliography}{9}
+\begin{thebibliography}{99}
 \bibitem{LemmensNussbaum2013} B. Lemmens and R. Nussbaum, \emph{Birkhoff's version of Hilbert's metric and its applications in analysis}, arXiv:1304.7921, 2013.
 \bibitem{Birkhoff1957} G. Birkhoff, \emph{Extensions of Jentzsch's theorem}, Trans. Amer. Math. Soc. 85(1):219--227, 1957.
 \bibitem{EvesonNussbaum1995} S. P. Eveson and R. D. Nussbaum, \emph{An elementary proof of the Birkhoff--Hopf theorem}, Math. Proc. Camb. Phil. Soc. 117:31--55, 1995.
 \bibitem{FranklinLorenz1989} J. Franklin and J. Lorenz, \emph{On the scaling of multidimensional matrices}, Linear Algebra Appl. 114/115:717--735, 1989.
+\bibitem{AkianEtAl2006} M. Akian, S. Gaubert, B. Lemmens, and R. D. Nussbaum, \emph{Iteration of order preserving subhomogeneous maps on a cone}, Math. Proc. Cambridge Philos. Soc. 140:157--176, 2006.
+\bibitem{Beardon1997} A. F. Beardon, \emph{The dynamics of contractions}, Ergodic Theory Dynam. Systems 17:1257--1266, 1997.
+\bibitem{Calka1984} A. Calka, \emph{On a condition under which isometries have bounded orbits}, Colloq. Math. 48:219--227, 1984.
+\bibitem{Karlsson1999} A. Karlsson, \emph{Non-expanding maps and Busemann functions}, Ergodic Theory Dynam. Systems 21:1447--1457, 2001.
+\bibitem{KarlssonNoskov2002} A. Karlsson and G. A. Noskov, \emph{The Hilbert metric and Gromov hyperbolicity}, Enseign. Math. 48:73--89, 2002.
+\bibitem{Lins2008} B. Lins, results on nonexpansive maps and polytopal Hilbert geometries cited as references [42--43] in the survey.
+\bibitem{LemmensScheutzow2005} B. Lemmens and M. Scheutzow, work on periods of nonexpansive maps cited as reference [38] in the survey.
 \end{thebibliography}
 
 \end{document}

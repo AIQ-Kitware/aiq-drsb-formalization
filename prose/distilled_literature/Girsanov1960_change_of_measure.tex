@@ -1,218 +1,288 @@
 \input{preamble}
-\title{Modernized Proof Notes for Girsanov (1960): Absolutely Continuous Changes of Measure for Diffusions}
+\title{Absolutely Continuous Changes of Measure for Wiener and Diffusion Processes}
 \author{}
-\date{Source PDF: \texttt{girsanov1960.pdf}}
+\date{Girsanov (1960): Fundamental Theorems 1--2 and Lemmas 1--7}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
 \begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
 \item[Primary source] \texttt{\detokenize{girsanov1960.pdf}}
-\item[Coverage] Fundamental Theorems 1--2, their supporting lemmas, the density process, and the transformed conditional characteristics.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Section 2, Fundamental Theorem 1
-  \item Lemmas 1--2
-  \item Section 3, Fundamental Theorem 2
-\end{itemize}
+\item[Coverage] Sections 1--3: the conditional-moment definition of Wiener processes, the exponential density, Lemmas 1--6 and Fundamental Theorem 1, then Lemma 7 and Fundamental Theorem 2 for diffusion-type processes.
+\item[Source anchors] equations (1.1)--(1.4), (2.1)--(2.11), (3.1), Fundamental Theorems 1--2, Lemmas 1--7, and the remarks following Lemma 6 and Theorem 2.
 \end{description}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+This reconstruction preserves the source's proof architecture: first prove the theorem for bounded
+integrands, then approximate by cutoffs, use Fatou and convergence of stochastic integrals, verify the
+conditional first and second moments of the shifted noise, and only afterward transfer the result to
+path-dependent diffusion equations.  Modern stochastic-exponential notation is used, but the proof is
+not replaced by a later Novikov- or Kazamaki-based theorem.
 
-\section*{Reference and purpose}
-This note expands I. V. Girsanov, ``On Transforming a Certain Class of Stochastic Processes by Absolutely Continuous Substitution of Measures,'' \emph{Theory of Probability and Its Applications}, 5(3):285--301, 1960 \cite{Girsanov1960}.  This is a non-arXiv classical source.  The notation in the translated PDF is old and the scan is noisy; this note keeps the proof architecture and rewrites it in modern stochastic-process language.
+\section{The historical setup}
+Girsanov writes an \(n\)-dimensional process as \(X=\{x(t,\omega),P\}\), \(0\le t\le1\), on a
+filtered measurable space \((\Omega,\mathcal F,(\mathcal F_t),P)\).  A Wiener process
+\(\xi=(\xi_1,\dots,\xi_n)\) is characterized by continuity and the conditional identities, for
+\(0\le s<t\le1\),
+\begin{align}
+ E_P[\xi_i(t)-\xi_i(s)\mid\mathcal F_s]&=0,\label{eq:girs-cond1}\\
+ E_P[(\xi_i(t)-\xi_i(s))(\xi_j(t)-\xi_j(s))\mid\mathcal F_s]
+ &=\delta_{ij}(t-s).\label{eq:girs-cond2}
+\end{align}
+The source invokes L\'evy's characterization to identify a continuous process satisfying these
+relations as Wiener.
 
-\section{Why the paper matters}
-For dynamic Schrodinger bridge and stochastic optimal control, the key principle is:
-\begin{quote}
-Changing path measure by an exponential stochastic integral changes the drift of a Wiener or diffusion process while preserving the diffusion coefficient.
-\end{quote}
-This is the rigorous bridge between path-space relative entropy and quadratic control energy.  It is not needed for the current finite Sinkhorn projective contraction, but it is essential provenance for continuum SOC/bridge arguments.
+An It\^o process relative to \(\xi\) is written
+\begin{equation}\label{eq:girs-ito}
+ x(t)=x(0)+\int_0^t a(s)\,ds+\int_0^t q(s)\,d\xi(s),
+\end{equation}
+where \(a\) is vector-valued and \(q\) is matrix-valued.  The historical assumptions
+\((A_0)\)--\((A_3)\) impose adapted measurability and pathwise square-integrability; when an
+inverse matrix is used, nondegeneracy and corresponding integrability are also assumed.  The paper
+works directly with these hypotheses rather than collecting them into a single modern martingale
+criterion.
 
-\section{Wiener processes in Girsanov's notation}
-Girsanov works on a filtered probability space and writes an $n$-dimensional process as
+\section{The exponential substitution}
+Let \(\varphi=(\varphi_1,\dots,\varphi_n)\) be adapted and square-integrable along almost every
+path.  Set
+\begin{align}
+ M_t&=\int_0^t\varphi(s)\cdot d\xi(s),\label{eq:girs-M}\\
+ A_t&=\int_0^t|\varphi(s)|^2\,ds,\label{eq:girs-A}\\
+ Z_t&=\exp\{M_t-\tfrac12A_t\}.\label{eq:girs-Z}
+\end{align}
+The source assumes the terminal normalization
+\begin{equation}\label{eq:girs-normalization}
+ E_P Z_1=1.
+\end{equation}
+It then defines
 \[
-  X=\{x(t,\omega),P\},\qquad 0\le t\le1.
+ \widetilde P(d\omega)=Z_1(\omega)P(d\omega)
 \]
-A Wiener process is characterized by conditional moment relations with respect to the past sigma-algebra $\mathcal F_s$:
-\begin{align*}
-  \E[x_i(t)-x_i(s)\mid\mathcal F_s]&=0,\\
-  \E[(x_i(t)-x_i(s))(x_j(t)-x_j(s))\mid\mathcal F_s]&=\delta_{ij}(t-s).
-\end{align*}
-Girsanov notes that Levy's theorem identifies such a process with Brownian motion in the wide sense.
+and the shifted noise
+\begin{equation}\label{eq:girs-shifted}
+ \widetilde\xi(t)=\xi(t)-\int_0^t\varphi(s)\,ds.
+\end{equation}
+The sign in \eqref{eq:girs-shifted} is tied to the positive sign in the stochastic integral in
+\eqref{eq:girs-Z}.
 
-\section{Ito processes and coefficient assumptions}
-The paper considers an Ito process driven by a Wiener process $\xi$:
-\begin{equation}
-  dx(t)=a(t,\omega)\,dt+q(t,\omega)\,d\xi(t). \tag{Ito}\label{eq:girs-ito}
+\section{It\^o's formula and the bounded estimates}
+Applying It\^o's formula to \(e^u\) and \(u=M_t-\tfrac12A_t\) gives
+\begin{equation}\label{eq:girs-dZ}
+ Z_t=1+\int_0^t Z_s\varphi(s)\cdot d\xi(s).
 \end{equation}
-Here $q$ is an $n\times n$ matrix process and $a$ is a vector process.  The paper imposes assumptions labelled $(A_0)$--$(A_3)$, which in modern terms ensure:
-\begin{enumerate}[leftmargin=2em]
-\item adaptedness/progressive measurability of the coefficients;
-\item enough square-integrability to define the Ito integrals;
-\item nondegeneracy or boundedness conditions when required by the approximation lemmas;
-\item existence and uniqueness of the diffusion process when Section 3 applies the theorem to SDEs.
-\end{enumerate}
-The exact historical hypotheses are stronger and more technical than modern Novikov/Kazamaki formulations; the proof proceeds by bounded truncations and limiting arguments rather than by a single martingale criterion.
+For bounded \(\varphi\), this is a square-integrable martingale.  The source does not simply cite
+that conclusion: Lemma 1 obtains explicit exponential-moment bounds by stopping the exponential,
+applying It\^o's formula to powers, taking expectations, and using a Gronwall estimate.  In modern
+notation, if \(|\varphi|\le c\), then for \(r>1\)
+\[
+ E_P[Z_t^r]
+ \le \exp\!\left(\frac{r(r-1)}2c^2t\right).
+\]
+The precise constants in the translated scan are expressed through the source's matrix/vector norms;
+the role of the estimate is uniform integrability of bounded approximations.
 
-\section{The exponential density}
-Let $\theta(t,\omega)$ be an adapted vector process satisfying the relevant assumptions.  Girsanov defines an exponential density of the form
-\begin{equation}
-  Z_t=\exp\left(\int_0^t \theta(s)\cdot d\xi(s)-\frac12\int_0^t\|\theta(s)\|^2ds\right). \tag{Z}\label{eq:girs-Z}
+\section{Cutoffs and convergence: Lemmas 2--5}
+Let \(W_N\) be the source's cutoff, equal to one on a bounded interval and zero outside a slightly
+larger interval.  The truncated integrands are
+\[
+ \varphi^{(N)}(t)=W_N\!\left(\int_0^t|\varphi(s)|^2ds\right)\varphi(t),
+\]
+or equivalent coordinatewise/pathwise cutoffs used in individual lemmas.  Write
+\(M^{(N)},A^{(N)},Z^{(N)}\) for the corresponding quantities.
+
+\paragraph{Lemma 2: convergence of stochastic integrals.}
+If \(q^{(N)}\to q\) in the source's pathwise \(L^2\) sense and the square integrals are uniformly
+controlled, then
+\[
+ \int_0^tq^{(N)}(s)d\xi(s)
+ \longrightarrow \int_0^tq(s)d\xi(s)
+\]
+in probability, and along a subsequence almost surely.  The proof uses the It\^o isometry for bounded
+approximants and then truncates the exceptional set where the quadratic integral is large.
+
+\paragraph{Lemma 3: weighted integral identity.}
+For bounded adapted \(q\) and bounded \(\mathcal F_s\)-measurable \(F\), the product formula applied
+to \(Z_t\) and the stochastic integral from \(s\) to \(t\) yields the cancellation identity
+\begin{equation}\label{eq:girs-weighted-first}
+ E_P\!\left[FZ_t\left(\xi_i(t)-\xi_i(s)-
+      \int_s^t\varphi_i(u)du\right)\right]=0.
 \end{equation}
-The paper writes this with its own notation $\varphi(t,\omega)$ and assumes the normalization
-\begin{equation}
-  \E_P Z_1=1. \tag{Norm}\label{eq:girs-norm}
-\end{equation}
-Then a new probability measure is defined by
-\begin{equation}
-  d\widetilde P = Z_1\,dP. \tag{Measure}\label{eq:girs-measure}
-\end{equation}
-The proof spends much of Section 2 verifying that this density is legitimate under the stated hypotheses, first in bounded cases and then by approximation.
+Applying the product rule once more to pairs of shifted increments gives
+\begin{multline}\label{eq:girs-weighted-second}
+ E_P\!\left[FZ_t
+  \left(\widetilde\xi_i(t)-\widetilde\xi_i(s)\right)
+  \left(\widetilde\xi_j(t)-\widetilde\xi_j(s)\right)\right]\\
+ =\delta_{ij}(t-s)E_P[FZ_s].
+\end{multline}
+These are the source's direct replacements for an abstract semimartingale-characteristics theorem.
+
+\paragraph{Lemma 4: intermediate-time density.}
+The function denoted \(g(t,\omega)\) in the source is the terminal exponential conditional on
+\(\mathcal F_t\):
+\[
+ g_t=E_P[Z_1\mid\mathcal F_t].
+\]
+For bounded integrands, \eqref{eq:girs-dZ} and the normalization show \(g_t=Z_t\).  The lemma
+establishes the integrability and conditional-density relation needed to replace terminal weights
+\(Z_1\) by current weights \(Z_t\) in \eqref{eq:girs-weighted-first}--\eqref{eq:girs-weighted-second}.
+
+\paragraph{Lemma 5: passage to the normalized unbounded case.}
+Apply the bounded results to \(\varphi^{(N)}\).  The cutoffs eventually agree with \(\varphi\) on
+each path because \(A_1<\infty\) almost surely.  Lemmas 1--2 give convergence of the exponentials
+and stochastic integrals.  Fatou gives
+\(E_P Z_1\le\liminf E_P Z^{(N)}_1=1\); the assumed equality
+\eqref{eq:girs-normalization} rules out loss of mass.  Scheff\'e's argument for nonnegative densities
+with equal integrals then yields \(L^1\)-convergence along the required approximation, allowing the
+weighted moment identities to pass to the limit.
 
 \section{Fundamental Theorem 1}
-The core theorem can be stated in modern notation as follows.
-
-\begin{distilled}[Girsanov Theorem 1, modern form]
-Let $\xi$ be an $n$-dimensional Wiener process under $P$, and let $X$ satisfy \eqref{eq:girs-ito}.  Let $\theta$ be an adapted process such that the exponential $Z$ in \eqref{eq:girs-Z} is normalized by \eqref{eq:girs-norm}.  Define $\widetilde P$ by \eqref{eq:girs-measure}.  Then
-\begin{equation}
-  \widetilde\xi(t):=\xi(t)-\int_0^t\theta(s)\,ds \tag{newB}\label{eq:girs-newB}
+\begin{theorem}[Girsanov's Fundamental Theorem 1]
+Let \(\xi\) be Wiener under \(P\), let \(x\) be the It\^o process
+\eqref{eq:girs-ito}, and let \(\varphi\) satisfy the source assumptions and
+\(E_PZ_1=1\).  Under \(\widetilde P=Z_1P\), the process
+\[
+ \widetilde\xi(t)=\xi(t)-\int_0^t\varphi(s)ds
+\]
+is Wiener.  Relative to \(\widetilde\xi\), the same process \(x\) has diffusion matrix \(q\) and
+drift
+\begin{equation}\label{eq:girs-drift-shift}
+ \widetilde a(t)=a(t)+q(t)\varphi(t).
 \end{equation}
-is a Wiener process under $\widetilde P$.  Moreover $X$ is an Ito process under $\widetilde P$ with the same diffusion matrix $q$ and drift shifted to
-\begin{equation}
-  \widetilde a(t,\omega)=a(t,\omega)+q(t,\omega)\theta(t,\omega). \tag{drift}\label{eq:girs-drift}
+\end{theorem}
+
+\begin{proof}[Source proof]
+For bounded \(\varphi\), \eqref{eq:girs-weighted-first} and
+\eqref{eq:girs-weighted-second}, together with
+\(E_{\widetilde P}[Y]=E_P[Z_1Y]\), prove the conditional moment relations
+\eqref{eq:girs-cond1}--\eqref{eq:girs-cond2} for \(\widetilde\xi\).  Continuity is unchanged, so
+L\'evy's criterion makes \(\widetilde\xi\) Wiener.  Lemmas 2--5 extend the identities to the general
+normalized exponential.
+
+For the drift statement, write
+\[
+ d\xi(t)=d\widetilde\xi(t)+\varphi(t)dt
+\]
+and substitute into \eqref{eq:girs-ito}.  The only nonalgebraic point is that a stochastic integral
+with respect to the old Wiener process has the asserted decomposition under the new measure.  This
+is supplied by Lemma 6 below.
+\end{proof}
+
+\section{Lemma 6: transformation of stochastic integrals}
+Let \(S=\{\xi,P\}\) and \(\widetilde S=\{\widetilde\xi,\widetilde P\}\) be the two Wiener systems of
+Theorem 1, and let \(Q(t,\omega)\) satisfy the source's adaptedness and square-integrability
+conditions.  Lemma 6 proves
+\begin{equation}\label{eq:girs-integral-transform}
+ \int_0^tQ(s)d\xi(s)
+ =\int_0^tQ(s)d\widetilde\xi(s)+
+   \int_0^tQ(s)\varphi(s)ds,
+ \qquad \widetilde P\text{-a.s.}
 \end{equation}
-\end{distilled}
+The proof begins with bounded elementary integrands, where it is the defining Riemann-sum identity.
+It then approximates \(Q\) by bounded processes and uses Lemma 2 under both measures.  This is why
+the paper treats Lemma 6 separately instead of regarding \eqref{eq:girs-integral-transform} as a
+formal substitution.
 
-Equivalently, if under $P$
+The remark following Lemma 6 observes that a nontrivial issue is the terminal normalization
+\(E_PZ_1=1\).  Local exponential martingales need not preserve mass.  The source gives sufficient
+boundedness-type hypotheses; modern Novikov and Kazamaki criteria are later refinements, not part of
+the 1960 proof.
+
+\section{Diffusion-type processes}
+Section 3 considers path-dependent coefficients.  Let \(C_n=C([0,1];\mathbb R^n)\), and write
+\(x^t\) for the path stopped at \(t\).  A diffusion-type process satisfies
+\begin{equation}\label{eq:girs-path-sde}
+ dx(t)=A(t,x^t)dt+B(t,x^t)d\xi(t).
+\end{equation}
+The coefficients are nonanticipating: their value at time \(t\) depends only on \(x^t\).
+
+\paragraph{Lemma 7: recovery of the driving noise.}
+Under nondegeneracy, solve for a matrix \(P(t,x^t)\) satisfying
 \[
-  dX_t=a_tdt+q_td\xi_t,
+ P(t,x^t)B(t,x^t)=I.
 \]
-then under $\widetilde P$
+Then the process
+\begin{equation}\label{eq:girs-recovered-noise}
+ \xi(t)=\int_0^tP(s,x^s)dx(s)-
+        \int_0^tP(s,x^s)A(s,x^s)ds
+\end{equation}
+is Wiener.  The proof applies It\^o's formula and the conditional-characteristic identities.  The
+lemma makes the density functional measurable in the observed path \(x\), rather than in an
+auxiliary noise coordinate.
+
+Given a path functional \(\varphi(t,x^t)\), define
+\begin{equation}\label{eq:girs-Zpath}
+ \mathcal Z(x)=
+ \int_0^1\varphi(t,x^t)\cdot d\xi(t)
+ -\frac12\int_0^1|\varphi(t,x^t)|^2dt,
+\end{equation}
+where \(\xi\) is reconstructed by \eqref{eq:girs-recovered-noise}.  In the source this is rewritten,
+using \eqref{eq:girs-path-sde}, as a stochastic line integral in \(x\) plus finite-variation terms.
+Consequently the Radon--Nikodym derivative can be expressed as a functional on path space:
 \[
-  dX_t=(a_t+q_t\theta_t)dt+q_td\widetilde\xi_t.
+ \frac{d\widetilde\mu}{d\mu}(x)=e^{\mathcal Z(x)}.
 \]
 
-\section{Proof of Theorem 1: main steps}
-\subsection{Step 1: Ito formula for the exponential}
-Girsanov first recalls Ito's formula for $f(X_t)$ when $X$ is an Ito process.  Applying it to $f(u)=e^u$ and
+\section{Fundamental Theorem 2}
+\begin{theorem}[Girsanov's Fundamental Theorem 2]
+Suppose \(X\) is a diffusion-type process with diffusion matrix \(B(t,x^t)\) and drift
 \[
-  U_t=\int_0^t\theta_s\cdot d\xi_s-\frac12\int_0^t\|\theta_s\|^2ds
+ A(t,x^t)+B(t,x^t)\varphi(t,x^t).
 \]
-gives the stochastic differential
+Assume the reference equation \eqref{eq:girs-path-sde} has a unique solution, the coefficient
+hypotheses of the source hold, and \(|\varphi(t,x^t)|\) is bounded by a nondecreasing function of
+\(\sup_{s\le t}|x(s)|\).  If
 \[
-  dZ_t=Z_t\theta_t\cdot d\xi_t.
+ \widetilde P(d\omega)=e^{\mathcal Z(x(\cdot,\omega))}P(d\omega),
 \]
-This identifies $Z$ as a local martingale and supplies the change-of-variable formula for integrals weighted by $Z_t$.
+then under \(\widetilde P\) the shifted process
+\[
+ \widetilde\xi(t)=\xi(t)-\int_0^t\varphi(s,x^s)ds
+\]
+is Wiener and \(X\) has drift \(A(t,x^t)\) and diffusion matrix \(B(t,x^t)\).  The induced path law
+\(\widetilde\mu\) is absolutely continuous with respect to \(\mu\), with density
+\(e^{\mathcal Z(x)}\).
+\end{theorem}
 
-\subsection{Step 2: verify Brownian conditional moments under the new measure}
-To prove that $\widetilde\xi$ is Wiener under $\widetilde P$, it is enough, in Girsanov's framework, to verify the conditional moment identities:
-\begin{align*}
-  \widetilde\E[\widetilde\xi_i(t)-\widetilde\xi_i(s)\mid\mathcal F_s]&=0,\\
-  \widetilde\E[(\widetilde\xi_i(t)-\widetilde\xi_i(s))(\widetilde\xi_j(t)-\widetilde\xi_j(s))\mid\mathcal F_s]&=\delta_{ij}(t-s).
-\end{align*}
-Because $d\widetilde P=Z_1dP$, conditional expectations under $\widetilde P$ are rewritten as weighted conditional expectations under $P$.  The stochastic differential $dZ_t=Z_t\theta_t\cdot d\xi_t$ cancels the finite-variation drift introduced by subtracting $\int\theta ds$.
+\begin{proof}[Source proof]
+Stop the process when \(\sup_{s\le t}|x(s)|\) reaches \(N\).  On the stopped set the growth bound
+makes \(\varphi\) bounded, so Theorem 1 applies.  Lemma 7 expresses the exponential as a path
+functional.  Letting \(N\to\infty\) gives the unrestricted result.  Uniqueness of the reference SDE
+identifies the transformed law: after the drift change, the coordinate process satisfies the same
+equation as the reference diffusion, so the laws coincide.
+\end{proof}
 
-\subsection{Step 3: bounded controls}
-The proof first treats bounded controls, for example controls with
-\[
-  0<c_1\le |\theta(t,\omega)|\le c_2<\infty
-\]
-or with bounded truncations depending on the exact lemma.  In this case all stochastic integrals are square-integrable, the exponential is uniformly controlled enough for conditional expectations, and Fatou/dominated-convergence arguments are straightforward.
+The final remarks emphasize that uniqueness of the diffusion equation is indispensable to this law
+identification.  The paper mentions uniform Lipschitz hypotheses as a sufficient condition, and
+weaker H\"older/nondegeneracy conditions for time-homogeneous Markov diffusions.
 
-\subsection{Step 4: approximation by truncation}
-The general case is obtained by truncating $\theta$.  Girsanov uses cutoff functions denoted $W_{2N}$ in the paper, replacing $\theta$ by bounded approximants
+\section{Later entropy consequence}
+The 1960 article proves absolute continuity and drift transformation, not an entropy theorem.
+A standard later consequence, included here with explicit provenance, is the control-energy identity
+\cite{Leonard2012Girsanov,RogersWilliams2000}.  If \(Q=Z_TP\) and under \(Q\)
+\(\widetilde W_t=W_t-\int_0^tu_sds\) is Brownian, then
 \[
-  \theta^{(N)}(t,
-\omega)=W_{2N}(\theta(t,\omega))\theta(t,\omega).
+ \log\frac{dQ}{dP}
+ =\int_0^Tu_t\cdot d\widetilde W_t+
+   \frac12\int_0^T|u_t|^2dt.
 \]
-For each $N$, the bounded theorem applies.  Lemmas 2--5 show that:
+Under the integrability assumptions that make the first term a true \(Q\)-martingale,
+\begin{equation}\label{eq:girs-entropy-energy}
+ H(Q\mid P)=\frac12E_Q\int_0^T|u_t|^2dt.
+\end{equation}
+This is not presented as part of Girsanov's original theorem; it is the modern corollary used in
+Schr\"odinger-bridge and stochastic-control arguments.
+
+\section{Source issues and normalization}
 \begin{enumerate}[leftmargin=2em]
-\item the exponential densities $Z^{(N)}$ converge to $Z$ in the required sense;
-\item stochastic integrals with respect to the approximating measures converge;
-\item the conditional moment identities pass to the limit;
-\item Fatou's lemma controls the limiting integrability.
+\item The English scan is typographically noisy: several symbols in the statement of Theorem 1
+are partially lost.  Equations \eqref{eq:girs-Z}--\eqref{eq:girs-drift-shift} are fixed by the
+surrounding proof and the source's substitution formula.
+\item The source assumes \(E_PZ_1=1\); it does not claim that pathwise square-integrability alone
+implies this normalization.
+\item Theorem 2 uses uniqueness of the path-dependent SDE to identify laws.  Theorem 1 alone only
+identifies the transformed local characteristics.
+\item Modern terms such as ``stochastic exponential,'' ``uniform integrability,'' and ``Scheff\'e
+argument'' describe the exact operations carried out in the source, but were not its terminology.
 \end{enumerate}
-This is why the paper assumes the normalization $\E Z_1=1$ explicitly: it is the global condition that prevents mass from escaping in the limiting measure.
-
-\subsection{Step 5: drift transformation for Ito processes}
-Once \eqref{eq:girs-newB} is Brownian under $\widetilde P$, the drift statement is algebraic:
-\[
-  d\xi_t=d\widetilde\xi_t+\theta_tdt.
-\]
-Substituting into \eqref{eq:girs-ito} gives
-\[
-  dX_t=a_tdt+q_t(d\widetilde\xi_t+\theta_tdt)
-      =(a_t+q_t\theta_t)dt+q_td\widetilde\xi_t.
-\]
-The paper formulates this as $X$ being an Ito process with respect to the new Wiener process and with shifted transfer vector.
-
-\section{Lemma structure in Section 2}
-The original proof lists several lemmas.  Their modern roles are:
-\begin{enumerate}[leftmargin=2em]
-\item \textbf{Lemma 1: boundedness/nontriviality of the exponential density.}  Under bounded hypotheses the density is positive and finite, and the transformed measure is well-defined.
-\item \textbf{Lemma 2: exponential convergence under admissible approximations.}  If the truncated controls satisfy the assumptions, the corresponding exponentials converge to the target exponential.
-\item \textbf{Lemma 3: change of conditional expectations.}  Weighted conditional expectations under $P$ are rewritten as ordinary conditional expectations under $\widetilde P$.
-\item \textbf{Lemma 4: integrability of the density process.}  The density process defined by the stochastic exponential has expectation one at intermediate times in the bounded case.
-\item \textbf{Lemma 5: passage from bounded truncations to the general normalized case.}  If $\int e^{\Phi}\,dP=1$ and approximating controls are used, the limiting density defines the desired absolutely continuous measure.
-\item \textbf{Lemma 6: stochastic-integral invariance.}  The stochastic integrals appearing in the Ito representation can be passed from the original Wiener process to the shifted Wiener process under the new measure.
-\end{enumerate}
-The paper's presentation is more technical because it proves these facts without the modern compact language of exponential martingales.
-
-\section{Diffusion-type processes and Theorem 2}
-In Section 3 Girsanov applies Theorem 1 to diffusion processes whose coefficients depend on the path.  A diffusion-type process has drift/transfer vector $A(t,x(\cdot))$ and diffusion matrix $B(t,x(\cdot))$.  The theorem compares two processes with the same diffusion coefficient but drifts differing by $B\theta$.
-
-Let $X$ solve, schematically,
-\[
-  dX_t = \big(A(t,X)+B(t,X)\theta(t,X)\big)dt+B(t,X)dW_t.
-\]
-Under the density induced by the stochastic exponential associated with $\theta(t,X)$, the shifted process
-\[
-  \widetilde W_t=W_t-\int_0^t\theta(s,X)ds
-\]
-is Brownian, and $X$ has drift $A(t,X)$ under the new measure:
-\[
-  dX_t=A(t,X)dt+B(t,X)d\widetilde W_t.
-\]
-The theorem assumes uniqueness for the relevant SDE equation so that equality of laws follows from equality of coefficients under the transformed measure.
-
-\begin{distilled}[Girsanov Theorem 2, modern form]
-For diffusion-type processes with a common nondegenerate diffusion matrix $B$ and drifts differing by $B\theta$, an absolutely continuous change of path measure with density $\exp Z(X(\cdot))$ transforms one diffusion law into the other.  The Radon--Nikodym derivative between the induced path measures is the exponential functional used in Theorem 1, provided the SDE has a unique solution and the growth hypotheses ensure integrability.
-\end{distilled}
-
-\section{Entropy/energy identity used in Schrodinger bridges}
-Girsanov's paper focuses on absolute continuity and drift transformation.  The identity most often used in Schrodinger bridge/SOC applications is the later standard consequence:
-if $Q\ll P$ is obtained by adding drift $u$ to Brownian motion and
-\[
-  \frac{dQ}{dP}=\exp\left(\int_0^T u_t\cdot dW_t-\frac12\int_0^T\|u_t\|^2dt\right),
-\]
-then, under the regularity assumptions making the stochastic integral a true martingale,
-\begin{equation}
-  \KL(Q\mid P)=\frac12\E_Q\int_0^T\|u_t\|^2dt. \tag{energy}\label{eq:girs-energy}
-\end{equation}
-This follows by taking $Q$-expectations of $\log(dQ/dP)$ and rewriting the stochastic integral under $Q$ using the shifted Brownian motion.  The martingale term has zero $Q$-expectation.  Equation \eqref{eq:girs-energy} is the analytic bridge from entropy minimization over path measures to quadratic stochastic control.
-
-\section{Scope and analytic dependencies}
-\begin{commentarynotes}
-\item The theorem depends on stochastic integration, exponential-martingale criteria, and identification of the transformed conditional characteristics.
-\item The entropy--energy identity is obtained only after the density process is known to be a true martingale and the stochastic integral is recentered under the changed measure.
-\item Sign conventions must be tracked explicitly: the transformed Brownian motion is -\int u +\int u to the sign chosen in the exponential density.
-\end{commentarynotes}
-
-\section*{Checklist of details retained}
-\begin{itemize}[leftmargin=2em]
-\item Wiener-process characterization by conditional moments.
-\item Ito-process representation with matrix coefficient $q$ and drift $a$.
-\item Exponential density and normalization assumption.
-\item The shifted Brownian motion $\widetilde W=W-\int\theta$.
-\item The drift shift $a\mapsto a+q\theta$.
-\item Bounded-control proof followed by truncation and Fatou/limit arguments.
-\item Application to diffusion processes with path-dependent coefficients and uniqueness.
-\item The modern entropy/energy corollary used in Schrodinger bridge theory.
-\end{itemize}
 
 \input{references_manual}
 \end{document}

@@ -86,6 +86,8 @@ import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Coupling
 import ForMathlib.OptimalTransport.ConverseLagrangian
 import ForMathlib.OptimalTransport.SinkhornConverse
+import ForMathlib.OptimalTransport.SinkhornValueFunction
+import ForMathlib.OptimalTransport.SinkhornStrongDualityGe
 import ForMathlib.OptimalTransport.Convexity
 import ForMathlib.OptimalTransport.DroValue
 import ForMathlib.OptimalTransport.DroValueFunction

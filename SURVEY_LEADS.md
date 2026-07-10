@@ -326,24 +326,24 @@ active — re-sweep before starting the corresponding chain, and again at PR-pre
 (Mathlib master moves; a gap may have closed). Update **Last swept** above when you do.
 
 
-## Sinkhorn `hge` — what is left (2026-07-10)
+## Sinkhorn `hge` — CLOSED (2026-07-10)
 
-Ingredient (1), the converse Lagrangian bound, is **proved** and landed
-(`ForMathlib/OptimalTransport/SinkhornConverse.lean`). Two concrete gaps remain, both now named:
+Proved. `WangGaoXie2023.strong_duality` and `Drsb.sdrsb_strong_duality` no longer carry it. See
+STATUS.md for the three ingredients and the files. Two lemmas from this campaign are upstreamable
+on their own:
 
-1. ~~**`klDiv_mix_le`**~~ — **CLOSED (2026-07-10).** `ForMathlib/MeasureTheory/KLConvex.lean`:
-   `klDiv (a•μ₁ + b•μ₂) ν ≤ a·klDiv μ₁ ν + b·klDiv μ₂ ν` in `ℝ≥0∞`, with `klDiv_mix_ne_top` and
-   `toReal_klDiv_mix_le_of_ne_top` as corollaries. Proved from `klDiv_eq_lintegral_klFun_of_ac` and
-   `convexOn_klFun`, exactly along the route recorded here. **Upstreamable as-is**: Mathlib has no
-   convexity of `klDiv` in its first argument, in either `ℝ` or `ℝ≥0∞`.
+* `ForMathlib.MeasureTheory.klDiv_mix_le` — convexity of `klDiv` in its first argument, `ℝ≥0∞`-valued
+  and hypothesis-free. Mathlib has `klDiv_smul_same` and `klDiv_smul_right_eq_smul_left` but no
+  convexity, in either `ℝ` or `ℝ≥0∞`.
+* `ForMathlib.MeasureTheory.tiltedKernel` — the parametrized/kernel form of `Measure.tilted`, which
+  Mathlib has only for a single potential.
 
-   What remains on this line is *engineering*, not mathematics: the entropic value-function file
-   (analogue of `DroValueFunction.lean`) and the assembly (analogue of `StrongDualityGe.lean`).
+Plus `ForMathlib.OT.integrable_integral_compProd`, the measure-level `Integrable.integral_compProd`
+(Mathlib has only the kernel-level one).
 
-2. **A Slater (strict-feasibility) hypothesis** for the entropic ball. Unlike the Wasserstein cost,
-   the Sinkhorn objective `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)` has no zero, so `ε` interior to the value
-   function's domain means `ε > inf_γ obj(γ)`, strictly. This is a *statement* change, not a proof
-   gap: `hge` will be derived from `hslater : ∃ γ, sinkhornObjective c κ μ̂ ν γ < ε` rather than from
-   `hfeas`. Literature check still owed: Wang–Gao–Xie's own regularity conditions (prose
-   `sinkhorn-dro-duality.md` §3) should be re-read against this, since a paper stating duality under
-   mere feasibility would be overclaiming at the boundary.
+**What `hge` cost, and it is not a proof gap:** the entropic objective has no zero, so strong duality
+needs a **Slater / strict-feasibility** hypothesis where the Wasserstein version needed none (its
+diagonal coupling is free). Both capstones now take `t₀ ∈ sinkhornDomain`, `t₀ < ε`. A literature
+check is still owed against Wang–Gao–Xie's own regularity conditions (prose
+`sinkhorn-dro-duality.md` §3): a paper stating entropic duality under mere feasibility would be
+overclaiming at the boundary.

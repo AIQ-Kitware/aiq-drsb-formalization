@@ -114,57 +114,51 @@ worst-case-measure-*existence* statements (`GaoKleywegt2023.worstCase_structure_
 `MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment — a strictly stronger
 statement than `hge`, and one the cards never need.
 
-### The Sinkhorn `hge` — ingredient (1) proved; two obstacles now named
+### The Sinkhorn `hge` — ✅ **PROVED (2026-07-10)**
 
-`WangGaoXie2023.strong_duality` and `Drsb.sdrsb_strong_duality` still carry `hge`.
+`WangGaoXie2023.strong_duality` and `Drsb.sdrsb_strong_duality` **no longer carry `hge`.** It is
+discharged by `WangGaoXie2023.sinkhornDual_le_droValue`, assembled from three ingredients:
 
-* **(1) the converse Lagrangian bound — ✅ PROVED (2026-07-10).**
-  `ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq`, restated in this repo's dual vocabulary as
-  `WangGaoXie2023.exists_coupling_lagrangian_eq_logPartition` (a `rfl`-thin wrapper, so the link to
-  `logPartition` is compiler-checked, not asserted). For every `λ, κ > 0`,
+* **(1) the converse Lagrangian bound** — `ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq`
+  (`WangGaoXie2023.exists_coupling_lagrangian_eq_logPartition` is the `rfl`-thin receipt). For every
+  `λ, κ > 0`,
 
-  `𝔼_μ[f] − λ·(𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)) = 𝔼_μ̂[v_x(λ)]`,   `γ = μ̂ ⊗ₘ P`,  `P x = ν.tilted ((f − λc(x,·))/(λκ))`.
+  `𝔼_μ[f] − λ·(𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)) = 𝔼_μ̂[v_x(λ)]`,  `γ = μ̂ ⊗ₘ P`,  `P x = ν.tilted ((f − λc(x,·))/(λκ))`.
 
-  Unlike the Wasserstein converse bound this is an **equality with an explicit witness**: the Gibbs
-  (over-measures) DV supremum is attained at the tilted measure, so there is no `ε` and no
-  measurable ε-argmax selection. New supporting API: `ForMathlib.MeasureTheory.tiltedKernel` (+
-  `tiltedKernel_apply`, `isMarkovKernel_tiltedKernel`), `klDiv_tilted_ne_top`,
-  `entropic_gibbs_attained_tilted`, and `ForMathlib.OT.integrable_integral_compProd` (the
-  measure-level `Integrable.integral_compProd`; Mathlib has only the kernel-level one).
+  An **equality with an explicit witness**, not an `ε`-approximation: the Gibbs (over-measures)
+  Donsker–Varadhan supremum is attained at the tilted measure, where the dual (over-functions)
+  supremum the Wasserstein path uses is not. No measurable ε-argmax selection is needed.
+  New API: `ForMathlib.MeasureTheory.tiltedKernel`, `klDiv_tilted_ne_top`,
+  `entropic_gibbs_attained_tilted`, `ForMathlib.OT.integrable_integral_compProd`.
 
 * **(2) the optimal multiplier** — `ForMathlib.Analysis.exists_nonneg_multiplier'`, unchanged.
 
-* **(3) concavity of the entropic value function — ingredients now complete; the file is not.**
-  `klDiv` is convex in its first argument, in `ℝ≥0∞` and with **no finiteness hypotheses**:
-  `ForMathlib.MeasureTheory.klDiv_mix_le` (from `klDiv_eq_lintegral_klFun_of_ac` +
-  `convexOn_klFun`). Its corollary `klDiv_mix_ne_top` supplies the mixture finiteness that
-  `toReal_klDiv_mix_le` had to assume, and `toReal_klDiv_mix_le_of_ne_top` is the ℝ-valued form
-  with that hypothesis discharged. Together with `couplingCost_mix` (affine) and `mix_mem_couplings`
-  (the coupling set is convex), the Sinkhorn objective is convex in `γ`, hence
-  `{γ : obj γ ≤ t}` is convex and the value function is concave.
+* **(3) concavity of the entropic value function** — `ForMathlib.OT.concaveOn_sinkhornValueAt`,
+  in the new `ForMathlib/OptimalTransport/SinkhornValueFunction.lean`. `couplingCost` is affine and
+  `klDiv` is convex in its first argument — `ForMathlib.MeasureTheory.klDiv_mix_le`, `ℝ≥0∞`-valued
+  and with **no finiteness hypotheses**, so it also supplies `klDiv_mix_ne_top`. The coupling set is
+  convex in the *second* marginal (`mix_mem_couplings'`, the mirror of `mix_mem_couplings`, since
+  Sinkhorn's nominal measure is the first marginal).
 
-  **What is still unwritten** is the value-function file itself — the entropic analogue of
-  `ForMathlib/OptimalTransport/DroValueFunction.lean` (`sinkhornValueSet`, `sinkhornValueAt`,
-  `bddAbove`, `monotoneOn`, `concaveOn`) — and the assembly, the analogue of
-  `StrongDualityGe.lean`. Both mirror the Wasserstein files closely; neither is done.
+The assembly is `ForMathlib/OptimalTransport/SinkhornStrongDualityGe.lean`
+(`sinkhornDual_le_sinkhornValueAt`, `sinkhornValueAt_le_droValue`), mirroring the Wasserstein
+`StrongDualityGe.lean`: run (1) at `λ = λ* + η`, never at `λ*`. `BddBelow` of the dual set — without
+which the `sInf` is the junk value `0` — is *derived*, from weak duality at a feasible point
+(`WangGaoXie2023.expect_le_sinkhornDualObjective`, extracted for the purpose).
 
-  An earlier revision of this file recorded ingredient (3) as *proved* (it was not: the mixture's
-  KL-finiteness was assumed, not derived), and a later one recorded `klDiv_mix_ne_top` as a Mathlib
-  gap with no known source. It is now proved. Both entries were written before the proof was
-  attempted.
+#### The one hypothesis that replaced `hge`: **Slater**
 
-* **(4) a Slater / strict-feasibility hypothesis — newly identified, and unavoidable.** The
-  Wasserstein assembly takes the supergradient at `δ > 0` with the value set nonempty at `t = 0`,
-  because the *diagonal* coupling has zero cost. The Sinkhorn objective has **no zero**: it is
-  `𝔼_γ[c] + κ·KL(γ‖μ̂⊗ν)`, minimized over couplings at some `t_min > 0` in general (already
-  `γ = μ̂⊗ν` costs `∫∫c dμ̂dν`). So `ε` is an interior point of the value function's domain only when
-  `ε > t_min`, i.e. when some coupling is **strictly** feasible. `hfeas` (the ball is nonempty) gives
-  only `ε ≥ t_min`. The Sinkhorn `hge` will therefore be stated from
-  `hslater : ∃ γ, sinkhornObjective c κ μ̂ ν γ < ε`, not from `hfeas`. Whether duality survives at
-  the boundary `ε = t_min` is *not* established here either way.
+`hge` is gone, but not for free. The Wasserstein assembly takes its supergradient at `δ > 0` knowing
+the value set is nonempty at `t = 0`, because the diagonal coupling has zero cost. **The entropic
+objective has no zero** — even `γ = μ̂⊗ν` pays `∫∫c dμ̂dν`. So `ε` is interior to the value function's
+domain exactly when some coupling is *strictly* feasible. Both capstones now take
 
-  This is a strictly better assumption surface than `hge` itself: Slater is checkable, `hge` is the
-  conclusion.
+`{t₀ : ℝ} (ht₀ : t₀ ∈ ForMathlib.OT.sinkhornDomain c f κ μ̂ ν) (ht₀ε : t₀ < ε)`
+
+in place of `hge`. Mere feasibility (`hfeas`, i.e. `ε ≥ inf_γ obj γ`) is **not** enough, and no
+rearrangement of the proof avoids it. This is a strictly better assumption surface: Slater is
+checkable, `hge` was the conclusion. Whether duality survives at the boundary `ε = inf_γ obj γ` is
+not established here either way.
 
 Also proved on the entropic side: the DV **dual** variational formula
 (`toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv` (`toReal_klDiv_le_of_tendsto_integral`).

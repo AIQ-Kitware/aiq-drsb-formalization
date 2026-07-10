@@ -414,32 +414,45 @@ ball. This dual runs over `0 < lam`, so unlike `wdrsb_strong_duality` there is n
 conjugate term to read `hVbdd` off; it is stated explicitly. -/
 theorem sdrsb_strong_duality
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
-    (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
+    (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (hVm : Measurable V)
     (hV : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall sqCost p₀ ν κ ε → Integrable V (μ : Measure X))
     (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
         (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
+    (hV_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable V
+      ((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ)))
+    (hc_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable (fun y => sqCost x y)
+      ((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ)))
+    (hV_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖V y‖
+      ∂((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ))) (p₀ : Measure X))
+    (hc_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖sqCost x y‖
+      ∂((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ))) (p₀ : Measure X))
+    (hklint : ∀ lam : ℝ, 0 < lam → Integrable (fun x => klReal
+      ((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ)) (ν : Measure X))
+      (p₀ : Measure X))
     (hVbdd : BddAbove (Set.range V))
     (hfeas : (sinkhornBall sqCost p₀ ν κ ε).Nonempty)
-    -- the `≥` edge: the duality gap vanishes; strictly weaker than attainment
-    -- (`WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure` is the receipt).
-    (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
-          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam }
-        ≤ droValue (sinkhornBall sqCost p₀ ν κ ε) V) :
+    -- **Slater**, replacing the `hge` edge this theorem used to carry: some coupling is *strictly*
+    -- feasible. The entropic objective has no zero, so this is exactly what puts `ε` in the interior
+    -- of the value function's domain. Checkable, where `hge` was the conclusion.
+    {t₀ : ℝ} (ht₀ : t₀ ∈ ForMathlib.OT.sinkhornDomain sqCost V κ p₀ ν) (ht₀ε : t₀ < ε) :
     droValue (sinkhornBall sqCost p₀ ν κ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
+  obtain ⟨C, hC⟩ := hVbdd
+  have hVb : ∀ x, V x ≤ C := fun x => hC ⟨x, rfl⟩
   -- the `BddAbove` gate is a consequence of `V` being bounded above
   have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
       μ ∈ sinkhornBall sqCost p₀ ν κ ε ∧ r = expect μ V } :=
-    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ V hVbdd hV
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ V ⟨C, hC⟩ hV
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
     · obtain ⟨μ, hμ⟩ := hfeas; exact ⟨expect μ V, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
       exact sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ (hV μ hμ) h_exp hI_lp
-  · exact hge
+  · exact WangGaoXie2023.sinkhornDual_le_droValue p₀ ν sqCost V κ ε hκ sqCost_nonneg
+      measurable_sqCost hVm C hVb hV h_exp hI_lp hV_P hc_P hV_norm hc_norm hklint hfeas ht₀ ht₀ε
 
 /-- **SDRSB terminal-cost bound** — the closed form the `sdrsb_cost_bound.yaml` card's
 measurement compares against: the worst-case cost minus a log-partition term over the

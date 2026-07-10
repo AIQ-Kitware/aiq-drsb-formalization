@@ -32,6 +32,8 @@ import ForMathlib.MeasureTheory.KLChainRule
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.Normalization
 import ForMathlib.OptimalTransport.SinkhornConverse
+import ForMathlib.OptimalTransport.SinkhornValueFunction
+import ForMathlib.OptimalTransport.SinkhornStrongDualityGe
 set_option autoImplicit false
 open MeasureTheory
 open scoped ProbabilityTheory
@@ -266,7 +268,7 @@ noncomputable def sinkhornDualObjective
   lam * ε + expect μhat (fun xhat => logPartition ν c f κ lam xhat)
 
 
-/-! ## The converse Lagrangian bound (ingredient (1) of `hge`)
+/-! ## The converse Lagrangian bound (ingredient (1) of the `≥` direction)
 
 The entropic dual's inner term is *attained*: for each `λ > 0` there is a coupling whose Lagrangian
 equals `𝔼_μ̂[v_x(λ)]` exactly. This is `ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq`
@@ -281,8 +283,8 @@ is a coupling `γ ∈ Π(μ̂, μ)` with
 
 The witness is `γ = μ̂ ⊗ₘ P` for the tilted kernel `P x = ν.tilted ((f − λ c(x,·))/(λκ))`; the
 equality (rather than an `ε`-approximation) is because the Gibbs–Donsker–Varadhan supremum over
-*measures* is attained. This is ingredient (1) of the `hge` hypothesis carried by `strong_duality`
-below; see `SURVEY_LEADS.md` for what still stands between it and a discharged `hge`. -/
+*measures* is attained. This is ingredient (1) of the `≥` direction proved in `strong_duality`
+below, and it is now discharged there via `sinkhornDual_le_droValue`. -/
 theorem exists_coupling_lagrangian_eq_logPartition
     [MeasurableSpace.CountableOrCountablyGenerated X X]
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
@@ -547,17 +549,14 @@ omit [NormedAddCommGroup X] in
 
 omit [NormedAddCommGroup X] in
 omit [NormedAddCommGroup X] in
-/-- **Sinkhorn weak duality, given near-optimal disintegrations.** If for every `η > 0` the source
-`μ` admits a Sinkhorn disintegration of budget `≤ ε + η`, its expected reward is bounded by the
-log-partition dual. Only *near-optimal* disintegrations are needed, never an attained one —
-`W_{κ,ν}` is an infimum and supplies the former only. -/
-theorem sinkhorn_cost_bound_of_disintegrations (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ)
+/-- **Sinkhorn weak duality at a fixed multiplier.** The per-`λ` bound inside
+`sinkhorn_cost_bound_of_disintegrations`, extracted because the `≥` direction needs it to know the
+dual set is bounded below (an `sInf` over an unbounded-below set is the junk value). -/
+theorem expect_le_sinkhornDualObjective (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ)
     (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (μ : ProbabilityMeasure X)
-    (hSink : ∀ η : ℝ, 0 < η → HasSinkhornDisintegration c μhat ν f κ μ (ε + η)) :
-    expect μ f
-      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam } := by
-  refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
-  rintro v ⟨lam, hlam, rfl⟩
+    (hSink : ∀ η : ℝ, 0 < η → HasSinkhornDisintegration c μhat ν f κ μ (ε + η))
+    (lam : ℝ) (hlam : 0 < lam) :
+    expect μ f ≤ sinkhornDualObjective μhat ν c f κ ε lam := by
   refine le_of_forall_pos_le_add ?_
   intro δ hδ
   obtain ⟨P, hd⟩ := hSink (δ / lam) (div_pos hδ hlam)
@@ -570,6 +569,20 @@ theorem sinkhorn_cost_bound_of_disintegrations (μhat ν : ProbabilityMeasure X)
   rw [hd.expect_eq]
   simp only [sinkhornDualObjective, expect]
   linarith [key, hb]
+
+omit [NormedAddCommGroup X] in
+/-- **Sinkhorn weak duality, given near-optimal disintegrations.** If for every `η > 0` the source
+`μ` admits a Sinkhorn disintegration of budget `≤ ε + η`, its expected reward is bounded by the
+log-partition dual. Only *near-optimal* disintegrations are needed, never an attained one —
+`W_{κ,ν}` is an infimum and supplies the former only. -/
+theorem sinkhorn_cost_bound_of_disintegrations (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ)
+    (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (μ : ProbabilityMeasure X)
+    (hSink : ∀ η : ℝ, 0 < η → HasSinkhornDisintegration c μhat ν f κ μ (ε + η)) :
+    expect μ f
+      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam } := by
+  refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
+  rintro v ⟨lam, hlam, rfl⟩
+  exact expect_le_sinkhornDualObjective μhat ν c f κ ε hκ μ hSink lam hlam
 
 omit [NormedAddCommGroup X] in
 /-- **The Sinkhorn cost bound, with no transport, attainment or disintegration edge.**
@@ -619,6 +632,68 @@ theorem sinkhornDual_le_droValue_of_attaining_measure
   exact le_csSup hbddP ⟨μ, hμ, rfl⟩
 
 omit [NormedAddCommGroup X] in
+/-- **The entropic duality gap is zero** — the `≥` direction of Wang–Gao–Xie Theorem 1, proved.
+
+Assembled from `ForMathlib.OT.sinkhornDual_le_sinkhornValueAt` (converse Lagrangian bound + optimal
+multiplier + concavity of the entropic value function) and `ForMathlib.OT.sinkhornValueAt_le_droValue`
+(a coupling of objective `≤ ε` puts its second marginal in the Sinkhorn ball).
+
+`BddBelow` of the dual set — without which the `sInf` is the junk value `0` — is *derived*, from
+weak duality at a feasible point (`expect_le_sinkhornDualObjective`).
+
+**Slater is required.** `ht₀`/`ht₀ε` say some coupling is *strictly* feasible. Mere feasibility
+(`hfeas`) is not enough: the entropic objective has no zero, so `ε` is interior to the value
+function's domain only when it strictly exceeds the minimal achievable objective. See
+`ForMathlib/OptimalTransport/SinkhornStrongDualityGe.lean`. -/
+theorem sinkhornDual_le_droValue [StandardBorelSpace X] [Nonempty X]
+    (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
+    (hc : ∀ x y, 0 ≤ c x y) (hcm : Measurable fun z : X × X => c z.1 z.2)
+    (hfm : Measurable f) (C : ℝ) (hfb : ∀ x, f x ≤ C)
+    (hfAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε →
+        Integrable f (μ : Measure X))
+    (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+        (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
+    (hI_lp : ∀ lam, 0 < lam → Integrable
+        (fun x => logPartition ν c f κ lam x) (μhat : Measure X))
+    (hf_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable f
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)))
+    (hc_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable (fun y => c x y)
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)))
+    (hf_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖f y‖
+      ∂((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ))) (μhat : Measure X))
+    (hc_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖c x y‖
+      ∂((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ))) (μhat : Measure X))
+    (hklint : ∀ lam : ℝ, 0 < lam → Integrable (fun x => klReal
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)) (ν : Measure X))
+      (μhat : Measure X))
+    (hfeas : (sinkhornBall c μhat ν κ ε).Nonempty)
+    {t₀ : ℝ} (ht₀ : t₀ ∈ ForMathlib.OT.sinkhornDomain c f κ μhat ν) (ht₀ε : t₀ < ε) :
+    sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam }
+      ≤ droValue (sinkhornBall c μhat ν κ ε) f := by
+  have hSet : { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam }
+      = { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = lam * ε + expect μhat (fun x => lam * κ *
+          Real.log (∫ y, Real.exp ((f y - lam * c x y) / (lam * κ)) ∂(ν : Measure X))) } := rfl
+  have hBdd : BddBelow { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+      v = sinkhornDualObjective μhat ν c f κ ε lam } := by
+    obtain ⟨μ₀, hμ₀⟩ := hfeas
+    refine ⟨expect μ₀ f, ?_⟩
+    rintro v ⟨lam, hlam, rfl⟩
+    refine expect_le_sinkhornDualObjective μhat ν c f κ ε hκ μ₀ ?_ lam hlam
+    intro η hη
+    obtain ⟨γ, hplan⟩ := ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall
+      c hc hcm μhat ν μ₀ κ ε η hκ hη hμ₀
+    exact hasSinkhornDisintegration_of_isSinkhornPlan hplan f (hfAll μ₀ hμ₀) h_exp hI_lp
+  have hne : (ForMathlib.OT.sinkhornValueSet c f κ μhat ν ε).Nonempty :=
+    ht₀.mono (ForMathlib.OT.subset_sinkhornValueSet ht₀ε.le)
+  refine le_trans ?_ (ForMathlib.OT.sinkhornValueAt_le_droValue μhat ν c f κ ε hκ hc hcm C hfb
+    hne hfAll)
+  rw [hSet] at hBdd ⊢
+  exact ForMathlib.OT.sinkhornDual_le_sinkhornValueAt μhat ν c f κ ε hκ hc hfm hcm C hfb
+    (fun lam hlam => h_exp lam hlam) (fun lam hlam => hf_P lam hlam)
+    (fun lam hlam => hc_P lam hlam) (fun lam hlam => hf_norm lam hlam)
+    (fun lam hlam => hc_norm lam hlam) (fun lam hlam => hklint lam hlam) ht₀ ht₀ε hBdd
+
+omit [NormedAddCommGroup X] in
 /-- **Theorem 1 (Strong Duality), part (II)** — `V = V_D`: the Sinkhorn-DRO worst-case
 value over the ball equals the log-partition dual. `le_antisymm` of `droValue ≤ dual`
 (each source's Sinkhorn cost bound, inlined from `sinkhorn_weak_duality_kernel` + `le_csInf`,
@@ -638,30 +713,45 @@ measurable-selection seam (§6) — plus checkable regularity (`hc`/`hcm` on the
 theorem strong_duality [StandardBorelSpace X] [Nonempty X]
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
     (hc : ∀ x y, 0 ≤ c x y) (hcm : Measurable fun z : X × X => c z.1 z.2)
+    (hfm : Measurable f)
     (hfAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε →
         Integrable f (μ : Measure X))
     (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
         (fun y => Real.exp ((f y - lam * c x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => logPartition ν c f κ lam x) (μhat : Measure X))
+    (hf_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable f
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)))
+    (hc_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable (fun y => c x y)
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)))
+    (hf_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖f y‖
+      ∂((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ))) (μhat : Measure X))
+    (hc_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖c x y‖
+      ∂((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ))) (μhat : Measure X))
+    (hklint : ∀ lam : ℝ, 0 < lam → Integrable (fun x => klReal
+      ((ν : Measure X).tilted fun y => (f y - lam * c x y) / (lam * κ)) (ν : Measure X))
+      (μhat : Measure X))
     (hfbdd : BddAbove (Set.range f))
     (hfeas : (sinkhornBall c μhat ν κ ε).Nonempty)
-    -- the `≥` direction — **the duality gap is zero**; strictly weaker than assuming an attaining
-    -- worst-case measure (`sinkhornDual_le_droValue_of_attaining_measure` is the receipt).
-    (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam }
-        ≤ droValue (sinkhornBall c μhat ν κ ε) f) :
+    -- **Slater**: some coupling is *strictly* feasible. The entropic objective has no zero, so this
+    -- is what puts `ε` in the interior of the value function's domain. It replaces the `hge`
+    -- hypothesis this theorem used to carry, and it is checkable where `hge` was the conclusion.
+    {t₀ : ℝ} (ht₀ : t₀ ∈ ForMathlib.OT.sinkhornDomain c f κ μhat ν) (ht₀ε : t₀ < ε) :
     droValue (sinkhornBall c μhat ν κ ε) f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = sinkhornDualObjective μhat ν c f κ ε lam } := by
+  obtain ⟨C, hC⟩ := hfbdd
+  have hfb : ∀ x, f x ≤ C := fun x => hC ⟨x, rfl⟩
   -- the `BddAbove` gate follows from `f` being bounded above; it is not an assumption
   have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
       μ ∈ sinkhornBall c μhat ν κ ε ∧ r = expect μ f } :=
-    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ f hfbdd hfAll
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ f ⟨C, hC⟩ hfAll
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
     · obtain ⟨μ, hμ⟩ := hfeas; exact ⟨expect μ f, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
       exact sinkhorn_cost_bound μhat ν c f κ ε hκ hc hcm μ hμ (hfAll μ hμ) h_exp hI_lp
-  · exact hge
+  · exact sinkhornDual_le_droValue μhat ν c f κ ε hκ hc hcm hfm C hfb hfAll h_exp hI_lp
+      hf_P hc_P hf_norm hc_norm hklint hfeas ht₀ ht₀ε
 
 end WangGaoXie2023

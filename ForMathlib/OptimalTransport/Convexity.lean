@@ -90,4 +90,23 @@ theorem integrable_mix (a : ℝ) (ha : a ∈ Set.Icc (0:ℝ) 1) (μ₁ μ₂ : P
   rw [mix_coe]
   exact (h₁.smul_measure ENNReal.ofReal_ne_top).add_measure (h₂.smul_measure ENNReal.ofReal_ne_top)
 
+/-- **The set of couplings is convex in the second marginal.** The mirror of `mix_mem_couplings`,
+for the DRO problems whose nominal measure is the *first* marginal (Sinkhorn: `Π(μ̂, μ)`). -/
+theorem mix_mem_couplings' (a : ℝ) (ha : a ∈ Set.Icc (0:ℝ) 1)
+    {μ : ProbabilityMeasure α} {ν₁ ν₂ : ProbabilityMeasure β}
+    {π₁ π₂ : ProbabilityMeasure (α × β)}
+    (h₁ : π₁ ∈ couplings μ ν₁) (h₂ : π₂ ∈ couplings μ ν₂) :
+    mix a ha π₁ π₂ ∈ couplings μ (mix a ha ν₁ ν₂) := by
+  have hsum : ENNReal.ofReal a + ENNReal.ofReal (1 - a) = 1 := by
+    rw [← ENNReal.ofReal_add ha.1 (by linarith [ha.2])]; simp
+  constructor
+  · show Measure.map Prod.fst (ENNReal.ofReal a • (π₁ : Measure (α × β))
+        + ENNReal.ofReal (1 - a) • (π₂ : Measure (α × β))) = (μ : Measure α)
+    rw [Measure.map_add _ _ measurable_fst, Measure.map_smul, Measure.map_smul, h₁.1, h₂.1,
+      ← add_smul, hsum, one_smul]
+  · show Measure.map Prod.snd (ENNReal.ofReal a • (π₁ : Measure (α × β))
+        + ENNReal.ofReal (1 - a) • (π₂ : Measure (α × β)))
+      = ENNReal.ofReal a • (ν₁ : Measure β) + ENNReal.ofReal (1 - a) • (ν₂ : Measure β)
+    rw [Measure.map_add _ _ measurable_snd, Measure.map_smul, Measure.map_smul, h₁.2, h₂.2]
+
 end ForMathlib.OT

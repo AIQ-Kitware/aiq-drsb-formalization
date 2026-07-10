@@ -1743,3 +1743,40 @@ measures first (`Pi.smul_apply`), then normalise the scalars. Added to AGENTS.md
 So ingredient (3) of the Sinkhorn `hge` now has all its mathematical ingredients. What is left is the
 entropic value-function file and the assembly — both close mirrors of the Wasserstein originals — plus
 the Slater restatement (which no proof can supply; see the previous entry). I am not estimating that.
+
+## 2026-07-10 (later still) — the Sinkhorn `hge` is proved; both DRSB capstones are edge-free
+
+`WangGaoXie2023.strong_duality` and `Drsb.sdrsb_strong_duality` no longer carry `hge`. Landed, after
+the converse Lagrangian bound and `klDiv_mix_le`:
+
+* `ForMathlib/OptimalTransport/SinkhornValueFunction.lean` — the entropic value function, its domain
+  (`sinkhornDomain`), and `concaveOn_sinkhornValueAt`. Also `mix_mem_couplings'`, the fixed-first-
+  marginal mirror of `mix_mem_couplings`, and the `mix`-vocabulary forms of the KL convexity.
+* `ForMathlib/OptimalTransport/SinkhornStrongDualityGe.lean` — `sinkhornDual_le_sinkhornValueAt` and
+  `sinkhornValueAt_le_droValue`. Both compiled on the first attempt, which is the only thing that
+  entitles me to have called the shape "formulaic" beforehand.
+* `WangGaoXie2023.expect_le_sinkhornDualObjective`, extracted from
+  `sinkhorn_cost_bound_of_disintegrations`, because `BddBelow` of the dual set is needed for
+  `csInf_le` and an `sInf` over an unbounded-below set is the junk value `0`.
+* `WangGaoXie2023.sinkhornDual_le_droValue` — the discharge.
+
+### What `hge` cost: Slater, and it is honest
+
+Both capstones now take `{t₀} (ht₀ : t₀ ∈ sinkhornDomain …) (ht₀ε : t₀ < ε)` in place of `hge`. This
+is the hypothesis I identified two entries ago and could not prove away, because it is not a proof
+gap: the entropic objective has no zero, so `ε` is interior to the value function's domain only when
+some coupling is *strictly* feasible. The Wasserstein path needs no analogue, because its diagonal
+coupling costs nothing. `hge` was the conclusion; Slater is checkable. That is a strict improvement,
+and it is the whole of what changed in the assumption surface.
+
+### Score
+
+My four predictions about `hge`'s difficulty this session were all wrong — Prokhorov, Kuratowski–
+Ryll-Nardzewski, "the Fenchel rows are the critical path", and "ingredient (3) is proved". Each was
+caught by attempting the proof. The two things I refused to estimate — the tilted-kernel construction
+and the value-function/assembly pair — both landed. I do not think that is a coincidence worth
+generalising from; it is one session.
+
+Build green (8761 jobs), zero warnings, zero `sorry`; `Drsb.sdrsb_strong_duality`,
+`Drsb.wdrsb_strong_duality_of_regularity`, `Drsb.sdrsb_cost_bound`, `Drsb.wdrsb_cost_bound` and
+`WangGaoXie2023.strong_duality` all axiom-clean.

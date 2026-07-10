@@ -10,6 +10,7 @@
 \begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
 \item[Primary source] \texttt{\detokenize{BirkhoffHilbert-Carroll2005-carroll-birkoff.pdf}}
 \item[Coverage] Theorem 1 and the complete finite-dimensional linear-programming reduction proving the sharp Birkhoff contraction coefficient.
+\item[Supplemental references] Carroll explicitly cites Luenberger for the basic-feasible-solution theorem used in Section 2.2 \cite{Luenberger1984}.  No later contraction proof is substituted.
 \item[Source anchors]
 \begin{itemize}[leftmargin=2em]
   \item Theorem 1
@@ -126,6 +127,7 @@ The proof has four stages:
 \item solve the $2\times2$ inequality and prove minimality.
 \end{enumerate}
 
+\sourceanchor{Section 2.1, reduction to the $2\times n$ case and inequality (1a).}
 \section*{Step 1: reduction to two output rows}
 Assume the theorem is known for matrices with two rows.  Let $A$ be an arbitrary
 positive $m\times n$ matrix and take $x,y\in\R^n_{++}$ with $d(Ax,Ay)>1$.
@@ -153,6 +155,7 @@ and $\tau$ is increasing.  Applying the two-row theorem to $A'$ gives
 \]
 So it remains to prove the theorem for $m=2$.
 
+\sourceanchor{Section 2.1, restatement as inequality (1b).}
 \section*{Step 2: the two-row problem and the function $F$}
 Let the two rows of $A$ be $a,b\in\R^n_{++}$.  We must prove
 \[
@@ -198,6 +201,7 @@ for all nonconstant $r,s\in\R^n_{++}$ and all $y\in\R^n_{++}$.  If $F(r,s,y)\le1
 there is nothing to prove, since $\|s\|^{\tau(\|r\|)}>1$.  Hence Carroll restricts to
 $F(r,s,y)>1$.
 
+\sourceanchor{Section 2.2, the linear program and the basic-feasible-solution reduction.}
 \section*{Step 3: properties of $F$ and reduction to two coordinates}
 Carroll broadens the $y$-domain temporarily from $\R^n_{++}$ to the closed cone
 $\R^n_+$ so that a linear-programming maximum may occur on the boundary.
@@ -263,6 +267,7 @@ the desired inequality in dimension $n$.
 
 This is the key finite-dimensional reduction: the worst case lives on two coordinates.
 
+\sourceanchor{Section 2.3, the $2\times2$ calculation.}
 \section*{Step 4: the two-coordinate calculation}
 Let $r,s\in\R^2_{++}$ be nonconstant and $y\in\R^2_{++}$.  By permuting coordinates
 and rescaling each variable, assume
@@ -371,6 +376,7 @@ so $f_1<g_1$, and consequently
 \]
 This proves that $\tau(d(A))$ is a contraction coefficient.
 
+\sourceanchor{Section 2.4, minimality of $\tau(d(A))$.}
 \section*{Step 5: minimality of the coefficient}
 Carroll then proves that no smaller coefficient works.  The proof reverses the
 sharpness points in the two-coordinate calculation.
@@ -436,6 +442,23 @@ which the corresponding two-row image violates any exponent $\eta<\tau(d(A))$.
 The full matrix image has distance at least as large as the distance seen by this row
 pair, so the same $x,y$ prove minimality for $A$.
 
+\section*{The two closing remarks of the paper}
+\sourceanchor{Remarks 2 and 3.}
+
+\paragraph{Comparable vectors with zeros.}
+Carroll observes that the same proof extends from strictly positive vectors to vectors in $\mathbb{R}_+^n$ having at least two positive coordinates, provided the two vectors have zeros in exactly the same positions.  The multiplicative spread is computed only over their common positive support.  Every reduction in Sections 2.1--2.4 stays inside that support, so the argument is unchanged.
+
+\paragraph{The symmetric bonus inequality.}
+Because $F(r,s,y)=F(s,r,y)$, the proof also gives
+\[
+ F(r,s,y)<\|r\|^{\tau(\|s\|)}.
+\]
+Translating this back to matrices yields
+\[
+ d(Ax,Ay)<d(A)^{\tau(d(x,y))}.
+\]
+Carroll notes no direct use for this sharper symmetric companion.  It implies $d(Ax,Ay)<d(A)$, hence boundedness of the positive image in Hilbert projective distance, but that weaker fact has a direct proof.
+
 \section*{Translation to the finite Birkhoff--Hopf formula}
 Let
 \[
@@ -458,6 +481,10 @@ then
 \]
 This is exactly the finite positive-matrix Birkhoff contraction coefficient used by
 Franklin--Lorenz, just written in Carroll's multiplicative notation.
+
+\begin{remark}[Strict and non-strict formulations]
+Carroll proves a strict inequality whenever both input and matrix diameters exceed one.  The global Lipschitz coefficient is conventionally written with $\le$ because it is the supremum over all pairs; minimality shows that this supremum equals $\tau(d(A))$, although no fixed nondegenerate pair need attain equality.
+\end{remark}
 
 \section*{Proof dependency chain}
 Carroll's proof reduces the theorem to the following sequence.

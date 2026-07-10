@@ -6,237 +6,551 @@
 \maketitle
 
 \section*{Source map and scope}
-\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{shi-etal-2023_diffusion-schrodinger-bridge-matching-DSBM__arXiv-2303.16852.pdf}}
-\item[Coverage] Iterative Markovian Fitting and its convergence: Markovian projection, reciprocal projection, KL Pythagorean identities, fixed-point identification, and the DSBM regression realization.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Section 3
-  \item Propositions 2, 4, 5, and 7
-  \item Lemma 6
-  \item Theorem 8
-  \item Section 4, Propositions 9--10
-  \item appendix proofs
-\end{itemize}
-\end{description}
+\begin{sourceguide}
+\item[Primary source] Yuyang Shi, Valentin De Bortoli, Andrew Campbell, and Arnaud Doucet, ``Diffusion Schr\"odinger Bridge Matching,'' NeurIPS 2023, arXiv:2303.16852 \cite{ShiDeBortoliCampbellDoucet2023}.
+\item[Coverage] Sections 2--4 and Appendix C: bridge matching, Markovian and reciprocal projections, Propositions 2, 4, 5, 7, 9, and 10, Lemma 6, Theorem 8, and the population regression realization of DSBM.
+\item[Source order] Equations (1)--(14), Definitions 1 and 3, Propositions 2--10, and Appendix C.1--C.9.
+\item[Supplemental references] The argument explicitly relies on Doob transforms, entropic Girsanov, Schr\"odinger-bridge structure, and weak lower semicontinuity; these sources are identified where they enter rather than being absorbed into the paper's proof.  The principal dependencies are \cite{PalmowskiRolski2002,Leonard2012Girsanov,Leonard2014Survey,LeonardRoellyZambrini2014,vanErvenHarremoes2014}.
+\end{sourceguide}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+This reconstruction follows the source's proof route.  The phrase ``under mild assumptions'' in the main text is replaced by the assumptions actually listed in Appendix C whenever the source gives them.  Steps that the source delegates to cited theorems remain delegated but are stated precisely enough to show the dependency.
 
-\section{Schr\"odinger bridges and reciprocal path measures}
-Let $\mathcal C=C([0,T],\R^d)$ and let $Q$ be a Markov diffusion
+\section{Path measures, bridge mixtures, and the Schr\"odinger problem}
+Let
 \[
- dX_t=f_t(X_t)\,dt+\sigma_t\,dB_t,
- \qquad \sigma_t>0.
-\]
-For prescribed endpoint laws $\pi_0,\pi_T$, the Schr\"odinger bridge is
-\[
- P_{\mathrm{SB}}
- :=\argmin\{\KL(P\|Q):P_0=\pi_0, P_T=\pi_T\}.
-\]
-Disintegrate a path law with respect to $(X_0,X_T)$ as
-$P=P_{0,T}P^{0,T}$, where $P^{0,T}(\cdot\mid x_0,x_T)$ is the bridge conditional.
-The reciprocal class of $Q$ is
-\[
- \mathcal R(Q):=
- \{\Pi:\Pi=\Pi_{0,T}Q^{0,T}\}.
-\]
-Thus members of $\mathcal R(Q)$ share all endpoint-conditioned bridges with $Q$ and differ only in
-the endpoint coupling.
-
-\section{Markovian projection}
-Let $\Pi=\Pi_{0,T}Q^{0,T}\in\mathcal R(Q)$.  The $Q$-bridge from $x_0$ to $x_T$ has drift
-\[
- f_t(x)+\sigma_t^2\nabla_x\log q_{T\mid t}(x_T\mid x).
-\]
-The Markovian projection $M^*=\proj_{\mathcal M}(\Pi)$ is the diffusion
-\begin{equation}\label{eq:DSBM-markov-drift}
- dX_t^*=\{f_t(X_t^*)+v_t^*(X_t^*)\}\,dt+\sigma_t\,dB_t,
+ \mathcal C=C([0,T],\R^d),
  \qquad
- v_t^*(x)=\sigma_t^2
- \E_\Pi[\nabla\log q_{T\mid t}(X_T\mid X_t)\mid X_t=x].
+ \Pcal(\mathcal C)=\{\text{probability laws on }\mathcal C\}.
+\]
+The reference law \(Q\) is the Markov diffusion
+\begin{equation}
+ dX_t=f_t(X_t)dt+\sigma_t dB_t,
+ \qquad X_0\sim Q_0,
+ \tag{1}\label{eq:DSBM-Q}
+\end{equation}
+with scalar \(\sigma_t>0\).  Write \(Q_{s,t}\) for a two-time marginal, \(Q_{t\mid s}\) for a conditional transition law, and \(Q^{0,T}(\cdot\mid x_0,x_T)\) for the pinned bridge.
+
+For an endpoint coupling \(\Pi_{0,T}\), the bridge mixture
+\[
+ \Pi=\Pi_{0,T}Q^{0,T}
+\]
+means
+\[
+ \Pi(A)=\int Q^{0,T}(A\mid x_0,x_T)\,\Pi_{0,T}(dx_0,dx_T).
+\]
+Under the Doob $h$-transform assumptions used by the paper \cite{RogersWilliams2000,PalmowskiRolski2002}, the bridge from \(x_0\) to \(x_T\) solves
+\begin{equation}
+ dX_t^{0,T}
+ =\left[f_t(X_t^{0,T})+\sigma_t^2\nabla\log q_{T\mid t}(x_T\mid X_t^{0,T})\right]dt
+ +\sigma_t dB_t.
+ \tag{2}\label{eq:DSBM-bridge}
 \end{equation}
 
-\begin{proposition}[Reverse-KL Markovian projection]
-Under the regularity assumptions ensuring Girsanov's formula and uniqueness of the Fokker--Planck
-equation,
+The Schr\"odinger bridge with endpoint laws \(\pi_0,\pi_T\) is
+\begin{equation}
+ P_{\mathrm{SB}}
+ =\argmin\{\KL(P\|Q):P_0=\pi_0,\ P_T=\pi_T\}.
+ \tag{6}\label{eq:DSBM-SB}
+\end{equation}
+By the entropy chain rule with respect to \((X_0,X_T)\), its conditional bridges equal those of \(Q\), so
 \[
- M^*=\argmin_{M\in\mathcal M}\KL(\Pi\|M).
+ P_{\mathrm{SB}}=P^{\mathrm{SB}}_{0,T}Q^{0,T}
 \]
-Moreover $M_t^*=\Pi_t$ for every $t$, and
-\begin{align*}
+and the endpoint coupling solves the static Schr\"odinger problem.
+
+\section{Bridge matching before iteration}
+If \(\Pi=\Pi_{0,T}Q^{0,T}\), its bridge drift in \eqref{eq:DSBM-bridge} depends on \(X_T\), hence the mixture is generally not Markov.  Bridge Matching replaces it by a Markov diffusion with the same one-time marginals.  The candidate correction drift is
+\begin{equation}
+ v_t^*(x)
+ =\sigma_t^2\E_\Pi\!
+ \left[\nabla\log q_{T\mid t}(X_T\mid X_t)\mid X_t=x\right].
+ \tag{3-target}\label{eq:DSBM-vstar}
+\end{equation}
+At population level it is the minimizer of
+\begin{equation}
+ \int_0^T\E_\Pi\left[
+ \frac{\|\sigma_t^2\nabla\log q_{T\mid t}(X_T\mid X_t)-v_t(X_t)\|^2}{\sigma_t^2}
+ \right]dt.
+ \tag{3}\label{eq:DSBM-regression}
+\end{equation}
+The Markovian projection result below explains both the conditional expectation and preservation of all one-time marginals.
+
+\section{The reciprocal class and the two projections}
+Let \(\Mcal\) be the class of path laws associated with SDEs
+\[
+ dX_t=[f_t(X_t)+v_t(X_t)]dt+\sigma_t dB_t
+\]
+for locally Lipschitz \(v\), in the regularity class needed for the entropy form of Girsanov's theorem.
+
+\begin{definition}[Definition 3]
+The reciprocal class of \(Q\) is
+\[
+ \mathcal R(Q)=\{\Pi_{0,T}Q^{0,T}:\Pi_{0,T}\in\Pcal(\R^d\times\R^d)\}.
+\]
+Its elements have exactly the same conditional bridges as \(Q\).
+\end{definition}
+
+The two maps alternated by IMF are
+\[
+ \proj_{\Mcal}(\Pi)=\text{the Markovian projection},
+ \qquad
+ \proj_{\mathcal R(Q)}(P)=P_{0,T}Q^{0,T}.
+\]
+They optimize opposite orientations of relative entropy.
+
+\section{Appendix assumptions for the Markovian projection}
+\sourceanchor{Appendix C.1, assumptions A1--A3 and Lemma 11.}
+
+The paper's main text says ``under mild assumptions.''  Appendix C uses the following concrete package.
+
+\begin{assumption}[A1: well-posedness and growth]
+The functions \(f\), \(\sigma\), and
+\[
+ (t,x)\longmapsto
+ \E_{\Pi_{T\mid t}}[\nabla\log q_{T\mid t}(X_T\mid X_t)\mid X_t=x]
+\]
+are locally Lipschitz.  There are \(C>0\) and continuous \(\psi\ge0\) such that
+\[
+ \|f_t(x)\|\le C(1+\|x\|),
+ \qquad
+ C^{-1}\le\sigma_t\le C,
+\]
+and
+\[
+ \left\|\E[\nabla\log q_{T\mid t}(X_T\mid X_t)\mid X_t=x]\right\|
+ \le C\psi(t)(1+\|x\|).
+\]
+\end{assumption}
+
+\begin{assumption}[A2: a good Doob function]
+For every \(x_0\), \(\Pi_{T\mid0}(\cdot\mid x_0)\ll Q_{T\mid0}(\cdot\mid x_0)\), with bounded density
+\[
+ \phi_{T\mid0}(x_T\mid x_0)
+ =\frac{d\Pi_{T\mid0}}{dQ_{T\mid0}}(x_T\mid x_0).
+\]
+Define
+\begin{equation}
+ \phi_{t\mid0}(x_t\mid x_0)
+ =\int\phi_{T\mid0}(x_T\mid x_0)Q_{T\mid t}(dx_T\mid x_t).
+ \tag{32}\label{eq:DSBM-phi}
+\end{equation}
+For every \(x_0\), both \(1/\phi_{t\mid0}\) and \(A\phi_{t\mid0}\) are bounded, where
+\begin{equation}
+ Ah=\partial_th+\langle f_t,\nabla h\rangle+\frac{\sigma_t^2}{2}\Delta h.
+ \tag{31}\label{eq:DSBM-generator}
+\end{equation}
+\end{assumption}
+
+Under A2, the cited Doob-transform results give
+\begin{equation}
+ \phi_{\cdot\mid0}\in C^{1,2},
+ \qquad
+ A\phi_{\cdot\mid0}=0.
+ \tag{Lemma 11}\label{eq:DSBM-backward-kolm}
+\end{equation}
+
+\begin{assumption}[A3: gradient growth]
+For every \(x_0\), there is \(C_{x_0}\) such that
+\[
+ \|\nabla\log\phi_{t\mid0}(x_t\mid x_0)\|
+ \le C_{x_0}(1+\|x_0\|+\|x_t\|).
+\]
+\end{assumption}
+
+These assumptions are sufficient for the Doob transform, Girsanov entropy identity, and uniqueness of the Fokker--Planck equation used in Proposition 2.  The source notes that they are not intended to be minimal.
+
+\section{Proposition 2: reverse-KL Markovian projection}
+\sourceanchor{Section 3.1, Proposition 2; Appendix C.1, equations (31)--(35).}
+
+\begin{proposition}[Proposition 2]
+Assume A1--A3 and let \(\Pi=\Pi_{0,T}Q^{0,T}\).  Define \(M^*=\proj_{\Mcal}(\Pi)\) by
+\begin{equation}
+ dX_t^*=[f_t(X_t^*)+v_t^*(X_t^*)]dt+\sigma_t dB_t,
+ \tag{Definition 1}\label{eq:DSBM-Mstar}
+\end{equation}
+with \(v^*\) from \eqref{eq:DSBM-vstar}.  Then
+\[
+ M^*=\argmin_{M\in\Mcal}\KL(\Pi\|M),
+\]
+all one-time marginals are preserved,
+\[
+ M_t^*=\Pi_t\quad(0\le t\le T),
+\]
+and
+\begin{align}
  \KL(\Pi\|M^*)
- =\frac12\int_0^T
- \E_\Pi\Bigg[
- \frac1{\sigma_t^2}
- \Big\|&\sigma_t^2
- \E_\Pi[\nabla\log q_{T\mid t}(X_T\mid X_t)
-          \mid X_0,X_t]\\
- &-v_t^*(X_t)\Big\|^2
- \Bigg]dt.
-\end{align*}
+ &=\frac12\int_0^T\E_{\Pi_{0,t}}
+ \left[
+ \frac{\|U_t-\E[U_t\mid X_t]\|^2}{\sigma_t^2}
+ \right]dt,
+ \tag{P2}\label{eq:DSBM-P2-value}\\
+ U_t
+ &=\sigma_t^2\E_\Pi[\nabla\log q_{T\mid t}(X_T\mid X_t)\mid X_0,X_t].
+\end{align}
 \end{proposition}
 
-\begin{proof}
-Conditioning the bridge-mixture drift first on $(X_0,X_t)$ gives the semimartingale drift of $\Pi$.
-For a Markov diffusion $M$ with correction drift $v_t(X_t)$, Girsanov's entropy identity yields
+\subsection{Step 1: identify the semimartingale drift of the bridge mixture}
+Conditionally on \(X_0=x_0\), the path law is the Doob transform of \(Q_{\mid0}\) by \(\phi_{T\mid0}\).  Equations \eqref{eq:DSBM-generator} and \eqref{eq:DSBM-backward-kolm} give the transformed generator
 \[
- \KL(\Pi\|M)=\frac12\int_0^T
- \E_\Pi\left[
- \frac{\|U_t-v_t(X_t)\|^2}{\sigma_t^2}
- \right]dt,
+ \frac{A(h\phi)-hA\phi}{\phi}
+ =Ah+\sigma_t^2\langle\nabla h,\nabla\log\phi\rangle.
 \]
-where
-$U_t=\sigma_t^2\E_\Pi[\nabla\log q_{T\mid t}(X_T\mid X_t)\mid X_0,X_t]$.
-Conditional expectation is the orthogonal projection in $L^2$, so the unique minimizing Markov
-function is $v_t^*(X_t)=\E[U_t\mid X_t]$, which is
-\eqref{eq:DSBM-markov-drift}.  The Fokker--Planck equation of $\Pi_t$ has current drift
-$f_t+v_t^*$; hence $M^*$ and $\Pi$ solve the same forward equation with the same initial law.
-Uniqueness gives $M_t^*=\Pi_t$.
-\end{proof}
+Hence, conditionally on \(X_0\), \(\Pi\) has drift
+\begin{equation}
+ f_t(X_t)+\sigma_t^2\nabla\log\phi_{t\mid0}(X_t\mid X_0).
+ \tag{33}\label{eq:DSBM-conditional-drift}
+\end{equation}
 
-\section{Reciprocal projection}
-For an arbitrary path law $P$, define
+Bayes' identity gives
 \[
- \proj_{\mathcal R(Q)}(P):=P_{0,T}Q^{0,T}.
+ q_{t\mid0}(x_t\mid x_0)\phi_{t\mid0}(x_t\mid x_0)
+ =\pi_{t\mid0}(x_t\mid x_0).
 \]
-
-\begin{proposition}[Forward-KL reciprocal projection]
-For every $P$ for which the entropies are defined,
+Using
 \[
- \proj_{\mathcal R(Q)}(P)
+ q_{T\mid0}(x_T\mid x_0)q_{t\mid0,T}(x_t\mid x_0,x_T)
+ =q_{t\mid0}(x_t\mid x_0)q_{T\mid t}(x_T\mid x_t)
+\]
+in \eqref{eq:DSBM-phi}, differentiate with respect to \(x_t\) to obtain
+\begin{equation}
+ \nabla\log\phi_{t\mid0}(x_t\mid x_0)
+ =\E_\Pi[\nabla\log q_{T\mid t}(X_T\mid X_t)
+          \mid X_0=x_0,X_t=x_t].
+ \tag{34--35}\label{eq:DSBM-phi-score}
+\end{equation}
+Thus \(U_t\) is exactly the nonreference part of the semimartingale drift of \(\Pi\).
+
+\subsection{Step 2: minimize the Girsanov energy}
+For a Markov candidate
+\[
+ dX_t=[f_t(X_t)+v_t(X_t)]dt+\sigma_t dB_t,
+\]
+the entropic Girsanov theorem \cite{Leonard2012Girsanov} gives
+\begin{equation}
+ \KL(\Pi\|M)
+ =\frac12\int_0^T\E_\Pi
+ \left[\frac{\|U_t-v_t(X_t)\|^2}{\sigma_t^2}\right]dt.
+ \tag{G}\label{eq:DSBM-girsanov-objective}
+\end{equation}
+For each \(t\), conditional expectation is the orthogonal projection from \(L^2(\Pi)\) onto the subspace of \(X_t\)-measurable vectors.  Therefore
+\[
+ v_t^*(X_t)=\E[U_t\mid X_t]
+\]
+uniquely minimizes the integrand, and the residual energy is \eqref{eq:DSBM-P2-value}.
+
+\subsection{Step 3: preservation of marginals}
+The Fokker--Planck weak equation for the possibly non-Markov law \(\Pi\) contains the conditional current drift
+\[
+ \E[f_t(X_t)+U_t\mid X_t]
+ =f_t(X_t)+v_t^*(X_t).
+\]
+This is precisely the drift of \(M^*\).  Since the two laws have the same initial marginal and solve the same Fokker--Planck equation, uniqueness of probability solutions of the Fokker--Planck equation \cite{BogachevKrasovitskiiShaposhnikov2021} under A1 and A3 gives \(M_t^*=\Pi_t\) for every \(t\).
+
+\section{Proposition 4: forward-KL reciprocal projection}
+\sourceanchor{Section 3.1, Proposition 4; Appendix C.2.}
+
+\begin{proposition}[Proposition 4]
+For any path law \(P\),
+\[
+ \proj_{\mathcal R(Q)}(P)=P_{0,T}Q^{0,T}
  =\argmin_{\Pi\in\mathcal R(Q)}\KL(P\|\Pi).
 \]
 \end{proposition}
 
-\begin{proof}
-The chain rule for relative entropy gives
-\[
+Disintegrate both laws with respect to the endpoints.  The chain rule gives
+\begin{equation}
  \KL(P\|\Pi)
  =\KL(P_{0,T}\|\Pi_{0,T})
- +\E_{P_{0,T}}
-   \KL(P^{0,T}\|Q^{0,T}).
-\]
-The second term is independent of $\Pi_{0,T}$.  The first is uniquely minimized by
-$\Pi_{0,T}=P_{0,T}$.
-\end{proof}
+ +\int\KL(P^{0,T}_{x_0,x_T}\|Q^{0,T}_{x_0,x_T})P_{0,T}(dx_0,dx_T).
+ \tag{C.2}\label{eq:DSBM-chain-endpoint}
+\end{equation}
+The second term is independent of \(\Pi_{0,T}\).  The first is minimized, with value zero, by \(\Pi_{0,T}=P_{0,T}\).
 
-\section{Characterization of the Schr\"odinger bridge}
-Under the integrability and irreducibility hypotheses used in the Schr\"odinger-system existence
-theorem, there exists a unique bridge $P_{\mathrm{SB}}$.  A path law with the prescribed endpoints is
-that bridge if and only if it is both Markov and reciprocal with respect to $Q$:
+\section{Proposition 5: the Markov--reciprocal intersection}
+\sourceanchor{Section 3.1, Proposition 5; Appendix C.3.}
+
+The source invokes L\'eonard's existence and uniqueness theorem \cite{Leonard2014Survey,LeonardRoellyZambrini2014} rather than reproving the Schr\"odinger system.  The assumptions quoted in Appendix C.3 are:
+\begin{enumerate}[leftmargin=2em]
+\item \(Q\) is Markov with equal endpoint marginals \(Q_0=Q_T=\bar Q\);
+\item the endpoint density of \(Q\) has a lower bound \(dQ_{0,T}/d(\bar Q\otimes\bar Q)\ge e^{-A(x_0)-A(x_T)}\);
+\item a complementary exponential integrability condition involving a measurable \(B\ge0\);
+\item an irreducibility condition at some intermediate time \(t_0\);
+\item finite endpoint entropies and integrability of \(A+B\) under \(\pi_0,\pi_T\).
+\end{enumerate}
+Under these conditions there is a unique Schr\"odinger bridge.  Moreover:
+
+\begin{proposition}[Proposition 5]
+If \(P\in\Mcal\cap\mathcal R(Q)\), \(P_0=\pi_0\), \(P_T=\pi_T\), and \(\KL(P\|Q)<\infty\), then
 \[
- P\in\mathcal M\cap\mathcal R(Q),
- P_0=\pi_0, P_T=\pi_T
- \quad\Longrightarrow\quad P=P_{\mathrm{SB}}.
+ P=P_{\mathrm{SB}}.
 \]
-The reason is the factorization of the optimal endpoint density as
-$dP_{0,T}/dQ_{0,T}=f(X_0)g(X_T)$, which is exactly the compatibility condition between the Markov
-property and the fixed reciprocal bridges.
+\end{proposition}
 
-\section{Two Pythagorean identities}
-\begin{lemma}
-For $M\in\mathcal M$ and $\Pi\in\mathcal R(Q)$, whenever the displayed quantities are finite,
+The reason is the source theorem's characterization of the unique minimizer as the unique finite-entropy law that is both Markov and in the reciprocal class with the required endpoints.  This proposition is the fixed-point identification used by IMF.
+
+\section{Lemma 6: the two KL Pythagorean identities}
+\sourceanchor{Section 3.2, Lemma 6; Appendix C.4, equations (36)--(37).}
+
+\begin{lemma}[Lemma 6]
+For \(M\in\Mcal\) and \(\Pi\in\mathcal R(Q)\), whenever the displayed entropies are finite,
 \begin{align}
  \KL(\Pi\|M)
- &=\KL(\Pi\|\proj_{\mathcal M}\Pi)
-  +\KL(\proj_{\mathcal M}\Pi\|M),\label{eq:DSBM-pyth-markov}\\
+ &=\KL(\Pi\|\proj_{\Mcal}\Pi)
+  +\KL(\proj_{\Mcal}\Pi\|M),
+ \tag{36}\label{eq:DSBM-Pyth-M}\\
  \KL(M\|\Pi)
  &=\KL(M\|\proj_{\mathcal R(Q)}M)
-  +\KL(\proj_{\mathcal R(Q)}M\|\Pi).\label{eq:DSBM-pyth-recip}
+  +\KL(\proj_{\mathcal R(Q)}M\|\Pi).
+ \tag{37}\label{eq:DSBM-Pyth-R}
 \end{align}
 \end{lemma}
 
-\begin{proof}
-For \eqref{eq:DSBM-pyth-markov}, write the three entropies using the quadratic Girsanov formulas.
-The decomposition
+\subsection{Markovian identity}
+Let \(U_t\) be the conditional bridge-mixture drift from Proposition 2, and let
 \[
- \E\|U-v(X_t)\|^2
- =\E\|U-E[U\mid X_t]\|^2
- +\E\|\E[U\mid X_t]-v(X_t)\|^2
+ \bar U_t=\E[U_t\mid X_t].
 \]
-is the conditional-expectation Pythagorean theorem.
+The three Girsanov formulas are
+\begin{align*}
+ 2\KL(\Pi\|M)
+ &=\int\E\|U_t-v_t(X_t)\|^2\sigma_t^{-2}dt,\\
+ 2\KL(\Pi\|\proj_{\Mcal}\Pi)
+ &=\int\E\|U_t-\bar U_t\|^2\sigma_t^{-2}dt,\\
+ 2\KL(\proj_{\Mcal}\Pi\|M)
+ &=\int\E\|\bar U_t-v_t(X_t)\|^2\sigma_t^{-2}dt.
+\end{align*}
+The cross term vanishes because
+\[
+ \E\langle U_t-\bar U_t,\bar U_t-v_t(X_t)\rangle=0.
+\]
+This is the conditional-expectation Pythagorean theorem and proves \eqref{eq:DSBM-Pyth-M}.  Appendix C expands the squares instead of naming the Hilbert-space projection.
 
-For \eqref{eq:DSBM-pyth-recip}, put
-$\Pi^*=M_{0,T}Q^{0,T}$.  Since $\Pi$ and $\Pi^*$ share $Q^{0,T}$,
+\subsection{Reciprocal identity}
+Set \(\Pi^*=M_{0,T}Q^{0,T}\).  The Radon--Nikodym ratio between \(\Pi^*\) and \(\Pi\) depends only on \((X_0,X_T)\):
 \[
  \log\frac{d\Pi^*}{d\Pi}
  =\log\frac{dM_{0,T}}{d\Pi_{0,T}}(X_0,X_T).
 \]
-Integrating this identity under $M$ or $\Pi^*$ gives the same value, because the two laws have the
-same endpoint joint law.  Expanding the log-density ratios yields
-\eqref{eq:DSBM-pyth-recip}.
-\end{proof}
-
-\section{Iterative Markovian fitting}
-Start from $P_0\in\mathcal R(Q)$ with endpoints $(\pi_0,\pi_T)$ and alternate
+Since \(M\) and \(\Pi^*\) share endpoint law \(M_{0,T}\), its expectation is the same under both.  Expanding
 \[
- P_{2n+1}=\proj_{\mathcal M}(P_{2n}),
+ \log\frac{dM}{d\Pi}
+ =\log\frac{dM}{d\Pi^*}+\log\frac{d\Pi^*}{d\Pi}
+\]
+and integrating gives \eqref{eq:DSBM-Pyth-R}.
+
+\begin{remark}[Why convex projection theory is not being used]
+Appendix C.9 gives an explicit three-time binary counterexample showing that the set of Markov laws is not convex.  If \(p_1,p_2\) are Markov chains with parameters \(\alpha_i,\beta_i\), their half-mixture fails the Markov identity by
+\[
+ \Delta=\alpha_1\beta_1(\beta_0-\alpha_0)(\beta_2-\alpha_2).
+\]
+Thus the first Pythagorean identity is a special quadratic-drift identity, not an application of Csisz\'ar's convex-set projection theorem \cite{Csiszar1975}.
+\end{remark}
+
+\section{Iterative Markovian Fitting}
+\sourceanchor{Section 3.2, equation (8), Proposition 7, Theorem 8; Appendix C.5--C.6.}
+
+Initialize \(P_0\in\mathcal R(Q)\) with \((P_0)_0=\pi_0\), \((P_0)_T=\pi_T\), and alternate
+\begin{equation}
+ P_{2n+1}=\proj_{\Mcal}(P_{2n}),
  \qquad
  P_{2n+2}=\proj_{\mathcal R(Q)}(P_{2n+1}).
-\]
-Every iterate retains both endpoint marginals: the Markovian projection preserves all one-time
-marginals, and the reciprocal projection preserves the endpoint coupling.
+ \tag{8}\label{eq:DSBM-IMF}
+\end{equation}
+The Markovian projection preserves every one-time marginal, while the reciprocal projection preserves the endpoint joint law.  Hence every iterate has endpoint marginals \(\pi_0,\pi_T\).
 
-Applying the appropriate Pythagorean identity with $P_{\mathrm{SB}}$ gives
+\begin{proposition}[Proposition 7]
+Assume Proposition 5 and Lemma 6 apply to every iterate and to \(P_{\mathrm{SB}}\).  Then
 \[
+ \KL(P_{n+1}\|P_{\mathrm{SB}})
+ \le\KL(P_n\|P_{\mathrm{SB}})<\infty,
+\]
+and
+\[
+ \KL(P_n\|P_{n+1})\longrightarrow0.
+\]
+\end{proposition}
+
+For either parity, the bridge belongs to the opposite projection class, so the corresponding identity in Lemma 6 gives
+\begin{equation}
  \KL(P_n\|P_{\mathrm{SB}})
  =\KL(P_n\|P_{n+1})
- +\KL(P_{n+1}\|P_{\mathrm{SB}}).
-\]
-Consequently,
-\begin{equation}\label{eq:DSBM-telescope}
+  +\KL(P_{n+1}\|P_{\mathrm{SB}}).
+ \tag{tel}\label{eq:DSBM-telescope-one}
+\end{equation}
+The telescoping device follows the reverse-KL analogue of R\"uschendorf's IPF argument \cite{Ruschendorf1995}.
+
+Iterating,
+\begin{equation}
  \KL(P_0\|P_{\mathrm{SB}})
  =\sum_{i=0}^N\KL(P_i\|P_{i+1})
- +\KL(P_{N+1}\|P_{\mathrm{SB}}).
+  +\KL(P_{N+1}\|P_{\mathrm{SB}}).
+ \tag{C.5}\label{eq:DSBM-telescope}
 \end{equation}
-Thus the entropy to the bridge is nonincreasing and
-$\KL(P_n\|P_{n+1})\to0$.
+The series of nonnegative increments is finite, proving the result.
 
-\begin{theorem}[Convergence of iterative Markovian fitting]
-Assume the KL sublevel set
+\begin{theorem}[Theorem 8]
+Assume the conditions above, coercivity of \(P\mapsto\KL(P\|P_{\mathrm{SB}})\), weak closedness of the Markov and reciprocal classes along the iterates, and weak lower semicontinuity of relative entropy \cite{vanErvenHarremoes2014}.  Then the IMF sequence has the unique fixed point
 \[
- \{P:\KL(P\|P_{\mathrm{SB}})\le\KL(P_0\|P_{\mathrm{SB}})\}
+ P^*=P_{\mathrm{SB}},
 \]
-is relatively compact, the Markov and reciprocal classes are weakly closed, and relative entropy is
-weakly lower semicontinuous.  Then the iteration has the unique fixed point
-$P_{\mathrm{SB}}$ and
+and
 \[
- \KL(P_n\|P_{\mathrm{SB}})\longrightarrow0.
+ \KL(P_n\|P^*)\to0.
 \]
 \end{theorem}
 
 \begin{proof}
-Choose a convergent subsequence of the Markov iterates and then a convergent subsequence of the
-adjacent reciprocal iterates.  By closedness, their limits $M^*$ and $\Pi^*$ lie in
-$\mathcal M$ and $\mathcal R(Q)$.  Lower semicontinuity and
-$\KL(P_n\|P_{n+1})\to0$ imply
+All iterates lie in the sublevel set
 \[
- \KL(M^*\|\Pi^*)=0,
+ \mathcal K=\{P:\KL(P\|P_{\mathrm{SB}})
+ \le\KL(P_0\|P_{\mathrm{SB}})\}.
 \]
-so $M^*=\Pi^*$.  The common limit has the prescribed endpoints and belongs to both classes; the
-characterization above makes it $P_{\mathrm{SB}}$.  Every cluster point is therefore the same.  Since
-$\KL(P_n\|P_{\mathrm{SB}})$ is decreasing, a subsequence converging to zero forces the entire
-sequence to converge to zero.
+Coercivity makes \(\mathcal K\) relatively compact.  Choose a weakly convergent subsequence of the Markov iterates,
+\[
+ M_{n_j}=P_{2n_j+1}\Rightarrow M^*,
+\]
+and a further subsequence of the adjacent reciprocal iterates,
+\[
+ \Pi_{n_{j_k}}=P_{2n_{j_k}+2}\Rightarrow\Pi^*.
+\]
+Closedness gives \(M^*\in\Mcal\) and \(\Pi^*\in\mathcal R(Q)\).  By lower semicontinuity and Proposition 7,
+\[
+ 0\le\KL(M^*\|\Pi^*)
+ \le\liminf_k\KL(M_{n_{j_k}}\|\Pi_{n_{j_k}})=0.
+\]
+Thus \(M^*=\Pi^*=:P^*\).  Endpoint preservation passes to the limit, so Proposition 5 identifies \(P^*=P_{\mathrm{SB}}\).
+
+Along this subsequence, lower semicontinuity plus equality of the limit is used by the source to conclude that the entropy to \(P^*\) reaches zero; monotonicity from Proposition 7 then forces the full sequence to zero.
 \end{proof}
 
-\section{Forward and backward bridge matching}
-The Markovian projection drift can be learned by the regression
-\[
- \min_v\int_0^T
- \E_\Pi\left[
- \frac{\|\sigma_t^2\nabla\log q_{T\mid t}(X_T\mid X_t)-v_t(X_t)\|^2}
-      {\sigma_t^2}
+\begin{remark}[Assumptions hidden by ``mild assumptions'']
+The source does not prove in general that its SDE-defined Markov class is weakly closed, nor that the reciprocal class is weakly closed for every reference bridge kernel.  It invokes these properties in Appendix C.6.  Coercivity of \(\KL(\cdot\|P_{\mathrm{SB}})\) is standard on a Polish path space because entropy sublevels are tight relative to a fixed probability law, but the passage from weak convergence to convergence of the entropy value requires more than lower semicontinuity alone.  The proof as printed should therefore be read with the stated compactness, closedness, and entropy-convergence conditions included among the theorem's assumptions.
+\end{remark}
+
+\section{Proposition 9: forward and backward representations}
+\sourceanchor{Section 4, Proposition 9; Appendix C.7, equation (38).}
+
+Time-reversing the pinned bridge \eqref{eq:DSBM-bridge} gives
+\begin{equation}
+ dY_t^{0,T}
+ =\left[-f_{T-t}(Y_t^{0,T})
+ +\sigma_{T-t}^2\nabla\log q_{T-t\mid0}(Y_t^{0,T}\mid x_0)\right]dt
+ +\sigma_{T-t}dB_t,
+ \quad Y_0^{0,T}=x_T.
+ \tag{38}\label{eq:DSBM-reverse-bridge}
+\end{equation}
+Applying the same Markovian-projection argument in forward and reversed time gives:
+
+\begin{proposition}[Proposition 9]
+For \(\Pi=\Pi_{0,T}Q^{0,T}\), the same Markovian projection \(M^*\) has the forward representation
+\begin{equation}
+ dX_t=
+ \left[f_t(X_t)+\sigma_t^2
+ \E_\Pi[\nabla\log q_{T\mid t}(X_T\mid X_t)\mid X_t]\right]dt
+ +\sigma_t dB_t,
+ \quad X_0\sim\Pi_0,
+ \tag{11}\label{eq:DSBM-forward}
+\end{equation}
+and the reversed representation
+\begin{equation}
+ dY_t=
+ \left[-f_{T-t}(Y_t)+\sigma_{T-t}^2
+ \E_\Pi[\nabla\log q_{T-t\mid0}(Y_t\mid X_0)\mid Y_t]\right]dt
+ +\sigma_{T-t}dB_t,
+ \quad Y_0\sim\Pi_T.
+ \tag{12}\label{eq:DSBM-backward}
+\end{equation}
+\end{proposition}
+
+The source proof is one paragraph: apply Proposition 2 to the reversed bridge formula \eqref{eq:DSBM-reverse-bridge}.  The two conditional expectations are the forward and backward current drifts of the same Markov law.
+
+\section{Population regressions and Algorithm 1}
+The conditional expectations in Proposition 9 are learned by squared-error regression.  For a family \(v_\theta\), the forward objective is
+\begin{equation}
+ \theta^*=\argmin_\theta
+ \int_0^T\E_{\Pi_{t,T}}
+ \left[
+ \frac{\|\sigma_t^2\nabla\log q_{T\mid t}(X_T\mid X_t)-v_\theta(t,X_t)\|^2}{\sigma_t^2}
  \right]dt.
+ \tag{10}\label{eq:DSBM-forward-loss}
+\end{equation}
+Its unrestricted population minimizer is \(v_t^*\) from \eqref{eq:DSBM-vstar}.  The backward objective is
+\begin{equation}
+ \varphi^*=\argmin_\varphi
+ \int_0^T\E_{\Pi_{0,t}}
+ \left[
+ \frac{\|\sigma_t^2\nabla\log q_{t\mid0}(X_t\mid X_0)-v_\varphi(t,X_t)\|^2}{\sigma_t^2}
+ \right]dt.
+ \tag{14}\label{eq:DSBM-backward-loss}
+\end{equation}
+Its population minimizer is the backward conditional expectation in \eqref{eq:DSBM-backward}.
+
+A reciprocal projection is sampled by first drawing \((X_0,X_T)\) from the current Markov law and then drawing a path from \(Q^{0,T}(\cdot\mid X_0,X_T)\).  A Markovian projection is approximated by fitting one of the regressions and simulating the resulting SDE.  DSBM alternates backward and forward representations so that each fitted SDE is initialized from an exact endpoint law: backward from \(\pi_T\), then forward from \(\pi_0\).  This is the paper's device for preventing endpoint bias from accumulating when the regressions are not exact.
+
+\section{Proposition 10: exact DSBM recovers the IPF sequence}
+\sourceanchor{Section 4, Proposition 10; Appendix C.8.}
+
+Let \((\widetilde P_n)\) be the exact path-space IPF sequence initialized at \(Q\).  The cited DSB analysis \cite{DeBortoliThorntonHengDoucet2021} implies each \(\widetilde P_n\) is both Markov and reciprocal with respect to \(Q\):
+\[
+ \widetilde P_n\in\Mcal\cap\mathcal R(Q).
 \]
-Its population minimizer is the conditional expectation in
-\eqref{eq:DSBM-markov-drift}.  Time reversal gives the analogous backward projection, whose target
-is the conditional expectation of the reverse bridge drift.  Alternating forward and backward
-regressions implements the two projections while reducing endpoint error caused by approximate
-function fitting.  With exact regressions and initialization at the reference process, this construction
-recovers the iterative proportional fitting sequence.
+Assume the regression families are rich enough to realize the exact conditional expectations, and initialize DSBM with \(\Pi^0_{0,T}=Q_{0,T}\).
+
+\begin{proposition}[Proposition 10]
+Under exact population regression, the Markov laws generated by DSBM coincide with the IPF iterates:
+\[
+ M_n=\widetilde P_n
+ \qquad(n\ge0).
+\]
+\end{proposition}
+
+\begin{proof}
+The claim holds at initialization.  Assume \(M_{2n+1}=\widetilde P_{2n+1}\).  Since the IPF iterate already belongs to \(\mathcal R(Q)\),
+\[
+ \Pi_{2n+1}
+ =\proj_{\mathcal R(Q)}(M_{2n+1})
+ =M_{2n+1}.
+\]
+Since it is also Markov,
+\[
+ \proj_{\Mcal}(\Pi_{2n+1})=M_{2n+1}.
+\]
+The next forward DSBM law is initialized at \(\pi_0\) and uses the conditional transition law of this exact projection.  The IPF update is the same operation, written as time reversal followed by reinitialization:
+\[
+ \widetilde P_{2n+2}=\pi_0\widetilde P_{2n+1\mid0}.
+\]
+Hence \(M_{2n+2}=\widetilde P_{2n+2}\).  The backward step is identical with the roles of \(0\) and \(T\) exchanged.  Induction proves the result.
+\end{proof}
+
+\section{Brownian bridges and the deterministic limit}
+For \(f=0\) and constant \(\sigma\),
+\[
+ X_t^{0,T}=\left(1-\frac tT\right)x_0+\frac tT x_T
+ +\sigma\left(B_t-\frac tTB_T\right),
+\]
+and
+\[
+ dX_t^{0,T}=\frac{x_T-X_t^{0,T}}{T-t}dt+\sigma dB_t.
+\]
+The forward target becomes
+\[
+ \frac{X_T-X_t}{T-t},
+\]
+so the Bridge Matching loss is
+\[
+ \E\left\|\frac{X_T-X_t}{T-t}-v_\theta(t,X_t)\right\|^2.
+\]
+As \(\sigma\downarrow0\), the bridge collapses to linear interpolation and the regression becomes the Flow Matching velocity regression.  This limiting observation motivates the algorithm, but the projection proofs above assume \(\sigma_t>0\).
+
+\section{Proof dependencies and source-level cautions}
+\begin{enumerate}[leftmargin=2em]
+\item Proposition 2 is not proved from elementary SDE facts alone.  It depends on the Doob \(h\)-transform results cited to Palmowski--Rolski, the entropic Girsanov identity cited to L\'eonard, and uniqueness of the Fokker--Planck equation.
+\item Proposition 5 is a direct use of L\'eonard's Schr\"odinger-bridge existence and Markov--reciprocal characterization theorem.
+\item Lemma 6 is exact once the entropy identities are available; its Markovian half is an \(L^2\) orthogonal-decomposition calculation and its reciprocal half is the endpoint entropy chain rule.
+\item Theorem 8 uses compactness of entropy sublevels, weak closedness of both alternating classes, and a convergence step for the entropy value.  These are compressed into ``mild assumptions'' in the main text and are not established in full generality by the paper.
+\item Proposition 9 is stated with ``under mild conditions'' and its appendix proof says only that it is analogous to Proposition 2; the reverse-time Doob/Girsanov conditions must therefore be supplied as well.
+\item Proposition 10 is an exact-population statement.  The practical algorithm has approximation, time-discretization, and finite-sample errors, so equality with IPF does not survive automatically outside that idealization.
+\end{enumerate}
 
 \input{references_manual}
 \end{document}

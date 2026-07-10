@@ -1,265 +1,618 @@
 \input{preamble}
-\title{Modernized Proof Notes for Cameron--Martin (1945): Linear Transformations of Wiener Integrals}
+\title{Cameron--Martin (1945): Linear Transformations of Wiener Integrals}
 \author{}
 \date{Source PDF: \texttt{S0002-9947-1945-0013240-1.pdf}}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
-\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{S0002-9947-1945-0013240-1.pdf}}
-\item[Coverage] Theorem I, Theorem Ia, Theorem II, the polygonal-kernel reduction, convergence lemmas, and the final quadratic-functional example.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Theorem I
-  \item Theorem Ia
-  \item Lemmas 1--7
-  \item Theorem II
-  \item final example
-\end{itemize}
-\end{description}
+\begin{sourceguide}
+\item[Primary source] R. H. Cameron and W. T. Martin, ``Transformations of Wiener Integrals under a General Class of Linear Transformations,'' \emph{Transactions of the American Mathematical Society} 58(2):184--219 (1945) \cite{CameronMartin1945}.
+\item[Coverage] The complete mathematical argument of Theorem I, Theorem Ia, Theorem II, Lemmas 1--7, the polygonal and Fredholm determinant reductions, the diagonal-jump calculation, and the final quadratic-functional example.
+\item[Source order] Introduction and equations (0.1)--(0.15); Sections 1--13.
+\item[Supplemental references] The translation theorem used in Section 12 is Cameron--Martin (1944) \cite{CameronMartin1944Translations}. Fredholm inversion and the finite-dimensional Wiener density are used exactly as in the source; modern terminology is supplied only for orientation.
+\end{sourceguide}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+The argument below follows the paper's order.  The original Wiener normalization, diagonal convention, and Riemann--Stieltjes interpretation are retained.  The source occasionally suppresses routine monotone-class or Fredholm estimates; those steps are expanded, but no alternate stochastic-calculus proof is substituted.
 
-\section*{Reference and purpose}
-This reconstruction follows R. H. Cameron and W. T. Martin, ``Transformations of Wiener Integrals under a General Class of Linear Transformations,'' \emph{Transactions of the American Mathematical Society}, 58(2):184--219, 1945 \cite{CameronMartin1945}.  The paper is not an arXiv source.  It is a primary source for quasi-invariance/transformation formulae on classical Wiener space.
-
-\paragraph{Scope warning.}
-This paper is not only the familiar Cameron--Martin translation theorem.  It treats homogeneous linear transformations
+\section{Wiener space, the kernel, and the two transformation theorems}
+Let
 \[
-  (Tx)(t)=x(t)+\int_0^1K(t,s)x(s)\,ds
+ C_0[0,1]=\{x\in C([0,1],\R):x(0)=0\}
 \]
-and then combines that result with the translation theorem from Cameron--Martin's earlier paper.  The proof is long because the authors first prove the formula for polygonal kernels, then approximate general kernels, then pass from bounded continuous functionals to measurable sets and integrable functionals.
-
-\section{Classical Wiener space and notation}
-Let $C$ be the space of real continuous paths $x:[0,1]\to\R$ with $x(0)=0$, equipped with Wiener measure $w$.  The paper writes Wiener integrals as
+with the Wiener measure used by Cameron and Martin.  In this normalization the joint density of
+\((x(1/n),\ldots,x(n/n))\) is
 \[
-  \int_C F[x] \; d_wx.
+ \frac{n^{n/2}}{\pi^{n/2}}
+ \exp\!\left[-n\sum_{j=1}^n(\eta_j-\eta_{j-1})^2\right],
+ \qquad \eta_0=0.
 \]
-A set $S\subset C$ is Wiener measurable if it belongs to the completion of the cylinder sigma-algebra under Wiener measure.
+All constants below are therefore in the source normalization.
 
-\section{The kernel and transformation}
-The main homogeneous transformation is
+Let \(K_1\) be continuous on \(0\le t\le s\le1\), with \(K_1(0,s)=0\), and let \(K_2\) be continuous on \(0\le s\le t\le1\).  Define
 \begin{equation}
-  y(t)=x(t)+\int_0^1K(t,s)x(s)\,ds. \tag{T}\label{eq:cm-T}
+ K(t,s)=
+ \begin{cases}
+ K_1(t,s),&t<s,\\
+ \frac12K_1(s,s)+\frac12K_2(s,s),&t=s,\\
+ K_2(t,s),&s<t,
+ \end{cases}
+ \tag{0.3}\label{eq:CM-K}
 \end{equation}
-The kernel is built from two continuous triangular pieces:
-\[
-  K(t,s)=
-  \begin{cases}
-  K_1(t,s),&0\le t<s\le1,\\
-  K_2(t,s),&0\le s<t\le1,\\
-  \frac12K_1(s,s)+\frac12K_2(s,s),&t=s.
-  \end{cases}
-\]
-The diagonal jump is encoded by
+and the jump
 \begin{equation}
-  J(s)=K_1(s,s)-K_2(s,s). \tag{J}\label{eq:cm-J}
+ J(s)=K_1(s,s)-K_2(s,s).
+ \tag{0.4}\label{eq:CM-J}
 \end{equation}
-The hypotheses require, in modern terms:
-\begin{enumerate}[leftmargin=2em]
-\item $K_1$ and $K_2$ are continuous on their closed triangles, and $K_1(0,s)=0$.
-\item For a.e. $s$, $t\mapsto K(t,s)$ is absolutely continuous after removing the jump at $t=s$.
-\item A representative $H(t,s)$ of $\partial K(t,s)/\partial t$ can be chosen with bounded variation in $t$ and with integrable uniform bounds:
-\[
-  \int_0^1 \sup_{0\le t\le1}|H(t,s)|\,ds<\infty,
-  \qquad
-  \int_0^1 \operatorname{var}_{0\le t\le1}(H(\cdot,s))\,ds<\infty.
-\]
-\item $J$ has bounded variation on $[0,1]$.
-\item The Fredholm determinant $D$ defined below is nonzero.
-\end{enumerate}
-The determinant is
-\begin{equation}
-  D=1+\sum_{m=1}^{\infty}\frac{1}{m!}
-     \int_0^1\cdots\int_0^1
-     \det\big(K(s_i,s_j)\big)_{i,j=1}^m\,ds_1\cdots ds_m. \tag{D}\label{eq:cm-D}
-\end{equation}
-This is the Fredholm determinant of $I+K$ in the integral-operator sense used by the paper.
+The arithmetic mean on the diagonal is part of the theorem, not a harmless convention: diagonal values enter the Fredholm determinant and are tied to the symmetric limiting prescription in Lemma 7.
 
-\section{The main homogeneous transformation formula}
-For a Wiener measurable set $S$, let $TS$ denote the image of $S$ under \eqref{eq:cm-T}.  Theorem I states that
+For almost every \(s\), remove the jump at \(t=s\) and assume that \(t\mapsto K(t,s)\) is absolutely continuous.  Let \(H(t,s)\) be a measurable representative of \(\partial_tK(t,s)\), of bounded variation in \(t\), such that
 \begin{equation}
-  \int_{TS}d_wy=|D|\int_S \exp(-\Phi[x])\,d_wx, \tag{I-set}\label{eq:cm-I-set}
+ \int_0^1\sup_{0\le t\le1}|H(t,s)|\,ds<\infty,
+ \qquad
+ \int_0^1\operatorname{var}_{t\in[0,1]}H(t,s)\,ds<\infty.
+ \tag{0.6C}\label{eq:CM-Hbounds}
 \end{equation}
-and, more generally, for measurable $F$ for which either side exists,
+Assume also that \(J\) has bounded variation.
+
+The Fredholm determinant of \(I+K\) is
 \begin{equation}
-  \int_{TS}F[y]d_wy
-  =|D|\int_S F\!\bigg[x+\int_0^1K(\cdot,s)x(s)\,ds\bigg]\exp(-\Phi[x])\,d_wx. \tag{I-fun}\label{eq:cm-I-fun}
+ D=1+\sum_{m=1}^{\infty}\frac1{m!}
+ \int_{[0,1]^m}\det\bigl(K(s_i,s_j)\bigr)_{i,j=1}^m
+ \,ds_1\cdots ds_m,
+ \tag{0.5}\label{eq:CM-D}
 \end{equation}
-The exponent is a quadratic/Stieltjes functional:
+and the theorem assumes \(D\ne0\).
+
+The homogeneous transformation is
+\begin{equation}
+ (Tx)(t)=x(t)+\int_0^1K(t,s)x(s)\,ds.
+ \tag{0.7}\label{eq:CM-T}
+\end{equation}
+Write
+\[
+ h_x(t)=-\int_0^1H(t,s)x(s)\,ds.
+\]
+The exponent in the transformation formula is
+\begin{equation}
+ \Phi[x]
+ =\int_0^1h_x(t)^2\,dt
+ +2\int_0^1h_x(t)\,dx(t)
+ +\int_0^1J(s)\,d(x(s)^2).
+ \tag{0.9}\label{eq:CM-Phi}
+\end{equation}
+The two Stieltjes terms in \eqref{eq:CM-Phi} must not be combined formally into \(2\int(h_x+Jx)\,dx\): the latter need not exist as a Riemann--Stieltjes integral even when the displayed terms do.
+
+\begin{theorem}[Theorem I, equations (0.8) and (0.10)]
+For each Wiener-measurable \(S\subset C_0[0,1]\), the image \(TS\) is Wiener measurable and
+\[
+ W(TS)=|D|\int_S e^{-\Phi[x]}\,dW(x).
+\]
+More generally, if either side exists,
+\[
+ \int_{TS}F[y]\,dW(y)
+ =|D|\int_SF[Tx]e^{-\Phi[x]}\,dW(x).
+\]
+\end{theorem}
+
+The first theorem proved in the paper is the following restricted version.
+
+\begin{theorem}[Theorem Ia, equation (0.15)]
+Suppose \(F:C_0[0,1]\to\R\) is bounded, uniformly continuous in the sup norm, and vanishes outside a sup-norm bounded set.  Then
+\[
+ \int_CF[y]\,dW(y)
+ =|D|\int_CF[Tx]e^{-\Phi[x]}\,dW(x).
+\]
+\end{theorem}
+
+The nonhomogeneous transformation is
+\begin{equation}
+ (Lx)(t)=x(t)+x_0(t)+\int_0^1K(t,s)x(s)\,ds,
+ \tag{0.11}\label{eq:CM-L}
+\end{equation}
+where \(x_0\) is absolutely continuous and \(x_0'\) agrees almost everywhere with a bounded-variation function.
+
+\begin{theorem}[Theorem II, equations (0.12)--(0.14)]
+For measurable \(S\) and measurable \(F\), whenever either side exists,
+\[
+ \int_{LS}F[y]\,dW(y)
+ =|D|\int_SF[Lx]e^{-\Psi[x]}\,dW(x),
+\]
+where
+\begin{align*}
+ \Psi[x]
+ &=\int_0^1\left[-x_0'(t)-\int_0^1H(t,s)x(s)\,ds\right]^2dt\\
+ &\quad+2\int_0^1\left[-x_0'(t)-\int_0^1H(t,s)x(s)\,ds\right]dx(t)
+ +\int_0^1J(s)\,d(x(s)^2).
+\end{align*}
+\end{theorem}
+
+\section{Sections 1--3: polygonal kernels and the finite Gaussian calculation}
+\sourceanchor{Sections 1--3, equations (1.1)--(3.6), Lemma 1.}
+
+Fix \(n\ge1\).  A kernel \(K_n(t,s)\) is polygonal of order \(n\) in \(t\) if it is continuous on the square, vanishes at \(t=0\), and is affine on every interval \([(j-1)/n,j/n]\) for fixed \(s\).  For a path \(x\), let \(x_n\) be its polygonal interpolation through the grid \(j/n\).
+
+For \(j,p\in\{1,\ldots,n\}\), define
+\begin{equation}
+ A_{jp}=\int_{(p-1)/n}^{(p+1)/n}
+ K_n(j/n,s)\,[1-|ns-p|] \,ds,
+ \tag{1.3}\label{eq:CM-Ajp}
+\end{equation}
+where the kernel is extended by zero outside \([0,1]\), and set
+\[
+ A_n=\det(\delta_{jp}+A_{jp})_{j,p=1}^n.
+\]
+The source assumes both \(A_n\ne0\) and nonvanishing of the Fredholm determinant of \(I+K_n\); the latter makes the path transformation invertible on \(C\).
+
+Let \(F[x]=F_E(x(1/n),\ldots,x(1))\), where \(F_E\) is bounded and continuous.
+
+\begin{lemma}[Lemma 1]
+Under the preceding assumptions,
 \begin{align}
-  \Phi[x]
-  &=\int_0^1\left[-\int_0^1 \frac{\partial K}{\partial t}(t,s)x(s)\,ds\right]^2dt  \notag\\
-  &\quad +2\int_0^1\left[-\int_0^1 \frac{\partial K}{\partial t}(t,s)x(s)\,ds\right]dx(t)
-    +\int_0^1J(s)\,d\{x(s)^2\}. \tag{Phi}\label{eq:cm-Phi}
+ \int_CF[y]\,dW(y)
+ &=|A_n|\int_C
+ F\left[x_n+\int_0^1K_n(\,\cdot,s)x_n(s)\,ds\right]
+ \exp\{-\Phi_n[x]\}\,dW(x),
+ \tag{1.6}\label{eq:CM-L1}
 \end{align}
-The second and third terms are Riemann--Stieltjes type terms under the bounded-variation hypotheses.  The paper explicitly warns that the two Stieltjes terms cannot simply be merged into one informal stochastic integral; the diagonal values of $K$ matter through the determinant and through $J$.
+where
+\begin{align*}
+ \Phi_n[x]
+ &=\int_0^1\left[-\int_0^1\partial_tK_n(t,s)x_n(s)\,ds\right]^2dt\\
+ &\quad+2\int_0^1\left[-\int_0^1\partial_tK_n(t,s)x_n(s)\,ds\right]dx_n(t).
+\end{align*}
+\end{lemma}
 
-\section{Theorem Ia: statement and proof}
-The authors first prove a narrower functional version.
-
-\begin{distilled}[Theorem Ia]
-If $F$ is bounded, uniformly continuous on $C$ with respect to the sup norm, and vanishes outside a sup-norm bounded set, then
+\subsection{Result 1: interpolation coefficients}
+On \([(p-1)/n,p/n]\),
 \[
-  \int_C F[y]d_wy
-  =|D|\int_C F\!\bigg[x+\int_0^1K(\cdot,s)x(s)\,ds\bigg]e^{-\Phi[x]}d_wx.
+ x_n(s)=x_n((p-1)/n)(p-ns)+x_n(p/n)(ns-p+1).
 \]
-\end{distilled}
-
-Theorem I for sets and general measurable functionals is obtained from Theorem Ia by approximating characteristic functions of quasi-intervals by continuous trapezoidal functionals and then using monotone convergence and the standard generation of Wiener measurable sets.
-
-\section{Polygonal kernels and the finite-dimensional reduction}
-The proof starts with a polygonal kernel $K_n(t,s)$ that is linear in $t$ on each interval $[j/n,(j+1)/n]$, vanishes at $t=0$, and is continuous in the square.  The transformation is
-\[
-  y(t)=x(t)+\int_0^1K_n(t,s)x(s)\,ds.
-\]
-At the grid points $t_j=j/n$, the increments of $y$ are affine linear functions of the increments of $x$.  Thus the Wiener density of the vector
-\[
-  (x(t_1),\ldots,x(t_n))
-\]
-can be transformed by an ordinary finite-dimensional determinant calculation.
-The matrix is
-\[
-  (\delta_{jp}+a_{jp})_{j,p=1}^n,
-\]
-where the coefficients $a_{jp}$ come from integrating the polygonal slopes of $K_n$ over the $p$th subinterval.  The nonzero determinant hypothesis is the finite-dimensional invertibility condition.
-
-\begin{distilled}[Lemma 1, modern role]
-For polygonal $K_n$, the Wiener integral transformation formula holds exactly, with the determinant of the finite-dimensional matrix and an explicit quadratic exponent obtained by completing the square in the joint Gaussian density of path increments.
-\end{distilled}
-
-This is the finite-dimensional heart of the paper: all later analysis is approximation and passage to limits.
-
-\section{Fredholm determinant approximation}
-The next lemmas prove that the finite determinants converge to the Fredholm determinant \eqref{eq:cm-D}.
-Let $K_n$ be the polygonal approximation of $K$.  Lemma 2 and its corollaries establish:
-\begin{enumerate}[leftmargin=2em]
-\item $K_n\to K$ uniformly on the square, except for the controlled diagonal/jump convention.
-\item The corresponding Fredholm determinants $D_n$ converge to $D$.
-\item If $D\ne0$, then $D_n\ne0$ for all sufficiently large $n$.
-\end{enumerate}
-The proof uses an explicit expansion of determinants into sums over permutations.  Lemma 3 associates to each point a pair of grid indices and controls the error made by replacing $K$ by its polygonalized form.  Lemma 4 reorganizes the determinant expansion by permutations.  The key analytic step is dominated convergence with a uniform determinant bound derived from the continuity and boundedness of $K$.
-
-\section{Convergence of the quadratic exponent}
-The functional $\Phi_n[x]$ associated to $K_n$ must converge to $\Phi[x]$.  This is the most technical part of the proof.
-The ingredients are:
-\begin{enumerate}[leftmargin=2em]
-\item $\partial_t K_n$ is an averaged/polygonalized approximation to $\partial_tK$.
-\item The deterministic $L^2$ term
-\[
-  \int_0^1\left(\int_0^1\partial_tK_n(t,s)x(s)ds\right)^2dt
-\]
-converges uniformly on bounded subsets of $C$.
-\item The Stieltjes term against $dx(t)$ is handled through bounded-variation approximations and integration by parts estimates.
-\item The diagonal jump term $\int J_n(s)d\{x(s)^2\}$ converges to $\int J(s)d\{x(s)^2\}$.
-\end{enumerate}
-Lemmas 5--7 supply the required estimates.  Lemma 6 controls integrals of the form
-\[
-  \int_0^1 H(t,s)x(s)\,ds
-\]
-and their variation in $t$.  Lemma 7 is the bounded-variation/Stieltjes lemma needed to pass from approximating functions to limits in expressions involving $d\{x(t)^2\}$.
-
-\section{Proof of Theorem Ia}
-For $F$ bounded, continuous, and supported on a sup-norm bounded subset of $C$, the polygonal formula gives
-\[
-  \int F[y]d_wy=|D_n|\int F[T_nx]e^{-\Phi_n[x]}d_wx.
-\]
-The authors pass $n\to\infty$.
-The convergence proof has three moving parts:
-\begin{enumerate}[leftmargin=2em]
-\item $D_n\to D$.
-\item $T_nx\to Tx$ uniformly in $t$ for each $x$, and uniformly enough on the support controlled by $F$.
-\item $\Phi_n[x]\to\Phi[x]$ in the sense needed for dominated convergence over the set where $F[T_nx]$ is nonzero.
-\end{enumerate}
-The support assumption on $F$ is used to avoid tail issues in Wiener space.  Outside a large sup-norm bounded region, $F[T_nx]$ is zero for all large $n$, so the limit can be justified with ordinary dominated convergence on the relevant bounded region.  This proves Theorem Ia.
-
-\section{From Theorem Ia to Theorem I}
-Theorem I requires measurable sets and arbitrary measurable functionals.  The authors first treat a quasi-interval
-\[
-  I=\{y\in C: \lambda_j<y(t_j)<\mu_j,
-  \quad j=1,\ldots,r\}.
-\]
-They approximate its indicator by continuous functionals
-\[
-  p_{I,\epsilon}(y)
-  =\psi_\epsilon(\max_{0\le t\le1}|y(t)|)
-   \prod_{j=1}^r\phi_{j,\epsilon}(y(t_j)),
-\]
-where the $\phi_{j,\epsilon}$ are trapezoidal cutoffs for the intervals $(\lambda_j,\mu_j)$ and $\psi_\epsilon$ is a bounded-support cutoff.  As $\epsilon\downarrow0$,
-\[
-  p_{I,\epsilon}(y)\uparrow \mathbf 1_I(y)
-\]
-pointwise up to boundary null sets.  Monotone convergence carries Theorem Ia to quasi-interval indicators.  Since quasi-intervals generate the Wiener sigma-algebra, a monotone-class argument yields \eqref{eq:cm-I-set}.  Applying the same argument to positive and signed parts of measurable functionals yields \eqref{eq:cm-I-fun}.
-
-\section{Adding a Cameron--Martin translation}
-Theorem II treats
+Splitting the integral interval by interval and collecting the coefficient of \(x_n(p/n)\) gives
 \begin{equation}
-  y(t)=x(t)+x_0(t)+\int_0^1K(t,s)x(s)\,ds, \tag{L}\label{eq:cm-L}
+ \int_0^1K_n(j/n,s)x_n(s)\,ds
+ =\sum_{p=1}^nA_{jp}x_n(p/n).
+ \tag{2.1}\label{eq:CM-result1}
 \end{equation}
-where $x_0$ is absolutely continuous and $x_0'$ is essentially of bounded variation.
-The map \eqref{eq:cm-L} is factored as
-\[
-  x \xmapsto{T} z=x+Kx,
-  \qquad
-  z \xmapsto{V} y=z+x_0.
-\]
-The homogeneous formula applies to $T$, and the earlier Cameron--Martin translation theorem applies to $V$:
-\[
-  \int F[z+x_0]d_wz
-  =\exp\!\bigg(-\int_0^1(x_0'(t))^2dt\bigg)
-   \int F[z+x_0]\exp\!\bigg(-2\int_0^1x_0'(t)dz(t)\bigg)d_wz,
-\]
-with the normalization convention used in the 1945 paper.  Substituting $z=Tx$ and combining exponents gives
-\[
-  \int_{LS}F[y]d_wy
-  =|D|\int_S F\!\bigg[x+x_0+\int K(\cdot,s)x(s)ds\bigg]e^{-\Psi[x]}d_wx,
-\]
-where $\Psi$ is the sum of the homogeneous $\Phi$ and the translation terms.  This is Theorem II.
+The boundary terms disappear because \(x_n(0)=0\) and the extension of \(K_n\) vanishes outside the square.
 
-\section{Example: characteristic function of $\int_0^1x(t)^2dt$}
-The final section applies Theorem I to
-\[
-  y(t)=x(t)+\lambda\int_0^1\tan(\lambda(s-1))x(s)\,ds,
-  \qquad -\pi/2<\lambda<\pi/2.
-\]
-For this kernel,
-\[
-  D=(\cos\lambda)^{1/2}
-\]
-and the quadratic exponent simplifies to
-\[
-  \Phi[x]=-\lambda^2\int_0^1x(s)^2ds.
-\]
-Taking $F\equiv1$ in the transformation formula gives
-\[
-  \int_C\exp\!\bigg(\lambda^2\int_0^1x(s)^2ds\bigg)d_wx
-  =(\cos\lambda)^{-1/2}.
-\]
-Analytic continuation then yields the characteristic function formula
-\[
-  \int_C\exp\!\bigg(ip\int_0^1x(s)^2ds\bigg)d_wx
-  =\left(\sec\sqrt{ip}\right)^{1/2},
-\]
-with the branch convention specified in the paper.
+\subsection{Results 2 and 3: transformed increments}
+Because \(K_n\) is affine in \(t\), its derivative is constant on \(((j-1)/n,j/n)\).  Taking the difference between \eqref{eq:CM-result1} at adjacent grid points gives
+\begin{equation}
+ n\sum_{p=1}^n(A_{jp}-A_{j-1,p})x_n(p/n)
+ =\int_0^1\partial_tK_n(t,s)x_n(s)\,ds,
+ \quad (j-1)/n<t<j/n.
+ \tag{2.5}\label{eq:CM-result2}
+\end{equation}
+Squaring and summing the transformed increments, and then recognizing the integral of a piecewise constant function, yields
+\begin{align}
+ &n\sum_{j=1}^n\left(\sum_p(A_{jp}-A_{j-1,p})x_n(p/n)\right)^2\\
+ &\quad+2n\sum_{j=1}^n(x_n(j/n)-x_n((j-1)/n))
+       \sum_p(A_{jp}-A_{j-1,p})x_n(p/n)\notag\\
+ &=\int_0^1\left(\int_0^1\partial_tK_n(t,s)x_n(s)\,ds\right)^2dt
+ +2\int_0^1\left(\int_0^1\partial_tK_n(t,s)x_n(s)\,ds\right)dx_n(t).
+ \tag{2.9}\label{eq:CM-result3}
+\end{align}
 
-\section{Scope and normalization cautions}
-The argument reduces the infinite-dimensional transformation formula to finite-dimensional Gaussian change of variables for polygonal kernels, followed by determinant convergence, convergence of the quadratic exponent, and monotone-class extension.  The Wiener normalization in the paper differs from the now-standard stochastic-calculus convention; the constants in the exponential density must therefore be read in the paper's normalization.  For pure translations the earlier Cameron--Martin theorem is sufficient, whereas this paper is needed for the Fredholm-determinant formula for linear integral transformations.
+\subsection{Finite-dimensional change of variables}
+Let \(\eta_j=y(j/n)\).  The Wiener integral of \(F\) is the Gaussian integral
+\[
+ \frac{n^{n/2}}{\pi^{n/2}}
+ \int_{\R^n}F_E(\eta_1,\ldots,\eta_n)
+ \exp\left[-n\sum_{j=1}^n(\eta_j-\eta_{j-1})^2\right]d\eta.
+\]
+Apply the linear map
+\begin{equation}
+ \eta_j=\xi_j+\sum_{p=1}^nA_{jp}\xi_p.
+ \tag{2.10}\label{eq:CM-TE}
+\end{equation}
+Its absolute Jacobian is \(|A_n|\).  Expanding the quadratic form separates the original Wiener density in \(\xi\) from the extra square and cross terms.  Formula \eqref{eq:CM-result3} converts those terms into \(\Phi_n\), while \eqref{eq:CM-result1} converts the transformed arguments of \(F_E\) into \(x_n+K_nx_n\).  This is exactly \eqref{eq:CM-L1}.
 
-\section*{Checklist of details retained}
-\begin{itemize}[leftmargin=2em]
-\item The triangular kernel hypotheses and diagonal convention.
-\item The Fredholm determinant $D$.
-\item The three-term quadratic exponent with two Stieltjes terms.
-\item Theorem I, Theorem Ia, and Theorem II.
-\item The polygonal-kernel finite-dimensional reduction.
-\item Determinant convergence and exponent convergence roles of Lemmas 2--7.
-\item The quasi-interval approximation used to pass from continuous bounded $F$ to measurable sets.
-\item The final example evaluating the transform of $\int x^2$.
-\end{itemize}
+\section{Sections 4--7: the Fredholm determinant as the limit of the finite determinants}
+\sourceanchor{Sections 4--7, Lemmas 2--4 and Corollaries 1--3.}
+
+For a continuous kernel \(K\), let \(K_n\) be its polygonal interpolation in the first variable and let \(A_n\) be defined by \eqref{eq:CM-Ajp}.
+
+\begin{lemma}[Lemma 2]
+The finite determinants converge to the Fredholm determinant:
+\[
+ A_n\longrightarrow D.
+\]
+\end{lemma}
+
+The proof is carried out term by term in the determinant expansions.
+
+\subsection{Lemma 3: recovery of one kernel entry}
+Choose integer-valued maps \(j_n(t),k_n(s)\in\{1,\ldots,n\}\) such that
+\[
+ j_n(t)/n\to t,
+ \qquad
+ k_n(s)/n\to s
+\]
+uniformly.  Then
+\begin{equation}
+ nA^{(n)}_{j_n(t),k_n(s)}\longrightarrow K(t,s)
+ \tag{5.4}\label{eq:CM-L3}
+\end{equation}
+uniformly on the square.
+
+Indeed, \(nA_{jk}^{(n)}\) is the average of \(K_n(j/n,\eta)\) against the triangular hat function supported on \([(k-1)/n,(k+1)/n]\), whose integral is one.  Hence
+\[
+ |nA^{(n)}_{j_n(t),k_n(s)}-K(t,s)|
+ \le \sup_{\eta\text{ in the hat support}}
+ |K_n(j_n(t)/n,\eta)-K(t,s)|.
+\]
+Uniform continuity of \(K\), uniform convergence \(K_n\to K\), and the uniform grid approximation prove \eqref{eq:CM-L3}.
+
+\subsection{Lemma 4: one permutation term}
+Fix \(N\) and a permutation \(q\) of \(\{1,\ldots,N\}\).  Then
+\begin{equation}
+ \lim_{n\to\infty}
+ \sum_{p_1,\ldots,p_N=1}^n
+ \prod_{i=1}^NA^{(n)}_{p_{q(i)},p_i}
+ =\int_{[0,1]^N}\prod_{i=1}^NK(s_{q(i)},s_i)\,ds.
+ \tag{6.1}\label{eq:CM-L4}
+\end{equation}
+To see this, partition the cube into grid cells and define a step function equal on the cell surrounding \((s_1,\ldots,s_N)\) to
+\[
+ n^N\prod_{i=1}^NA^{(n)}_{p_n(s_{q(i)}),p_n(s_i)}.
+\]
+Lemma 3 gives uniform convergence to the product of kernel entries.  Boundedness gives dominated convergence, and integrating the step function reproduces the finite sum.
+
+Summing \eqref{eq:CM-L4} over permutations with signs gives convergence of the fixed-order determinant term:
+\[
+ \sum_{p_1,\ldots,p_N}\det(A^{(n)}_{p_i,p_j})_{i,j=1}^N
+ \longrightarrow
+ \int_{[0,1]^N}\det(K(s_i,s_j))_{i,j=1}^N\,ds.
+\]
+
+\subsection{Uniform control of the Fredholm tails}
+Expanding \(A_n=\det(I+A^{(n)})\) by principal minors gives
+\[
+ A_n=1+\sum_{N=1}^n\frac1{N!}
+ \sum_{p_1,\ldots,p_N=1}^n
+ \det(A^{(n)}_{p_i,p_j})_{i,j=1}^N.
+\]
+Hadamard's inequality and a uniform bound \(|nA^{(n)}_{jp}|\le M\) yield a summable majorant of the form
+\[
+ \frac{N^{N/2}M^N}{N!}
+\]
+for the order-\(N\) term, uniformly in \(n\).  Therefore the termwise limit may be passed through the series, giving Lemma 2.  In particular, if \(D\ne0\), then \(A_n\ne0\) for all sufficiently large \(n\).
+
+Corollary 2 applies the same argument to the Fredholm determinants of polygonalized kernels.  Corollary 3 permits a parameterized family \(K_\varepsilon\) that is uniformly bounded and converges pointwise to \(K\): the Fredholm determinants then converge by the same fixed-order-plus-tail argument.
+
+\section{Section 8: the two approximation lemmas for Stieltjes integrals}
+\sourceanchor{Section 8, Lemmas 5 and 6, equations (8.1)--(8.31).}
+
+\begin{lemma}[Lemma 5]
+Let \(f\) have bounded variation and let \(g\) be continuous.  On each grid interval define the average
+\[
+ f_n(t)=n\int_{(p-1)/n}^{p/n}f(s)\,ds,
+ \qquad (p-1)/n<t\le p/n.
+\]
+Then
+\[
+ \int_0^1f_n(t)\,dg(t)\longrightarrow\int_0^1f(t)\,dg(t).
+\]
+\end{lemma}
+
+For every interval the average of \(f\) lies between its minimum and maximum.  Multiply the two extremal values by the signed increment of \(g\), reversing them when the increment is negative.  This sandwiches \(\int f_n\,dg\) between lower and upper Riemann--Stieltjes sums for \(\int f\,dg\).  Both sums converge because \(f\) has bounded variation and \(g\) is continuous.
+
+\begin{lemma}[Lemma 6]
+Let \(H(t,s)\) be measurable and define
+\[
+ M(s)=\sup_t|H(t,s)|,
+ \qquad
+ V(s)=\operatorname{var}_{t\in[0,1]}H(t,s),
+\]
+with \(M,V\in L^1(0,1)\).  Suppose \(x_n\to x\) uniformly, \(x_n(0)=x(0)=0\), and \(\|x_n\|_\infty\le\mu_n\to\mu\).  Let \(H_n\) be the interval average of \(H\) in the first variable.  Then
+\begin{align*}
+ \int_0^1\left(\int_0^1H_n(t,s)x_n(s)\,ds\right)^2dt
+ &\to
+ \int_0^1\left(\int_0^1H(t,s)x(s)\,ds\right)^2dt,\\
+ \int_0^1\left(\int_0^1H_n(t,s)x_n(s)\,ds\right)dx_n(t)
+ &\to
+ \int_0^1\left(\int_0^1H(t,s)x(s)\,ds\right)dx(t).
+\end{align*}
+Moreover,
+\begin{align*}
+ \left|\int_0^1\left(\int H_nx_n\right)^2dt\right|
+ &\le \mu_n^2\left(\int_0^1M(s)ds\right)^2,\\
+ \left|\int_0^1\left(\int H_nx_n\right)dx_n\right|
+ &\le \mu_n^2\int_0^1(M(s)+V(s))ds.
+\end{align*}
+\end{lemma}
+
+\paragraph{Proof of the quadratic convergence.}
+For almost every \((t,s)\), interval averages satisfy \(H_n(t,s)\to H(t,s)\).  The product \(H_n(t,s)x_n(s)\) is dominated by a constant multiple of \(M(s)\).  Dominated convergence gives pointwise convergence of the inner integral, while
+\[
+ \left|\int H_n(t,s)x_n(s)ds\right|
+ \le \mu_n\int M
+\]
+gives a uniform bound.  A second bounded-convergence argument gives the square-integral limit.
+
+\paragraph{Variation estimate.}
+For fixed \(s\), the jumps of the step function \(H_n(\cdot,s)\) are differences of adjacent interval averages.  Each difference is bounded by the variation of \(H(\cdot,s)\) across the two intervals.  Summing yields
+\[
+ \operatorname{var}_tH_n(t,s)\le V(s).
+\]
+Consequently
+\[
+ \operatorname{var}_t\int H_n(t,s)x_n(s)ds
+ \le \mu_n\int V(s)ds.
+\]
+
+\paragraph{Stieltjes convergence.}
+First hold the integrator fixed at \(x\).  Lemma 5, applied to the bounded-variation function \(t\mapsto\int H(t,s)x(s)ds\), gives
+\[
+ \int\left(\int H_n(t,s)x(s)ds\right)dx(t)
+ \to
+ \int\left(\int H(t,s)x(s)ds\right)dx(t).
+\]
+Next compare the expression with \((x_n,x_n)\) to the one with \((x,x)\).  Integrate both Stieltjes integrals by parts.  Uniform convergence of \(x_n\), the pointwise convergence of the inner integrals, and the uniform variation estimates make every boundary and variation term tend to zero.  This proves the second limit and the stated bound.
+
+\section{Section 9: removing the diagonal jump}
+\sourceanchor{Section 9, Lemma 7, equations (9.1)--(9.20).}
+
+For \(0<\varepsilon<1/2\), define the odd tent with a unit jump at zero,
+\[
+ \Omega_\varepsilon(u)=
+ \begin{cases}
+ \operatorname{sgn}(u)-u/\varepsilon,&|u|\le\varepsilon,\\
+ 0,&|u|>\varepsilon.
+ \end{cases}
+\]
+Away from the three exceptional points,
+\[
+ \partial_t\Omega_\varepsilon(s-t)
+ =\varepsilon^{-1}\mathbf1_{\{|s-t|<\varepsilon,\ s\ne t\}}.
+\]
+
+\begin{lemma}[Lemma 7]
+If \(J\) is continuous and of bounded variation, and \(x\in C_0[0,1]\), then
+\begin{equation}
+ \lim_{\varepsilon\downarrow0}
+ \int_0^1\left[\int_0^1\partial_t\Omega_\varepsilon(s-t)J(s)x(s)\,ds\right]dx(t)
+ =\int_0^1J(t)\,d(x(t)^2).
+ \tag{9.2}\label{eq:CM-L7}
+\end{equation}
+If \(\|x\|_\infty\le\beta\), \(M=\max|J|\), and \(V=\operatorname{var}J\), the absolute value of the left side before the limit is at most \(\beta^2(M+V)\).
+\end{lemma}
+
+Extend \(x\) and \(J\) constantly outside \([0,1]\), with \(x=0\) to the left.  Direct substitution turns the inner integral into the symmetric moving average
+\[
+ \frac1\varepsilon\int_{t-\varepsilon}^{\min(t+\varepsilon,1)}J(s)x(s)ds.
+\]
+Integration by parts in \(t\) produces a boundary term and
+\[
+ -\frac1\varepsilon\int_0^1x(t)\,d_t
+ \int_{t-\varepsilon}^{\min(t+\varepsilon,1)}J(s)x(s)ds.
+\]
+After shifting variables, the latter equals an integral of
+\[
+ x(t)x(t+\varepsilon)\frac{J(t+\varepsilon)-J(t)}{\varepsilon}
+\]
+plus an endpoint remainder that vanishes.
+
+Write \(J=P-Q\) with \(P,Q\) continuous increasing.  Their moving averages \(P_\varepsilon,Q_\varepsilon\) are increasing and converge uniformly.  Passing to inverse functions converts
+\[
+ \int x(t)x(t+\varepsilon)\,dP_\varepsilon(t)
+\]
+to an ordinary integral over the range of \(P_\varepsilon\), where the integrand converges to \(x(P^{-1}(u))^2\).  Thus it converges to \(\int x^2dP\); the same holds for \(Q\).  Subtracting proves \eqref{eq:CM-L7}.  Repeating the decomposition with total-variation envelopes gives the bound \(\beta^2(M+V)\).
+
+\begin{remark}[The source's principal-value warning]
+The paper emphasizes that \(\int J\,d(x^2)\) cannot be replaced by \(2\int Jx\,dx\).  For \(J\equiv1\) and \(x(t)=t^{1/2}\cos(\pi/t)\), the latter Riemann--Stieltjes integral fails, while \(\int d(x^2)=x(1)^2\) exists.  The symmetric tent limit is therefore mathematically substantive and is linked by the authors to the arithmetic mean used on the kernel diagonal.
+\end{remark}
+
+\section{Section 10: proof of Theorem Ia}
+\sourceanchor{Section 10, equations (10.1)--(10.41).}
+
+The proof has two successive limits.  First the continuous jump-removed kernel is polygonalized and the finite-dimensional formula is passed to the limit \(n\to\infty\).  Then the jump removal is undone by letting \(\varepsilon\downarrow0\).
+
+\subsection{Continuous removal of the jump}
+Set
+\begin{equation}
+ A_\varepsilon(t,s)=\frac12\bigl[\Omega_\varepsilon(s-t)-\Omega_\varepsilon(s)\bigr]J(s),
+ \qquad
+ K_\varepsilon=K+A_\varepsilon.
+ \tag{10.1--10.2}\label{eq:CM-Keps}
+\end{equation}
+The term \(-\Omega_\varepsilon(s)J(s)/2\) ensures \(K_\varepsilon(0,s)=0\).  Across \(t=s\), \(A_\varepsilon\) has jump \(-J(s)\), exactly cancelling the jump of \(K\); both are assigned the arithmetic mean on the diagonal.  Hence \(K_\varepsilon\) is continuous on the square.  Also \(K_\varepsilon\to K\) pointwise, uniformly off an arbitrarily narrow diagonal strip, and the family is uniformly bounded.
+
+Let \(K_{\varepsilon,n}\) be the polygonalization in \(t\).  Let \(D_\varepsilon,D_{\varepsilon,n}\) be the corresponding Fredholm determinants and \(A_{\varepsilon,n}\) the finite determinant from Lemma 1.  Corollaries 2 and 3 imply
+\[
+ D_\varepsilon\to D,
+ \qquad
+ D_{\varepsilon,n}\to D_\varepsilon,
+ \qquad
+ A_{\varepsilon,n}\to D_\varepsilon.
+\]
+Thus for small \(\varepsilon\) and large \(n\), every determinant needed in Lemma 1 is nonzero.
+
+Apply Lemma 1 to \(F[x_n]\) and \(K_{\varepsilon,n}\):
+\begin{equation}
+ \int_CF[y_n]dW(y)
+ =|A_{\varepsilon,n}|\int_C
+ F\left[x_n+K_{\varepsilon,n}x_n\right]
+ e^{-\Phi_{\varepsilon,n}[x]}dW(x).
+ \tag{10.8}\label{eq:CM-10.8}
+\end{equation}
+
+\subsection{The limit \(n\to\infty\) for fixed \(\varepsilon\)}
+Uniform convergence of \(x_n\to x\) and \(K_{\varepsilon,n}\to K_\varepsilon\) gives
+\[
+ F[x_n+K_{\varepsilon,n}x_n]
+ \to F[x+K_\varepsilon x].
+\]
+Lemma 6, with \(H=\partial_tK_\varepsilon\), gives
+\[
+ \Phi_{\varepsilon,n}[x]\to
+ \Phi_\varepsilon[x]
+ :=\int\left(-\int\partial_tK_\varepsilon(t,s)x(s)ds\right)^2dt
+ +2\int\left(-\int\partial_tK_\varepsilon(t,s)x(s)ds\right)dx(t).
+\]
+
+The pointwise convergence is not enough because \(e^{-\Phi_{\varepsilon,n}}\) need not have an obvious integrable majorant.  The source uses the compact-support hypothesis on \(F\) together with Fredholm inversion.
+
+Let \(G\) be a sup-norm bounded set outside which \(F\) vanishes.  Since \(D_{\varepsilon,n}\) stays bounded away from zero, the Fredholm resolvent kernels of \(I+K_{\varepsilon,n}\) are uniformly bounded for large \(n\).  Therefore the union of the inverse images
+\[
+ (I+K_{\varepsilon,n})^{-1}G
+\]
+is sup-norm bounded.  Outside this bounded set the \(F\)-factor is zero.  On it, Lemma 6 bounds \(|\Phi_{\varepsilon,n}|\) uniformly in \(x,n\).  Thus the entire integrand in \eqref{eq:CM-10.8} is bounded by a constant.  Bounded convergence yields
+\begin{equation}
+ \int_CF[y]dW(y)
+ =|D_\varepsilon|\int_CF[x+K_\varepsilon x]e^{-\Phi_\varepsilon[x]}dW(x).
+ \tag{10.10}\label{eq:CM-10.10}
+\end{equation}
+
+\subsection{The limit \(\varepsilon\downarrow0\)}
+The perturbation satisfies
+\[
+ \sup_t\left|\int A_\varepsilon(t,s)x(s)ds\right|
+ \le \frac\varepsilon2\sup_s|J(s)x(s)|,
+\]
+so \(K_\varepsilon x\to Kx\) uniformly and the \(F\)-factor converges.
+
+Differentiating \eqref{eq:CM-Keps},
+\[
+ \partial_tK_\varepsilon(t,s)
+ =H(t,s)+\frac12\partial_t\Omega_\varepsilon(s-t)J(s).
+\]
+For almost every \(t\), the extra moving average tends to \(J(t)x(t)\).  Hence
+\[
+ -\int\partial_tK_\varepsilon(t,s)x(s)ds
+ \longrightarrow
+ -\int H(t,s)x(s)ds-J(t)x(t),
+\]
+which is the ordinary derivative of the split triangular integral \(t\mapsto\int K(t,s)x(s)ds\).  Bounded convergence gives the limit of the square term.
+
+For the Stieltjes term, split the derivative into \(H\) and the tent derivative.  The \(H\)-part tends to \(2\int h_x\,dx\); Lemma 7 gives the correction
+\[
+ \int_0^1J(t)d(x(t)^2).
+\]
+Thus \(\Phi_\varepsilon[x]\to\Phi[x]\).
+
+The final domination repeats the resolvent argument uniformly for small \(\varepsilon\).  Since \(D_\varepsilon\) stays bounded away from zero, the inverse images of the support of \(F\) remain in one sup-norm bounded set.  The bounds \eqref{eq:CM-Hbounds} and Lemma 7 then control \(\Phi_\varepsilon\) uniformly.  Passing to the limit in \eqref{eq:CM-10.10} proves Theorem Ia.
+
+\section{Section 11: from Theorem Ia to Theorem I}
+\sourceanchor{Section 11, equations (11.1)--(11.4).}
+
+A quasi-interval is a cylinder set
+\[
+ I=\{y:\lambda_j<y(t_j)<\mu_j,\ j=1,\ldots,r\}.
+\]
+Choose continuous polygonal cutoffs \(\phi_{j,\varepsilon}\) increasing to the indicator of \((\lambda_j,\mu_j)\), and a continuous cutoff \(\psi_\varepsilon\) of \(\max_t|y(t)|\) that increases to one.  Then
+\[
+ p_{I,\varepsilon}(y)
+ =\psi_\varepsilon(\|y\|_\infty)
+  \prod_{j=1}^r\phi_{j,\varepsilon}(y(t_j))
+\]
+is bounded, continuous, and supported in a bounded sup-norm set, so Theorem Ia applies.  Moreover
+\[
+ p_{I,\varepsilon}(y)\uparrow\mathbf1_I(y).
+\]
+Monotone convergence therefore gives the set formula for \(S=T^{-1}I\).
+
+The source then enlarges the class of sets from quasi-intervals to the completed Wiener sigma-algebra by the same argument used in Cameron--Martin's 1944 translation paper.  The collection of sets satisfying the transformation identity is a monotone class containing the cylinder algebra; null-set completion follows from the identity and positivity of the density.  Simple-function approximation and positive/negative decomposition then give the functional formula whenever either side exists.
+
+\section{Section 12: proof of Theorem II by composition}
+\sourceanchor{Section 12, equations (12.1)--(12.5).}
+
+Factor \(L=V\circ T\), where
+\[
+ Tx=x+Kx,
+ \qquad
+ Vz=z+x_0.
+\]
+The translation theorem from Cameron--Martin (1944) \cite{CameronMartin1944Translations} gives, in the source normalization,
+\[
+ \int F[z+x_0]dW(z)
+ =\exp\left[-\int_0^1(x_0'(t))^2dt\right]
+ \int F[z+x_0]\exp\left[-2\int_0^1x_0'(t)dz(t)\right]dW(z).
+\]
+Use Theorem I on the measurable functional
+\[
+ G[z]=F[z+x_0]\exp\left[-2\int x_0' dz\right].
+\]
+When \(z=Tx\),
+\[
+ dz(t)=dx(t)+d_t\int K(t,s)x(s)ds,
+\]
+and the extra term is integrated against \(x_0'\).  Combining it with the homogeneous square completes
+\[
+ \int\left[-x_0'-\int Hx\right]^2dt.
+\]
+The remaining cross term is
+\[
+ 2\int\left[-x_0'-\int Hx\right]dx,
+\]
+and the diagonal-jump term is unchanged.  This gives the exponent \(\Psi\) and proves Theorem II.
+
+\section{Section 13: the quadratic-functional example}
+\sourceanchor{Section 13, equations (13.1)--(13.12).}
+
+For real \(|\lambda|<\pi/2\), take
+\[
+ K_1(t,s)=0,
+ \qquad
+ K_2(t,s)=\lambda\tan(\lambda(s-1)).
+\]
+Then
+\[
+ K(t,s)=
+ \begin{cases}
+ 0,&t<s,\\
+ \frac12\lambda\tan(\lambda(s-1)),&t=s,\\
+ \lambda\tan(\lambda(s-1)),&s<t,
+ \end{cases}
+\]
+and
+\[
+ J(s)=-\lambda\tan(\lambda(s-1)).
+\]
+The associated transformation is
+\[
+ y(t)=x(t)+\lambda\int_0^t\tan(\lambda(s-1))x(s)ds.
+\]
+Because the kernel is Volterra, the Fredholm series exponentiates its diagonal integral:
+\begin{align*}
+ D
+ &=\exp\left[-\int_0^1K(s,s)ds\right]\\
+ &=\exp\left[-\frac12\int_0^1\lambda\tan(\lambda(s-1))ds\right]
+ =(\cos\lambda)^{1/2}.
+\end{align*}
+The derivative term is \(-\lambda\tan(\lambda(t-1))x(t)\).  Hence
+\begin{align*}
+ \Phi[x]
+ &=\lambda^2\int_0^1\tan^2(\lambda(s-1))x(s)^2ds
+ +\int_0^1\lambda\tan(\lambda(s-1))d(x(s)^2)\\
+ &=\lambda^2\int\tan^2(\lambda(s-1))x(s)^2ds
+ -\lambda^2\int\sec^2(\lambda(s-1))x(s)^2ds\\
+ &=-\lambda^2\int_0^1x(s)^2ds,
+\end{align*}
+where the middle equality is Stieltjes integration by parts and the endpoint term vanishes.
+
+Taking \(F\equiv1\) in Theorem I yields
+\begin{equation}
+ \int_C\exp\left(\lambda^2\int_0^1x(s)^2ds\right)dW(x)
+ =(\cos\lambda)^{-1/2}.
+ \tag{13.12}\label{eq:CM-mgf}
+\end{equation}
+The right side is analytic in the slit \(\lambda\)-plane with the branch positive on \((-\pi/2,\pi/2)\).  The left side is analytic for \(\operatorname{Re}(\lambda^2)<\pi^2/4\): absolute convergence follows from \eqref{eq:CM-mgf} on the real axis, and Morera's theorem follows after exchanging the contour and Wiener integrals.  Analytic continuation therefore gives \eqref{eq:CM-mgf} throughout that domain.  Writing \(\lambda^2=ip\) gives
+\[
+ \int_C\exp\left(ip\int_0^1x(s)^2ds\right)dW(x)
+ =\bigl(\sec\sqrt{ip}\bigr)^{1/2},
+\]
+with the branch specified above.
+
+\section{Source-level cautions retained}
+\begin{enumerate}[leftmargin=2em]
+\item The paper's Wiener normalization differs from the currently common Brownian normalization; the factors in every exponential must be kept together with that convention.
+\item The diagonal arithmetic mean and the Stieltjes term \(\int J\,d(x^2)\) are essential numerical ingredients.
+\item The passage from quasi-intervals to all Wiener-measurable sets is referred back to the 1944 paper rather than reproved in full; the monotone-class mechanism has been made explicit above.
+\item Fredholm resolvent bounds are invoked through the classical Fredholm algorithm.  The source does not restate the full determinant estimates each time.
+\item No modern stochastic-integral replacement has been used: all limiting integrals are the Riemann--Stieltjes expressions of the paper.
+\end{enumerate}
 
 \input{references_manual}
 \end{document}

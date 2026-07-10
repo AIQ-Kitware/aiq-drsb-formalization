@@ -158,6 +158,15 @@
         "Lemmas 1--7",
         "Theorem II",
         "final example"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 three-paper pass (batch 2).",
+      "supplementary_references": [
+        "CameronMartin1944Translations"
+      ],
+      "source_issues_recorded": [
+        "The source invokes the authors' earlier translation theorem rather than reproving it; that dependency is cited explicitly.",
+        "Several determinant and Stieltjes-limit passages are compressed in the source and are expanded without changing their approximation route.",
+        "The final quadratic-functional calculation depends on a branch choice for the square root of the secant factor."
       ]
     },
     "Carroll2004_birkhoff_contraction.tex": {
@@ -170,6 +179,15 @@
         "Theorem 1",
         "Sections 2.1--2.4",
         "Remark 2"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 three-paper pass (batch 2).",
+      "supplementary_references": [
+        "Luenberger1984"
+      ],
+      "source_issues_recorded": [
+        "The paper presents a finite-dimensional linear-programming reduction and does not claim the argument for general cones.",
+        "The strict contraction statement is separated from the non-strict coefficient bound at the boundary cases.",
+        "The modern linear-programming terminology used to clarify the reduction is attributed separately from Carroll's proof."
       ]
     },
     "ClassicalFoundations_DV_KLconvexity_supergradient.tex": {
@@ -196,6 +214,25 @@
         "Theorem 8",
         "Section 4, Propositions 9--10",
         "appendix proofs"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 three-paper pass (batch 2).",
+      "supplementary_references": [
+        "RogersWilliams2000",
+        "PalmowskiRolski2002",
+        "Leonard2012Girsanov",
+        "Leonard2014Survey",
+        "LeonardRoellyZambrini2014",
+        "BogachevKrasovitskiiShaposhnikov2021",
+        "Csiszar1975",
+        "Ruschendorf1995",
+        "vanErvenHarremoes2014",
+        "DeBortoliThorntonHengDoucet2021"
+      ],
+      "source_issues_recorded": [
+        "The convergence theorem relies on compactness of KL sublevel sets, lower semicontinuity, and closure of the Markov and reciprocal classes under the stated appendix assumptions.",
+        "The Pythagorean identities use exact conditional-law and Radon--Nikodym calculations; these are reconstructed rather than replaced by an abstract projection theorem.",
+        "The passage from vanishing successive KL increments to convergence of the entire alternating-projection sequence requires the compactness and fixed-point argument made explicit in the note.",
+        "Several stochastic-calculus identities are cited by the paper from standard Girsanov, time-reversal, and reciprocal-process references; those dependencies are named explicitly."
       ]
     },
     "EvesonNussbaum1995_birkhoff_hopf.tex": {

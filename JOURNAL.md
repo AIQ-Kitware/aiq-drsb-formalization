@@ -1104,3 +1104,73 @@ Untouched by any of the above, and taken on after this polish:
 
 Everything `lake build` green (8748 jobs); all card-path theorems, the weakened kernel, and the new
 `ForMathlib` lemmas `#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.
+
+---
+
+# Session journal — the `toReal` wart, and canonical objects (2026-07-10, Claude Opus 4.8)
+
+Third session in the sequence. **Goal:** fix the outstanding `Wkappa` issue; make the repo easier
+for a coming Mathlib-quality audit.
+
+## Both card claims are now edge-free
+
+`Wkappa` used to infimise the **real** `sinkhornObjective`. `klReal = (klDiv · ·).toReal`, and
+`klDiv = ∞` exactly when the coupling is *singular*, so `toReal` collapsed the worst possible
+coupling's entropy to `0` — and the infimum could be dragged down by precisely the couplings it
+should exclude. Ball membership carried no information; the SDRSB bound had to *assume* a
+finite-entropy plan (`hplan`).
+
+`Wkappa` now infimises `sinkhornObjectiveENN : ℝ≥0∞`, where a singular coupling scores `⊤` and drops
+out. Consequently `ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall` is a **theorem**, and
+`Drsb.sdrsb_cost_bound` takes no transport, attainment, or disintegration hypothesis — only `hV`,
+finite second moments, and `h_exp`/`hI_lp`, which constrain the *dual* and say nothing about
+transport. WDRSB and SDRSB now have matching, minimal surfaces.
+
+## Two traps this walked into, both worth remembering
+
+**The obvious ball definition would have falsified a proved theorem.** Writing
+`sinkhornBall := {μ | Wkappa ≤ ENNReal.ofReal ε}` looks right, but `ofReal` maps *every* negative
+radius to `0`, so a negative-radius ball becomes `{μ | Wkappa = 0}` — which is nonempty when
+`p₀ = ν = μ = δₐ`. That makes `WangGaoXie2023.primal_feasible_radius_nonneg` ("a nonempty ball has a
+nonnegative radius") **false**. The ball is instead `{μ | Wkappa ≠ ⊤ ∧ (Wkappa).toReal ≤ ε}`, which
+agrees for `ε ≥ 0` and is empty for `ε < 0`. The theorem's proof got shorter, not longer:
+nonnegativity of the discrepancy is now carried by the type.
+
+**The ball had to be shown nonempty.** `sinkhornBall` now demands `Wkappa ≠ ⊤`; a theorem quantified
+over an empty ball is vacuously true — the `if False then True` trap in another costume. So
+`ForMathlib.OT.mem_sinkhornBall_reference`: the reference `ν` lies in the ball around `p₀` once the
+radius covers the independent coupling's cost, since `KL(p₀⊗ν ‖ p₀⊗ν) = 0`. Proved, not asserted.
+
+## Canonical objects instead of anonymous existentials
+
+Per the user's steer toward Mathlib quality, the two `∃ _ ∧ _ ∧ …` bundles became structures:
+
+- `ForMathlib.OT.IsSinkhornPlan κ p₀ ν μ b γ` — `mem_couplings`, `absolutelyContinuous`,
+  `klDiv_ne_top`, `objective_le`.
+- `Drsb.IsSinkhornDisintegration p₀ ν V κ μ b P` — twelve named fields, each documented; with the
+  existential wrapper `Drsb.HasSinkhornDisintegration` and `.mono` in the budget.
+
+Proofs now read `hd.budget_le`, not `⟨_, _, _, hbudget, _, _, _, _, _, _, _, _⟩`. Renames followed:
+`isSinkhornWitness_of_coupling → hasSinkhornDisintegration_of_isSinkhornPlan`,
+`sdrsb_cost_bound_of_witnesses → …_of_disintegrations`, `…_of_attained_witness →
+…_of_attained_disintegration`, `exists_coupling_sinkhornObjective_le →
+exists_isSinkhornPlan_of_mem_sinkhornBall`. The `ℝ≥0∞`/real bridge was factored into named lemmas
+(`couplingCost2_eq_toReal`, `sinkhornObjective_eq_toReal_of_ne_top`,
+`klDiv_ne_top_of_sinkhornObjectiveENN_ne_top`, …) rather than inlined.
+
+## What is deliberately NOT done
+
+`otCost` / `wassersteinBall` have the identical Bochner-junk pathology, currently neutralised by the
+`HasSecondMoment` hypotheses rather than by a better definition. Making `otCost` `ℝ≥0∞`-valued would
+let `wdrsb_cost_bound` drop `hμ2`/`hp2`, but `otCost` is consumed with a *general* cost `c` at 14
+sites in `BlanchetMurthy2019`, 5 in `GaoKleywegt2023` and 4 in `MohajerinEsfahaniKuhn2018`, several
+constructively (`otCost_le_couplingCost` inside worst-case-measure builds). That is a real refactor,
+not a rename — and **nothing now proved is unsound without it**. Flagged in `STATUS.md` for the
+audit/refactor pass.
+
+The deferred campaign is unchanged and recorded in `STATUS.md`: worst-case-measure attainment
+(the `≥` half, which the `≤`-only cards never need), Itô/Girsanov, Kolmogorov extension for
+dependent families, Kakutani.
+
+Everything `lake build` green (8748 jobs); all card-path theorems, the renamed declarations, and the
+new `ForMathlib` lemmas `#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.

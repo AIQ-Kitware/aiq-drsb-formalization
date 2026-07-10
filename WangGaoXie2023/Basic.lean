@@ -90,25 +90,20 @@ holds only after the reference-kernel reformulation (prose Eq. `(2)`–`(3)`: sh
 `ρ̄ = ρ + κ·𝔼_{μ̂}[log ∫ e^{−c/κ} dν]` and the Gibbs kernel `Q_{x,κ}`), where the constraint
 becomes `κ·𝔼_{μ̂}[KL(γ_x ‖ Q_{x,κ})] ≤ ρ̄` and `KL ≥ 0` gives feasibility ⇔ `ρ̄ ≥ 0`. That
 sufficiency direction is the worst-case-measure **attainment** edge (an OT existence result
-absent from Mathlib, §6 T4) and stays deferred; the necessity below is unconditional. -/
+absent from Mathlib, §6 T4) and stays deferred; the necessity below is unconditional.
+
+`W_{κ,ν}` is `ℝ≥0∞`-valued, so nonnegativity of the discrepancy is now carried by the type and
+the necessity half is immediate from `ENNReal.toReal_nonneg`. (`_hκ` is the source theorem's own
+hypothesis, no longer proof-critical — the `κ ≥ 0` sign work it used to do is subsumed. Kept for
+fidelity, `_`-prefixed per AGENTS.md.) This is also exactly why `sinkhornBall` is stated as
+"`W_{κ,ν}` finite ∧ `toReal ≤ ε`" and not "`W_{κ,ν} ≤ ENNReal.ofReal ε`": the latter sends every
+negative radius to `0`, making the negative-radius ball `{μ | W_{κ,ν} = 0}`, which is nonempty
+when `μ̂ = ν = μ = δₐ` — and this theorem would be **false**. -/
 theorem primal_feasible_radius_nonneg
-    (μhat ν : ProbabilityMeasure X) (κ ε : ℝ) (hκ : 0 ≤ κ)
+    (μhat ν : ProbabilityMeasure X) (κ ε : ℝ) (_hκ : 0 ≤ κ)
     (h : (sinkhornBall μhat ν κ ε).Nonempty) : 0 ≤ ε := by
-  obtain ⟨μ, hμ⟩ := h
-  -- `hμ : W_{κ,ν}(μ̂, μ) ≤ ε` (ball membership is the defining inequality)
-  have hW : 0 ≤ Wkappa κ ν μhat μ := by
-    unfold Wkappa
-    apply Real.sInf_nonneg
-    rintro r ⟨γ, _, rfl⟩
-    -- each candidate value is `couplingCost2 γ + κ·klReal(γ ‖ μ̂⊗ν) ≥ 0`
-    have h1 : 0 ≤ couplingCost2 γ := by
-      unfold couplingCost2 couplingCost
-      exact integral_nonneg (fun z => sq_nonneg _)
-    have h2 : 0 ≤ klReal (γ : Measure (X × X)) (prodMeasure μhat ν) :=
-      ENNReal.toReal_nonneg
-    unfold sinkhornObjective
-    exact add_nonneg h1 (mul_nonneg hκ h2)
-  exact le_trans hW hμ
+  obtain ⟨μ, -, hle⟩ := h
+  exact le_trans ENNReal.toReal_nonneg hle
 
 /-! ## The inner Gibbs variational identity (engine of Theorem 1, step 2)
 
@@ -226,7 +221,7 @@ The conditions on the conditionals (`hac`, `hf_P`, `hc_P`, `h_llr`) are `p₀`-*
 disintegrating a coupling (`Measure.condKernel`), and a `condKernel` is determined only up
 to a `p₀`-null set — it satisfies these conditions a.e. and nothing stronger. Demanding
 `∀ x` here would make the kernel unusable by its sole intended caller
-(`Drsb.isSinkhornWitness_of_coupling`). `hP` stays `∀ x` because `condKernel` *is* a Markov
+(`Drsb.hasSinkhornDisintegration_of_isSinkhornPlan`). `hP` stays `∀ x` because `condKernel` *is* a Markov
 kernel on the nose. -/
 theorem sinkhorn_weak_duality_kernel
     (p₀ ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
@@ -315,7 +310,6 @@ The paper's Assumption 1 is replaced by the operational **edges** that make it p
 theorem strong_duality
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
     (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε →
-      (Wkappa κ ν μhat μ ≤ ε →
         ∃ P : X → Measure X,
           (∀ x, IsProbabilityMeasure (P x)) ∧ (∀ x, P x ≪ (ν : Measure X)) ∧
           expect μ f = (∫ x, (∫ y, f y ∂(P x)) ∂(μhat : Measure X)) ∧
@@ -329,7 +323,7 @@ theorem strong_duality
           Integrable (fun x => ∫ y, c x y ∂(P x)) (μhat : Measure X) ∧
           Integrable (fun x => klReal (P x) (ν : Measure X)) (μhat : Measure X) ∧
           (∀ lam, 0 < lam → Integrable
-              (fun x => logPartition ν c f κ lam x) (μhat : Measure X))))
+              (fun x => logPartition ν c f κ lam x) (μhat : Measure X)))
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ sinkhornBall μhat ν κ ε ∧ r = expect μ f })
     (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall μhat ν κ ε ∧
@@ -343,7 +337,7 @@ theorem strong_duality
     · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ f, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
       obtain ⟨P, hP, hac, hVdis, hbudget, hf_P, hc_P, h_llr, h_exp, hI_f, hI_c, hI_kl, hI_lp⟩ :=
-        hSinkAll μ hμ hμ
+        hSinkAll μ hμ
       refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
       rintro d ⟨lam, hlam, rfl⟩
       have key := sinkhorn_weak_duality_kernel μhat ν c f κ lam hκ hlam P hP

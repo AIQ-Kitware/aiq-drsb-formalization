@@ -239,14 +239,25 @@ A reader should never have to reason about which of two adjacent statements is c
   header of `WangGaoXie2023/Basic.lean` and `prose/sinkhorn-dro-duality.md`.
 - **Esfahani–Kuhn uses the 1-Wasserstein metric** (unsquared `‖ξ−ξ̂‖`), whereas DRSB and
   Gao–Kleywegt use `W₂²`. Cost order differs; flagged in `MohajerinEsfahaniKuhn2018`.
-- **Bochner junk silently inflates the ambiguity balls.** `couplingCost` is `∫ c dπ` (a
-  *Bochner* integral) and `klReal` is `(klDiv …).toReal`. Both return `0` on the bad
-  branch — non-integrable cost, or `klDiv = ⊤`. So a `μ` of infinite second moment makes
-  *every* coupling cost evaluate to `0`, whence `W₂²(μ, p₀) = 0 ≤ ε` and `μ` lies in
-  `wassersteinBall p₀ ε` for **every** radius. Ball membership alone therefore constrains
-  nothing. Any theorem quantifying over a ball needs a moment/finiteness hypothesis to
-  exclude the junk members (`Drsb.HasSecondMoment`); `sinkhornBall` has the identical
-  pathology via `klReal`. Do not read `μ ∈ ball` as "`μ` is close to `p₀`".
+- **A `toReal`/Bochner infimum silently inflates an ambiguity ball.** `couplingCost` is
+  `∫ c dπ` (a *Bochner* integral) and `klReal` is `(klDiv …).toReal`. Both return `0` on
+  the bad branch — non-integrable cost, or `klDiv = ⊤` (a *singular* coupling!). Infimising
+  such a quantity lets the **worst** coupling score `0` and drag the discrepancy to nothing.
+  The cure is to infimise the `ℝ≥0∞` quantity, where the bad branch is `⊤` and drops out:
+  that is why `Wkappa` is built on `sinkhornObjectiveENN`, and it is what makes
+  `exists_isSinkhornPlan_of_mem_sinkhornBall` a theorem rather than an edge.
+  `otCost`/`wassersteinBall` are **not yet fixed this way** — there, a `μ` of infinite second
+  moment lies in `wassersteinBall p₀ ε` for *every* radius, and the `Drsb.HasSecondMoment`
+  hypotheses are what exclude it. Until that is refactored, do not read `μ ∈ wassersteinBall`
+  as "`μ` is close to `p₀`".
+- **When a ball is defined by an `ℝ≥0∞` quantity and a real radius, do not use
+  `≤ ENNReal.ofReal ε`.** `ofReal` maps every negative radius to `0`, so a negative-radius
+  ball becomes `{μ | W = 0}` — generally nonempty — instead of empty. Use
+  `W ≠ ⊤ ∧ W.toReal ≤ ε` (as `sinkhornBall` does). The `ofReal` form would have falsified
+  `WangGaoXie2023.primal_feasible_radius_nonneg`.
+- **Prove your ball is nonempty before trusting a theorem quantified over it**
+  (`ForMathlib.OT.mem_sinkhornBall_reference`). An empty ball makes every such theorem
+  vacuously true — the `if False then True` trap in another costume.
 - **An `sInf` never hands you a minimizer.** `otCost`/`Wkappa` are infima, so `≤ ε` yields
   a witness of cost `< ε + η` for each `η > 0`, not one of cost `≤ ε`. Assuming the latter
   is assuming *attainment* — a research-grade theorem (T4). Almost always the `η ↓ 0` limit
@@ -254,7 +265,7 @@ A reader should never have to reason about which of two adjacent statements is c
   outright; that is how `Drsb.wdrsb_cost_bound` lost its `hOT`. **Before writing an
   attainment edge, check whether `ε + η` suffices.** When you do weaken an edge, leave a
   machine-checked receipt that the old hypothesis implies the new one
-  (`wdrsb_cost_bound_of_ot_edge`, `sdrsb_cost_bound_of_attained_witness`) — otherwise
+  (`wdrsb_cost_bound_of_ot_edge`, `sdrsb_cost_bound_of_attained_disintegration`) — otherwise
   "we weakened the assumptions" is an unverified claim.
 - **State conditions on a disintegration `∀ᵐ x`, never `∀ x`.** A `Measure.condKernel` is
   determined only up to a null set of the first marginal, so it satisfies `P x ≪ ν`, slice

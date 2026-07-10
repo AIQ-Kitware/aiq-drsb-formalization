@@ -259,49 +259,74 @@ theorem wdrsb_cost_bound_of_ot_edge [OpensMeasurableSpace X] [MeasurableSub₂ X
 
 /-! ## SDRSB worst-case cost bound  (card `sdrsb_cost_bound.yaml`) -/
 
-/-- **The Sinkhorn disintegration witness** at budget `b`: the `W_{κ,ν}(p₀, μ)` transport
-from the nominal `p₀` to the source `μ` is realized by a conditional family `P` (each
-`P x ≪ ν`) whose `p₀`-mixture is `μ` (`expect μ V = ∫∫ V dP dp₀`), whose disintegrated
-entropic budget `∫ (𝔼_{P_x}‖x−·‖² + κ·KL(P_x‖ν)) dp₀` is `≤ b`, and which carries the
-standard Donsker–Varadhan / aggregate integrability.
+/-- **A Sinkhorn disintegration** of the source `μ` at budget `b`: the conditional family `P`
+(each `P x ≪ ν`) whose `p₀`-mixture is `μ`, whose disintegrated entropic budget
+`∫ (𝔼_{P_x}‖x−·‖² + κ·KL(P_x‖ν)) dp₀` is `≤ b`, and which carries the Donsker–Varadhan /
+aggregate integrability the dual bound needs.
 
-This is the entropic counterpart of a transport plan. Naming it separates the *one*
-remaining SDRSB edge from the regularity noise, and lets the budget `b` be a parameter —
-which is what allows the bound below to consume a **near-optimal** witness (`b = ε + η`)
-rather than an attained one (`b = ε`).
+The entropic counterpart of a transport plan, and a `structure` rather than a nested `∃ _ ∧ _`
+so that every consumer gets stable field names instead of a twelve-deep anonymous constructor.
 
 The conditions on the conditionals are `p₀`-**a.e.**, because `Measure.condKernel` — the only
-thing that ever produces `P` — is determined only up to a `p₀`-null set. `IsProbabilityMeasure`
+thing that ever produces `P` — is determined only up to a `p₀`-null set. `isProbabilityMeasure`
 stays `∀ x` since `condKernel` is a Markov kernel on the nose.
 
-This edge is **discharged** by `isSinkhornWitness_of_coupling` below: on a standard-Borel `X`
-you hand over a *coupling* `γ`, not a conditional family, and `condKernel` + the KL chain rule
-build the witness. What survives is regularity of `γ`. -/
-def IsSinkhornWitness (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ : ℝ)
+`integrable_exp` and `integrable_logPartition` are the odd ones out: they constrain the *dual*
+(the log-partition of `V` against `ν`) and say nothing about `P`. They ride along because the
+Donsker–Varadhan aggregation needs them at the same `lam`. -/
+structure IsSinkhornDisintegration (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ : ℝ)
+    (μ : ProbabilityMeasure X) (b : ℝ) (P : X → Measure X) : Prop where
+  /-- Each conditional is a probability measure (`condKernel` is a Markov kernel). -/
+  isProbabilityMeasure : ∀ x, IsProbabilityMeasure (P x)
+  /-- Each conditional is absolutely continuous against the reference, `p₀`-a.e. -/
+  absolutelyContinuous : ∀ᵐ x ∂(p₀ : Measure X), P x ≪ (ν : Measure X)
+  /-- The `p₀`-mixture of the conditionals reproduces `μ`'s expectation of `V`. -/
+  expect_eq : expect μ V = ∫ x, (∫ y, V y ∂(P x)) ∂(p₀ : Measure X)
+  /-- The disintegrated Sinkhorn budget is within `b`. -/
+  budget_le : (∫ x, ((∫ y, sqCost x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
+      ∂(p₀ : Measure X)) ≤ b
+  /-- `V` is integrable against each conditional, `p₀`-a.e. -/
+  integrable_V : ∀ᵐ x ∂(p₀ : Measure X), Integrable V (P x)
+  /-- The transport cost is integrable against each conditional, `p₀`-a.e. -/
+  integrable_cost : ∀ᵐ x ∂(p₀ : Measure X), Integrable (fun y => sqCost x y) (P x)
+  /-- The log-likelihood ratio is integrable, `p₀`-a.e. (the Donsker–Varadhan hypothesis). -/
+  integrable_llr : ∀ᵐ x ∂(p₀ : Measure X),
+      Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x)
+  /-- The Gibbs tilt is `ν`-integrable at every positive multiplier (a condition on the dual). -/
+  integrable_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+      (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X)
+  /-- The conditional mean of `V` is `p₀`-integrable. -/
+  integrable_integral_V : Integrable (fun x => ∫ y, V y ∂(P x)) (p₀ : Measure X)
+  /-- The conditional mean cost is `p₀`-integrable. -/
+  integrable_integral_cost : Integrable (fun x => ∫ y, sqCost x y ∂(P x)) (p₀ : Measure X)
+  /-- The conditional relative entropy is `p₀`-integrable. -/
+  integrable_klReal : Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X)
+  /-- The log-partition is `p₀`-integrable at every positive multiplier (a condition on the dual). -/
+  integrable_logPartition : ∀ lam, 0 < lam → Integrable
+      (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X)
+
+/-- **The source `μ` admits a Sinkhorn disintegration at budget `b`.** The existential over the
+conditional family; this is what the SDRSB cost bound consumes, one witness per `η > 0`.
+
+Discharged by `hasSinkhornDisintegration_of_isSinkhornPlan`: on a standard-Borel `X` you hand
+over a *transport plan* `γ`, not a conditional family, and `condKernel` + the KL chain rule build
+the disintegration. -/
+def HasSinkhornDisintegration (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ : ℝ)
     (μ : ProbabilityMeasure X) (b : ℝ) : Prop :=
-  ∃ P : X → Measure X,
-    (∀ x, IsProbabilityMeasure (P x)) ∧
-    (∀ᵐ x ∂(p₀ : Measure X), P x ≪ (ν : Measure X)) ∧
-    expect μ V = (∫ x, (∫ y, V y ∂(P x)) ∂(p₀ : Measure X)) ∧
-    (∫ x, ((∫ y, sqCost x y ∂(P x)) + κ * klReal (P x) (ν : Measure X))
-        ∂(p₀ : Measure X)) ≤ b ∧
-    (∀ᵐ x ∂(p₀ : Measure X), Integrable V (P x)) ∧
-    (∀ᵐ x ∂(p₀ : Measure X), Integrable (fun y => sqCost x y) (P x)) ∧
-    (∀ᵐ x ∂(p₀ : Measure X), Integrable (MeasureTheory.llr (P x) (ν : Measure X)) (P x)) ∧
-    (∀ lam, 0 < lam → ∀ x, Integrable
-        (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X)) ∧
-    Integrable (fun x => ∫ y, V y ∂(P x)) (p₀ : Measure X) ∧
-    Integrable (fun x => ∫ y, sqCost x y ∂(P x)) (p₀ : Measure X) ∧
-    Integrable (fun x => klReal (P x) (ν : Measure X)) (p₀ : Measure X) ∧
-    (∀ lam, 0 < lam → Integrable
-        (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
+  ∃ P : X → Measure X, IsSinkhornDisintegration p₀ ν V κ μ b P
+
+/-- A disintegration at a tighter budget is one at a looser budget. -/
+theorem IsSinkhornDisintegration.mono {p₀ ν : ProbabilityMeasure X} {V : X → ℝ} {κ : ℝ}
+    {μ : ProbabilityMeasure X} {b b' : ℝ} {P : X → Measure X}
+    (h : IsSinkhornDisintegration p₀ ν V κ μ b P) (hb : b ≤ b') :
+    IsSinkhornDisintegration p₀ ν V κ μ b' P :=
+  { h with budget_le := h.budget_le.trans hb }
 
 /-- A witness for a tighter budget is a witness for a looser one. -/
-theorem IsSinkhornWitness.mono {p₀ ν : ProbabilityMeasure X} {V : X → ℝ} {κ : ℝ}
-    {μ : ProbabilityMeasure X} {b b' : ℝ} (h : IsSinkhornWitness p₀ ν V κ μ b) (hb : b ≤ b') :
-    IsSinkhornWitness p₀ ν V κ μ b' := by
-  obtain ⟨P, hP, hac, hVdis, hbudget, rest⟩ := h
-  exact ⟨P, hP, hac, hVdis, hbudget.trans hb, rest⟩
+theorem HasSinkhornDisintegration.mono {p₀ ν : ProbabilityMeasure X} {V : X → ℝ} {κ : ℝ}
+    {μ : ProbabilityMeasure X} {b b' : ℝ} (h : HasSinkhornDisintegration p₀ ν V κ μ b)
+    (hb : b ≤ b') : HasSinkhornDisintegration p₀ ν V κ μ b' :=
+  let ⟨P, hP⟩ := h; ⟨P, hP.mono hb⟩
 
 /-- **The SDRSB disintegration edge, discharged.** On a standard-Borel `X` you do not have to
 supply a conditional family at all: hand over a **coupling** `γ ∈ Π(p₀, μ)` of finite entropy
@@ -320,29 +345,23 @@ Everything the old edge asked you to assert about `P` is now derived:
 * `hI_kl` is `integrable_toReal_klDiv_kernel`, and the two slice-integrability facts are
   `Measure.integrable_compProd_iff`.
 
-Residual hypotheses are regularity of `γ` and the log-partition conditions on `ν`/`V`, which
-concern the dual and not the transport. The cost's integrability is free from second moments
-(`ForMathlib.OT.integrable_normSq_sub_of_mem_couplings`), exactly as in `wdrsb_cost_bound`.
-
-⚠️ `hac`/`hfin` are **not** implied by `Wkappa κ ν p₀ μ ≤ ε`. `klReal` is `toReal`, so a `γ` with
-`klDiv γ (p₀⊗ν) = ⊤` contributes the junk value `0` to that infimum. Ball membership alone
-therefore does not produce a finite-entropy coupling — see the note on `sinkhornBall` in
-`STATUS.md`. -/
-theorem isSinkhornWitness_of_coupling
+Residual hypotheses are the log-partition conditions on `ν`/`V`, which concern the dual and not
+the transport, plus `hV` and the finite second moments — the latter giving the transport cost's
+integrability exactly as in `wdrsb_cost_bound`. The plan itself comes from ball membership
+(`ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall`), so no edge survives. -/
+theorem hasSinkhornDisintegration_of_isSinkhornPlan
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
-    (p₀ ν μ : ProbabilityMeasure X) (V : X → ℝ) (κ b : ℝ)
-    (γ : ProbabilityMeasure (X × X)) (hγ : γ ∈ couplings p₀ μ)
-    (hac : (γ : Measure (X × X)) ≪ prodMeasure p₀ ν)
-    (hfin : InformationTheory.klDiv (γ : Measure (X × X)) (prodMeasure p₀ ν) ≠ ⊤)
-    (hbudget : sinkhornObjective κ p₀ ν γ ≤ b)
+    {p₀ ν μ : ProbabilityMeasure X} {κ b : ℝ} {γ : ProbabilityMeasure (X × X)}
+    (hplan : ForMathlib.OT.IsSinkhornPlan κ p₀ ν μ b γ) (V : X → ℝ)
     (hV : Integrable V (μ : Measure X))
     (hp2 : HasSecondMoment p₀) (hμ2 : HasSecondMoment μ)
     (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
         (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X)) :
-    IsSinkhornWitness p₀ ν V κ μ b := by
+    HasSinkhornDisintegration p₀ ν V κ μ b := by
   classical
+  obtain ⟨hγ, hac, hfin, hbudget⟩ := hplan
   have hfstγ : Measure.map Prod.fst (γ : Measure (X × X)) = (p₀ : Measure X) := hγ.1
   have hsndγ : Measure.map Prod.snd (γ : Measure (X × X)) = (μ : Measure X) := hγ.2
   -- the conditional family is the coupling's conditional kernel
@@ -418,75 +437,74 @@ theorem isSinkhornWitness_of_coupling
       ∂(p₀ : Measure X)) ≤ b := by
     rw [integral_add hI_c (hI_kl.const_mul κ), integral_const_mul, ← hcostdis, ← hKL]
     exact hbudget
-  exact ⟨fun x => P x, fun x => inferInstance, hac_slice, hVdis, hbud, hf_P, hc_P, h_llr,
-    h_exp, hI_V, hI_c, hI_kl, hI_lp⟩
+  exact ⟨fun x => P x,
+    { isProbabilityMeasure := fun x => inferInstance
+      absolutelyContinuous := hac_slice
+      expect_eq := hVdis
+      budget_le := hbud
+      integrable_V := hf_P
+      integrable_cost := hc_P
+      integrable_llr := h_llr
+      integrable_exp := h_exp
+      integrable_integral_V := hI_V
+      integrable_integral_cost := hI_c
+      integrable_klReal := hI_kl
+      integrable_logPartition := hI_lp }⟩
 
-/-- **SDRSB cost bound** (the `sdrsb_cost_bound.yaml` claim): any source inside the
-Sinkhorn ball (external reference `ν`) has expected cost bounded by the Sinkhorn-DRO dual
-worst-case value. **PROVED** — the `≤`/weak-duality direction, the entropic analogue of
-`wdrsb_cost_bound`, composing the proved Sinkhorn weak-duality kernel
-`WangGaoXie2023.sinkhorn_weak_duality_kernel` (the per-point Gibbs/DV bound integrated over
-`p₀`) with a near-optimal budget and `le_csInf`.
+/-- **SDRSB weak duality, given near-optimal witnesses.** The kernel of the card bound: if for
+every `η > 0` the source `μ` admits a Sinkhorn disintegration witness of budget `≤ ε + η`, then
+its expected cost is bounded by the Sinkhorn-DRO dual value.
 
-The single remaining edge is `hSink` (cf. AGENTS.md §6; the audit fixed the ball to share
-the external reference `ν` — `prose/sinkhorn-dro-duality.md`). It is now **strictly weaker
-than before**: it asks only for a witness of budget `≤ ε + η` for each `η > 0`, i.e. a
-*near-optimal* disintegration, where it used to demand one of budget `≤ ε` — an
-**attained** optimum. As in `wdrsb_cost_bound`, `W_{κ,ν}` is an `sInf` and so supplies the
-former but never the latter; the exact conclusion is recovered by letting `η ↓ 0`. All the
-attainment content has therefore been removed from the SDRSB edge as well, leaving
-disintegration + regularity.
+Composes `WangGaoXie2023.sinkhorn_weak_duality_kernel` (the per-point Gibbs/Donsker–Varadhan
+bound integrated over `p₀`) with `le_csInf` and a limit `η ↓ 0`. Only near-optimal witnesses are
+required, never an attained one — `W_{κ,ν}` is an infimum and supplies the former only.
 
-**`0 < lam`** in the dual set (not `0 ≤ lam`): at `lam = 0` the Lean `logPartition`
-degenerates to `0` (junk from `0/0`) rather than the paper's `λ↓0` ess-sup limit, so the
-`λ=0` term is excluded (documented limitation — the ess-sup convention is unencoded). -/
-theorem sdrsb_cost_bound (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
-    (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ ν κ ε)
-    (hSink : ∀ η : ℝ, 0 < η → Wkappa κ ν p₀ μ ≤ ε →
-      IsSinkhornWitness p₀ ν V κ μ (ε + η)) :
+Callers should prefer `sdrsb_cost_bound`, which *builds* the disintegrations. -/
+theorem sdrsb_cost_bound_of_disintegrations (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ)
+    (hκ : 0 < κ) (μ : ProbabilityMeasure X)
+    (hSink : ∀ η : ℝ, 0 < η → HasSinkhornDisintegration p₀ ν V κ μ (ε + η)) :
     expect μ V
       ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
   refine le_csInf ⟨_, 1, one_pos, rfl⟩ ?_
   rintro v ⟨lam, hlam, rfl⟩
-  -- the entropic infimum is not attained either: beat the dual value by an arbitrary `δ > 0`
+  -- the entropic infimum is not attained: beat the dual value by an arbitrary `δ > 0`
   refine le_of_forall_pos_le_add ?_
   intro δ hδ
-  obtain ⟨P, hP, hac, hVdis, hbudget, hf_P, hc_P, h_llr, h_exp, hI_V, hI_c, hI_kl, hI_lp⟩ :=
-    hSink (δ / lam) (div_pos hδ hlam) hμ
-  have key := WangGaoXie2023.sinkhorn_weak_duality_kernel p₀ ν sqCost V κ lam hκ hlam P hP hac
-    hf_P hc_P h_llr (h_exp lam hlam) hI_V hI_c hI_kl (hI_lp lam hlam)
-  have hb := mul_le_mul_of_nonneg_left hbudget (le_of_lt hlam)
+  obtain ⟨P, hd⟩ := hSink (δ / lam) (div_pos hδ hlam)
+  have key := WangGaoXie2023.sinkhorn_weak_duality_kernel p₀ ν sqCost V κ lam hκ hlam P
+    hd.isProbabilityMeasure hd.absolutelyContinuous hd.integrable_V hd.integrable_cost
+    hd.integrable_llr (hd.integrable_exp lam hlam) hd.integrable_integral_V
+    hd.integrable_integral_cost hd.integrable_klReal (hd.integrable_logPartition lam hlam)
+  have hb := mul_le_mul_of_nonneg_left hd.budget_le (le_of_lt hlam)
   rw [show lam * (ε + δ / lam) = lam * ε + δ by field_simp] at hb
-  rw [hVdis]
+  rw [hd.expect_eq]
   simp only [WangGaoXie2023.sinkhornDualObjective, expect]
   linarith [key, hb]
 
-/-- **The SDRSB relaxation strengthened nothing either.** The old edge — an *attained*
-disintegration of budget `≤ ε` — implies the new near-optimal one (`b = ε ≤ ε + η`), so
-the card bound still follows from it. The machine-checked receipt that `sdrsb_cost_bound`'s
-hypothesis was weakened, not traded. The converse fails: an `sInf` supplies no minimizer. -/
-theorem sdrsb_cost_bound_of_attained_witness (p₀ ν : ProbabilityMeasure X) (V : X → ℝ)
-    (κ ε : ℝ) (hκ : 0 < κ) (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ ν κ ε)
-    (hSink : Wkappa κ ν p₀ μ ≤ ε → IsSinkhornWitness p₀ ν V κ μ ε) :
-    expect μ V
-      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
-          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } :=
-  sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ
-    fun η hη hW => (hSink hW).mono (by linarith)
+/-- **SDRSB cost bound** (the `sdrsb_cost_bound.yaml` claim `E_perturbed[V] ≤ E_wc[V]`): any
+source `μ` inside the Sinkhorn ball around the nominal `p₀` (external reference `ν`) has
+expected cost bounded by the Sinkhorn-DRO dual worst-case value.
 
-/-- **SDRSB cost bound from transport plans alone** — the card claim with no conditional family
-and no attainment anywhere. Composes `sdrsb_cost_bound` (near-optimal budget, `η ↓ 0`) with
-`isSinkhornWitness_of_coupling` (disintegration + KL chain rule).
+**Proved, with no optimal-transport and no disintegration edge** — the entropic twin of
+`wdrsb_cost_bound`. Ball membership alone produces everything:
 
-`hplan` is the entropic analogue of what `wdrsb_cost_bound` gets for free from `W₂²`'s `sInf`:
-for every `η > 0` there is a coupling of `p₀` with `μ`, of finite entropy relative to `p₀ ⊗ ν`,
-whose Sinkhorn objective is within `η` of the radius. It is **not** derivable from
-`μ ∈ sinkhornBall p₀ ν κ ε` as `Wkappa` is currently defined, because `klReal` is `toReal` and so
-scores an infinite-entropy coupling as `0`; the finite-entropy requirement is exactly what that
-junk value hides. Fixing `Wkappa` to be `ℝ≥0∞`-valued would make `hplan` a theorem — recorded in
-`STATUS.md` as the next definitional cleanup. -/
-theorem sdrsb_cost_bound_of_plans
+* `ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall` extracts, for each `η > 0`, a plan
+  `γ ∈ Π(p₀, μ)` of finite entropy relative to `p₀ ⊗ ν` and Sinkhorn objective `≤ ε + η`. This
+  is a theorem because `Wkappa` infimises the **`ℝ≥0∞`** objective, in which a singular coupling
+  correctly scores `⊤` instead of the junk value `0`;
+* `hasSinkhornDisintegration_of_isSinkhornPlan` turns that plan into a conditional family, via
+  `Measure.condKernel` and the KL chain rule;
+* `sdrsb_cost_bound_of_disintegrations` runs the Donsker–Varadhan bound and lets `η ↓ 0`.
+
+The surviving hypotheses are checkable regularity: `hV`, the finite second moments (which give
+the transport cost's integrability, exactly as in `wdrsb_cost_bound`), and `h_exp`/`hI_lp`, which
+constrain the *dual* — the log-partition of `V` against `ν` — and say nothing about transport.
+
+**`0 < lam`** in the dual set (not `0 ≤ lam`): at `lam = 0` the Lean `logPartition` degenerates
+to `0` (junk from `0/0`) rather than the paper's `λ↓0` ess-sup limit, so the `λ=0` term is
+excluded (documented limitation — the ess-sup convention is unencoded). -/
+theorem sdrsb_cost_bound
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
     (μ : ProbabilityMeasure X) (hμ : μ ∈ sinkhornBall p₀ ν κ ε)
@@ -495,29 +513,46 @@ theorem sdrsb_cost_bound_of_plans
     (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
         (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
     (hI_lp : ∀ lam, 0 < lam → Integrable
-        (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
-    (hplan : ∀ η : ℝ, 0 < η → ∃ γ ∈ couplings p₀ μ,
-        (γ : Measure (X × X)) ≪ prodMeasure p₀ ν ∧
-        InformationTheory.klDiv (γ : Measure (X × X)) (prodMeasure p₀ ν) ≠ ⊤ ∧
-        sinkhornObjective κ p₀ ν γ ≤ ε + η) :
+        (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X)) :
     expect μ V
       ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } :=
-  sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ fun η hη _ => by
-    obtain ⟨γ, hγ, hac, hfin, hb⟩ := hplan η hη
-    exact isSinkhornWitness_of_coupling p₀ ν μ V κ (ε + η) γ hγ hac hfin hb hV hp2 hμ2 h_exp hI_lp
+  sdrsb_cost_bound_of_disintegrations p₀ ν V κ ε hκ μ fun η hη => by
+    obtain ⟨γ, hplan⟩ :=
+      ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall p₀ ν μ κ ε η hκ hη hμ
+    exact hasSinkhornDisintegration_of_isSinkhornPlan hplan V hV hp2 hμ2 h_exp hI_lp
 
-/-- **SDRSB strong duality** — the Sinkhorn-DRO worst-case value of `V` over the Sinkhorn
-ball equals the Wang–Gao–Xie log-partition dual (`f := V`, cost `‖·‖²`). Completes the
-SDRSB capstone: `le_antisymm` of `droValue ≤ dual` (each source's `sdrsb_cost_bound`,
-`csSup_le`) and `dual ≤ droValue` (the attaining worst-case measure, `le_csSup`). Same
-honest edges as `sdrsb_cost_bound`, now `∀ μ` (`hSinkAll`, near-optimal in the same
-`ε + η` sense), plus the worst-case-measure attainment edge (`hattain`) and `hbddP`; dual
-over `0 < lam`. -/
-theorem sdrsb_strong_duality (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ)
-    (hκ : 0 < κ)
-    (hSinkAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε →
-      ∀ η : ℝ, 0 < η → Wkappa κ ν p₀ μ ≤ ε → IsSinkhornWitness p₀ ν V κ μ (ε + η))
+/-- **The SDRSB relaxation strengthened nothing.** The old edge — an *attained* disintegration of
+budget `≤ ε` — implies the near-optimal one (`b = ε ≤ ε + η`), so the card bound still follows
+from it. The machine-checked receipt that `sdrsb_cost_bound_of_disintegrations`'s hypothesis was
+weakened, not traded. The converse fails: an infimum supplies no minimizer. -/
+theorem sdrsb_cost_bound_of_attained_disintegration (p₀ ν : ProbabilityMeasure X) (V : X → ℝ)
+    (κ ε : ℝ) (hκ : 0 < κ) (μ : ProbabilityMeasure X)
+    (hSink : HasSinkhornDisintegration p₀ ν V κ μ ε) :
+    expect μ V
+      ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } :=
+  sdrsb_cost_bound_of_disintegrations p₀ ν V κ ε hκ μ fun η hη => hSink.mono (by linarith)
+
+/-- **SDRSB strong duality** — the Sinkhorn-DRO worst-case value of `V` over the Sinkhorn ball
+equals the Wang–Gao–Xie log-partition dual (`f := V`, cost `‖·‖²`). Completes the SDRSB capstone:
+`le_antisymm` of `droValue ≤ dual` (each source's `sdrsb_cost_bound`, `csSup_le`) and
+`dual ≤ droValue` (the attaining worst-case measure, `le_csSup`).
+
+The disintegration and transport edges are gone; what remains assumed is the `≥` direction's
+**worst-case-measure attainment** (`hattain`, `hbddP`) — the T4 research seam — plus the same
+regularity as `sdrsb_cost_bound`, now quantified over every source in the ball. Dual over
+`0 < lam`. -/
+theorem sdrsb_strong_duality
+    [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
+    (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
+    (hV : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε → Integrable V (μ : Measure X))
+    (hp2 : HasSecondMoment p₀)
+    (hmom : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε → HasSecondMoment μ)
+    (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+        (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
+    (hI_lp : ∀ lam, 0 < lam → Integrable
+        (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ sinkhornBall p₀ ν κ ε ∧ r = expect μ V })
     (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall p₀ ν κ ε ∧
@@ -530,7 +565,7 @@ theorem sdrsb_strong_duality (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (�
   · refine csSup_le ?_ ?_
     · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ V, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
-      exact sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ (hSinkAll μ hμ)
+      exact sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ (hV μ hμ) hp2 (hmom μ hμ) h_exp hI_lp
   · obtain ⟨μ, hμ, hμeq⟩ := hattain
     rw [← hμeq]
     exact le_csSup hbddP ⟨μ, hμ, rfl⟩

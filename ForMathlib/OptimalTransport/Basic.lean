@@ -80,19 +80,56 @@ noncomputable def sinkhornObjective (κ : ℝ) (μhat νref : ProbabilityMeasure
     (γ : ProbabilityMeasure (X × X)) : ℝ :=
   couplingCost2 γ + κ * klReal (γ : Measure (X × X)) (prodMeasure μhat νref)
 
+/-! ### The `ℝ≥0∞`-valued Sinkhorn objective
+
+`sinkhornObjective` above is a **real** number, and both of its summands lose information on
+their bad branch: `couplingCost2` is a Bochner integral (junk `0` when the cost is not
+integrable) and `klReal` is `(klDiv · ·).toReal` (junk `0` when `klDiv = ∞`, i.e. exactly when
+the coupling is *singular* against `μ̂ ⊗ ν`). Taking the infimum of that real quantity therefore
+lets a singular coupling — the worst possible one — score `0` and drag `W_{κ,ν}` down to nothing.
+
+The `ℝ≥0∞`-valued objective below has no bad branch: a non-integrable cost gives `∫⁻ = ∞` and a
+singular coupling gives `klDiv = ∞`, so both correctly score `⊤` and drop out of the infimum.
+`Wkappa` is defined from *this* one, and `sinkhornObjective` is recovered as its `toReal`
+whenever the objective is finite (`sinkhornObjective_eq_toReal_of_ne_top`). -/
+
+/-- `ℝ≥0∞`-valued transport cost of a coupling, `∫⁻ ofReal (c x y) dπ`. Unlike `couplingCost`
+this is `∞`, not `0`, when the cost fails to be integrable. -/
+noncomputable def couplingCostENN (c : X → X → ℝ) (π : ProbabilityMeasure (X × X)) : ℝ≥0∞ :=
+  ∫⁻ z, ENNReal.ofReal (c z.1 z.2) ∂(π : Measure (X × X))
+
+/-- `ℝ≥0∞`-valued squared-Euclidean transport cost of a coupling. -/
+noncomputable def couplingCost2ENN (π : ProbabilityMeasure (X × X)) : ℝ≥0∞ :=
+  couplingCostENN (fun x y => ‖x - y‖ ^ 2) π
+
+/-- **Sinkhorn objective, `ℝ≥0∞`-valued** — `𝔼_γ[‖x−y‖²] + κ·KL(γ ‖ μ̂⊗ν)` with no `toReal`.
+A singular `γ` scores `⊤` here, as it must. -/
+noncomputable def sinkhornObjectiveENN (κ : ℝ) (μhat νref : ProbabilityMeasure X)
+    (γ : ProbabilityMeasure (X × X)) : ℝ≥0∞ :=
+  couplingCost2ENN γ
+    + ENNReal.ofReal κ * InformationTheory.klDiv (γ : Measure (X × X)) (prodMeasure μhat νref)
+
 /-- **Sinkhorn discrepancy** `W_{κ,ν}(μ̂, μ) = inf_{γ ∈ Π(μ̂, μ)} 𝔼_γ[‖x−y‖²] + κ·KL(γ ‖ μ̂⊗ν)`
 from the nominal `μhat` to a candidate `μ`, with external reference `νref` (Wang–Gao–Xie
 Def 1; `κ` = entropic regularizer). The coupling has `μhat` as first marginal (the
-disintegration/conditioning variable) and `μ` as second. -/
-noncomputable def Wkappa (κ : ℝ) (νref μhat μ : ProbabilityMeasure X) : ℝ :=
-  sInf { r : ℝ | ∃ γ : ProbabilityMeasure (X × X),
-    γ ∈ couplings μhat μ ∧ r = sinkhornObjective κ μhat νref γ }
+disintegration/conditioning variable) and `μ` as second.
+
+`ℝ≥0∞`-valued, over `sinkhornObjectiveENN`: the infimum must not be reachable by singular
+couplings, whose real objective is the junk value `0`. -/
+noncomputable def Wkappa (κ : ℝ) (νref μhat μ : ProbabilityMeasure X) : ℝ≥0∞ :=
+  ⨅ γ ∈ couplings μhat μ, sinkhornObjectiveENN κ μhat νref γ
 
 /-- **Sinkhorn ambiguity ball** `𝓑^ν_{ε,κ}(μ̂) = { μ : W_{κ,ν}(μ̂, μ) ≤ ε }` around the
-nominal `μhat`, with external reference `νref` (`κ` = regularizer, `ε` = radius). -/
+nominal `μhat`, with external reference `νref` (`κ` = regularizer, `ε` = radius).
+
+Stated as "`W_{κ,ν}` is finite and its value is `≤ ε`" rather than `W_{κ,ν} ≤ ENNReal.ofReal ε`.
+The two agree for `ε ≥ 0`, but `ENNReal.ofReal` sends every negative radius to `0`, so the
+`ofReal` form would make the ball of a *negative* radius equal `{μ | W_{κ,ν} = 0}` — nonempty in
+the degenerate case `μ̂ = ν = μ = δₐ`, which would falsify
+`WangGaoXie2023.primal_feasible_radius_nonneg`. This form keeps a negative-radius ball empty. -/
 def sinkhornBall (μhat νref : ProbabilityMeasure X) (κ ε : ℝ) :
     Set (ProbabilityMeasure X) :=
-  { μ | Wkappa κ νref μhat μ ≤ ε }
+  { μ | Wkappa κ νref μhat μ ≠ ⊤ ∧ (Wkappa κ νref μhat μ).toReal ≤ ε }
 
 /-- The DRO worst-case value of an objective `f` over an ambiguity set `𝓐`:
 `sup_{μ ∈ 𝓐} 𝔼_μ[f]`. -/

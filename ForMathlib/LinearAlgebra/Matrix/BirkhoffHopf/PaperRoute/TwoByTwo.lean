@@ -361,5 +361,138 @@ theorem positive_twoByTwo_reduces_to_symmetric_normal_form
       twoByTwo_normal_form_of_one_lt_crossRatio A hA hgt
     exact ⟨α, rowScale, colScale, Equiv.refl (Fin 2), hα, hr, hc, by simpa using heq⟩
 
+/-- Transport of the normalized contraction along the cone automorphisms of Lemma 3.12.
+
+If `r i * A (π i) j * c j = A_α i j` then `A_α · x = r ⊙ ((A · (c ⊙ x)) ∘ π)`, and Hilbert spread is
+invariant under both the positive coordinate scaling `r` and the reindexing `π`.  Substituting
+`x = z / c` turns the contraction for `A_α` into the contraction for `A`. -/
+theorem birkhoff_contraction_of_normal_form
+    (A : Fin 2 → Fin 2 → ℝ) {α : ℝ} (hα : 1 < α)
+    (r c : Fin 2 → ℝ) (π : Fin 2 ≃ Fin 2)
+    (hr : ∀ i, 0 < r i) (hc : ∀ j, 0 < c j)
+    (heq : ∀ i j : Fin 2, r i * A (π i) j * c j = symmetricTwoByTwoKernel α i j) :
+    IsBirkhoffHopfContractionCoefficient A ((α - 1) / (α + 1)) := by
+  intro z w hz hw
+  set x : Fin 2 → ℝ := fun j => z j / c j with hxdef
+  set y : Fin 2 → ℝ := fun j => w j / c j with hydef
+  have hx : ∀ j, 0 < x j := fun j => div_pos (hz j) (hc j)
+  have hy : ∀ j, 0 < y j := fun j => div_pos (hw j) (hc j)
+  have hcz : (fun j => c j * x j) = z := by
+    funext j; have := (hc j).ne'; rw [hxdef]; field_simp
+  have hcw : (fun j => c j * y j) = w := by
+    funext j; have := (hc j).ne'; rw [hydef]; field_simp
+  -- the image identity
+  have himg : ∀ u : Fin 2 → ℝ, ∀ i : Fin 2,
+      positiveKernelApply (symmetricTwoByTwoKernel α) u i
+        = r i * positiveKernelApply A (fun j => c j * u j) (π i) := by
+    intro u i
+    unfold positiveKernelApply
+    rw [Finset.mul_sum]
+    refine Finset.sum_congr rfl (fun j _ => ?_)
+    rw [← heq i j]; ring
+  have e1 : positiveKernelApply (symmetricTwoByTwoKernel α) x
+      = fun i => r i * (positiveKernelApply A z) (π i) := by
+    funext i; rw [himg x i, hcz]
+  have e2 : positiveKernelApply (symmetricTwoByTwoKernel α) y
+      = fun i => r i * (positiveKernelApply A w) (π i) := by
+    funext i; rw [himg y i, hcw]
+  have hkey := symmetricTwoByTwo_birkhoff_contraction hα x y hx hy
+  rw [e1, e2] at hkey
+  -- strip the scaling `r` and the reindexing `π` on the left
+  rw [quadrant_hilbert_coordScale_eq
+      (fun i => (positiveKernelApply A z) (π i)) (fun i => (positiveKernelApply A w) (π i)) r hr,
+    quadrant_hilbert_equivPerm_eq π (positiveKernelApply A z) (positiveKernelApply A w)] at hkey
+  -- strip the scaling `c` on the right
+  have hxc : x = fun j => (1 / c j) * z j := by
+    funext j; have := (hc j).ne'; rw [hxdef]; field_simp
+  have hyc : y = fun j => (1 / c j) * w j := by
+    funext j; have := (hc j).ne'; rw [hydef]; field_simp
+  rw [hxc, hyc, quadrant_hilbert_coordScale_eq z w (fun j => 1 / c j)
+    (fun j => by have := hc j; positivity)] at hkey
+  exact hkey
+
+/-- Paper route: a strictly positive `2 × 2` kernel whose cross-ratio is pinched between `1/B` and
+`B` contracts Hilbert spread by `(B - 1)/B`.
+
+This is the shape the general reduction consumes.  The nondegenerate case runs Lemma 5.1 into
+Theorem 5.3 and weakens the sharp constant `(α - 1)/(α + 1)` (where `α² ≤ B`) using
+`(α-1)/(α+1) ≤ (α²-1)/α² ≤ (B-1)/B`.  When the cross-ratio is exactly `1` the matrix has rank one,
+so every image ray coincides and the image spread is `0`. -/
+theorem positive_twoByTwo_birkhoff_contraction_of_crossRatio_le
+    (A : Fin 2 → Fin 2 → ℝ) (hA : ∀ i j, 0 < A i j) (B : ℝ) (hB : 1 ≤ B)
+    (h1 : A 0 0 * A 1 1 ≤ B * (A 0 1 * A 1 0))
+    (h2 : A 0 1 * A 1 0 ≤ B * (A 0 0 * A 1 1)) :
+    IsBirkhoffHopfContractionCoefficient A ((B - 1) / B) := by
+  have hBpos : 0 < B := lt_of_lt_of_le zero_lt_one hB
+  have hγ0 : 0 ≤ (B - 1) / B := div_nonneg (by linarith) hBpos.le
+  have h00 := hA 0 0; have h01 := hA 0 1; have h10 := hA 1 0; have h11 := hA 1 1
+  by_cases hdet : A 0 0 * A 1 1 = A 0 1 * A 1 0
+  · -- rank one: `A · z` always points along the same ray
+    intro z w hz hw
+    have hpz : ∀ u : Fin 2 → ℝ, (∀ j, 0 < u j) →
+        positiveKernelApply A u 1 = (A 1 0 / A 0 0) * positiveKernelApply A u 0 := by
+      intro u _
+      unfold positiveKernelApply
+      rw [Fin.sum_univ_two, Fin.sum_univ_two]
+      field_simp
+      linear_combination u 1 * hdet
+    have hApos : ∀ u : Fin 2 → ℝ, (∀ j, 0 < u j) → ∀ i, 0 < positiveKernelApply A u i :=
+      fun u hu i => positiveKernelApply_pos A hA u hu i
+    have hle := spread_fin_two_le (positiveKernelApply A z) (positiveKernelApply A w)
+      (hApos z hz) (hApos w hw)
+    have hratio : (positiveKernelApply A z 0 * positiveKernelApply A w 1) /
+        (positiveKernelApply A z 1 * positiveKernelApply A w 0) = 1 := by
+      rw [hpz z hz, hpz w hw]
+      have hz0 := hApos z hz 0
+      have hw0 := hApos w hw 0
+      have hr0 : 0 < A 1 0 / A 0 0 := div_pos h10 h00
+      field_simp
+      try ring
+    rw [hratio, Real.log_one, abs_zero] at hle
+    refine le_trans hle (mul_nonneg hγ0 ?_)
+    exact finiteHilbertProjectiveLogSpread_nonneg_of_pos z w hz hw
+  · obtain ⟨α, r, c, π, hα, hr, hc, heq⟩ :=
+      positive_twoByTwo_reduces_to_symmetric_normal_form A hA hdet
+    have hαpos : 0 < α := lt_trans zero_lt_one hα
+    -- read `α²` off the normal form: it is the cross-ratio of `A ∘ π`
+    have e00 := heq 0 0; have e01 := heq 0 1; have e10 := heq 1 0; have e11 := heq 1 1
+    simp only [symmetricTwoByTwoKernel] at e00 e01 e10 e11
+    norm_num at e00 e01 e10 e11
+    have hscale : 0 < r 0 * r 1 * c 0 * c 1 :=
+      mul_pos (mul_pos (mul_pos (hr 0) (hr 1)) (hc 0)) (hc 1)
+    have hα2 : α ^ 2 * (A (π 0) 1 * A (π 1) 0) = A (π 0) 0 * A (π 1) 1 := by
+      have hp : (r 0 * A (π 0) 0 * c 0) * (r 1 * A (π 1) 1 * c 1) = α * α := by
+        rw [e00, e11]
+      have hq : (r 0 * A (π 0) 1 * c 1) * (r 1 * A (π 1) 0 * c 0) = 1 * 1 := by
+        rw [e01, e10]
+      have hcancel : (r 0 * r 1 * c 0 * c 1) * (α ^ 2 * (A (π 0) 1 * A (π 1) 0))
+          = (r 0 * r 1 * c 0 * c 1) * (A (π 0) 0 * A (π 1) 1) := by nlinarith [hp, hq]
+      exact mul_left_cancel₀ (ne_of_gt hscale) hcancel
+    -- `α² ≤ B` in either orientation of the row permutation
+    have hπ : (π 0 = 0 ∧ π 1 = 1) ∨ (π 0 = 1 ∧ π 1 = 0) := by
+      have hdec : ∀ a : Fin 2, a = 0 ∨ a = 1 := by decide
+      rcases hdec (π 0) with p0 | p0 <;> rcases hdec (π 1) with p1 | p1
+      · exact absurd (π.injective (p0.trans p1.symm)) (by decide)
+      · exact Or.inl ⟨p0, p1⟩
+      · exact Or.inr ⟨p0, p1⟩
+      · exact absurd (π.injective (p0.trans p1.symm)) (by decide)
+    have hα2B : α ^ 2 ≤ B := by
+      rcases hπ with ⟨p0, p1⟩ | ⟨p0, p1⟩ <;> rw [p0, p1] at hα2
+      · nlinarith [hα2, h1, mul_pos h01 h10]
+      · nlinarith [hα2, h2, mul_pos h00 h11]
+    -- weaken the sharp constant
+    have hweak : (α - 1) / (α + 1) ≤ (B - 1) / B := by
+      have hstep1 : (α - 1) / (α + 1) ≤ (α ^ 2 - 1) / α ^ 2 := by
+        rw [div_le_div_iff₀ (by linarith) (by positivity)]
+        nlinarith [mul_nonneg (sub_nonneg.mpr hα.le) (by linarith : (0:ℝ) ≤ 2 * α + 1)]
+      have hstep2 : (α ^ 2 - 1) / α ^ 2 ≤ (B - 1) / B := by
+        rw [div_le_div_iff₀ (by positivity) hBpos]
+        nlinarith [hα2B]
+      linarith
+    intro u v hu hv
+    have hcontr := birkhoff_contraction_of_normal_form A hα r c π hr hc heq u v hu hv
+    refine le_trans hcontr (mul_le_mul_of_nonneg_right hweak ?_)
+    exact finiteHilbertProjectiveLogSpread_nonneg_of_pos u v hu hv
+
 end BirkhoffHopf.PaperRoute
 end ForMathlib.Matrix

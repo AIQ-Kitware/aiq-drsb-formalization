@@ -1,152 +1,134 @@
 # AIQ DRSB Formalization
 
-Lean 4 scaffold for the theorems underlying the GaTech **DRSB**
-(Distributionally-Robust Schrödinger Bridge) TA1 evaluation cards. Structure mirrors
-the sibling [`aiq-dkps-formalization`](../aiq-dkps-formalization): one top-level Lean
-library per source paper, a paper-agnostic `ForMathlib` staging library, a
-`formalization.yaml`, and prose transcriptions of every source under [`prose/`](prose/).
+Lean 4 formalization of the mathematical claims underlying the GaTech **DRSB**
+(Distributionally-Robust Schrödinger Bridge) TA1 evaluation cards. The repository has
+one library per theorem-bearing source paper, a paper-agnostic `ForMathlib` staging
+library, a `Drsb` capstone, and source-oriented prose under [`prose/`](prose/).
 
-> 🧭 **New here — especially AI agents — start with [`AGENTS.md`](AGENTS.md).** It
-> codifies *why* this exists (formalizing the GaTech MAGNET evaluation-card theorem from
-> **published** DRO results), the provenance rule (the team's unpublished DRSB manuscript
-> is **not a source** — ~0 weight, §2), the published-theorem chain, the working
-> conventions, and the known traps. This README is just the build + library map.
+> **Start with [`AGENTS.md`](AGENTS.md).** It records the project purpose, provenance
+> rules, workflow, and known traps. For a dated account of the checked source state,
+> read [`STATUS.md`](STATUS.md). Do not infer current status from old journal or planning
+> entries.
 
-> **Status → [`STATUS.md`](STATUS.md).** Deliberately not duplicated here, because it goes stale.
-> In one line: the card-level DRSB inequalities and all four strong-duality equalities are proved
-> dependency-clean; the live frontier is Sinkhorn **convergence** via the Birkhoff–Hopf contraction
-> (`ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf*`). Two other research seams remain documented:
-> the continuum Wiener/SDE path-law transport ([`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md))
-> and the Itô/Girsanov wall behind the continuum `hCM` edge ([`ROADMAP_ENERGY_IDENTITY.md`](ROADMAP_ENERGY_IDENTITY.md)).
+## The evaluation-card claims
 
-## What DRSB claims
+The two card-facing declarations are in [`Drsb/Basic.lean`](Drsb/Basic.lean):
 
-DRSB certifies a distributionally-robust worst-case cost bound on a
-Schrödinger-bridge / stochastic-optimal-control value function
-`V(x) = 𝔼[∫₀¹ ½‖u_t‖² dt + ρ·g(X₁) | X₀ = x]`: for a source `μ` within a
-Wasserstein-2 ball (`wdrsb_cost_bound.yaml`) or a Sinkhorn-divergence ball
-(`sdrsb_cost_bound.yaml`) around the nominal, `𝔼_μ[V] ≤ 𝔼_worst-case[V]`. See
-[`prose/README.md`](prose/README.md) for the full published-theorem chain.
+- `Drsb.wdrsb_cost_bound` corresponds to `wdrsb_cost_bound.yaml`;
+- `Drsb.sdrsb_cost_bound` corresponds to `sdrsb_cost_bound.yaml`.
+
+Both prove a one-sided expectation bound of the form
+
+```text
+E_mu[V] <= a Wasserstein- or Sinkhorn-DRO dual worst-case bound,
+```
+
+for a source distribution `mu` in the relevant ambiguity ball. The value function
+`V : X -> R` is abstract in these two declarations. Its intended Schrödinger-bridge /
+stochastic-control interpretation comes from Chen--Georgiou--Pavon, but the continuum
+construction of that `V` is not a proof-term dependency of either card theorem.
+
+The card claims are specializations of published DRO results rather than verbatim
+statements from a single DRSB paper:
+
+| Card theorem | Published backing | Relationship |
+|---|---|---|
+| `Drsb.wdrsb_cost_bound` | Blanchet--Murthy; Gao--Kleywegt | quadratic-cost Wasserstein-DRO specialization and weak-duality consequence |
+| `Drsb.sdrsb_cost_bound` | Wang--Gao--Xie | Sinkhorn-DRO log-partition specialization and weak-duality consequence |
+| interpretation of `V` | Chen--Georgiou--Pavon | mathematical provenance; abstract at the card-theorem boundary |
+
+The source-faithful strong-duality and worst-case-structure developments are valuable
+parallel formalizations. They are not dependencies of the two card inequalities unless a
+specific declaration says otherwise.
 
 ## Libraries
 
-| Library | Role | Key declarations |
+| Library | Role | Representative declarations |
 |---|---|---|
-| `ForMathlib` | Paper-agnostic staging: Donsker–Varadhan, shared OT/DRO vocabulary, Gaussian/Sinkhorn/KL infrastructure, and the continuum-closure sequence-model Cameron–Martin/Kakutani layer | `integral_le_klDiv_add_log_integral_exp`, `log_integral_exp_eq_sSup`; `OT.droValue`, `OT.wassersteinBall`, `OT.sinkhornBall`; `stdGaussian`, `stdSeqGaussian`, `prefixFiltration`, `cmDensityProcess`, `klDiv_stdSeqGaussian_map_add_of_summable`, `klDiv_stdSeqGaussian_map_add_eq_top_iff_not_summable` |
-| `ChenGeorgiouPavon2021` | SB ⇄ SOC ⇄ entropic-OT; value function + optimal control; CGP-facing sequence-model energy wrappers | `SBData`, `schrodingerBridge_KL_eq_SOC`, `energy_identity_sequenceModel`, `energy_identity_sequenceModel_top_iff_not_summable`, `optimal_control_eq_grad_log`, `optimal_control_eq_neg_grad_value`, `staticSB_eq_entropicOT` |
-| `BlanchetMurthy2019` | Wasserstein-DRO strong duality (primary) | `wdro_strong_duality`, `Lc` |
-| `GaoKleywegt2023` | Wasserstein-DRO strong duality + worst-case distribution | `weak_duality_prop1`, `strong_duality_thm1`, `worstCase_structure_cor1`, `dataDriven_worstCase_cor2ii` |
-| `MohajerinEsfahaniKuhn2018` | Data-driven Wasserstein-DRO reformulation | `worstCaseExpectation_eq_dual`, `worstCase_program`, `worstCase_exists` |
-| `WangGaoXie2023` | Sinkhorn-DRO log-partition dual (SDRSB card's bound) | `strong_duality`, `sinkhornDualObjective`, `logPartition`, `exists_worstCase_gibbs` |
-| `Drsb` | **Capstone** — the card claims composed from the above | `wdrsb_cost_bound`, `sdrsb_cost_bound`, `sdrsbTerminalBound` |
+| `ForMathlib` | Paper-agnostic staging for KL/Donsker--Varadhan, OT/DRO, measurable selection, finite matrix scaling, projective metrics, and continuum support | `log_integral_exp_eq_sSup`, `OT.dualValue_le_droValue`, `matrix_scaling_exists`, `positive_kernel_birkhoff_hopf_contraction` |
+| `ChenGeorgiouPavon2021` | SB/SOC/entropic-OT, finite Sinkhorn convergence, and sequence/path-space targets | `schrodingerBridge_KL_eq_SOC`, `sinkhorn_potentials_exist`, `energy_identity_sequenceModel` |
+| `BlanchetMurthy2019` | Wasserstein-DRO source-facing theorems | `wdro_strong_duality` |
+| `GaoKleywegt2023` | Wasserstein-DRO duality and worst-case structure | `strong_duality_thm1_of_regularity`, `worstCase_structure_cor1` |
+| `MohajerinEsfahaniKuhn2018` | Data-driven Wasserstein-DRO reformulation and structured worst-case laws | `worstCaseExpectation_eq_dual`, `worstCase_exists` |
+| `WangGaoXie2023` | Sinkhorn-DRO log-partition duality | `strong_duality`, `sinkhornDual_le_droValue` |
+| `Drsb` | Evaluation-card capstone | `wdrsb_cost_bound`, `sdrsb_cost_bound` |
 
-Each `<Library>/Basic.lean` docstring cites the prose file + printed theorem/equation
-number every declaration corresponds to.
+Each paper-facing declaration should identify its source theorem, proposition, equation,
+or explicitly state that the Lean proof follows a different route.
+
+## Two independent Birkhoff--Hopf proofs
+
+The finite positive-kernel contraction theorem is formalized twice intentionally.
+
+1. [`ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean)
+   contains a short AI-discovered Doeblin/weighted-average proof. It normalizes weighted
+   sums, turns pairwise cross-ratio bounds into pointwise comparisons, and finishes with a
+   scalar logarithmic estimate. It is **not** Carroll's linear-programming reduction.
+2. [`ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/PaperRoute/`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/PaperRoute/)
+   follows the Eveson--Nussbaum cone/2-dimensional-subspace route and reaches the sharper
+   coefficient.
+
+This proof pluralism is a research feature: an independently discovered machine-assisted
+argument can be compared against a proof that tracks published human reasoning. Refactors
+may share definitions and elementary lemmas, but neither route should call the other
+route's hard contraction theorem.
 
 ## Layout
 
 ```text
 .
-├── ForMathlib.lean / ForMathlib/     # DV + OT/DRO staging (import: Mathlib only)
-├── <Paper>.lean / <Paper>/           # one library per source paper (import: Mathlib + ForMathlib)
-│   └── ChenGeorgiouPavon2021/        # split into Core, EnergyIdentity, SequenceGaussian,
-│       └── Continuum/                # RealPath, IntervalPath, Wiener/*, Closure frontiers
-├── Drsb.lean / Drsb/                 # capstone (imports the paper libraries)
-├── Challenge/                        # comparator challenges for the Mathlib-candidate results
-│   ├── MathlibCandidate/             #   drop-ready upstream PRs
-│   └── MathlibPending/               #   proven, not yet PR-shaped
-├── comparator/                       # one comparator config per planned PR
-├── scripts/                          # comparator runner + signature pre-flight
-├── prose/                            # faithful transcriptions of every source (papers/ = PDFs, git-ignored)
-├── reference/                        # ⚠ OLD, trap-laden attempts — reference-only, NOT built
-├── formalization.yaml               # project metadata (sources, targets, status, libraries)
-├── lakefile.toml / lake-manifest.json / lean-toolchain
+├── ForMathlib.lean / ForMathlib/     # reusable paper-agnostic results
+├── <Paper>.lean / <Paper>/           # source-facing libraries
+├── Drsb.lean / Drsb/                 # card capstone
+├── Challenge/                        # Mathlib-only challenge specs and project-backed solutions
+├── comparator/                       # comparator configurations
+├── scripts/                          # validation and audit helpers
+├── prose/                            # source-oriented mathematical transcriptions
+├── audits/                           # dated structural audits
+├── formalization.yaml               # source/result metadata
+├── STATUS.md                         # dated checked state
+└── PROOF_PIPELINE.md                 # current work queue
 ```
 
-## Vendored / adapted external proofs
+`Challenge/**/Conformance.lean` intentionally states challenge leaves with omitted proofs;
+the corresponding project proofs live in sibling `Leaderboard.lean` files. Production
+proof-source scans should exclude `Challenge/` explicitly.
 
-Verified truth does not waive credit — every reused external proof is attributed here,
-in its file header, and in `formalization.yaml` (per the vendoring policy at the top of
-[`SURVEY_LEADS.md`](SURVEY_LEADS.md)).
+## Build and checks
 
-| Vendored declaration(s) | Source | Commit | License |
-|---|---|---|---|
-| `ForMathlib.MeasureTheory.{stdGaussian, klDiv_gaussianReal_shift, klDiv_map_measurableEquiv, klDiv_prod, klDiv_pi, klDiv_pi_fintype, klDiv_stdGaussian_map_add}` (Cameron–Martin relative entropy `KL(N(·+h) ‖ N) = ½‖h‖²`) | Michael R. Douglas, [`mrdouglasny/gibbs-variational`](https://github.com/mrdouglasny/gibbs-variational) · `GibbsVariational/GaussianEntropy.lean` | [`75e08d8`](https://github.com/mrdouglasny/gibbs-variational/blob/75e08d8aaca83bb090fc43855898991fbfc9abf3/GibbsVariational/GaussianEntropy.lean) | Apache-2.0 |
-
-Vendored verbatim (only the enclosing namespace was changed, `GibbsVariational →
-ForMathlib.MeasureTheory`), retrieved 2026-07-03, dependency-clean under our Mathlib pin. The
-Euler–Maruyama discrete energy identity built on it (`emShift`, `emEnergy`,
-`klDiv_emShift_eq_emEnergy`, consumed by `ChenGeorgiouPavon2021.energy_identity_euler_maruyama`)
-is original to this repo — it proves the discrete/Gaussian layer of CGP's control-energy
-identity (4.19), the quantity the DRSB card actually measures (AGENTS §3).
-
-`reference/` is quarantined (see [reference/README.md](reference/README.md)) and is
-not a `lean_lib`, so `lake build` ignores it. It holds the earlier hand-written
-attempts — useful for salvage (e.g. the *proved* Donsker–Varadhan / Hoeffding lemmas
-in `reference/WellKnown.lean`) but **not canon**; re-derive every statement from
-`prose/`, not from `reference/`.
-
-## Build
-
-Toolchain `leanprover/lean4:v4.32.0-rc1`; Mathlib pinned in `lake-manifest.json`.
+The pinned toolchain is recorded in `lean-toolchain`; the Mathlib revision is recorded in
+`lake-manifest.json`.
 
 ```bash
-lake exe cache get      # download prebuilt Mathlib oleans
-lake build              # full project check
-```
-
-## Next steps
-
-Follow [`PLAN_CONTINUUM_CLOSURE.md`](PLAN_CONTINUUM_CLOSURE.md). The sequence-coordinate
-Cameron–Martin/Kakutani theorem is now complete and should be treated as a checkpointed
-milestone:
-
-```bash
-# These files are aggregate imports over split theorem modules; build imports first.
-lake build ForMathlib
-lake env lean ForMathlib/MeasureTheory/GaussianCameronMartin.lean
-lake build ChenGeorgiouPavon2021
-lake env lean ChenGeorgiouPavon2021/Basic.lean
+lake exe cache get
 lake build
+
+# Production source scan; Challenge conformance specifications are intentionally excluded.
+grep -rn --include='*.lean' \
+  --exclude-dir=.lake --exclude-dir=.reference-clones \
+  --exclude-dir=reference --exclude-dir=Challenge \
+  -w sorry .
+
+# Comparator signature pre-flight.
+python3 scripts/check_comparator_signatures.py
 ```
 
-For the split-module smoke test, the equivalent one-command wrapper is:
+A build result, source scan, or `#print axioms` report should always be recorded with its
+commit, command, and scope. See [`STATUS.md`](STATUS.md).
 
-```bash
-dev/check_cgp_module_split.sh
-```
+## Current development priorities
 
-The next mathematical frontier is not more sequence-model KL plumbing. A finite-dimensional
-Wiener/dyadic layer is now green: Brownian dyadic increment laws, normalization to iid
-standard Gaussians, finite product-law assembly, shifted finite-grid density formulas, and
-finite dyadic absolute continuity are all available at the CGP-facing layer.
+The two card inequalities are not the current proof-development bottleneck. The active
+priorities are:
 
-The remaining bridge is the **continuum path-space closure**: choose a canonical interval
-path carrier, prove that the dyadic/projected filtration generates that carrier's path
-sigma-algebra, prove KL exhaustion along those projections, and prove Cameron--Martin
-path-space quasi-invariance / density closure. Do not revive the overstrong claim that dyadic
-increments on `[0,1]` generate all of `RealPath := ℝ → ℝ`; in the current green code those
-continuum facts are explicit interfaces (`HasDyadicKLExhaustion` and path-space absolute
-continuity), not hidden placeholders.
+1. improve reusable finite mathematics for upstream contribution, beginning with a staged
+   decomposition of `matrix_scaling_exists`;
+2. minimize assumptions by adding small `_core` theorems while retaining source-faithful
+   wrappers;
+3. clarify the production and alternate compactness routes in `ProjectiveLag.lean` without
+   deleting useful scaffolding;
+4. maintain both independent Birkhoff--Hopf proofs;
+5. continue the long-horizon interval-path, KL-exhaustion, Cameron--Martin, and SDE work
+   only through mathematically honest interfaces and roadmaps.
 
-## Project theorem-target progress bar
-
-The 2026-07-08 theorem-target scaffold collects the remaining DRSB mathematics under:
-
-```lean
-import ChenGeorgiouPavon2021.ProjectTheoremTargets
-```
-
-Its modules were originally staged with executable placeholders as a project-wide progress bar.
-**They have since been converted to hypothesis/structure interfaces and now carry zero open goals** —
-so this scaffold is no longer the progress bar. Assembly lemmas consume those interfaces and remain
-proof-bearing.
-
-For the live open-goal inventory (and the frontier they belong to), see [`STATUS.md`](STATUS.md), or
-just run the grep:
-
-```bash
-grep -rn --include=*.lean --exclude-dir=.lake --exclude-dir=.reference-clones --exclude-dir=reference -w sorry .
-```
-
-(Lean comments in this repo never contain that word — see `AGENTS.md` §5 — so the match is exact.)
+The detailed ordering and acceptance checks are in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).

@@ -11,9 +11,8 @@ Companion docs: **[`STATUS.md`](STATUS.md)** (dated state — start here),
 [`JOURNAL.md`](JOURNAL.md) (per-session narrative),
 [`README.md`](README.md) (build + library map), [`prose/README.md`](prose/README.md)
 (the published-theorem chain), [`formalization.yaml`](formalization.yaml) (per-declaration
-source map), [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (the proof-pass work plan: every
-remaining placeholder ranked by difficulty, the us-vs-Fable split, and the ForMathlib
-upstreaming queue), [`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *chains*
+source map), [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (the current proof-refactoring and
+ForMathlib-upstreaming queue), [`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *chains*
 under DRSB — DKPS-style — with grep-verified Mathlib gaps and search terms for mining
 existing AI/human Lean proofs), [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (dated, link-rich
 registry of external Lean repos / Mathlib PRs / generated-proof corpora to mine and
@@ -31,9 +30,10 @@ evaluation cards.** It is one node in a broader AIQ TA1 effort: for each team's
 evaluation card, state the *idealized theorem* the card's claim rests on, then draw an
 explicit **"assumption → relaxation" edge** from each Lean hypothesis to the empirical
 card code that relaxes/approximates it. The point is to make precise **what the proof
-actually guarantees vs. what the card measures.** DRSB was chosen because — unlike most
-TA1 cards, which are empirical thresholds — its claim *is* a known theorem
-(distributionally-robust strong duality), so it is genuinely formalizable.
+actually guarantees vs. what the card measures.** DRSB was chosen because — unlike most TA1 cards, which are empirical thresholds — its
+one-sided robust expectation claims are direct consequences of published Wasserstein- and
+Sinkhorn-DRO theory. Strong-duality equalities and worst-case-structure results are valuable
+related formalizations, but they are not the literal card claims.
 
 The precedent and template is the sibling repo
 [`../aiq-dkps-formalization`](../aiq-dkps-formalization) (JHU DKPS), which fully
@@ -106,7 +106,7 @@ per theorem-bearing paper:
 | Wasserstein-DRO strong duality (primary) | `BlanchetMurthy2019` | Blanchet–Murthy, Math OR 2019 | 1604.01446 |
 | Wasserstein-DRO duality + worst-case dist. | `GaoKleywegt2023` | Gao–Kleywegt, Math OR 2023 | 1604.02199 |
 | Data-driven Wasserstein-DRO reformulation | `MohajerinEsfahaniKuhn2018` | Esfahani–Kuhn, Math Prog 2018 | 1505.05116 |
-| **Sinkhorn-DRO log-partition dual** (SDRSB card's bound) | `WangGaoXie2023` | Wang–Gao–Xie, Oper. Res. 2023 | 2109.11926 |
+| **Sinkhorn-DRO log-partition dual** (SDRSB card's bound) | `WangGaoXie2023` | Wang–Gao–Xie, Operations Research 2025 (namespace retains the pre-publication year) | 2109.11926 |
 | Donsker–Varadhan / Gibbs (root under the Sinkhorn dual) | `ForMathlib` | classical (Dupuis–Ellis etc.) | — |
 
 Provenance-only (documented in prose, **no Lean library** this pass): Léonard 1308.0215
@@ -117,17 +117,18 @@ The **`Drsb` capstone** composes the above:
 
 | Card claim | Capstone declaration | Discharged by |
 |---|---|---|
-| `wdrsb_cost_bound.yaml` | `Drsb.wdrsb_cost_bound`, `Drsb.wdrsb_strong_duality` | `BlanchetMurthy2019` / `GaoKleywegt2023` |
-| `sdrsb_cost_bound.yaml` | `Drsb.sdrsb_cost_bound`, `Drsb.sdrsb_strong_duality` | `WangGaoXie2023` |
+| `wdrsb_cost_bound.yaml` | `Drsb.wdrsb_cost_bound` | `BlanchetMurthy2019` / `GaoKleywegt2023` weak-duality machinery |
+| `sdrsb_cost_bound.yaml` | `Drsb.sdrsb_cost_bound` | `WangGaoXie2023` Sinkhorn-DRO log-partition machinery |
+| related equality results | `Drsb.wdrsb_strong_duality*`, `Drsb.sdrsb_strong_duality*` | source-facing strong-duality developments; not literal card assertions |
 | `sdrsb_cost_bound.yaml` bound formula | `Drsb.sdrsbTerminalBound` | `WangGaoXie2023` log-partition (`f := ρ·g`) |
 
 ---
 
 ## 5. Repo conventions & workflow (how to work here without breaking things)
 
-- **First-pass policy: STATEMENTS ONLY.** Every theorem body is `:= by placeholder`. We are
-  matching statements to the papers *first*; proofs come later. Do not start proofs
-  unless explicitly asked.
+- **Current proof policy:** preserve public theorem seams while improving proof structure in small
+  overlays. Add minimal `_core` lemmas before changing source-facing wrappers; record exact clients,
+  build the edited leaf, then build the relevant library and full project.
 - **Faithfulness rule:** re-derive every statement from `prose/` (which cites the printed
   theorem/eq numbers), **not** from `reference/`. Put a `/-- -/` docstring on each
   theorem citing the prose file + source number; inline-comment each hypothesis.
@@ -136,8 +137,8 @@ The **`Drsb` capstone** composes the above:
   *object definitions* (couplings, `W2sq`, Sinkhorn ball) are fine to reuse for Lean
   syntax; their *theorem statements* are the traps (e.g. `V4`'s
   `optimal_control_eq_neg_grad_value` was a **vacuous existential** — the whole reason we
-  restarted). **`reference/WellKnown.lean` has *complete, dependency-clean proofs* of the
-  Donsker–Varadhan family** — these have been ported into
+  restarted). **`reference/WellKnown.lean` contains earlier proofs of the
+  Donsker--Varadhan family whose named declarations were ported into the production library** — these have been ported into
   `ForMathlib.MeasureTheory.DonskerVaradhan` (the straightforward proof completions). **Do NOT
   pull the PAC-Bayes / "TwoPager Theorem 4" material (`V1/V4`'s
   `clip`/`gClip`/`BCE`/`pac_bayes_*`) into the canonical chain** — it is card-irrelevant
@@ -178,6 +179,14 @@ The **`Drsb` capstone** composes the above:
   ```
   which must return **nothing**. The comment-hygiene rule still binds inside `Challenge/`: say
   "the proof omitted" and "dependency audit" there too.
+
+### Proof pluralism is a repository feature
+
+The positive-kernel Birkhoff--Hopf contraction is intentionally formalized twice: an
+AI-discovered Doeblin/weighted-average argument in `BirkhoffHopf.lean`, and a
+source-faithful Eveson--Nussbaum argument in `BirkhoffHopf/PaperRoute/*`. The direct proof is
+not Carroll's linear-programming reduction. Shared definitions are welcome, but neither route's
+hard theorem may become a dependency of the other. Preserve both for comparison and study.
 
 ### The two house rules that keep this repo sound
 
@@ -387,13 +396,13 @@ hand-count). The ledger `.llm_resource_tally/ledger/` (at this repo's root) is a
 per-session, concurrency-safe, and stores measurements only.
 <!-- END llm_resource_tally -->
 
-## Project-wide theorem-target scaffold
+## Project-wide theorem-target registry
 
-`ChenGeorgiouPavon2021.ProjectTheoremTargets` imports the current global progress-bar scaffold.  New
-placeholders should be added only for missing mathematical capstones and should be placed in the logical
-module where the theorem belongs.  Do not add downstream assembly placeholders merely to connect already
-named theorem targets; assembly should be proved from the targets or left until the targets are
-proved.
+`ChenGeorgiouPavon2021.ProjectTheoremTargets` is a historical aggregate of theorem targets and
+interfaces. Do not use it as a repository-wide progress count. New long-horizon targets belong in
+the logical module where their statement is stable; when the carrier or proposition is still under
+design, prefer a dated roadmap entry. Do not add downstream assembly admissions merely to connect
+already named interfaces.
 
 <!-- lean4-skills:start -->
 ## Lean 4 Workflows

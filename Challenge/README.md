@@ -16,7 +16,7 @@ The DRSB source-paper libraries (`BlanchetMurthy2019`, `GaoKleywegt2023`,
 capstone — the repo's actual **end states** — are documented below and in `STATUS.md`, but
 they are deliberately **not** comparator challenges: their statements are inherently in
 each paper's own vocabulary (`couplings`, `couplingCost`, `sinkhornBall`, `droValue`, …),
-and the comparator can only certify that a proof is axiom-clean — it cannot certify that
+and the comparator can compare a named proof and its reported dependencies, but it cannot certify that
 those definitions faithfully model the paper. That faithfulness is a human reading task, so
 a comparator artifact there would add no trust. The comparators stay purely
 Mathlib-candidate-focused.
@@ -27,8 +27,10 @@ Principles:
   import, not the supporting lemmas. `#print axioms` on a listed theorem transitively
   certifies its entire proof tree. Where one listed theorem is a corollary of another
   (both are public API of the same proposed PR), the axiom gate is transitive either way.
-- **Axiom gate.** Every listed theorem is verified to depend only on
-  `propext, Classical.choice, Quot.sound` — no `sorryAx`, no custom axioms.
+- **Dependency gate.** For each project-backed `Leaderboard` leaf, record the literal
+  `#print axioms` output after rebuilding the relevant module. The 2026-07-10 maintainer report
+  lists only `propext, Classical.choice, Quot.sound` for the audited project proofs. This statement
+  does not apply to `Conformance.lean`, whose admitted specifications are intentional.
 - **Mathlib-only conformance.** `Conformance.lean` imports *only* Mathlib and states the
   theorems as `sorry`. A result whose statement names a project definition therefore cannot
   have one; those carry an axiom-audit `Leaderboard` only, and no comparator config.
@@ -56,8 +58,9 @@ Mathlib, are enough to establish credibility and earn maintainer engagement for 
 
 ## Family 2 — `MathlibPending/` (proven, but held back)
 
-All sorry-free and axiom-clean, but **not** part of the opening push — each either needs work
-to clear the maintainer bar, or is held until the headline three land. Each may graduate.
+The project-backed `Leaderboard` proofs were reported with the same scoped dependency output as
+the candidate leaves, but these results are **not** part of the opening push — each either needs
+work to clear the maintainer bar, or is held until the headline three land. Each may graduate.
 
 | Challenge | Leaf theorem(s) | Why pending |
 |---|---|---|
@@ -73,19 +76,20 @@ to clear the maintainer bar, or is held until the headline three land. Each may 
 
 ## DRSB libraries — the repo's end states (documented, not comparator challenges)
 
-These are the source-paper layers and the capstone that all the upstream work was in service
-of. They are **not** comparator challenges (see the rationale in the intro). Each was verified
-clean — `#print axioms = {propext, Classical.choice, Quot.sound}`, no `sorryAx`, no custom
-axioms.
+These are the source-paper layers and capstone results that motivated much of the reusable work.
+They are **not** comparator challenges (see the rationale in the intro). Dependency reports should
+be attached to named declarations, not summarized as a property of an entire library. The two card
+theorems were reported with `#print axioms = {propext, Classical.choice, Quot.sound}` at the
+snapshot documented in `STATUS.md`.
 
-| Library | Main theorem(s) | Axiom status |
+| Library | Main theorem(s) | Recorded status |
 |---|---|---|
-| Drsb (capstone) | `wdrsb_cost_bound`, `sdrsb_cost_bound` (the two MAGNET card claims, **edge-free**), `wdrsb_strong_duality_of_regularity`, `sdrsb_strong_duality`, `sdrsb_strong_duality_of_radius_gt_independent_cost` | clean ✓ |
-| WangGaoXie2023 | `strong_duality` (Sinkhorn/entropic DRO; `hge` **proved**, replaced by a checkable Slater hypothesis), `sinkhornDual_le_droValue`, `sinkhorn_cost_bound` | clean ✓ |
-| GaoKleywegt2023 | `strong_duality_thm1_of_regularity`, `weak_duality_prop1` | clean ✓ |
-| BlanchetMurthy2019 | `strong_duality_thm1` | clean ✓ |
-| MohajerinEsfahaniKuhn2018 | `strong_duality` | clean ✓ |
-| ChenGeorgiouPavon2021 | Schrödinger-bridge / SOC value function, Sinkhorn convergence, energy identity | clean ✓ |
+| Drsb (capstone) | `wdrsb_cost_bound`, `sdrsb_cost_bound` (the two MAGNET card claims; neither takes an explicit duality-gap hypothesis), `wdrsb_strong_duality_of_regularity`, `sdrsb_strong_duality`, `sdrsb_strong_duality_of_radius_gt_independent_cost` | see named reports / rebuild before use |
+| WangGaoXie2023 | `strong_duality` (Sinkhorn/entropic DRO; no `hge` parameter, uses a checkable Slater hypothesis), `sinkhornDual_le_droValue`, `sinkhorn_cost_bound` | see named reports / rebuild before use |
+| GaoKleywegt2023 | `strong_duality_thm1_of_regularity`, `weak_duality_prop1` | see named reports / rebuild before use |
+| BlanchetMurthy2019 | `strong_duality_thm1` | see named reports / rebuild before use |
+| MohajerinEsfahaniKuhn2018 | `strong_duality` | see named reports / rebuild before use |
+| ChenGeorgiouPavon2021 | Schrödinger-bridge / SOC value function, Sinkhorn convergence, energy identity | see named reports / rebuild before use |
 
 ---
 

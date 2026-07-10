@@ -1,7 +1,8 @@
 # Proof audit and remediation guide — AIQ DRSB formalization
 
-**Audited source:** commit `d81468009ef35024fd213686133f38b234ec9054` (`Commit ledger`, 2026-07-10)  
-**Audit date:** 2026-07-10  
+**Statically audited source:** commit `d81468009ef35024fd213686133f38b234ec9054` (`Commit ledger`, 2026-07-10)
+**Documentation reconciliation base:** commit `ece61a237bab50ff7eef0d2a94fef651b7b01504` (2026-07-10; no Lean-file changes from the audited source)
+**Audit date:** 2026-07-10
 **Scope:** theorem fidelity, proof architecture, documentation accuracy, preservation of research scaffolding, and preparation of reusable contributions.
 
 ## 1. Project priorities and audit philosophy
@@ -47,10 +48,10 @@ Before changing any suspicious declaration, classify it:
 
 | Class | Meaning | Default action |
 |---|---|---|
-| **C — card critical** | On the dependency path to `Drsb.wdrsb_cost_bound`, `Drsb.sdrsb_cost_bound`, or their strong-duality support | Preserve public statement and imports; add compatibility wrappers before changing APIs |
+| **C — card critical** | On the actual proof-term path to `Drsb.wdrsb_cost_bound` or `Drsb.sdrsb_cost_bound` | Preserve public statement and imports; add compatibility wrappers before changing APIs |
 | **U — reusable/upstream** | Paper-agnostic theorem intended for Mathlib or a proof collection | Improve statement minimality and proof modularity; preserve source-faithful wrappers separately |
 | **R — research route** | Independent proof, alternate derivation, or proof-comparison object | Preserve even if another proof is shorter; document provenance and independence |
-| **S — scaffold/interface** | A precise boundary for mathematics not yet instantiated | Keep the target concept, but encode it as a proposition/structure/interface rather than a theorem with vacuous content |
+| **S — scaffold/interface** | A boundary or roadmap target for mathematics not yet instantiated | Keep the target concept; use a proposition/structure when stable and client-driven, otherwise use dated roadmap prose |
 | **H — historical record** | Journal or prior work-plan material | Correct misleading current claims; retain useful history with dates and supersession notes |
 
 Deletion is the last step, not the first. A declaration should be removed only after:
@@ -79,7 +80,24 @@ It heuristically reports:
 
 It is not a Lean parser. A hit is a review prompt, never an automatic deletion recommendation.
 
-Static inspection covered **126 Lean files**, **23,468 lines**, and approximately **951 top-level declarations**. A source scan found the admitted tactic token only in the intentional Challenge conformance specifications. The execution environment did not have a working Lake installation and could not fetch Elan, so this audit does not independently certify the recorded build or axiom reports.
+Static inspection covered **126 Lean files**, **23,468 lines**, and approximately **951 top-level declarations**. A source scan found the admitted tactic token only in the intentional Challenge conformance specifications. The execution environment did not have a working Lake installation and could not fetch Elan, so the original pass did not independently certify the recorded build or axiom reports.
+
+### 2.1 Compiler-backed corrections supplied by the maintainer
+
+After the static pass, a maintainer with the pinned Lean toolchain reported:
+
+- `lake build` completed at commit `d81468009ef35024fd213686133f38b234ec9054`
+  with 8761 jobs and zero warnings;
+- `#print axioms Drsb.wdrsb_cost_bound` reported only `propext`,
+  `Classical.choice`, and `Quot.sound`;
+- `#print axioms Drsb.sdrsb_cost_bound` reported the same three dependencies;
+- the two card theorems do not consume the Chen--Georgiou--Pavon continuum layer,
+  finite Sinkhorn convergence, or the source-faithful MEK/GK worst-case-structure results.
+
+These compiler-backed observations supersede any static wording that treated the continuum,
+MEK/GK structure corollaries, or finite Sinkhorn convergence as gates for the literal card
+inequalities. Strong-duality equalities and source-faithful optimizer results remain valuable
+parallel formalizations, but they must be described separately from the card dependency path.
 
 ## 3. Executive conclusions
 
@@ -98,13 +116,16 @@ A terminology correction matters. The direct proof currently in the Lean file is
 
 The continuum and PDE/SDE target files contain valuable architecture. The problem is not that they exist; the problem is that a few target names are implemented as theorems proving `True` or as wrappers that accept the desired conclusion verbatim.
 
-The correction is to preserve the target as one of:
+The correction depends on statement stability:
 
-- a `def ... : Prop` stating the desired future fact;
-- a `structure ... : Prop` packaging the exact missing data;
-- an assembly theorem named `_of_interface`, `_of_data`, or `_of_verification`;
-- a planning entry when the correct proposition is not yet settled.
+- use a `def ... : Prop` when the target proposition is mathematically stable and has a real client;
+- use a `structure ... : Prop` when an assembly theorem consumes meaningful verification data;
+- use an `_of_interface`, `_of_data`, or `_of_verification` theorem for a genuine boundary;
+- use a roadmap entry, rather than a premature Lean proposition, when the carrier or intended
+  statement is known to be provisional.
 
+In particular, the two current `True` markers should be deleted with their ignored clients and
+replaced by roadmap text until the canonical interval-path carrier and density process are stable.
 Do not flatten the continuum target modules into comments or delete their finite-dimensional achievements.
 
 ### 3.3 Separate production dependencies from alternate proof experiments
@@ -203,9 +224,9 @@ If an agent cannot state the intended replacement proposition precisely, it shou
 
 ## D1. Replace completion slogans with scoped evidence
 
-**Class:** H / repository-wide documentation  
-**Risk:** low  
-**Card impact:** none  
+**Class:** H / repository-wide documentation
+**Risk:** low
+**Card impact:** none
 **Upstream value:** trust and reviewability
 
 ### Problem
@@ -278,9 +299,9 @@ The audit helper reports the current occurrences in:
 
 ## D2. Document proof pluralism as a repository feature
 
-**Class:** R / U  
-**Risk:** low for docs; medium for later refactors  
-**Card impact:** indirect, through Sinkhorn convergence support  
+**Class:** R / U
+**Risk:** low for docs; medium for later refactors
+**Card impact:** indirect, through Sinkhorn convergence support
 **Upstream value:** high
 
 ### The two routes
@@ -409,9 +430,9 @@ The second grep is heuristic; comments and qualified names must be inspected man
 
 ## S1. Preserve continuum scaffolding while removing vacuous theorem encodings
 
-**Class:** S  
-**Risk:** medium  
-**Card impact:** none for the current card inequalities; relevant to the stronger continuum program  
+**Class:** S
+**Risk:** medium
+**Card impact:** none for the current card inequalities; relevant to the stronger continuum program
 **Upstream value:** medium to high
 
 ### Important preservation fact
@@ -577,9 +598,9 @@ Do not remove `HasDyadicKLExhaustion`, `HasIntervalDyadicKLExhaustion`, or the c
 
 ## S2. Preserve PDE/SDE targets while separating verification data from analytic derivation
 
-**Class:** S / U  
-**Risk:** medium  
-**Card impact:** low for current abstract card capstones; high for a concrete CGP model  
+**Class:** S / U
+**Risk:** medium
+**Card impact:** low for current abstract card capstones; high for a concrete CGP model
 **Upstream value:** medium
 
 ### Problem
@@ -664,9 +685,9 @@ The target concept is valuable. The current theorem names merely blur the distin
 
 ## P1. Make the ProjectiveLag dependency graph truthful without discarding alternate-route scaffolding
 
-**Class:** C / R  
-**Risk:** medium  
-**Card impact:** indirect through finite Sinkhorn convergence  
+**Class:** C / R
+**Risk:** medium
+**Card impact:** indirect through finite Sinkhorn convergence
 **Upstream value:** medium
 
 ### Current dependency loop
@@ -762,9 +783,9 @@ lake build
 
 ## P2. Decompose `matrix_scaling_exists` conservatively
 
-**Class:** U  
-**Risk:** high  
-**Card impact:** indirect; finite Schrödinger-potential existence  
+**Class:** U
+**Risk:** high
+**Card impact:** indirect; finite Schrödinger-potential existence
 **Upstream value:** very high
 
 ### Current state
@@ -914,9 +935,9 @@ Also check the public statements have not changed with `#check` or the comparato
 
 ## P3. Refactor each Birkhoff route internally without merging them
 
-**Class:** R / U  
-**Risk:** medium to high  
-**Card impact:** indirect through Franklin–Lorenz  
+**Class:** R / U
+**Risk:** medium to high
+**Card impact:** indirect through Franklin–Lorenz
 **Upstream value:** high
 
 ### P3.1 Direct route
@@ -982,9 +1003,9 @@ Do not share between routes:
 
 ## A1. Minimize reusable theorem assumptions while preserving paper-facing wrappers
 
-**Class:** U / H  
-**Risk:** medium  
-**Card impact:** low to medium  
+**Class:** U / H
+**Risk:** medium
+**Card impact:** low to medium
 **Upstream value:** high
 
 ### General recipe
@@ -1053,7 +1074,7 @@ Large source-facing theorems in `GaoKleywegt2023/Basic.lean` and `MohajerinEsfah
 - Preserve theorem-number-faithful wrappers.
 - Move the minimal mathematical result into `ForMathlib.OptimalTransport` when it is paper-agnostic.
 - Make the paper theorem a short specialization with source notation.
-- Do not rewrite all source-facing APIs in one patch; these are closer to the card dependency path.
+- Do not rewrite all source-facing APIs in one patch; they are literature-facing surfaces with distinct fidelity constraints even though they do not gate the card inequalities.
 
 ### Acceptance criteria
 
@@ -1066,9 +1087,9 @@ Large source-facing theorems in `GaoKleywegt2023/Basic.lean` and `MohajerinEsfah
 
 ## D3. Correct stale status and roadmap contradictions
 
-**Class:** H  
-**Risk:** low  
-**Card impact:** none  
+**Class:** H
+**Risk:** low
+**Card impact:** none
 **Upstream value:** reviewer orientation
 
 ### Current contradictions
@@ -1107,8 +1128,8 @@ Large source-facing theorems in `GaoKleywegt2023/Basic.lean` and `MohajerinEsfah
 
 ## T1. Improve repository audit tooling prerequisite errors
 
-**Class:** tooling  
-**Risk:** low  
+**Class:** tooling
+**Risk:** low
 **Card impact:** none
 
 `scripts/check_comparator_signatures.py` raises a raw `FileNotFoundError` when `lake` is unavailable.
@@ -1136,9 +1157,9 @@ The following are not cleanup tasks for a weak agent. They require mathematical 
 
 ## M1. Canonical ENNReal Wasserstein transport cost
 
-**Class:** U / semantic strengthening  
-**Risk:** very high  
-**Card impact:** potentially high  
+**Class:** U / semantic strengthening
+**Risk:** very high
+**Card impact:** potentially high
 **Upstream value:** very high
 
 `ForMathlib/OptimalTransport/Basic.lean` defines the general transport cost and OT value in `ℝ` via Bochner integrals. The Sinkhorn objective already has an `ℝ≥0∞` foundation that represents nonintegrability as `⊤` rather than a junk real value.
@@ -1168,9 +1189,9 @@ Do not mix this campaign with documentation or proof-route cleanup.
 
 ## M2. Genuine continuum path-space closure
 
-**Class:** S / new mathematics  
-**Risk:** very high  
-**Card impact:** outside the current abstract card theorem; relevant to a concrete diffusion instantiation  
+**Class:** S / new mathematics
+**Risk:** very high
+**Card impact:** outside the current abstract card theorem; relevant to a concrete diffusion instantiation
 **Upstream value:** high
 
 The correct direction is already visible in `Continuum/PathSpace.lean`:
@@ -1190,7 +1211,7 @@ The audit recommends continuing on the canonical interval carrier rather than st
 
 ## M3. Worst-case optimizer attainment
 
-**Class:** source theorem extension  
+**Class:** source theorem extension
 **Risk:** high
 
 Keep value-duality theorems separate from optimizer-structure/attainment theorems. A later campaign may require tightness, semicontinuity, Prokhorov compactness, and measurable-selection infrastructure. Finite/discrete instances are suitable first targets.
@@ -1199,73 +1220,59 @@ Keep value-duality theorems separate from optimizer-structure/attainment theorem
 
 # Recommended overlay sequence
 
-## Overlay A — documentation truthfulness
+## Overlay A0 — documentation consistency
 
-Files likely touched:
-
-```text
-README.md
-STATUS.md
-PROOF_PIPELINE.md
-ProjectTheoremTargets.lean
-ForMathlib.lean
-formalization.yaml
-Challenge/README.md
-FOUNDATIONS.md
-SURVEY_LEADS.md
-JOURNAL.md
-```
-
-Changes:
-
-- replace completion slogans with scoped evidence;
-- document both Birkhoff routes as an intentional feature;
-- mark historical plans as superseded;
-- correct current frontier descriptions.
+- record the card theorem mapping and the named dependency reports;
+- correct the card dependency graph;
+- distinguish one-sided card inequalities from equality and optimizer theorems;
+- document the two Birkhoff routes as a protected comparative feature;
+- mark historical surveys, journals, and roadmaps as dated rather than current status.
 
 No Lean theorem changes.
 
-## Overlay B — continuum target encoding
+## Overlay A1 — decompose `matrix_scaling_exists`
 
-Changes:
+Keep its public statement unchanged initially. Extract named stages for compact-domain
+construction, objective continuity/attainment, boundary exclusion, stationarity, multiplier
+elimination, and final scaling assembly. Build the leaf after each extraction. This is the
+highest immediate upstream-value proof refactor.
 
-- remove the two theorems concluding `True`;
-- remove ignored `True` arguments;
-- preserve finite dyadic results;
-- migrate assembly to explicit interfaces;
-- point target prose to canonical anchored-continuous path structures.
+## Overlay A2 — minimize assumptions through `_core` theorems
 
-Keep theorem/API changes narrowly scoped and provide a client list in the overlay manifest.
+Start with one family per overlay:
 
-## Overlay C — ProjectiveLag dependency cleanup
+1. `hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound`;
+2. `finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound`;
+3. `positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_apply_hilbert_log_diameter_bound`.
 
-Changes:
+Use mechanically reported unused hypotheses as evidence, but retain paper-facing wrappers when
+the assumptions make the source correspondence clearer.
 
-- production convergence theorem directly invokes Franklin–Lorenz convergence;
-- no-subsequence theorem retained as a derived alternate-route seam;
-- comments corrected;
-- no file split yet.
+## Overlay A3 — ProjectiveLag dependency clarification
 
-## Overlay D — verification-data API
+- make the production convergence theorem invoke the Franklin--Lorenz convergence theorem directly;
+- retain the no-positive-subsequence result as a derived theorem or alternate compactness scaffold;
+- remove comments that call the derived round trip the hard core;
+- delete conversion machinery only after exact client analysis shows it has no independent role.
 
-Changes:
+## Overlay A4 — minimal continuum honesty correction
 
-- add `SOCVerificationData`;
-- add assembly theorems from verification data;
-- preserve PDE/HJB targets as proposition definitions;
-- migrate target aggregate comments.
+- delete the two theorem-shaped `True` markers;
+- remove the ignored `True` value threaded to the quasi-invariance client;
+- record the intended targets and prerequisites in the continuum roadmap;
+- do not create a detailed proposition on the acknowledged-provisional unrestricted path carrier.
 
-## Overlay E — internal proof decomposition
+## Overlay A5 — verification-data APIs when demanded by clients
 
-Start with one proof only:
+Add structures such as `SOCVerificationData` only when an existing assembly theorem consumes
+meaningful fields. Do not introduce interface types merely to make distant roadmap items executable.
 
-- either `matrix_scaling_exists`,
-- or the direct finite weighted-average Birkhoff core,
-- or the paper-route assembly.
+## Later research overlays
 
-Do not refactor all three simultaneously.
-
----
+- route-preserving internal decomposition of the direct and paper Birkhoff proofs;
+- ENNReal transport-cost foundation;
+- canonical interval-path/KL-exhaustion/Cameron--Martin closure;
+- worst-case optimizer attainment and source-generalization work.
 
 # Structural hotspots
 
@@ -1303,11 +1310,21 @@ These spans are triage signals. In particular, the long paper-route theorem shou
 
 # Final priority order
 
-1. **Documentation and terminology:** objective status evidence; intentional Challenge admissions; current frontier; dual-proof feature.
-2. **Scaffold honesty:** replace vacuous theorem encodings without deleting continuum/PDE target architecture.
-3. **Dependency truthfulness:** production Sinkhorn convergence should point directly to Franklin–Lorenz; retain alternate compactness seams.
-4. **Route-preserving modularity:** decompose direct and paper Birkhoff proofs internally but keep them independent.
-5. **Upstream preparation:** decompose `matrix_scaling_exists`; add minimal core theorems with paper-facing wrappers.
-6. **Research campaigns:** ENNReal OT foundation, canonical path-space closure, and attainment.
+1. **Documentation consistency:** scoped evidence, exact card dependency graph, literature mapping,
+   and preservation of the two Birkhoff routes.
+2. **Highest upstream payoff:** decompose `matrix_scaling_exists` without changing its public type.
+3. **Statement quality:** add minimal core theorems and retain source-facing wrappers.
+4. **Dependency truthfulness:** simplify the production ProjectiveLag path while preserving alternate
+   compactness scaffolding.
+5. **Minimal continuum honesty:** remove theorem-shaped `True` markers and use roadmaps until the
+   carrier and target statements stabilize.
+6. **Longer campaigns:** Birkhoff route decomposition, ENNReal OT, canonical path-space closure,
+   and optimizer attainment.
 
-The repository's most distinctive mathematical asset is not merely that the positive-kernel contraction theorem is available. It is that the theorem is represented by two different proof ideas: one independently discovered in the AI-assisted formalization process, and one organized around published human reasoning. The audit and subsequent refactors should make that comparison easier to inspect, not optimize it away.
+The current card inequalities are already isolated from the long-horizon continuum and
+source-faithful optimizer campaigns. Accordingly, the next substantial proof work should be
+chosen for upstream mathematical value, not from a mistaken belief that those campaigns gate the
+card. The repository's most distinctive comparative asset remains the pair of independent
+Birkhoff--Hopf proofs: one discovered during AI-assisted formalization and one organized around
+published human reasoning. Refactors should make that comparison easier to inspect, not optimize
+it away.

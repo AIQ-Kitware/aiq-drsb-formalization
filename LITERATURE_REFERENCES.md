@@ -2,8 +2,9 @@
 
 This file is the central bibliography/proof-source ledger for the DRSB formalization.
 It complements `prose/README.md`: the prose files explain the arguments, while this
-file records which original literature reference is supposed to justify each Lean
-library, declaration family, and remaining proof obligation.
+file records which original literature reference justifies each Lean library,
+declaration family, comparison route, or future proof obligation. It is not a live
+completion report; use `STATUS.md` and `PROOF_PIPELINE.md` for that.
 
 Status values:
 
@@ -23,7 +24,7 @@ commit source PDFs unless the project policy changes.
 
 | Key | Reference | Lean scope | Repo prose / notes | Exact anchors currently used | Coverage status | Next PDF/distillation task |
 |---|---|---|---|---|---|---|
-| `CGP2021` | Yongxin Chen, Tryphon T. Georgiou, Michele Pavon, *Stochastic control liaisons: Richard Sinkhorn meets Gaspard Monge on a Schrödinger bridge*, SIAM Review 2021; arXiv:2005.10963 | `ChenGeorgiouPavon2021/*`, especially SB/SOC/entropic-OT and finite Sinkhorn convergence | `prose/schrodinger-bridge-soc-ot.md` | Repo prose cites Problem 4.3 / Theorem 5.2 for SB/SOC/entropic-OT; finite Sinkhorn convergence is currently being formalized under `SocOt/Sinkhorn/Convergence/*` | `primary`, `needs-distillation` for the remaining projective-lag convergence seam | Download PDF; distill the finite/discrete Sinkhorn convergence argument, especially the no-projective-2-cycle / asymptotic-regularity step now isolated in `ProjectiveLag.lean` |
+| `CGP2021` | Yongxin Chen, Tryphon T. Georgiou, Michele Pavon, *Stochastic control liaisons: Richard Sinkhorn meets Gaspard Monge on a Schrödinger bridge*, SIAM Review 2021; arXiv:2005.10963 | `ChenGeorgiouPavon2021/*`, especially SB/SOC/entropic-OT and finite Sinkhorn convergence | `prose/schrodinger-bridge-soc-ot.md` | Repo prose cites Problem 4.3 / Theorem 5.2 for SB/SOC/entropic-OT; the finite Sinkhorn development lives under `SocOt/Sinkhorn/Convergence/*` | `primary`; finite convergence is represented, while source-comparison and proof-organization work remains | Distill the exact finite/discrete convergence argument used by the paper and compare it with the current Franklin--Lorenz and projective-lag route |
 | `Leonard2013` | Christian Léonard, *A survey of the Schrödinger problem and some of its connections with optimal transport*, arXiv:1308.0215 | Dynamic/static Schrödinger bridge background; `ChenGeorgiouPavon2021.dynamic_eq_static_SB` provenance | `prose/schrodinger-bridge-soc-ot.md` | Repo prose cites Theorem 5.2 for the dynamic/static link / Gamma-to-OT connection | `secondary` / possibly `primary` for dynamic-static SB if that statement is kept | Download PDF; distill only the theorem(s) actually consumed by Lean, not the whole survey |
 | `BlanchetMurthy2019` | Jose Blanchet, Karthyek R. A. Murthy, *Quantifying Distributional Model Risk via Optimal Transport*, Mathematics of Operations Research 2019; arXiv:1604.01446 | `BlanchetMurthy2019/Basic.lean`, `Drsb.wdrsb_*` | `prose/wasserstein-dro-duality.md`; **`prose/distilled_literature/BlanchetMurthy2019_theorem1.tex` (full distillation, 2026-07-10)** | Assumption (A1) (c ≥ 0, lsc, `c(x,y)=0 ⟺ x=y`); Assumption (A2) (f usc, `L¹(μ)`); Theorem 1(a) `I=J`; Theorem 1(b) dual optimizer `(λ*, φ_{λ*})` + complementary slackness (8a)/(8b); Remark 1 eq. (9); Props 5–7 + Sion minimax (§4) | `primary`, **distilled**. Theorem 1(a)/eq.(9) is proved in Lean by an **independent route** (ε-argmax + supergradient + value-function concavity), not by Fenchel/Sion. **Theorem 1(b) is NOT formalized** | Formalize Theorem 1(b) (dual optimizer + complementary slackness) — it is the missing ingredient behind the deferred worst-case-measure existence theorems |
 | `GaoKleywegt2023` | Rui Gao, Anton J. Kleywegt, *Distributionally Robust Stochastic Optimization with Wasserstein Distance*, Mathematics of Operations Research 2023; arXiv:1604.02199 | `GaoKleywegt2023/Basic.lean`, WDRSB capstone support | `prose/wasserstein-dro-duality.md`; **`prose/distilled_literature/GaoKleywegt2023_theorem1.tex` (full distillation, 2026-07-10)** | Definition 3 (Φ); Definition 4 (growth rate κ); Lemma 2(i)-(iii), eq. (5); Proposition 1 (weak duality); Theorem 1 (κ<∞ ⇒ v_P=v_D<∞); Remark 2 (arbitrary measurable c ≥ 0 with c(ξ,ζ)=0 if ξ=ζ); Corollary 1(i) (iff-condition for a worst-case distribution); Corollary 2(i) eq. (28), 2(ii) eq. (29) | `primary`, **distilled**. Our Lean hypotheses (f continuous+bounded, c continuous) are a **strict special case** of κ<∞ (bounded f ⇒ κ=0). Corollary 1(i)'s iff-condition is NOT formalized — it is what would discharge the worst-case-existence edges and the four `hbddP` | Formalize Definition 4 + Lemma 2(ii), then re-prove `strong_duality_thm1` under κ<∞; read §3.1 Lemmas 3–4 to see what replaces measurable selection |
@@ -31,8 +32,8 @@ commit source PDFs unless the project policy changes.
 | `WangGaoXie2023` | Jie Wang, Rui Gao, Yao Xie, *Sinkhorn Distributionally Robust Optimization*, Operations Research 2025; doi:10.1287/opre.2023.0294; arXiv:2109.11926 | `WangGaoXie2023/*`, `Drsb.sdrsb_*`, `ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq` | `prose/sinkhorn-dro-duality.md`; **`prose/distilled_literature/WangGaoXie2025_sinkhorn_dro_theorem1.tex` (full distillation, 2026-07-10)** | Definition 1; eq. (1)--(3); Assumption 1(I)--(IV); Condition 1; Theorem 1(I)--(IV) (all clauses in the **shifted** radius `ρ̄`, PDF p.7); Lemma 1 (weak duality, proof p.11--12); Lemma 2 (KL reformulation); Remark 4 (worst-case law); Lemmas EC.2/EC.3/EC.4, Lemma 3 (supplement) | `primary`, **distilled**; Theorem 1(II) is proved in Lean only under Slater (`ρ̄ > 0`) — the paper covers `ρ̄ ≥ 0` | Read supplement EC.2/EC.3/EC.4 + Lemma 3; then close the boundary case `ρ̄ = 0` (λ→∞ Jensen limit) to delete the Slater hypothesis |
 | `DonskerVaradhan` | M. D. Donsker and S. R. S. Varadhan, *Asymptotic evaluation of certain Markov process expectations for large time* series, CPAM 1975--1983; plus modern textbook treatments such as Dupuis--Ellis | `ForMathlib/MeasureTheory/DonskerVaradhan.lean`, `WangGaoXie2023.logPartition_eq_gibbs_sSup` | `prose/kl-dro-gibbs-donsker-varadhan.md` | Donsker--Varadhan inequality, tilted-measure attainment, Gibbs variational formula / log-integral-exp supremum | `primary` for the DV/Gibbs root; `needs-distillation`, `exact-anchor-needed` | **Now a Mathlib candidate** (`Challenge/MathlibCandidate/DonskerVaradhan`). Cite Dupuis--Ellis, *A Weak Convergence Approach to the Theory of Large Deviations* (1997) Prop. 1.4.2 / Lemma 1.4.3 for the probability-measure Gibbs variational formula we actually proved; verify the anchors from the book, then write `DonskerVaradhan_gibbs_variational.tex` |
 | `SinkhornKnopp1967` | Richard Sinkhorn, Paul Knopp, *Concerning nonnegative matrices and doubly stochastic matrices*, Pacific Journal of Mathematics 1967 | `ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean`; background for finite Sinkhorn scaling/convergence | Mentioned indirectly in CGP/Sinkhorn docs | Matrix scaling existence and convergence of alternating row/column scaling | `secondary` or `primary` depending on whether the matrix-scaling proof is compared to this source or to the repo's log-domain proof | Download PDF; decide if this is the source for the existence theorem, the convergence theorem, or only historical background |
-| `FranklinLorenz1989` | Joel Franklin, Jens Lorenz, *On the scaling of multidimensional matrices*, Linear Algebra and its Applications 1989 | Possible proof source for matrix scaling and Hilbert/projective convergence facts | Not yet centralized in prose | Elementary scaling proofs; geometric convergence / Hilbert-metric material, depending on exact section | `candidate-primary`, `exact-anchor-needed` for remaining `ProjectiveLag.lean` | Download PDF; inspect whether it contains the exact finite positive-kernel asymptotic-regularity lemma needed by `ProjectiveLag.lean` |
-| `BirkhoffHilbert` | Garrett Birkhoff's Hilbert projective metric contraction theorem and later expositions | Possible proof source for remaining `ProjectiveLag.lean` | Mentioned in planning docs as a possible route | Positive operator contraction in Hilbert projective metric | `candidate-primary`, `exact-anchor-needed` | Pick one citable source with a clean finite positive-matrix theorem; distill the contraction-to-projective-drift argument if used |
+| `FranklinLorenz1989` | Joel Franklin, Jens Lorenz, *On the scaling of multidimensional matrices*, Linear Algebra and its Applications 1989 | Proof source for matrix scaling and Hilbert/projective convergence facts | Distilled notes under `prose/distilled_literature/` | Elementary scaling proofs and geometric convergence in Hilbert's projective metric | `primary` for the source-faithful finite convergence route; exact theorem-to-Lean anchors should remain explicit | Compare each Franklin--Lorenz theorem used by Lean with the distilled source and document any strengthened or reorganized statement |
+| `BirkhoffHilbert` | Garrett Birkhoff's Hilbert projective metric contraction theorem and later expositions | Background for the two Birkhoff--Hopf developments | Eveson--Nussbaum and related distilled notes under `prose/distilled_literature/` | Positive operator contraction in Hilbert projective metric | two deliberately independent Lean routes: an AI-discovered Doeblin/weighted-average proof and a source-faithful Eveson--Nussbaum proof | Preserve route independence and document the difference in constants, hypotheses, and proof architecture |
 | `CameronMartin1944` | R. H. Cameron, W. T. Martin, *Transformations of Wiener Integrals Under Translations*, Annals of Mathematics 1944 | `ForMathlib/MeasureTheory/GaussianEntropy.lean`, `GaussianCameronMartin.lean`, `ChenGeorgiouPavon2021.Continuum.*` sequence/path wrappers | `PLAN_CONTINUUM_CLOSURE.md`, `ROADMAP_ENERGY_IDENTITY.md` | Cameron--Martin deterministic shift/quasi-invariance and KL energy identity | `primary` for sequence/continuum Cameron--Martin closure; exact Lean-local theorem anchors need a dedicated ledger pass | Download PDF; distill the deterministic shift identity and compare to the sequence-model proof now in `ForMathlib` |
 | `Kakutani1948` | Shizuo Kakutani, *On Equivalence of Infinite Product Measures*, Annals of Mathematics 1948 | Infinite product/quasi-invariance support in `ForMathlib.MeasureTheory.GaussianCameronMartin` | `PLAN_CONTINUUM_CLOSURE.md` | Equivalence/singularity of countable product measures; product-Hellinger criterion | `primary` or `secondary`, depending on whether the sequence proof uses Kakutani explicitly | Download PDF; identify whether Lean's current proof follows Kakutani or a direct density-martingale route |
 | `Girsanov1960` | I. V. Girsanov, *On Transforming a Certain Class of Stochastic Processes by Absolutely Continuous Substitution of Measures*, 1960 | Remaining continuous `ChenGeorgiouPavon2021.energy_identity` and feedback-drift energy identity | `ROADMAP_ENERGY_IDENTITY.md`, `EXTERNAL_AUDIT.md` | Girsanov theorem and KL/energy identity for path measures | `primary`, still blocked by missing Mathlib SDE/path-measure infrastructure | Download PDF or use a modern self-contained reference; distill the exact path-measure KL identity needed, separate from stochastic integral infrastructure |
@@ -62,26 +63,26 @@ added for the estimator itself.
 | `GSBM2024` | Liu, Lipman, Nickel, Karrer, Theodorou, Chen, *Generalized Schrödinger Bridge Matching*, ICLR 2024; arXiv:2310.02233 | Explains generalized matching and soft-terminal SOC; cited for objective (3), equations (16a--b), Algorithm 5 | `provenance` |
 | `AdjointMatching2025` | Domingo-Enrich, Drozdzal, Karrer, Chen, *Adjoint Matching: Fine-tuning ... with Memoryless SOC*, ICLR 2025; arXiv:2409.08861 | Explains the terminal/adjoint matching estimator objects | `provenance` |
 
-## 3. Current proof-frontier reference needs
+## 3. Current source-comparison and upstream reference needs
 
-The current compactness/convergence frontier is concentrated in `ProjectiveLag.lean`.
-The repo has already closed the precluster compactness, finite lag conversion, quotient drift,
-scale lag, and assembly seams. The remaining proof obligation is the finite positive-kernel
-projective/asymptotic-regularity step.
+The finite matrix-scaling and projective-convergence results are represented in Lean.
+The immediate literature work is therefore comparative rather than a search for a missing
+capstone:
 
-Immediate reference work:
-
-1. Read `CGP2021` finite/discrete Sinkhorn convergence sections and extract the exact argument
-   for successor/current projective drift.
-2. Compare that argument with `SinkhornKnopp1967`, `FranklinLorenz1989`, and a finite-dimensional
-   Hilbert/Birkhoff contraction source.
-3. Decide the primary proof source for the remaining two Lean theorems:
-   - `sinkhorn_hatted_left_projective_drift_tendsto_zero_from_gauge_iterates`
-   - `sinkhorn_right_projective_drift_tendsto_zero_from_gauge_iterates`
-4. Record whether the proof genuinely needs the positive-kernel hypothesis
-   `hG : ∀ i j, 0 < G i j` threaded into the projective/scale wrappers.
-5. Write a distilled LaTeX proof of the chosen literature argument before the next large Lean
-   proof attempt.
+1. Map the stages of `ForMathlib.matrix_scaling_exists` to Sinkhorn--Knopp,
+   Franklin--Lorenz, and the repository's independent log-domain minimization proof.
+2. Record that `BirkhoffHopf.lean` uses an AI-discovered Doeblin/weighted-average route,
+   not Carroll's linear-programming reduction.
+3. Compare `BirkhoffHopf/PaperRoute/*` theorem-by-theorem with Eveson--Nussbaum and
+   retain the sharper two-dimensional coefficient where the source route obtains it.
+4. Audit the Franklin--Lorenz wrappers for assumptions used only by paper-facing
+   presentation, extracting minimal `_core` theorems without deleting source-facing wrappers.
+5. Treat the ProjectiveLag no-positive-subsequence path as alternate compactness
+   scaffolding unless client analysis shows it is unnecessary; the production convergence
+   theorem should expose its actual Franklin--Lorenz dependency directly.
+6. For the continuum campaign, defer Lean statement design when the current path carrier is
+   acknowledged to be provisional; use the roadmap until a stable source theorem and client
+   boundary are available.
 
 ## 4. PDF acquisition checklist
 

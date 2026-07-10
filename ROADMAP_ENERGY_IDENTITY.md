@@ -1,16 +1,21 @@
-# Roadmap — closing `ChenGeorgiouPavon2021.energy_identity` (the last placeholder)
+> **Long-horizon continuum roadmap.** This file tracks the stronger path-space
+> Schrödinger-bridge/control-energy program. It is not a dependency map for the two evaluation-card
+> inequalities, which take `V` abstractly. Session-local placeholder counts below are historical;
+> use `STATUS.md` for current scoped checks.
 
-The repo's sole remaining placeholder is the continuous energy identity (CGP eq. 4.19):
+# Roadmap — continuum `ChenGeorgiouPavon2021.energy_identity` closure
+
+The original monolithic continuum target is the continuous energy identity (CGP eq. 4.19):
 
 ```
 D(P^{u,ρ₀} ‖ R) = D(ρ₀ ‖ ρ₀^W) + 𝔼_{P^{u,ρ₀}}[∫₀¹ ½‖u_t‖² dt]
 ```
 
-It is **not an open problem** — it is a known Girsanov consequence. It is only a placeholder
+It is **not an open problem** — it is a known Girsanov consequence. The remaining concrete path-space identification is deferred
 because Mathlib lacks a *packaged* multi-dim Girsanov / KL-between-path-measures. This document
 breaks it into small, individually-landable pieces and identifies exactly which Mathlib results
-each rests on. The goal: convert one monolithic placeholder into proved reductions + one atomic,
-honestly-labelled Girsanov edge, then close that edge.
+each rests on. The goal: organize the monolithic target into proved reductions plus one atomic,
+honestly labelled Girsanov edge, then close that edge.
 
 ## The decomposition
 
@@ -46,7 +51,7 @@ So the *entire* Girsanov content is (CM), and (CM) itself already has its discre
   plus the finiteness edges `D(ρ₀‖ρ₀^W) ≠ ⊤`, `D(cond) ≠ ⊤` (finite-energy regime, cf. `hfin` in
   `dynamic_eq_static_SB`).
 - Prove `energy_identity` **proved** = (★)∘Phase 0 + one explicit edge
-  `hCM : ∫ D(Kᵘ_x‖Kᵂ_x) dρ₀ = energy`. **Sorry count 1 → 0**; the Girsanov content is now the
+  `hCM : ∫ D(Kᵘ_x‖Kᵂ_x) dρ₀ = energy`. **the executable target is replaced by an explicit interface**; the Girsanov content is now the
   single named, non-vacuous hypothesis `hCM`, exactly the repo's isolate-content-to-an-edge pattern.
 
 ### Phase 1.5 — (cond): conditional KL = averaged pointwise KL (Mathlib's own TODO) — ✅ DONE
@@ -68,9 +73,9 @@ integral and each inner slice is recognised as `klDiv (κ x)(η x)`. The real fo
 **The one structural cost: `CountableOrCountablyGenerated 𝓧 𝓨`** — the standard typeclass under
 which `Kernel.rnDeriv` is jointly measurable (used throughout `Probability/Kernel/RadonNikodym`).
 It holds for any standard-Borel / Polish state and value space. **Caveat for wiring into
-`energy_identity`:** the *placeholder* path model `Path X = ℝ→X` (uncountable-index `Pi` σ-algebra)
+`energy_identity`:** the provisional path model `Path X = ℝ→X` (uncountable-index `Pi` σ-algebra)
 is **not** countably generated, and `X` is not countable, so this typeclass is not satisfiable there
-— (cond) therefore does **not** plug into the current placeholder `energy_identity` (doing so would
+— (cond) therefore does **not** plug into the current abstract `energy_identity` interface (doing so would
 require a false instance = a vacuous edge, forbidden). Wiring it in requires first upgrading `Path`
 to a standard-Borel continuous-path model (`C([0,1], X)` / Polish), a *modeling* step, not new
 mathematics. Until then (cond) stands as a proved, reusable reduction closing Mathlib's TODO.

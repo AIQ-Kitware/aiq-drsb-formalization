@@ -1,3 +1,8 @@
+> **Historical log.** Entries below record what an agent or maintainer reported during a
+> particular session. They are not the authoritative current status and may use terminology
+> superseded by later work. Use `STATUS.md` for dated, scoped checks and `PROOF_PIPELINE.md`
+> for the current work queue.
+
 # Session journal — theorem-library refactor (2026-07-08, GPT-5.5 Thinking)
 
 - Split the proved sequence Cameron--Martin/Kakutani library into reviewable theorem modules while
@@ -234,7 +239,7 @@ non-vacuous and constructively proved.
 # Session 3 — closing the last placeholder: `energy_identity` (2026-07)
 
 Goal: stop treating the last placeholder (`energy_identity`, CGP 4.19) as a monolithic "multi-month
-Girsanov" and actually break it down. Result: **the repo is now complete and dependency-clean.**
+Girsanov" and actually break it down. Result recorded in that session: the previous executable target was replaced by an explicit interface and supporting lemmas.
 
 ## The decomposition (ROADMAP_ENERGY_IDENTITY.md)
 Disintegrate both path laws over the initial coordinate — `e_#P = ρ₀ ⊗ₘ Kᵘ`, `e_#R = ρ₀^W ⊗ₘ Kᵂ`
@@ -255,7 +260,7 @@ Proof = `klDiv_map_measurableEquiv` (KL invariance under `e`, from the vendored 
 structural / finite-energy / `hCM` edges — house pattern. `schrodingerBridge_KL_eq_SOC` rewired to
 take the identity bundled per feasible control (`hEI`), decoupling it from the disintegration
 plumbing. `Lean dependency audit energy_identity` = `[propext, Classical.choice, Quot.sound]`. Build green,
-**0 placeholders repo-wide.**
+**The session-local production source scan reported no executable target placeholders in its stated scope.**
 
 ## Phase 2 — the continuum `hCM` discharge: BLOCKED (honestly)
 `hCM` (`∫ D(Kᵘ_x‖Kᵂ_x)dρ₀ = 𝔼[∫½‖u‖²]`) is the sole Girsanov content. Its **discrete
@@ -731,7 +736,7 @@ Two independent sweeps — pinned/master Mathlib, and external Lean repos. Recor
 
 - **Hilbert projective metric: does not exist in Lean. Anywhere.** Not Mathlib, not any repo.
 - **Birkhoff–Hopf contraction (`tanh(Δ/4)`): does not exist in Lean. Anywhere.** Strongest negative.
-- **Perron–Frobenius: exists, sorry-free, permissive** — `mkaratarakis/HopfieldNet` (MIT, most
+- **Perron–Frobenius: external proofs found under permissive licenses** — `mkaratarakis/HopfieldNet` (MIT, most
   complete; and it *is* the source behind Mathlib PRs #39919/#39920, correcting an earlier note that
   called it independent) and `mrdouglasny/spectral-positivity` (Apache-2.0, cleanest headers).
   **But PF is off our critical path** — nothing downstream consumes an eigenvector.
@@ -821,8 +826,10 @@ session; the only Lean edits were the two lint fixes recorded above.
 
 # Session — the projective-metric frontier is closed (2026-07-10, Claude Opus 4.8)
 
-Started with **16 open goals**, all in the Birkhoff–Hopf / Sinkhorn-convergence effort. Ended with
-**0**. The repo is `sorry`-free and axiom-clean, and Sinkhorn convergence is proved end to end.
+This session began with 16 listed goals in the Birkhoff--Hopf / Sinkhorn-convergence effort and
+reported closing all 16. It also recorded a successful build and named dependency checks. The durable
+result is that finite Sinkhorn convergence is represented end to end; current repository status is
+reported separately in `STATUS.md`.
 
 ## The result
 
@@ -935,7 +942,7 @@ rebuild.)
 
 ## Where this leaves the repo
 
-`sorry`-free is **not** assumption-free. The house style isolates hard content into named edge
+A source scan with no admitted tactic tokens does **not** imply assumption-free theorem statements. The house style isolates hard content into named edge
 hypotheses, and those remain the real debt:
 
 - `hOT` — OT measurable-selection attainment (`Drsb`, `GaoKleywegt2023`, `BlanchetMurthy2019`). The
@@ -1172,8 +1179,7 @@ audit/refactor pass.
 The deferred campaign is recorded in `STATUS.md`. **Correction to the two entries above:** they
 listed "Kolmogorov extension for dependent families" and "Kakutani" as open gaps. Both were carried
 over from a stale reading. Kolmogorov extension was vendored and closed on 2026-07-04
-(`ForMathlib/KolmogorovExtension/` → `ForMathlib.MeasureTheory.wienerMeasure`, sorry-free and
-axiom-clean), and the sequence-model Cameron–Martin/Kakutani theorem was proved in Phase 2a. The
+(`ForMathlib/KolmogorovExtension/` → `ForMathlib.MeasureTheory.wienerMeasure`; the session recorded a successful build and named dependency checks), and the sequence-model Cameron–Martin/Kakutani theorem was proved in Phase 2a. The
 real remaining capstones are worst-case-measure attainment (`hattain`, one theorem serving all four
 strong-duality results, now attackable since Prokhorov/Portmanteau landed in the pin), the
 Schrödinger-bridge structure edges (`hglue`, `hprod_exists`, `hHC`), and continuum Girsanov
@@ -1242,7 +1248,7 @@ covers only simple processes (`DoobMeyer.lean` has 25 open goals). Nobody should
 Girsanov" task against those repos. Corrected in place.
 
 Repo is `lake build` green with **zero warnings** (fixed a stray unused `simp` argument in
-`BirkhoffHopf/PaperRoute/TwoByTwo.lean`), sorry-free, and axiom-clean.
+`BirkhoffHopf/PaperRoute/TwoByTwo.lean`); the session recorded a successful build and named dependency reports.
 
 ---
 
@@ -1301,7 +1307,7 @@ compact ⇒ a usc objective attains its sup ⇒ `hattain`.
 ## Also this session
 
 `hbddP` deleted from every duality theorem (see the previous entry). Repo builds with **zero
-warnings**, is sorry-free, and every card-path and ForMathlib declaration is axiom-clean.
+warnings**; the session also recorded named dependency checks for the declarations it audited.
 
 ---
 
@@ -1335,7 +1341,7 @@ with the full recipe, including the one non-obvious obstacle: discharging `hSink
 requires moving `Drsb.hasSinkhornDisintegration_of_isSinkhornPlan` *below* `WangGaoXie2023` in the
 import graph, since it presently sits above it.
 
-Repo restored to green: `lake build` clean, **zero warnings**, sorry-free, axiom-clean.
+Repo restored to a successful `lake build` with **zero warnings**; named dependency checks were recorded separately.
 
 ---
 
@@ -1378,7 +1384,7 @@ downstream library needed touching.** `BlanchetMurthy2019`, `GaoKleywegt2023`,
 instantiate at `α = β = X`. And `WangGaoXie2023.strong_duality` and `primal_feasible_radius_nonneg`
 now `omit [NormedAddCommGroup X]` — they never needed a normed group either.
 
-Build green, **zero warnings**, sorry-free, axiom-clean.
+`lake build` succeeded with **zero warnings**; named dependency checks were recorded separately.
 
 ---
 
@@ -1406,7 +1412,7 @@ It also no longer needs `[NormedAddCommGroup X]`.
 **Every Tier-0 edge in STATUS.md is now closed** — `hbddP`, the cost wart, and `hSinkAll`. On all
 four strong-duality capstones the only remaining hypothesis is `hattain`.
 
-Build green, zero warnings, sorry-free; the seven audited declarations axiom-clean.
+`lake build` succeeded with zero warnings; the session recorded dependency reports for seven named declarations.
 
 ---
 
@@ -1463,7 +1469,7 @@ The attainment statements that *do* need Prokhorov (`GaoKleywegt2023.worstCase_s
 `MohajerinEsfahaniKuhn2018.worstCase_exists`) still assume it, and Prokhorov is in the pin for
 whoever takes them on.
 
-Build green, zero warnings, sorry-free, axiom-clean.
+`lake build` succeeded with zero warnings; named dependency checks were recorded separately.
 
 ---
 
@@ -1519,7 +1525,7 @@ So the `XL` KRN row *is* off the critical path — but for a different reason th
 earlier today, and only after actually proving the selector. Corrected in FOUNDATIONS, STATUS and
 SURVEY_LEADS.
 
-Build green, zero warnings, sorry-free, axiom-clean.
+`lake build` succeeded with zero warnings; named dependency checks were recorded separately.
 
 ---
 
@@ -1572,7 +1578,7 @@ rather than by thinking harder about it.
 Both are corrected in FOUNDATIONS, STATUS and SURVEY_LEADS with the error named. The lesson is the
 repo's own: *verify before you trust*, including when the thing you'd be trusting is yourself.
 
-Build green, zero warnings, sorry-free, axiom-clean.
+`lake build` succeeded with zero warnings; named dependency checks were recorded separately.
 
 ---
 
@@ -1617,7 +1623,7 @@ at the zero-cost feasible plan.
 Each was corrected in FOUNDATIONS, STATUS and SURVEY_LEADS with the error named. The reason all three
 survived as long as they did is that I reasoned about the proof instead of writing it.
 
-Build green, zero warnings, sorry-free, axiom-clean.
+`lake build` succeeded with zero warnings; named dependency checks were recorded separately.
 
 ---
 
@@ -1636,7 +1642,7 @@ One trap worth recording: adding `[TopologicalSpace X]` to a theorem whose `X` a
 `OpensMeasurableSpace X` for the *norm* topology. Take the topology from the norm; ask only for
 `[SecondCountableTopology X] [Nonempty X] [BorelSpace X]`.
 
-Build green, zero warnings, sorry-free, axiom-clean.
+`lake build` succeeded with zero warnings; named dependency checks were recorded separately.
 
 ---
 
@@ -1671,7 +1677,7 @@ So the Sinkhorn path is one construction away, and the recipe is written down ra
 Given my record on predicting the difficulty of `hge` — wrong three times — I am not going to call
 that "easy" until it compiles.
 
-Build green, zero warnings, sorry-free, axiom-clean.
+`lake build` succeeded with zero warnings; named dependency checks were recorded separately.
 
 ## 2026-07-10 — the Sinkhorn converse Lagrangian bound, proved
 
@@ -1719,7 +1725,7 @@ derivatives, needing `klDiv`'s integral representation), then the value-function
 assembly, which mirror `DroValueFunction.lean` / `StrongDualityGe.lean` line for line. Both are
 written up in SURVEY_LEADS.md. I am not going to estimate the effort.
 
-Build green (8758 jobs), zero warnings, zero `sorry`, all new declarations axiom-clean.
+`lake build` completed 8758 jobs with zero warnings; the session-local source scan and named dependency checks are recorded in this entry.
 
 ## 2026-07-10 (later) — `klDiv` is convex, and the gap I had just documented is closed
 
@@ -1777,7 +1783,7 @@ caught by attempting the proof. The two things I refused to estimate — the til
 and the value-function/assembly pair — both landed. I do not think that is a coincidence worth
 generalising from; it is one session.
 
-Build green (8761 jobs), zero warnings, zero `sorry`; `Drsb.sdrsb_strong_duality`,
+`lake build` completed 8761 jobs with zero warnings; the session-local source scan reported no matches in its stated scope. `Drsb.sdrsb_strong_duality`,
 `Drsb.wdrsb_strong_duality_of_regularity`, `Drsb.sdrsb_cost_bound`, `Drsb.wdrsb_cost_bound` and
 `WangGaoXie2023.strong_duality` all axiom-clean.
 
@@ -1811,7 +1817,7 @@ Ran Batteries' `#lint` (15 linters) over every namespace and drove it to zero.
   lowerCamelCase.
 
 Nothing about the mathematics changed: every removal is a strictly weaker hypothesis surface,
-machine-checked by the rebuild. Build green (8761 jobs), zero warnings, zero `sorry`, zero `sorryAx`;
+machine-checked by the rebuild. `lake build` completed 8761 jobs with zero warnings; the session-local source scan and named dependency reports are recorded here;
 all four DRSB capstones axiom-clean.
 
 ## 2026-07-10 (polish, cont.) — non-vacuity of the Slater hypothesis, proved

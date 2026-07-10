@@ -1,271 +1,161 @@
-# FOUNDATIONS.md — the classical-theorem chains under DRSB, and where to mine proofs
+# Foundations and dependency map
 
-The DRSB results do not sit on Mathlib directly; like the DKPS formalization (whose
-spine was **Gram rigidity → Courant–Fischer → Weyl → Davis–Kahan → MDS**), each DRSB
-theorem rests on a **chain of well-known classical results**, several of which Mathlib
-lacks. This file maps those chains, gives each link a **grep-verified Mathlib gap
-status**, and lists **search terms** for surveying existing (AI- or human-authored) Lean
-proofs to pull from. It is the DRSB analog of DKPS's `docs/planning/mathlib-candidates.md`.
+This document maps the mathematical layers beneath the DRSB formalization. It is a
+navigation aid, not a global completion report. For dated build, source-scan, and named
+`#print axioms` observations, use [`STATUS.md`](STATUS.md). For the active refactoring
+queue, use [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).
 
-Companion: [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (per-placeholder ranking + us/Fable
-split). Gap claims below were verified by `grep` against the Mathlib pin *as of the date noted on
-each claim* — the Chain 3 rows were last re-verified **2026-07-10**; older rows date from 2026-07-03
-(then-pin `476fb97b621c…`, `lean4:v4.31.0-rc2`). **The repo now tracks latest Mathlib master, so any
-undated gap claim here may be stale: re-grep `.lake/packages/mathlib` before porting**, and
-prefer verifying over trusting memory (a recalled lemma name may be stale).
-**Grep hygiene** (learned the hard way): never `head`-truncate a gap-verification grep.
-The initial pass wrongly marked **Sion's minimax ABSENT** because `head -5` cut off
-before `Mathlib/Topology/Sion.lean` (Analysis/ sorts before Topology/). A web survey
-(2026-07) caught it — see §"External artifacts". Gap claims below are post-correction.
+Gap claims about Mathlib and external Lean projects are dated observations. Re-run the
+searches before treating them as current.
 
-Legend: ✅ in Mathlib · 🟡 partial/related infra only · ❌ absent (from-scratch) ·
-🟢 done in this repo. Effort: **S** verbatim port · **M** moderate (idiom/generalize) ·
-**L** substantial · **XL** needs a missing Mathlib *area*.
+## 1. Evaluation-card boundary
 
----
+The literal evaluation-card theorems are:
 
-## Chain 1 — Convex duality ⇒ Kantorovich ⇒ Wasserstein-DRO duality  ⚑ critical path
+- `Drsb.wdrsb_cost_bound`;
+- `Drsb.sdrsb_cost_bound`.
 
-Powers `BlanchetMurthy2019.wdro_strong_duality`, `GaoKleywegt2023.{weak_duality_prop1,
-strong_duality_thm1, …}`, `MohajerinEsfahaniKuhn2018.*`, and (via them) the WDRSB card.
+Both prove a one-sided robust expectation bound for an abstract objective
+`V : X -> R`. Their proof terms do not consume the Chen--Georgiou--Pavon continuum
+construction of `V`, the finite Sinkhorn-convergence development, or the source-faithful
+MEK/GK worst-case-structure corollaries.
 
-```
-Fenchel–Young / convex conjugate ❌
-        │
-        ├─► Fenchel–Rockafellar duality ❌ ─┐
-        │                                    ├─► Kantorovich (OT) duality ❌ ─► Wasserstein-DRO WEAK duality 🟢  ⚑ (per-coupling kernel PROVED; assembly next)
-Sion's minimax theorem ✅ (Mathlib.Topology.Sion) ──┘                                   │
-                                                                                       ▼
-   Rockafellar interchange (∫inf = inf∫) 🟡  +  measurable selection (KRN) ❌  ─────► Wasserstein-DRO STRONG duality ❌ (the `≥` seam)
-```
+The literature relationship is:
 
-| Link | Mathlib | Effort | Search terms (for the survey) |
-|---|---|---|---|
-| Fenchel–Young inequality / convex conjugate `f*` | ❌ (no `Analysis/Convex/{Conjugate,Fenchel}`; grep-verified absent) | M | `convex conjugate`, `Legendre transform`, `Fenchel–Young`, `fenchel_young_inequality`, `convexConjugate`, Rockafellar *Convex Analysis* §12 |
-| Fenchel–Rockafellar duality | ❌ | L | `Fenchel duality`, `Fenchel–Rockafellar`, `conjugate duality`, `strong duality convex`, Rockafellar Thm 31.1 |
-| **Sion's minimax theorem** | ✅ **`Mathlib.Topology.Sion`** (`Sion.minimax`, `Sion.minimax'`, `Sion.exists_isSaddlePointOn`) — USE DIRECTLY | — | (found) — note the `public theorem` module-system headers |
-| Kantorovich(–Rubinstein) OT duality | ❌ core (only scaffolds/benchmarks found: `lean-eval-leaderboard` ProblemMongeKantorovich, LeanAide Kantorovich_old_aristotle, `athanor-ai/pythia` WassersteinDistanceNonneg, `gpeyre/flow-sinkhorn` Applications/OT + AppendixEOT) | XL | `Kantorovich duality`, `Kantorovich–Rubinstein`, `c-transform`, `Villani Thm 5.10`; **reduce to finite/discrete OT** (LP + Sion) to avoid general measurable OT |
-| Rockafellar interchange `∫ inf = inf ∫` | 🟡 (`lintegral` monotone-conv only) | L | `interchange integral infimum`, `Rockafellar–Wets Thm 14.60`, `normal integrand`, `decomposable space` |
-| Measurable selection (Kuratowski–Ryll-Nardzewski) | ❌ | XL | `measurable selection`, `Kuratowski Ryll-Nardzewski`, `Jankov von Neumann`, `exists_measurable_selector`, `measurableSet_of_isMinOn` |
+| Card theorem | Published backing | Lean relationship |
+|---|---|---|
+| `Drsb.wdrsb_cost_bound` | Blanchet--Murthy; Gao--Kleywegt | quadratic-cost Wasserstein-DRO specialization and weak-duality consequence |
+| `Drsb.sdrsb_cost_bound` | Wang--Gao--Xie | Sinkhorn-DRO log-partition specialization and weak-duality consequence |
+| interpretation of `V` | Chen--Georgiou--Pavon | provenance at the card boundary; `V` remains abstract in the theorem |
 
-> **Payoff shortcut — fully banked (2026-07-10).** The evaluation **cards need only the
-> WEAK-duality node** (the `≤`, boxed ⚑): no minimax, no Kantorovich, no selection. Both card
-> claims (`Drsb.{wdrsb,sdrsb}_cost_bound`) are now **proved and edge-free** — the per-coupling
-> Lagrangian bound `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` plus a
-> *near-optimal* plan and a limit `η ↓ 0`. Nothing in this chain's ❌ column is on the card path.
->
-> **The STRONG-duality `≥` seam, stated correctly.** The remaining edge is now `hge`:
-> `dualValue ≤ primalValue`, i.e. **the duality gap is zero**. It replaced the customary
-> `hattain` ("some feasible `μ` attains the dual value") on 2026-07-10, because that hypothesis
-> bundled two separate things — a vanishing gap *and* attainment of the primal sup — and the
-> proofs only ever used the former. `dualValue_le_primalValue_of_attaining_measure` is the receipt
-> that `hattain ⟹ hge`; the converse is false.
->
-> ⚠ **This is a duality theorem, not an extreme-value argument.** An earlier note in this file
-> claimed `hge` could be reached by tightness + Prokhorov + Portmanteau. That was **wrong**, and it
-> is corrected here: compactness gives you *attainment of the sup* (which `hge` no longer needs);
-> it does not give you *the vanishing gap*. Proving `hge` means proving Blanchet–Murthy Thm 1 /
-> Gao–Kleywegt Thm 1: for each `ε > 0` produce a feasible `μ` with `𝔼_μ[f] ≥ dualValue − ε`, by
-> selecting near-maximizers `x(y)` of the `c`-transform `sup_x (f x − λ* c(x,y))` and pushing `ν`
-> forward. ✅ **That selection step is now proved, and it does not need KRN**: for a continuous
-> integrand on a separable domain the supremum is achieved to within `ε` on a countable dense set, so
-> `Nat.find` on an enumeration yields a measurable ε-argmax
-> (`ForMathlib.MeasureTheory.exists_measurable_eps_argmax_of_separable`), and pushing `ν` forward
-> along it gives the **converse Lagrangian bound** `ForMathlib.OT.exists_coupling_lagrangian_ge`.
-> With the forward bound this pins `sup_π (𝔼_μ[f] − λ·𝔼_π[c]) = 𝔼_ν[φ_λ]` exactly.
->
-> ✅ The **optimal multiplier** is proved too: `ForMathlib.Analysis.exists_nonneg_multiplier`
-> (Mathlib has no sub/supergradient existence at all; the 1-D case is now in `ForMathlib`).
->
-> ❌ What remains of `hge` is only that the **DRO value function is concave, nondecreasing and finite
-> near `δ`** — concavity being "mix two couplings", i.e. measure-theoretic bookkeeping rather than new
-> analysis. So the `XL` KRN and Fenchel rows are both **off** the critical path — but for different
-> reasons than the one I first gave, and only after actually proving the two analytic ingredients.
->
-> Prokhorov / `IsTightMeasureSet` / Portmanteau *are* now in the pin, and they remain the tool for
-> the separate statement "the worst-case measure exists" (`GaoKleywegt2023.worstCase_structure_cor1`
-> and friends still assume it). They are simply not on the path to `hge`.
+The equality and worst-case-law theorems in the paper-facing libraries are valuable
+parallel results. They should not be described as dependencies of the two card
+inequalities unless an actual declaration reference establishes that dependency.
 
----
+## 2. Wasserstein-DRO layer
 
-## Chain 2 — Entropic / Gibbs ⇒ Sinkhorn-DRO duality  (mostly built)
+The reusable direction used by the card is the per-coupling Lagrangian inequality:
 
-Powers `WangGaoXie2023.strong_duality` (the SDRSB card's log-partition bound term).
-
-```
-Gibbs' inequality (KL ≥ 0) ✅ ─► DV **Gibbs** formula 🟢 (ForMathlib, PROVED: log∫eᶠdν = sup_μ (∫f dμ − KL(μ‖ν)))
-                                          │
-   cgf / log-partition ✅ (Mathlib mgf,cgf) ─┴─► entropic inner soft-max 🟢 (logPartition_eq_gibbs_sSup, PROVED)
-                                                        │
-                                                        ▼
-                                        Sinkhorn-DRO WEAK duality 🟢 PROVED ─► STRONG duality ❌ (the `hattain` seam)
-
-DV **dual** formula 🟢 PROVED (KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν))  ─►  lsc of klDiv 🟡 (setwise ✅ / weak ❌)  ─►  Sinkhorn ball closed  ─► hattain
+```text
+coupling feasibility
+  -> ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost
+  -> weak-duality assembly
+  -> Drsb.wdrsb_cost_bound
 ```
 
-⚠ **The two Legendre transforms are not the same theorem**, and both are now proved here. The
-**Gibbs** direction (`isGreatest_donskerVaradhan`) has its sup over *measures* and attains it at
-`ν.tilted f`. The **dual** direction (`toReal_klDiv_eq_sSup_dvDualSet`, new 2026-07-10) has its sup
-over *functions* and does **not** attain it. Only the dual one yields lsc of `klDiv`.
-⚠ Lean's `llr μ ν = log (dμ/dν)` with `Real.log 0 = 0`, so `exp (llr μ ν) = 1` — not `0` — on
-`{dμ/dν = 0}`; `truncLLR` therefore puts `-n` (not `0`) there. That single choice is what makes the
-partition functions converge to exactly `1`.
+The reverse inequality needed for equality is represented in two levels:
 
-| Link | Mathlib | Effort | Search terms |
-|---|---|---|---|
-| DV **Gibbs** formula (sup over measures) | 🟢 **proved here — full equality** (`ForMathlib.MeasureTheory.{isGreatest_donskerVaradhan, log_integral_exp_eq_sSup}`) | — | `Donsker–Varadhan`, `Gibbs variational principle`, `Measure.tilted`, Dupuis–Ellis Prop 1.4.2 |
-| DV **dual** formula (sup over functions) | 🟢 **PROVED here** (`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) — sup **not** attained, unlike Gibbs | — | Dupuis–Ellis Prop 1.4.2 / Donsker–Varadhan 1975 |
-| lower semicontinuity of `klDiv` | 🟡 **setwise version PROVED** (`toReal_klDiv_le_of_tendsto_integral`); weak-topology version needs bounded *continuous* test functions (Lusin upgrade) | S | `lower semicontinuous relative entropy`, `klDiv lsc`, Dupuis–Ellis Lemma 1.4.3 |
-| cumulant generating function = log-partition | ✅ (`Probability/Moments/Basic` `cgf`) | S | `cgf`, `mgf`, `cumulant generating function`, `log ∫ exp` |
-| Sinkhorn-DRO weak duality (outer `inf_λ`) | 🟢 **PROVED** (`WangGaoXie2023.sinkhorn_weak_duality_kernel` + `Drsb.sdrsb_cost_bound`, edge-free) | — | `Sinkhorn distributionally robust`, `entropic DRO dual`, `KL-DRO dual`, Wang–Gao–Xie 2021 (arXiv 2109.11926) |
+- `Drsb.wdrsb_strong_duality` accepts
+  `hge : dualValue <= primalValue` explicitly;
+- `Drsb.wdrsb_strong_duality_of_regularity` obtains that inequality from the proved
+  regularity route in `ForMathlib/OptimalTransport/StrongDualityGe.lean`.
 
-*Healthiest chain, and we are AHEAD of the external art here.* Survey (2026-07) found
-`mrdouglasny/gibbs-variational` (Mathlib-only Gibbs/DV work over Mathlib's `klDiv`), but
-its README states only the **DV inequality** is proved while the **equality is a
-skeleton/placeholder** and is *false as written* due to `.toReal` on infinite KL. Our
-`ForMathlib` DV is the **full `IsGreatest`/`sSup` equality, dependency-clean**, and it dodges
-exactly that trap by guarding with `μ ≪ ν` + `toReal_klDiv_of_measure_eq` (AGENTS.md §6,
-the extended-valued-KL gotcha). So: mine `gibbs-variational` for KL lemmas / the
-finite-dim Boué–Dupuis bound, but **do not depend on its DV equality** — ours supersedes
-it. Only the outer Lagrangian assembly remains (a T3 analog of Chain 1's weak node; the
-equality side needs the same `ENNReal`/`EReal` care).
+Thus `hge` is neither an unexplained project invention nor a card assumption. It is the
+hard direction of the published strong-duality theorem, retained as a useful factored
+interface and discharged by a stronger wrapper under explicit hypotheses.
 
----
+The repository also contains source-facing Gao--Kleywegt and
+Mohajerin--Esfahani--Kuhn developments. Their structured worst-case-law conclusions may
+retain explicit attainment, measurable-map, or regularity ingredients even when the
+card inequality does not need them.
 
-## Chain 3 — Sinkhorn scaling: existence ✅ / convergence 🚧  (self-contained, finite-dim)
+## 3. Sinkhorn-DRO layer
 
-Powers `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` (delegating to
-`ForMathlib.LinearAlgebra.Matrix.SinkhornScaling`).
+The Sinkhorn card route is:
 
-```
-EXISTENCE (done):  log-domain convex minimization ✅ ─► matrix_scaling_exists ✅ ─► sinkhorn_potentials_exist ✅
-                   (no Brouwer, no Perron–Frobenius, no Birkhoff contraction)
-
-CONVERGENCE (live frontier):
-  Hilbert projective metric ❌ ─► Birkhoff–Hopf contraction ❌ ─► Franklin–Lorenz geometric decay 🚧
-  (all three absent from Mathlib and from every other Lean repo; being authored in-house)
-
-OFF THE PATH:  Perron–Frobenius ❌(open PRs) · Birkhoff–von Neumann / doubly-stochastic ✅(different theorem)
+```text
+Donsker--Varadhan / Gibbs variational identity
+  -> entropic inner optimization / log partition
+  -> Sinkhorn weak duality
+  -> Drsb.sdrsb_cost_bound
 ```
 
-| Link | Mathlib | Effort | Search terms |
-|---|---|---|---|
-| Doubly-stochastic / Birkhoff–von Neumann | ✅ (`Analysis/Convex/Birkhoff`, `LinearAlgebra/Matrix/DoublyStochasticMatrix`) | — | `doublyStochastic`, `Birkhoff polytope`, `Birkhoff von Neumann` |
-| Perron–Frobenius (dominant eigenvalue/eigenvector of a positive matrix) | ❌ **absent from pin AND master** (re-checked 2026-07-10). PR cluster #39917/#39918/#39919/#39920 **all still OPEN, none merged** (#39920 blocked-by #39919; #39919 has a merge conflict) — a pin bump does **not** get you PF. Merged #28728 supplies only `Matrix.IsIrreducible`/`IsPrimitive` **definitions**, no eigenvalue theory. Sorry-free external: `mkaratarakis/HopfieldNet` (MIT, = the PRs' own source), `mrdouglasny/spectral-positivity` (Apache-2.0) | L | `Perron Frobenius`, `Collatz–Wielandt`, `primitive matrix`, `spectral radius nonneg matrix` |
-| Hilbert projective metric / Birkhoff contraction | ❌ **absent from Mathlib AND from every other Lean repo** (re-checked 2026-07-10 — it exists nowhere in Lean). **Now being authored in-house:** `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean` (+ `BirkhoffHopf/PaperRoute/*`). ⚠ Every Mathlib `Birkhoff`/`Hilbert` grep hit is a *different theorem* — see the name-collision traps in `SURVEY_LEADS.md` | L | `Hilbert projective metric`, `Birkhoff contraction`, `Garrett Birkhoff`, `cone contraction` |
-| **Sinkhorn–Knopp / matrix scaling (DAD)** | ❌ core (staged, placeholder); external **`gpeyre/flow-sinkhorn`** has Lean Sinkhorn / KL-projection / duality / primal-dual-bounds files — inspect | L | `Sinkhorn Knopp`, `matrix scaling`, `RAS`, `DAD theorem`, `iterative proportional fitting`; in flow-sinkhorn: `KLProjection`, `DualConvergence`, `PrimalDualBounds` |
+`Drsb.sdrsb_strong_duality` does not take an `hge` argument. It uses the repository's
+Sinkhorn strong-duality theorem under an explicit Slater/interiority hypothesis.
+`Drsb.sdrsb_strong_duality_of_radius_gt_independent_cost` supplies a concrete sufficient
+radius condition. The source paper also treats the boundary case; formalizing that
+limiting argument remains a source-fidelity extension rather than a card blocker.
 
-*Purely finite-dimensional and self-contained, provable without any measure theory.*
+The namespace `WangGaoXie2023` is a stable historical identifier based on the
+pre-publication version. The final Operations Research publication is from 2025.
 
-**Sinkhorn *existence* is done, and it needs nothing from this chain.**
-`ForMathlib.matrix_scaling_exists` / `sinkhorn_potentials_exist` are proved by **log-domain convex
-minimization** — no Brouwer, no Perron–Frobenius, no Birkhoff contraction.
+## 4. Finite matrix scaling and Sinkhorn convergence
 
-**The live need is Sinkhorn *convergence*,** which does want the Birkhoff–Hopf contraction; that is
-why `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf*` exists. It is the current frontier — see
-`PROOF_PIPELINE.md` §−1 and `STATUS.md`.
+### Existence
 
-> **Build path.** Perron–Frobenius is **not** on the critical path: nothing downstream consumes an
-> eigenvector. Mathlib's doubly-stochastic API is likewise irrelevant — it is Birkhoff–**von Neumann**,
-> a different theorem. The route that matters is the one the papers give: **Carroll (2004)** for the
-> contraction coefficient by elementary algebra, or **Eveson–Nussbaum (1995)** for the cone-theoretic
-> route. Both are distilled in `prose/distilled_literature/`.
+`ForMathlib.matrix_scaling_exists` proves positive finite matrix scaling by log-domain
+convex minimization. `ForMathlib.sinkhorn_potentials_exist` is the corresponding
+potential-level wrapper. The current maintenance goal is to decompose the long proof
+into reviewable stages without changing its public statement.
 
----
+### Convergence and proof plurality
 
-## Chain 4 — Stochastic control / Schrödinger bridge  (DEEP — no Mathlib foundation)
+The projective-metric development is present in the repository, including the
+Franklin--Lorenz route used in finite Sinkhorn convergence. The main remaining work here
+is proof organization, assumption minimization, source comparison, and reuse—not an
+unproved global convergence claim.
 
-Powers `ChenGeorgiouPavon2021.{energy_identity, optimal_control_eq_grad_log,
-optimal_control_eq_grad_value, dynamic_eq_static_SB, optimal_coupling_factorization}`
-and, at the paper level, the DRSB value function `V` itself.
+The positive-kernel Birkhoff--Hopf contraction is intentionally formalized twice:
 
-```
-Itô calculus / SDE ❌ ─► Girsanov ❌ ─► relative-entropy decomposition (energy identity) ❌
-                                    └─► Feynman–Kac ❌ ─► Hopf–Cole ❌ ─► HJB / optimal control ❌
-```
+1. `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean` contains an AI-discovered
+   Doeblin/weighted-average proof;
+2. `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/PaperRoute/` follows the
+   Eveson--Nussbaum cone and two-dimensional-subspace argument.
 
-| Link | Mathlib | Effort | Search terms |
-|---|---|---|---|
-| Itô integral / SDE existence | ❌ | XL | `Itô integral`, `stochastic integral`, `stochastic differential equation`, `MeasureTheory stochastic` |
-| Girsanov's theorem | ❌ | XL | `Girsanov`, `change of measure`, `Radon–Nikodym exponential martingale`, `Cameron–Martin` |
-| Feynman–Kac | ❌ | XL | `Feynman–Kac`, `Kolmogorov backward equation` |
-| Hamilton–Jacobi–Bellman / Hopf–Cole | ❌ | XL | `Hamilton Jacobi Bellman`, `Hopf–Cole transform`, `viscosity solution`, `dynamic programming PDE` |
+The direct proof is not Carroll's linear-programming reduction. Both routes are research
+artifacts worth preserving. Shared definitions and elementary lemmas are appropriate,
+but neither route's hard contraction theorem should be used to prove the other.
 
-> **Still defer — but "all absent" is no longer literally true.** Dedicated external
-> Lean efforts exist: **`RemyDegenne/brownian-motion`** (Brownian motion complete;
-> stochastic integral + Itô in progress) and **`raphaelrrcoelho/formal-mathfin`**
-> (machine-checked math-finance: Itô core, Feynman–Kac wiring, partial Girsanov — with
-> disclosed gaps in distributional Girsanov / SDE existence / PDE regularity). Neither is
-> mature enough to be a low-risk dependency. Every link still needs a Mathlib *area* that
-> core lacks; pending it, record these as documented `dependency`s with provenance, or keep as
-> placeholder and treat as out-of-scope for the cards (they underlie `V`'s construction, not
-> the robustness bound). Decide with the coordinator. Keep both repos on the radar as
-> future upstream dependencies.
+Perron--Frobenius theory and Birkhoff--von Neumann decomposition are useful neighboring
+subjects but are not required by the current finite scaling proof.
 
----
+## 5. Schrödinger bridge, stochastic control, and continuum work
 
-## External artifacts & leads → [`SURVEY_LEADS.md`](SURVEY_LEADS.md)
+The card theorems take `V` abstractly, so this layer is not load-bearing for the literal
+card inequalities. It remains important for the secondary goal of formalizing the
+published SB/SOC/entropic-OT theory and building reusable stochastic-analysis results.
 
-The **dated, link-rich registry** of every external lead — repos, Mathlib PRs,
-generated-proof corpora (Lean-GitHub, OProofs, LeanNavigator, CAM-Bench, AMBER, …),
-Zulip threads, and the `label:LLM-generated × area` PR-search recipes — lives in
-[`SURVEY_LEADS.md`](SURVEY_LEADS.md) so we can follow up and re-check moving targets.
-Top hits, by chain:
+Current represented layers include finite Gaussian entropy calculations, sequence-model
+Cameron--Martin/Kakutani results, finite Sinkhorn results, and explicit theorem
+interfaces for deeper analytic steps. Long-horizon work includes:
 
-- **Chain 1 roots:** Sion ✅ `Mathlib.Topology.Sion` (use now); Fenchel — author ourselves.
-- **Chain 1-heavy / OT:** only scaffolds (`flow-sinkhorn` Applications/OT, benchmarks) — defer / reduce to finite-discrete.
-- **Chain 2:** our DV equality leads; `gibbs-variational` etc. for KL lemmas only.
-- **Chain 3:** ⭐ `gpeyre/flow-sinkhorn` (Sinkhorn+OT) and the active Mathlib PF PR cluster (#39919/20/17).
-- **Chain 4:** `brownian-motion`, `formal-mathfin` exist but immature — radar only.
+- a canonical interval path carrier;
+- dyadic filtration generation on that carrier;
+- KL exhaustion along finite projections;
+- Cameron--Martin quasi-invariance for path measures;
+- conditional Girsanov and the continuous control-energy identity;
+- source-faithful HJB/Hopf--Cole verification under stable analytic assumptions.
 
-## Pulling a proof into the pipeline (harness)
+When a target statement is not stable—especially while the path carrier is known to be
+provisional—record it in a roadmap rather than introducing a theorem whose proposition
+does not express the named mathematics. Introduce Lean interfaces when they have a real
+client, package meaningful verification data, or correspond to a stable source theorem.
 
-Mirror DKPS's `Challenge/MathlibCandidate/<Name>/`:
-1. **Spec** `Conformance.lean` — imports ONLY `Mathlib`, states the leaf as placeholder (the
-   ForMathlib statements here ARE the specs; Mathlib-only iff no `ForMathlib.OT`
-   vocabulary needed — Chain 3 qualifies; Chain 1's weak node uses `ForMathlib.OT`).
-2. **Collect** candidates in `Leaderboard.lean`; admissible iff `Lean dependency audit <leaf>`
-   shows no placeholder/extra dependencies. **Multiple independent proofs of one leaf are welcome**
-   — different imports/tactics give robustness and a golf race.
-3. **Golf** the winner (Opus, `mathlib-quality`), stage in `ForMathlib/<dest>.lean`,
-   rewire the paper library to consume it (as `exists_worstCase_gibbs` /
-   `sinkhorn_potentials_exist` do), update `formalization.yaml` + `PROOF_PIPELINE.md`.
-4. **Provenance (mandatory if adapted/vendored).** Record original author, source repo +
-   **commit permalink**, license (must be Apache-2.0-compatible), and retrieval date in
-   the file header + `formalization.yaml`; keep upstream notices. Verified truth never
-   waives credit — see `SURVEY_LEADS.md`'s vendoring policy. Prefer re-deriving from the
-   statement when the license is unclear.
+## 6. Mathlib and external-proof mining
 
-### Priority order for the survey
-1. ⭐ **`gpeyre/flow-sinkhorn`** — spans Chain 3 (Sinkhorn) + Chain 1-heavy (entropic-OT); best payoff if its placeholder inventory is thin.
-2. **Mathlib `label:LLM-generated` × area** + the **PF PR cluster** — Mathlib-native, composes upstream.
-3. **Sion** (use now) + author the **Fenchel-conjugate layer** ourselves.
-4. Chain 2 KL/DV-adjacent corpora — supplementary (our DV leads); check the DV Zulip thread.
-5. Chain 1-heavy general OT & Chain 4 — defer unless reduced to finite/discrete.
+The dated external survey lives in [`SURVEY_LEADS.md`](SURVEY_LEADS.md). In particular:
 
----
+- Mathlib has Sion's minimax theorem;
+- the repository supplies several reusable KL/Donsker--Varadhan, measurable-selection,
+  OT/DRO, matrix-scaling, and projective-metric results not found in the pinned Mathlib;
+- external Perron--Frobenius and finite entropic-OT developments are relevant comparison
+  points but do not replace the two Birkhoff routes in this repository;
+- stochastic integration, SDE, and Girsanov infrastructure remains a long-horizon area.
 
-### Change log
-- **Survey integration (2026-07):** corrected Sion → ✅ (`Mathlib.Topology.Sion`); added
-  [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (external-artifact registry + `label:LLM-generated`
-  search strategy + generated-proof corpora); noted our DV equality supersedes
-  `gibbs-variational`; upgraded Chain 3 (flow-sinkhorn + PF PR cluster) and softened
-  Chain 4 ("all absent" → immature external efforts exist).
-- **Proved `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost`** (Chain-1
-  weak-duality per-coupling kernel; ported from `reference/V4.lean::wdro_lagrangian_bound`,
-  generalized to arbitrary cost `c`). `WeakDuality.lean` is no longer a placeholder.
-- Staged `ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean` (Chain 3 top);
-  `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` delegates to it (necessary
-  `∑pᵢ = ∑qⱼ` hypothesis added — the statement was under-specified).
-- Proved & staged `ForMathlib.MeasureTheory.Normalization`; consumed by `exists_worstCase_gibbs`.
-- Proved `ChenGeorgiouPavon2021.staticSB_eq_entropicOT` (T0).
+Before adapting an external proof, record its author, exact commit, file permalink,
+license, retrieval date, and the extent of the adaptation.
 
-**2026-07-10.** Card path closed and edge-free; `hbddP` deleted from every duality theorem
-(`ForMathlib.OT.DroValue`). Chain 1's `hattain` **replaced by the weaker `hge`** (the duality gap is
-zero); the attainment half was never used. ⚠ A same-day note claiming `hge` is an extreme-value
-argument reachable by Prokhorov was **wrong and has been deleted**: compactness gives attainment of
-the sup, not the vanishing gap. `hge` is Blanchet–Murthy Thm 1, and its proof needs measurable
-selection of near-maximizers of the `c`-transform. Chain 2
-split the two Legendre transforms: the **Gibbs** formula is proved here, the **dual** formula (and
-hence lsc of `klDiv`) is not. Corrected the standing claim that `formal-mathfin` contains Girsanov —
-it does not (see `SURVEY_LEADS.md`).
+## 7. Challenge harness
+
+`Challenge/**/Conformance.lean` contains Mathlib-only specifications with intentionally
+omitted proofs. Project-backed solutions live in the corresponding `Leaderboard.lean`
+files. Any dependency report should name the exact declaration and command; it should
+not be generalized to an entire directory or repository.
+
+A typical upstream workflow is:
+
+1. state a Mathlib-only leaf in `Conformance.lean`;
+2. compare independent project-backed candidates in `Leaderboard.lean`;
+3. inspect the named declaration's dependencies;
+4. move the selected proof into a focused `ForMathlib` module;
+5. preserve provenance and source-facing wrappers.

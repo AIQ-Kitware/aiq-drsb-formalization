@@ -1,3 +1,7 @@
+> **Dated external survey.** This file records search results and source inspections, not
+> the current proof status of this repository. Re-check moving repositories and Mathlib before
+> relying on a negative result. Use `STATUS.md` for the local project state.
+
 # SURVEY_LEADS.md — external Lean/proof leads to mine & re-check
 
 A dated registry of external artifacts (repos, Mathlib PRs, generated-proof corpora,
@@ -62,7 +66,7 @@ They must be authored in-house — which is what `ForMathlib/…/BirkhoffHopf.le
 |---|---|---|---|
 | **Hilbert projective metric** | ❌ absent | ❌ **nothing exists, in any repo** | author in-house |
 | **Birkhoff–Hopf contraction** (`tanh(Δ/4)`) | ❌ absent | ❌ **nothing exists, in any repo** | author in-house |
-| Perron–Frobenius eigenvalue theory | ❌ absent (PRs open, unmerged) | ✅ two sorry-free Lean 4 repos | available — **but likely off our critical path** |
+| Perron–Frobenius eigenvalue theory | ❌ absent (PRs open, unmerged) | ✅ two Lean 4 repos whose inspected proof files contained no admitted tactic tokens | available — **but likely off our critical path** |
 | Sinkhorn / matrix scaling convergence | ❌ absent | 🟡 partial, *wrong proof route* | in-house |
 
 ### ⚠️ Name-collision traps (every `Birkhoff`/`Hilbert` hit in Mathlib is a DIFFERENT theorem)
@@ -91,7 +95,7 @@ Re-checked; **none merged**, so a pin bump does not help. Do not plan around the
 
 Docs-site `PerronFrobenius/Primitive.html` **404s** — independent confirmation it is not on master.
 
-### External PF sources (sorry-free, permissive) — ready if PF is ever needed
+### External PF sources under permissive licenses — ready if PF is ever needed
 > ⚠️ Per `AGENTS.md`, our finite Sinkhorn existence (`ForMathlib.matrix_scaling_exists`) was proved
 > **without** Perron–Frobenius (log-domain convex minimization). PF may not be on the critical path at all.
 
@@ -169,31 +173,21 @@ No `gh` CLI / GitHub token in the survey environment, so authenticated **code**-
 | Brownian motion in Lean (paper) | https://arxiv.org/abs/2511.20118 | construction of Brownian motion |
 | Verified math-finance library (paper) | https://arxiv.org/abs/2606.01356 | L2 Itô integral, risk-neutral pricing measure |
 
-## The strong-duality capstone: `hge` (survey 2026-07-10, **corrected**)
+## Strong-duality follow-up (survey corrected 2026-07-10)
 
-The last edge on all four strong-duality capstones is **`hge : dualValue ≤ primalValue`** — the
-duality gap is zero. It replaced `hattain` ("some feasible `μ` attains the dual value"), which
-bundled the gap with attainment; the proofs only used the gap. `hbddP` is gone too.
+The survey originally treated one `hge : dualValue <= primalValue` premise as a common unresolved
+edge. The current repository is more layered:
 
-⚠ **Correction to an earlier entry in this file.** `hge` is *not* reachable by tightness +
-Prokhorov. That route yields *attainment of the supremum*, which `hge` no longer needs. `hge` is
-Blanchet–Murthy Thm 1 / Gao–Kleywegt Thm 1, and its proof selects near-maximizers `x(y)` of the
-`c`-transform `sup_x (f x − λ* c(x,y))` and pushes the nominal forward — i.e. it needs
-**Kuratowski–Ryll-Nardzewski measurable selection**, `ABSENT` from Mathlib (FOUNDATIONS Chain 1).
+- `Drsb.wdrsb_strong_duality` intentionally retains `hge` as a factored interface;
+- `Drsb.wdrsb_strong_duality_of_regularity` supplies it from the Wasserstein converse-duality proof;
+- `Drsb.sdrsb_strong_duality` has no `hge` parameter and instead assumes Slater/interiority;
+- neither evaluation-card inequality takes `hge`.
 
-| Gap | Needed for | Lean status | Source |
-|---|---|---|---|
-| ~~measurable selection (KRN)~~ | `hge` ingredient (1) | ✅ **SIDESTEPPED, 2026-07-10.** KRN is not needed: for a *continuous* integrand on a *separable* domain the supremum is achieved to within `ε` on a countable dense set, and `Nat.find` on an enumeration gives a measurable ε-argmax. `ForMathlib.MeasureTheory.exists_measurable_eps_argmax{,_of_separable}` + `ForMathlib.OT.exists_coupling_lagrangian_ge` (the converse Lagrangian bound). Axiom-clean. | Villani Thm 5.10 (`c`-transform); Blanchet–Murthy 2019 Thm 1 |
-| ~~optimal multiplier / complementary slackness~~ | `hge` ingredient (2) | ✅ **PROVED 2026-07-10** — `ForMathlib.Analysis.exists_nonneg_multiplier`. Mathlib has `ConcaveOn` + slope lemmas but **no sub/supergradient existence anywhere** (grep-verified); `ForMathlib/Analysis/Supergradient.lean` supplies the 1-D case and is upstreamable as-is. | Blanchet–Murthy 2019 Thm 1; Gao–Kleywegt 2023 Thm 1 / Prop 2 |
-| **concavity of the DRO value function** | `hge` ingredient (3) — **the only thing still missing** | **ABSENT (ours to write).** `h t = sup{𝔼_μ[f] : ∃π, 𝔼_π[c] ≤ t}` is concave because `a·π₁+(1−a)·π₂` couples `a·μ₁+(1−a)·μ₂` with `ν`, and cost/reward are affine in the coupling. Plus Slater (`0<δ`) for finiteness near `δ`, and continuity of a concave function on the interior. Measure-theoretic bookkeeping, not new analysis. | — |
-| **(A) lsc of the transport cost / `otCost`** | attainment (worst-case-measure existence), *not* `hge` | **ABSENT** | Villani, *OT Old and New*, Thm 4.1; Santambrogio §1.2 |
-| **convexity of `klDiv` in its first argument** | the *entropic* value function's concavity (Sinkhorn `hge` ingredient 3) | ✅ **PROVED 2026-07-10** — `ForMathlib.MeasureTheory.toReal_klDiv_mix_le`. Mathlib has `klDiv` + `toReal_klDiv_smul_left/right` but **no convexity** (grep-verified). Two-line corollary of the DV *dual* formula: `KL(·‖ν)` is a sup of affine functionals. Upstreamable. | Dupuis–Ellis; Csiszár |
-| **(B) lsc of `klDiv`** | attainment on the entropic ball | 🟡 **setwise version PROVED 2026-07-10** (`ForMathlib.MeasureTheory.toReal_klDiv_le_of_tendsto_integral`); weak version needs bounded *continuous* test functions (Lusin upgrade) | Dupuis–Ellis Lemma 1.4.3 |
-| **(C) Donsker–Varadhan *dual* variational formula** | the route to (B) | ✅ **CLOSED 2026-07-10** — `toReal_klDiv_eq_sSup_dvDualSet`, axiom-clean. Not the Gibbs formula (`isGreatest_donskerVaradhan`, sup over *measures*, attained); this sups over *functions* and is not attained. | Dupuis–Ellis Prop 1.4.2 |
-
-⚠ The trap in (C), and what its proof is built around: Lean's `llr μ ν x = log (dμ/dν x)` with
-`Real.log 0 = 0`, so `exp (llr μ ν) = 1` — *not* `0` — on `{dμ/dν = 0}`. `truncLLR` puts `-n`, not
-`0`, on that (μ-null) set; the partition functions then converge to exactly `1`.
+The external-search result remains useful: no general Kuratowski--Ryll-Nardzewski implementation was
+found in the surveyed Lean sources. The repository's Wasserstein proof avoids requiring it by using
+a countable dense subset and a measurable epsilon-argmax construction for continuous integrands on
+separable spaces. Optimizer-attainment and source-generality questions remain separate from the
+card inequalities.
 
 ## Continuum energy-identity: the three named gaps (re-survey 2026-07-04)
 
@@ -309,7 +303,7 @@ exhausted.
 | **Generated-proof corpora** | **no** | the remaining frontier — bulk-query it |
 | Chain 3 sources | no | Mathlib doubly-stochastic base + `flow-sinkhorn` still to inspect |
 | Chain 2 sources | mostly | `gibbs-variational` AUDITED (Gaussian-KL lemmas reusable); `flow-sinkhorn` AUDITED (finite KL/Pinsker); DV Zulip + `YuanheZ/lean-stat-learning-theory` (ICML2026 SLT, 91⭐) still to skim |
-| Chain 4 sources | AUDITED, **claim corrected 2026-07-10** | `formal-mathfin` (⭐ Apache-2.0): has a real Itô development, but **NOT Girsanov** — `Foundations/Girsanov.lean` is the single Black–Scholes statement `bs_discounted_isQMartingale`, and `GaussianGirsanov.lean` is a finite-dimensional Esscher tilt. `brownian-motion` (Apache-2.0): Brownian existence is sorry-free, but its stochastic integral covers only **simple processes** (`DoobMeyer.lean` carries 25 open goals). **Girsanov and the stochastic exponential (Doléans-Dade) are ABSENT from every Lean source surveyed.** Nothing drop-in; nothing shortcuts the port. |
+| Chain 4 sources | AUDITED, **claim corrected 2026-07-10** | `formal-mathfin` (⭐ Apache-2.0): has a real Itô development, but **NOT Girsanov** — `Foundations/Girsanov.lean` is the single Black–Scholes statement `bs_discounted_isQMartingale`, and `GaussianGirsanov.lean` is a finite-dimensional Esscher tilt. `brownian-motion` (Apache-2.0): the inspected Brownian-existence files contained no admitted tactic tokens, but its stochastic integral covers only **simple processes** (`DoobMeyer.lean` carries 25 open goals). **Girsanov and the stochastic exponential (Doléans-Dade) are ABSENT from every Lean source surveyed.** Nothing drop-in; nothing shortcuts the port. |
 | Chain 1-heavy OT | mostly (manually) | likely absent bar finite/scaffold fragments |
 | Chain 4 | enough for now | defer |
 

@@ -16,3 +16,4 @@ prose/papers/*.pdf
 *.tar.gz
 *.zip
 *.agents
+__pycache__

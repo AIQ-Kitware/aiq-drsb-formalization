@@ -1,10 +1,19 @@
-# EXTERNAL_AUDIT.md — what external Lean results exist for the DRSB gaps (verified)
+# EXTERNAL_AUDIT.md — dated external-Lean survey snapshot
+
+
+> **Historical scope (surveyed 2026-07-03/04).** This document records what external
+> artifacts were found during that sweep. Its counts of "remaining placeholders" and its
+> local-repository status descriptions were superseded by later work. In particular, the two
+> evaluation-card inequalities do not depend on the continuum campaign or on the MEK/GK
+> worst-case-structure theorems. Use `STATUS.md` for current local results and
+> `PROOF_PIPELINE.md` for the current queue. The external availability findings remain useful,
+> but should be rechecked before relying on them.
 
 The **verdict layer** for [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (which lists *leads*). This
 file records the result of **rigorously auditing** those leads — clone + Lean dependency audit /
 placeholder inventory + license check + exact-theorem inspection — plus a systematic GitHub
 **repository + code** sweep and the pinned-Mathlib grep. Goal: an honest, reproducible
-"what exists / what's absent" map for the remaining placeholders, so nobody re-searches ground
+"what exists / what's absent" map for the gaps identified at the time, so nobody re-searches ground
 already covered or re-proves something that exists.
 
 **Swept: 2026-07-03/04**, incl. the generated-proof / declaration-index corpora
@@ -17,7 +26,7 @@ the bottom (reproducible). Counts/licenses verified by clone, not by README clai
 
 There **is** substantial, permissively-licensed, often-AI-assisted Lean work adjacent to
 our chains (correcting an earlier over-broad "nothing external" claim). But **none of it
-drop-in-closes any of the 8 remaining placeholders** — every usable result is *finite/discrete*
+drop-in-closed any of the eight targets recorded in that survey snapshot** — every usable result is *finite/discrete*
 or *1-D/finance*, while our gaps are continuous multi-D stochastic control and
 continuous-measure worst-case OT. The specific mathematics our hardest placeholders need
 (**HJB / Hopf–Cole, Schrödinger bridge, general Kantorovich duality, measurable
@@ -35,9 +44,9 @@ as *candidate* (not proven-fitting) scaffolding for the worst-case-duality `le` 
 
 ---
 
-## Coverage map — external state vs. the 8 remaining placeholders
+## Coverage map — external state versus the eight targets recorded in the survey
 
-| Sorry (remaining) | Math needed | External Lean state | Verdict |
+| Survey target | Math needed | External Lean state | Verdict |
 |---|---|---|---|
 | `ChenGeorgiouPavon2021.energy_identity` | Girsanov ⇒ **KL between path measures** | `formal-mathfin` has Girsanov (BS-specific) + change-of-measure but **no KL**; `gibbs-variational` has finite Gaussian-KL (Cameron–Martin) | **partial** (Gaussian/EM-discrete only — being vendored) |
 | `…optimal_control_eq_grad_log` / `…_sigma_grad_log` | Hopf–Cole log-transform of the value fn | **Absent** everywhere (0 repos, 0 code hits) | **absent** |

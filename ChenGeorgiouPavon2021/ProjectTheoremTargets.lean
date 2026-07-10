@@ -1,10 +1,11 @@
 /-
 # Project-wide theorem target aggregate
 
-This aggregate imports the theorem-target scaffold whose executable placeholders are intended to serve
-as the global project progress bar.  These are missing mathematical capstones only; downstream
-assembly theorems should be proved from these targets rather than adding additional assembly
-placeholders.
+This historical aggregate imports target and interface modules across the continuum and SOC/OT
+program. It is a navigation surface, not a repository-wide progress counter. Stable mathematical
+boundaries should be represented by precise propositions or data interfaces; targets whose carrier
+or statement is still provisional should remain in dated roadmap prose rather than theorem-shaped
+markers with vacuous propositions.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.IntervalWiener

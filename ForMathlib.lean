@@ -1,10 +1,10 @@
 /-
 # ForMathlib — paper-agnostic staging library
 
-Reusable results, restated in Mathlib idiom, that the DRSB paper libraries import.
-These are potential upstream Mathlib contributions (some already have complete
-proofs in `reference/WellKnown.lean`; they are re-stated here with placeholder while we
-audit statements against the papers, per the first-pass "statements only" policy).
+Reusable results, stated in Mathlib idiom, that the DRSB paper libraries import.
+These are potential upstream Mathlib contributions. Historical proofs under `reference/`
+are not canonical; the declarations imported here are the production versions. Current
+proof and refactoring status is recorded in `STATUS.md` and `PROOF_PIPELINE.md`.
 
 One file per proposed Mathlib destination area:
 * `ForMathlib.MeasureTheory.MeasurableArgmax` — **measurable ε-argmax selectors**: over a countable
@@ -37,42 +37,45 @@ One file per proposed Mathlib destination area:
 * `ForMathlib.OptimalTransport.Convexity` — **the set of couplings is convex**, and `expect` /
   `couplingCost` are affine on it: `a·π₁ + (1−a)·π₂` couples `a·μ₁ + (1−a)·μ₂` with the *same* `ν`.
 * `ForMathlib.OptimalTransport.DroValueFunction` — **the DRO value function
-  `h t = sup{𝔼_μ[f] : ∃π ∈ Π(μ,ν), 𝔼_π[c] ≤ t}` is concave and nondecreasing.** Ingredient (3) of
-  the last open edge `hge`; the other two are `ConverseLagrangian` and `Analysis.Supergradient`.
+  `h t = sup{𝔼_μ[f] : ∃π ∈ Π(μ,ν), 𝔼_π[c] ≤ t}` is concave and nondecreasing.**
+  One ingredient of the Wasserstein converse-duality proof; the other two are
+  `ConverseLagrangian` and `Analysis.Supergradient`.
 * `ForMathlib.OptimalTransport.StrongDualityGe` — **`hge`, proved**: the duality gap of
   Wasserstein-DRO is zero. `dualValue_le_droValue` assembles the converse Lagrangian bound, the
   optimal multiplier, and concavity of the DRO value function. This is Blanchet–Murthy Thm 1 /
-  Gao–Kleywegt Thm 1, the theorem the four strong-duality capstones had carried as a hypothesis.
+  Gao–Kleywegt Thm 1, used by the regularity wrapper that discharges the factored
+  Wasserstein `hge` interface.
 * `ForMathlib.OptimalTransport.DroValue` — the DRO worst-case value `sSup`: a function bounded
   above has bounded-above expectations, so the `BddAbove` side condition of every strong-duality
   theorem is a consequence of its own `λ = 0` conjugate hypothesis, not an assumption.
 * `ForMathlib.Analysis.Supergradient` — **supergradient existence for concave functions on `ℝ`**
   (Mathlib has `ConcaveOn` and slope lemmas but no sub/supergradient existence, grep-verified), and
   the **DRO optimal multiplier** `exists_nonneg_multiplier`: for a nondecreasing concave value
-  function there is `λ* ≥ 0` with `h t + λ*(δ − t) ≤ h δ`. This is ingredient (2) of the last open
-  edge `hge`.
+  function there is `λ* ≥ 0` with `h t + λ*(δ − t) ≤ h δ`. This supplies the
+  multiplier step in the Wasserstein converse-duality argument.
 * `ForMathlib.OptimalTransport.ConverseLagrangian` — the **converse** of that bound: the Lagrangian
   value `𝔼_ν[φ_λ]` is *achieved*, to within `ε`, by pushing the nominal forward along a measurable
   near-maximizer of the `c`-transform. Together with `WeakDuality` this pins the Lagrangian
-  supremum exactly. It is ingredient (1) of the last open edge `hge`; ingredient (2) is the optimal
-  multiplier / complementary slackness.
+  supremum exactly. It supplies the measurable epsilon-argmax step in the Wasserstein converse-duality argument;
+  the multiplier step is in `Analysis.Supergradient`.
 * `ForMathlib.OptimalTransport.WeakDuality` — the per-coupling Lagrangian bound (the
-  always-true `≤` half of OT-DRO duality). STAGING (placeholder); see `FOUNDATIONS.md`.
+  always-true `≤` half of OT-DRO duality); see `FOUNDATIONS.md`.
 * `ForMathlib.LinearAlgebra.Matrix.SinkhornScaling` — Sinkhorn / matrix-scaling
-  existence (discrete Schrödinger potentials). STAGING (placeholder); see `FOUNDATIONS.md`.
+  existence (discrete Schrödinger potentials); see `FOUNDATIONS.md`.
 * `ForMathlib.Analysis.ExpLogBounds` — exp/log real-analysis inequalities converting
   geometric logarithmic relative-error bounds into ordinary multiplicative relative-error bounds.
-  STAGING (placeholder); used by the Franklin--Lorenz projective contraction port.
+  Used by the Franklin--Lorenz projective contraction development.
 * `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf` — finite positive-matrix Hilbert
   projective contraction coefficient (Birkhoff--Hopf), the Franklin--Lorenz convergence engine.
-  STAGING (placeholder); see `LITERATURE_REFERENCES.md`.
+  The direct AI-discovered Doeblin/weighted-average route; see `LITERATURE_REFERENCES.md`.
 * `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.PaperRoute` — Eveson--Nussbaum finite-matrix
   proof spine: quadrant Hilbert formulas, convex-hull diameter, positive-matrix diameter,
-  normalized `2 × 2` calculus, and assembly. STAGING (paper-route fanout surface).
+  normalized `2 × 2` calculus, and assembly. This route is intentionally independent of the
+  direct weighted-average proof.
 * `ForMathlib.MeasureTheory.PathEmbedding` — a standard-Borel space with a countable
   point-separating measurable family embeds measurably into `ℕ→ℝ` with a measurable left
   inverse (Lusin–Souslin); the concrete continuous-path (`C(T,ℝ)`) instance and the resulting
-  KL-limit that discharges the embedding edge of the continuum energy identity. PROVED.
+  KL-limit used by the continuum energy-identity interface.
 -/
 import ForMathlib.MeasureTheory.DonskerVaradhan
 import ForMathlib.MeasureTheory.TiltedKernel

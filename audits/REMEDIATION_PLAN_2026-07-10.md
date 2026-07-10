@@ -129,3 +129,29 @@ explicit first. Do **not** start M4 in the M3 overlay.
 - **The `matrix_scaling_exists` decomposition (A1) is complete.** Public statement
   unchanged across M1–M4d. Remaining audit overlays: A0 (docs), A2 (hypothesis min),
   A3 (ProjectiveLag), A4 (continuum honesty).
+- 2026-07-10: reviewer directed **A2 before A0** (README/STATUS/EXTERNAL_AUDIT/formalization.yaml
+  already carry the essential corrections; a final docs sweep comes after the proof changes
+  settle). One theorem family per commit; `_core` with minimal hypotheses + retained public
+  wrapper (never delete/rename a public decl in this batch); update clients to the decl whose
+  assumptions they actually use.
+  - **A2.1** (commit 9161fa1, `BirkhoffHopf.lean`, +33/−7):
+    `finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound_core` drops `0 ≤ D`
+    (was already `_hD`). Wrapper re-adds `_hD` (compat). Both clients (`two_point_...`,
+    `finite_..._crossratio_bound`) call core directly. `lake env lean` exit 0, no warnings.
+  - **A2.2** (commit 1e4c003, `BirkhoffHopf.lean`, +34/−5):
+    `positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_of_crossratio_bound` drops
+    `_hdiam`. Wrapper `..._of_apply_hilbert_log_diameter_bound` re-adds it (compat). Higher theorem
+    keeps threading `hdiam` through the wrapper (source-shaped API); docstring notes the cross-ratio
+    machinery does the real work. PaperRoute untouched. `lake env lean` exit 0.
+    **Route-independence re-sweep:** PaperRoute (`BirkhoffHopf/PaperRoute/Assemble.lean`) references
+    the direct capstone only in a docstring (line 287) and uses only the shared defs
+    (`positiveKernelCrossRatioBound`/`positiveKernelApply`/`finiteHilbertProjectiveLogSpread`); it
+    does **not** reference the new core or any direct contraction/pointwise lemma. No cross-route
+    proof-term dependency introduced.
+  - **A2.3** (commit 893192a, `FranklinLorenz.lean`, +38/−6):
+    `hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound_core` drops
+    `_hbox` and `_hγ_lt_one`. Wrapper re-adds both (compat). Client `..._of_birkhoff_coefficient`
+    calls core directly, still using `hbox` for the box-ratio lemma and `hγ_lt_one` for the
+    log-to-error conversion — the correct dependency split. `lake env lean` exit 0.
+  - No proof-body change beyond binder removal in any of the three; heartbeat overrides untouched
+    (none added, none removed). Full `lake build` + axiom reports pending.

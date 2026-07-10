@@ -1,263 +1,540 @@
 \input{preamble}
-\title{Fortet's Fixed-Point Method for the Schr\"odinger System}
+\title{Revisiting Fortet's Proof for the Schr\"odinger System}
 \author{}
 \date{L\'eonard (2019)}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
-\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{Leonard 2019-revisit-fortet-1904.13211v1.pdf}}
-\item[Coverage] The fixed-point proof of Fortet's theorem: reduction, monotone scheme, uniqueness, positivity dichotomy, existence theorem, and the variants in Sections 6--7.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Theorems 1.1 and 1.9
-  \item Proposition 4.4
-  \item Lemmas 4.1--4.13
-  \item Proposition 5.1
-  \item Theorem 5.6
-  \item Lemmas 5.7--5.12
-  \item Proposition 6.1
-  \item Proposition 7.2
-\end{itemize}
-\end{description}
+\begin{sourceguide}
+\item[Primary source] Christian L\'eonard, \emph{Revisiting Fortet's Proof of Existence of a Solution to the Schr\"odinger System}, arXiv:1904.13211v1 (2019) \cite{Leonard2019}.
+\item[Coverage] The entire mathematical argument of Sections 1--7 that leads from the Schr\"odinger system to Fortet's scalar fixed-point equation, proves uniqueness of the fixed ray, establishes existence under the three criteria in Theorem 1.1, Theorem 1.9, and Proposition 1.12, and checks the Gaussian translation-kernel example.
+\item[Source anchors] Theorems 1.1 and 1.9; Corollary 1.10; Proposition 1.12; Proposition 4.4; Lemmas 4.1, 4.2, 4.8, 4.9, 4.13; Proposition 5.1; Hypotheses 5.4; Theorem 5.6; Lemmas 5.7 and 5.9--5.12; Proposition 6.1; Proposition 6.2 and Corollary 6.3; Lemmas 6.6 and 6.8; Lemma 7.1 and Proposition 7.2.
+\item[Method] The order, truncation, monotone-convergence, mass-identity, dichotomy, and uniform-decay arguments are those of the paper.  No Hilbert-metric or entropy-minimization substitute is used.
+\end{sourceguide}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
-
-\section{The Schr\"odinger system}
-Let $(X,\mathcal X)$ and $(Y,\mathcal Y)$ be measurable spaces, let
-$\mu\in\mathcal P(X)$ and $\nu\in\mathcal P(Y)$, and let
-$p:X\times Y\to(0,\infty)$ be measurable.  The Schr\"odinger system asks for
-$\sigma$-finite positive measures $a$ and $b$ such that
+\section{The Schr\"odinger system and its scalar reduction}
+Let $(X,\mathcal X)$ and $(Y,\mathcal Y)$ be measurable spaces, let $\mu\in\Pcal(X)$ and $\nu\in\Pcal(Y)$, and let
+\[
+ p:X\times Y\longrightarrow[0,\infty)
+\]
+be measurable.  The Schr\"odinger system asks for positive $\sigma$-finite measures $a$ on $X$ and $b$ on $Y$ such that
 \begin{align}
- a(dx)\int_Yp(x,y)b(dy)&=\mu(dx),\label{eq:L19-sch1}\\
- b(dy)\int_Xp(x,y)a(dx)&=\nu(dy).\label{eq:L19-sch2}
+ a(dx)\int_Y p(x,y)b(dy)&=\mu(dx),\label{eq:L19-system-x}\\
+ b(dy)\int_X p(x,y)a(dx)&=\nu(dy).\label{eq:L19-system-y}
 \end{align}
-Only the product measure
+The measure
 \[
- \pi(dx,dy)=p(x,y)a(dx)b(dy)
+ \pi(dx,dy):=p(x,y)a(dx)b(dy)
 \]
-is intrinsic: $(a,b)$ and $(c^{-1}a,cb)$ determine the same solution for every $c>0$.
+has marginals $\mu$ and $\nu$.  The pair $(a,b)$ is not intrinsic: for every $c>0$, the pair $(c^{-1}a,cb)$ determines the same $\pi$.
 
-Write $u=d\mu/da$.  Then
+Assume temporarily that $a$ is equivalent to $\mu$, and write
 \[
- a=u^{-1}\mu,
- \qquad
- b(dy)=\Psi[u](y)^{-1}\nu(dy),
+ u:=\frac{d\mu}{da},\qquad a=u^{-1}\mu.
 \]
-where
-\begin{equation}\label{eq:L19-Psi}
- \Psi[u](y):=\int_Xp(x,y)u(x)^{-1}\,\mu(dx).
-\end{equation}
-Substitution into the first equation yields Fortet's fixed-point equation
-\begin{equation}\label{eq:L19-fixed}
+The second equation gives
+\[
+ b(dy)=\Psi[u](y)^{-1}\nu(dy),
+ \qquad
+ \Psi[u](y):=\int_Xp(x,y)u(x)^{-1}\mu(dx).
+\]
+Substituting in the first equation yields Fortet's equation
+\begin{equation}\label{eq:L19-fortet}
  u=\Phi[u],
  \qquad
- \Phi[u](x):=\int_Yp(x,y)\Psi[u](y)^{-1}\,\nu(dy).
+ \Phi[u](x):=\int_Yp(x,y)\Psi[u](y)^{-1}\nu(dy).
 \end{equation}
-The conventions $0^{-1}=\infty$ and $\infty^{-1}=0$ are used, with products interpreted
-through monotone truncation.
-
-\section{Order and homogeneity}
-The two reciprocal integral maps reverse order separately:
+The conventions are
 \[
+ 0^{-1}=+\infty,
+ \qquad
+ (+\infty)^{-1}=0,
+\]
+and all nonnegative integrals are understood in $[0,\infty]$.  These conventions make both reciprocal integral maps meaningful before positivity and finiteness have been proved.
+
+\subsection{Order and homogeneity}
+For nonnegative measurable $u,v$,
+\begin{equation}\label{eq:L19-order}
  u\le v\quad\Longrightarrow\quad
  \Psi[u]\ge\Psi[v]
  \quad\Longrightarrow\quad
  \Phi[u]\le\Phi[v].
-\]
-Thus $\Phi$ is order preserving.  It is positively homogeneous:
-\begin{equation}\label{eq:L19-homogeneous}
+\end{equation}
+Thus $\Psi$ reverses order and $\Phi$ preserves it.  For $c>0$,
+\begin{equation}\label{eq:L19-homogeneity}
  \Psi[cu]=c^{-1}\Psi[u],
  \qquad
- \Phi[cu]=c\Phi[u]
- \quad(c>0).
+ \Phi[cu]=c\Phi[u].
 \end{equation}
-This is the projective symmetry of the Schr\"odinger system.
+This one-homogeneity is exactly the scalar gauge of the Schr\"odinger factors.
 
-Whenever the expressions are finite on the relevant sets, Tonelli's theorem gives the
-mass identity
-\begin{equation}\label{eq:L19-mass-id}
- \int_{\{u>0\}}\frac{\Phi[u]}{u}\,d\mu
- =\nu\bigl(\Psi[u]<\infty\bigr).
-\end{equation}
-Indeed,
-\begin{align*}
- \int\frac{\Phi[u](x)}{u(x)}\,\mu(dx)
- &=\int_Y\Psi[u](y)^{-1}
-    \left(\int_Xp(x,y)u(x)^{-1}\,\mu(dx)\right)\nu(dy)\\
- &=\int_Y\mathbf1_{\{\Psi[u]<\infty\}}\,\nu(dy).
-\end{align*}
-When $u$ is strictly positive and comparable to an admissible envelope, both sides equal
-one.
+\section{The three principal existence statements}
+\sourceanchor{Section 1, Theorems 1.1 and 1.9, Corollary 1.10, and Proposition 1.12.}
 
-\section{The monotone Fortet iteration}
-Choose an envelope $U:X\to(0,\infty)$ such that $\Psi[U]$ and $\Phi[U]$ are finite.
-Fortet's regularized iteration is
-\begin{equation}\label{eq:L19-iteration}
- u_1=U,
- \qquad
- u_{n+1}=\frac{U}{n+1}\vee\bigl(\Phi[u_n]\wedge U\bigr).
-\end{equation}
-The floor $U/(n+1)$ keeps every iterate positive; the ceiling $U$ gives a common bound.
-Monotonicity of $\Phi$ yields
-\begin{equation}\label{eq:L19-monotone}
- 0<u_{n+1}\le u_n\le U,
- \qquad
- \Phi[u_{n+1}]\le\Phi[u_n].
-\end{equation}
-Hence $u_n\downarrow u_*$ pointwise for some $0\le u_*\le U$.
-Monotone convergence through the reciprocal maps gives
-\begin{equation}\label{eq:L19-truncated-fixed}
- u_*=\Phi[u_*]\wedge U
- \quad\mu\text{-almost everywhere}.
-\end{equation}
-The remaining problem is to prove that $\Phi[u_*]$ is positive.  Once positivity is known,
-the mass identity removes the truncation.
-
-\section{From positivity to an exact fixed point}
-Assume $\Phi[u_*]>0$ $\mu$-almost everywhere.  On the set where
-$\Phi[u_*]\le U$, equation \eqref{eq:L19-truncated-fixed} gives
-$\Phi[u_*]/u_*=1$; on the complementary set the ratio is strictly larger than one.
-Applying \eqref{eq:L19-mass-id} and using that both probability masses equal one forces
-the complementary set to have zero measure.  Therefore
-\begin{equation}\label{eq:L19-ae-fixed}
- 0<u_*=\Phi[u_*]\le U
- \quad\mu\text{-almost everywhere}.
-\end{equation}
-
-To upgrade an almost-everywhere identity to an everywhere identity, note that changing
-$u$ on a $\mu$-null set leaves $\Psi[u]$ and therefore $\Phi[u]$ unchanged everywhere.
-Replacing $u_*$ by the everywhere-defined function $\Phi[u_*]$ gives
-\begin{equation}\label{eq:L19-everywhere-fixed}
- 0<u_*(x)=\Phi[u_*](x)\le U(x)
- \qquad(x\in X).
-\end{equation}
-
-\section{The positivity argument under integral hypotheses}
-The first principal theorem assumes
-\begin{enumerate}
-\item $p(x,y)>0$ for all $(x,y)$;
-\item $p$ is bounded above;
-\item at least one of
+\begin{theorem}[L\'eonard's Theorem 1.1]\label{thm:L19-main-integral}
+Assume that $p(x,y)>0$ for every $(x,y)$, that $p$ is bounded, and that at least one of
 \begin{align}
- \int_Y\left(\int_Xp(x,y)\,\mu(dx)\right)^{-1}\nu(dy)&<\infty,
- \label{eq:L19-int1}\\
- \int_X\left(\int_Yp(x,y)\,\nu(dy)\right)^{-1}\mu(dx)&<\infty
- \label{eq:L19-int2}
+ \int_Y\left(\int_Xp(x,y)\mu(dx)\right)^{-1}\nu(dy)&<\infty,\label{eq:L19-int-x}\\
+ \int_X\left(\int_Yp(x,y)\nu(dy)\right)^{-1}\mu(dx)&<\infty\label{eq:L19-int-y}
 \end{align}
- holds.
-\end{enumerate}
-By symmetry it suffices to use \eqref{eq:L19-int1} and take $U=1$.
-
-Strict positivity of $p$ gives a dichotomy:
-\begin{equation}\label{eq:L19-dichotomy}
- \text{for }0\le u\le U,
- \qquad
- \Phi[u]\equiv0
- \quad\text{or}\quad
- \Phi[u](x)>0\text{ for every }x.
-\end{equation}
-Indeed, if $\Phi[u](x_0)=0$, then positivity of $p(x_0,\cdot)$ forces
-$\Psi[u]^{-1}=0$ $\nu$-almost everywhere, hence $\Phi[u]\equiv0$.
-
-Suppose for contradiction that $\Phi[u_*]\equiv0$.  Put
-\[
- \gamma_u(dy)=\Psi[u](y)^{-1}\nu(dy).
-\]
-Since $u_n\downarrow u_*$, the measures satisfy
-$0\le\gamma_{u_{n+1}}\le\gamma_{u_n}\le\gamma_{u_1}$, and
-\[
- \Phi[u_n](x)=\int p(x,y)\,\gamma_{u_n}(dy)\downarrow0.
-\]
-Fix $x_0$.  On $Y_k=\{y:p(x_0,y)\ge1/k\}$,
-\[
- \gamma_{u_n}(Y_k)
- \le k\int p(x_0,y)\,\gamma_{u_n}(dy)
- =k\Phi[u_n](x_0)\longrightarrow0.
-\]
-Because $p(x_0,y)>0$, $Y_k\uparrow Y$, and the integrability assumption makes
-$\gamma_{u_1}$ finite.  Thus the mass of $Y\setminus Y_k$ is uniformly small for large
-$k$.  Boundedness of $p$ then gives
-\[
- \sup_x\Phi[u_n](x)
- \le \|p\|_\infty
-   \bigl(\gamma_{u_n}(Y_k)+\gamma_{u_1}(Y\setminus Y_k)\bigr)
- \longrightarrow0.
-\]
-Hence for some $n_0$, $\Phi[u_{n_0}]\le U$.  The mass identity and the definition of the
-next iterate then force
-\[
- u_{n_0+1}=\Phi[u_{n_0+1}]>0,
-\]
-and monotonicity implies $u_*=u_{n_0+1}$, contradicting
-$\Phi[u_*]\equiv0$.  Therefore $\Phi[u_*]>0$ everywhere, and
-\eqref{eq:L19-everywhere-fixed} follows.
-
-\begin{theorem}[Existence under Fortet's integral criterion]
-If $p$ is positive and bounded and either \eqref{eq:L19-int1} or
-\eqref{eq:L19-int2} holds, then the Schr\"odinger system has a solution.
-The associated coupling $p(x,y)a(dx)b(dy)$ is unique, and the pair $(a,b)$ is unique up
-to reciprocal scaling.
+holds.  Then the Schr\"odinger system has a unique solution measure $\pi=p\,a\otimes b$.  The factors $(a,b)$ are unique up to reciprocal multiplication by a positive constant.
 \end{theorem}
 
-\section{Uniqueness of the fixed ray}
-Let $u'$ and $u''$ be two strictly positive fixed points.  By homogeneity, normalize them
-at some $x_0$ so that $u'(x_0)=u''(x_0)$, and define
-\[
- \alpha=\sup\{c>0:cu'\le u''\},
- \qquad
- \beta=\inf\{c>0:u''\le cu'\}.
-\]
-Order preservation gives $\alpha u'\le u''\le\beta u'$.  At a touching point, equality of
-$\Phi[u']$ and $\Phi[u'']$ together with strict positivity of $p$ forces equality of the
-intermediate reciprocal integrals $\Psi[u']$ and $\Psi[u'']$, hence equality of the fixed
-points after normalization.  Therefore every positive fixed point lies on the same ray.
-Equivalently, the coupling is unique and the scaling measures have only the expected
-one-dimensional gauge freedom.
+The paper proves this theorem by reducing to \eqref{eq:L19-fortet}, applying Proposition~\ref{prop:L19-unique}, and proving existence by Theorem~\ref{thm:L19-fortet-existence}.  By symmetry, the proof only treats \eqref{eq:L19-int-x}.
 
-\section{Topological variant}
-The integral criterion can be replaced by a compact-uniform-integrability condition.
-Assume $X$ is topological and there is a nonempty compact $K\subset X$ such that
-$p(\cdot,y)$ is continuous on $K$ for every $y$, and there exist finitely many points
-$x_j$ and constants $c_j>0$ with
-\begin{equation}\label{eq:L19-domination}
+For the second criterion, $X$ carries a topology and its Borel $\sigma$-field.  Assume that there is a nonempty compact $K\subset X$ such that:
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $p(\cdot,y)$ is continuous on $K$ for every $y\in Y$;
+\item there are $x_1,\dots,x_J\in X$ and $c_1,\dots,c_J>0$ such that
+\begin{equation}\label{eq:L19-finite-domination}
  \sup_{x\in K}p(x,y)\le\sum_{j=1}^Jc_jp(x_j,y)
  \qquad(y\in Y).
 \end{equation}
-The domination in \eqref{eq:L19-domination} makes the family of kernel integrands
-uniformly integrable on $K$.  If $\Phi[u_*]$ vanished at one point, the same argument as
-above would give pointwise convergence $\Phi[u_n]\to0$; continuity and uniform
-integrability upgrade this to uniform convergence on $K$.  A multiplicative change of
-kernel then transports the bound from $K$ to all of $X$, providing an iterate below the
-envelope and closing the positivity argument.
+\end{enumerate}
+Condition \eqref{eq:L19-finite-domination} implies uniform integrability on $K$: if $v\ge0$ and $\int p(x,y)v(y)\,n(dy)<\infty$ for every $x$, then the family $\{p(x,\cdot)v(\cdot):x\in K\}$ is uniformly integrable.
 
-\begin{theorem}[Existence under compact kernel control]
-If $p$ is positive and bounded and satisfies the compact continuity and finite domination
-condition \eqref{eq:L19-domination}, then the Schr\"odinger system has a unique coupling.
+\begin{theorem}[L\'eonard's Theorem 1.9]\label{thm:L19-topological}
+If $p$ is positive and bounded and the preceding compact continuity and finite-domination conditions hold, then the Schr\"odinger system has a unique solution.
 \end{theorem}
 
-For a translation kernel $p(x,y)=\theta(|y-x|)$ on $\mathbb R^d$, positivity,
-boundedness, continuity, and eventual monotonicity of $\theta$ imply the finite
-domination condition on every compact set, yielding existence and uniqueness.
-
-\section{Recovery of the scaling measures}
-Given the positive fixed point $u_*$, define
+\begin{corollary}[L\'eonard's Corollary 1.10]\label{cor:L19-radial}
+Let $X=Y=\R^d$ and
 \[
- a(dx)=u_*(x)^{-1}\mu(dx),
+ p(x,y)=\theta(|y-x|),
+\]
+where $\theta:[0,\infty)\to(0,\infty)$ is bounded, continuous, and nonincreasing on $[L,\infty)$ for some $L\ge0$.  Then the Schr\"odinger system has a unique solution.
+\end{corollary}
+
+The third criterion uses an arbitrary positive envelope $U:X\to(0,\infty)$ and no topology.  Assume:
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $p$ is measurable and positive everywhere;
+\item $\Psi[U](y)<\infty$ for every $y$;
+\item $\Phi[U](x)<\infty$ for every $x$;
+\item for every $x_0\in X$ there are $r>1$ and $c>0$ such that
+\begin{equation}\label{eq:L19-holder-condition}
+ \int_Y\left(\frac{p(x,y)}{p(x_0,y)}\right)^r
+ p(x_0,y)\Psi[U](y)^{-1}\nu(dy)
+ \le cU(x)^r
+ \qquad(x\in X).
+\end{equation}
+\end{enumerate}
+
+\begin{proposition}[L\'eonard's Proposition 1.12]\label{prop:L19-holder-existence}
+Under the preceding four hypotheses, the Schr\"odinger system has a unique solution.
+\end{proposition}
+
+\section{The Gaussian example and the relative strength of the criteria}
+\sourceanchor{Section 2.}
+Take $X=Y=\R^d$ and
+\[
+ p(x,y)=\exp\!\left(-\frac{|y-x|^2}{2T}\right),
+ \qquad T>0.
+\]
+The radial criterion of Corollary~\ref{cor:L19-radial} applies immediately.  L\'eonard then tests the other two criteria to show that they can be strictly less efficient.
+
+For a Gaussian marginal $\mu=N(m_0,\Sigma_0)$,
+\[
+ \int_{\R^d}p(x,y)\mu(dx)
+\]
+is a positive multiple of a Gaussian density with covariance $\Sigma_0+TI$.  Consequently, the reciprocal integral in \eqref{eq:L19-int-x} is finite against $\nu=N(m_1,\Sigma_1)$ only under an additional quadratic-form inequality comparing $\Sigma_1$ with $\Sigma_0+TI$.  The symmetric condition gives the reverse comparison.  Neither comparison is automatic for arbitrary nondegenerate Gaussian marginals, even though the Schr\"odinger system does have a solution.  This is why the topological criterion is emphasized.
+
+The same example shows why a synthetic envelope criterion must be designed carefully.  Choosing $U\equiv1$ makes $\Psi[U]^{-1}$ grow exponentially at infinity, and the integrability requirements may fail.  The topological proof avoids global reciprocal integrability by obtaining uniform convergence only on a compact set that traps the superlevel sets of the transformed iteration.
+
+\section{Fortet's clipped monotone iteration}
+\sourceanchor{Section 3 and Lemmas 4.1--4.2.}
+Choose a measurable envelope $U:X\to(0,\infty)$.  Fortet's modified iteration is
+\begin{equation}\label{eq:L19-iteration}
+ u_1:=U,
  \qquad
- b(dy)=\Psi[u_*](y)^{-1}\nu(dy).
+ u_{n+1}:=\frac{U}{n+1}\vee\bigl(\Phi[u_n]\wedge U\bigr),
+ \qquad n\ge1.
+\end{equation}
+The ceiling by $U$ gives the initial inequality $u_2\le u_1$ and keeps all iterates finite.  The floor $U/(n+1)$ keeps every finite-stage iterate strictly positive.
+
+\begin{lemma}[L\'eonard's Lemma 4.1]\label{lem:L19-monotonicity}
+The implications in \eqref{eq:L19-order} hold almost everywhere.
+\end{lemma}
+\begin{proof}
+The reciprocal map $s\mapsto s^{-1}$ reverses order on $[0,\infty]$.  Integration preserves order.  Applying this twice gives the claim.
+\end{proof}
+
+\begin{lemma}[L\'eonard's Lemma 4.2]\label{lem:L19-iteration-limit}
+The following assertions hold.
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $u_{n+1}\le u_n$, so $u_n\downarrow u_*$ pointwise for some $0\le u_*\le U$.
+\item $\Phi[u_{n+1}]\le\Phi[u_n]\le\Phi[U]$.
+\item If $\Phi[U]<\infty$ almost everywhere, then
+\[
+ \Psi[u_n]\uparrow\Psi[u_*],
+ \qquad
+ \Phi[u_n]\downarrow\Phi[u_*],
+\]
+and
+\begin{equation}\label{eq:L19-truncated-fixed}
+ 0\le u_*=\Phi[u_*]\wedge U\le\Phi[u_*]\le\Phi[U]<\infty
+ \quad\mu\text{-a.e.}
+\end{equation}
+\end{enumerate}
+\end{lemma}
+\begin{proof}
+The first inequality follows inductively from monotonicity of $\Phi$.  Since $u_n\downarrow u_*$, the functions $u_n^{-1}$ increase to $u_*^{-1}$, and monotone convergence gives $\Psi[u_n]\uparrow\Psi[u_*]$.  Hence $\Psi[u_n]^{-1}$ decreases pointwise.  The finiteness of $\Phi[U]$ provides an integrable first term for continuity from above, giving $\Phi[u_n]\downarrow\Phi[u_*]$.  Passing to the limit in \eqref{eq:L19-iteration} gives \eqref{eq:L19-truncated-fixed}.
+\end{proof}
+
+\section{Reduction to equivalent factor measures}
+\sourceanchor{Proposition 4.4.}
+
+\begin{proposition}[L\'eonard's Proposition 4.4]\label{prop:L19-reduction}
+In studying solvability, one may replace $X$ and $Y$ by the supports of $\mu$ and $\nu$ and restrict to factors satisfying
+\begin{equation}\label{eq:L19-equivalent-factors}
+ \mu\ll a\ll\mu,
+ \qquad
+ \nu\ll b\ll\nu.
+\end{equation}
+One may also assume
+\begin{align}
+ \nu\{y:p(x,y)>0\}&>0 &&\text{for $\mu$-a.e. }x,\label{eq:L19-nondeg-x}\\
+ \mu\{x:p(x,y)>0\}&>0 &&\text{for $\nu$-a.e. }y.\label{eq:L19-nondeg-y}
+\end{align}
+\end{proposition}
+\begin{proof}
+If $(a,b)$ solves the system, then $\mu\ll a$ and $\nu\ll b$.  Let
+\[
+ p(x;b):=\int_Yp(x,y)b(dy).
+\]
+For any open $G\subset X$ with $\mu(G)=0$, the first marginal equation gives
+\[
+ 0=\mu(G)=\int_Gp(x;b)a(dx).
+\]
+Thus $p(x;b)=0$ for $a$-almost every $x\in G$.  Applying this outside $\supp\mu$ shows that $p=0$ $a\otimes b$-almost everywhere on $(X\setminus\supp\mu)\times Y$.  The symmetric argument applies outside $\supp\nu$.  Restricting $a$ and $b$ to the supports therefore leaves the system unchanged and yields the reverse absolute continuities in \eqref{eq:L19-equivalent-factors}.  Conditions \eqref{eq:L19-nondeg-x}--\eqref{eq:L19-nondeg-y} are necessary for positive marginals under these conventions.
+\end{proof}
+
+After this reduction, $u=d\mu/da$ is positive and finite almost everywhere.
+
+\begin{lemma}[L\'eonard's Lemma 4.8]\label{lem:L19-psi-nonzero}
+If $u$ is nonnegative and finite, then
+\[
+ \Psi[u](y)\in(0,\infty]
+ \quad\text{for $\nu$-a.e. }y.
+\]
+\end{lemma}
+\begin{proof}
+For almost every $y$, the set on which $p(\cdot,y)>0$ has positive $\mu$-measure by \eqref{eq:L19-nondeg-y}.  Since $u^{-1}>0$ wherever $u<\infty$, the integral cannot vanish.
+\end{proof}
+
+\section{The mass identity}
+\sourceanchor{Lemma 4.9 and Remark 4.12.}
+Assume
+\begin{equation}\label{eq:L19-psi-envelope-finite}
+ \Psi[U](y)<\infty
+ \quad\text{for $\nu$-a.e. }y.
+\end{equation}
+
+\begin{lemma}[L\'eonard's Lemma 4.9]\label{lem:L19-mass-identity}
+For every $0\le u\le U$,
+\begin{equation}\label{eq:L19-mass-identity}
+ \int_{\{\Phi[u]>0\}}\frac{\Phi[u]}{u}\,d\mu
+ =\nu\{\Psi[u]<\infty\}.
+\end{equation}
+\end{lemma}
+\begin{proof}
+Set $u^{(k)}:=U/k\vee u$.  Then
+\[
+ 0<U/k\le u^{(k)}\le U,
+ \qquad
+ u^{(k)}\downarrow u.
+\]
+By monotonicity,
+\[
+ \Psi[u^{(k)}]\le k\Psi[U]<\infty
+ \quad\nu\text{-a.e.}
+\]
+The finiteness prevents the indeterminate product $0\cdot\infty$.  Tonelli gives
+\begin{align*}
+ \int_X\frac{\Phi[u]}{u^{(k)}}\,d\mu
+ &=\int_{X\times Y}
+   \frac{p(x,y)}{u^{(k)}(x)}\Psi[u](y)^{-1}\mu(dx)\nu(dy)\\
+ &=\int_Y\Psi[u^{(k)}](y)\Psi[u](y)^{-1}\nu(dy).
+\end{align*}
+As $k\to\infty$, the left-hand side increases to the left-hand side of \eqref{eq:L19-mass-identity}.  The right-hand integrand increases to $\one_{\{\Psi[u]<\infty\}}$, because $\Psi[u]$ never vanishes by Lemma~\ref{lem:L19-psi-nonzero}.  Monotone convergence proves the identity.
+\end{proof}
+
+The two envelope assumptions pull in opposite directions: $\Phi[U]<\infty$ requires $U$ not to be too large, while $\Psi[U]<\infty$ requires $U$ not to be too small.
+
+\begin{lemma}[L\'eonard's Lemma 4.13]\label{lem:L19-ae-everywhere}
+If a nonnegative $u$ is defined $\mu$-almost everywhere and satisfies $u=\Phi[u]$ $\mu$-almost everywhere, then
+\[
+ \bar u:=\Phi[u]
+\]
+is defined everywhere and satisfies $\bar u=\Phi[\bar u]$ everywhere.
+\end{lemma}
+\begin{proof}
+Since $\bar u=u$ $\mu$-almost everywhere, $\Psi[\bar u]=\Psi[u]$ pointwise.  Therefore $\Phi[\bar u]=\Phi[u]=\bar u$ pointwise.
+\end{proof}
+
+\section{Uniqueness of the positive fixed ray}
+\sourceanchor{Proposition 5.1.}
+Assume $\Phi[U]<\infty$, \eqref{eq:L19-psi-envelope-finite}, and
+\begin{equation}\label{eq:L19-common-positive-row}
+ \mu\{x:p(x,y)>0\text{ for $\nu$-a.e. }y\}>0.
+\end{equation}
+
+\begin{proposition}[L\'eonard's Proposition 5.1]\label{prop:L19-unique}
+Fortet's equation has at most one positive solution $u$ with $u\le U$, modulo multiplication by a positive constant.
+\end{proposition}
+\begin{proof}
+Let $u'$ and $u''$ be two such solutions and set $u:=u'\vee u''$.  Monotonicity gives
+\[
+ \Phi[u]\ge\Phi[u']\vee\Phi[u'']=u,
+\]
+so $\Phi[u]/u\ge1$.  Lemma~\ref{lem:L19-mass-identity} yields
+\[
+ \int_X\frac{\Phi[u]}u\,d\mu
+ =\nu\{\Psi[u]<\infty\}\le1.
+\]
+Under \eqref{eq:L19-common-positive-row}, $\Phi[u]>0$ almost everywhere, hence the integral of a function bounded below by one is at most one only if
+\begin{equation}\label{eq:L19-max-fixed}
+ \Phi[u]=u\quad\mu\text{-a.e.},
+ \qquad
+ \Psi[u]<\infty\quad\nu\text{-a.e.}
+\end{equation}
+Normalize $u'$ and $u''$ so that they agree at a point $x_0$ where \eqref{eq:L19-max-fixed} holds and $p(x_0,y)>0$ almost everywhere.  Since $u'\le u$, one has $\Psi[u']\ge\Psi[u]$ and therefore $\Psi[u']^{-1}\le\Psi[u]^{-1}$.  But
+\[
+ \int_Yp(x_0,y)\Psi[u'](y)^{-1}\nu(dy)
+ =u'(x_0)=u(x_0)
+ =\int_Yp(x_0,y)\Psi[u](y)^{-1}\nu(dy).
+\]
+The integrands are ordered and $p(x_0,\cdot)>0$, so equality of integrals forces $\Psi[u']=\Psi[u]$ almost everywhere.  Hence $\Phi[u']=\Phi[u]$ everywhere, and $u'=u$ almost everywhere.  The same argument gives $u''=u$.
+\end{proof}
+
+\section{Existence under the integral criterion}
+\sourceanchor{Hypotheses 5.4, Theorem 5.6, and Lemmas 5.7 and 5.9--5.12.}
+Set $U\equiv1$.  Hypotheses 5.4 are:
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $p(x,y)>0$ everywhere;
+\item $\sup_{x,y}p(x,y)<\infty$;
+\item
+\begin{equation}\label{eq:L19-finite-gamma}
+ \int_Y\left(\int_Xp(x,y)\mu(dx)\right)^{-1}\nu(dy)<\infty.
+\end{equation}
+\end{enumerate}
+The last condition says that the measure
+\[
+ \gamma_1(dy):=\Psi[1](y)^{-1}\nu(dy)
+\]
+is finite.
+
+\begin{lemma}[L\'eonard's Lemma 5.7]\label{lem:L19-positive-implies-fixed}
+If $\Phi[u_*]>0$ almost everywhere, then $\Psi[u_*]<\infty$ almost everywhere and
+\[
+ 0<u_*=\Phi[u_*]\le U
+\]
+everywhere.
+\end{lemma}
+\begin{proof}
+From \eqref{eq:L19-truncated-fixed}, $u_*=\Phi[u_*]\wedge U$.  On $\{0<\Phi[u_*]\le U\}$ the ratio $\Phi[u_*]/u_*$ is one; on $\{\Phi[u_*]>U\}$ it is strictly larger than one.  Therefore Lemma~\ref{lem:L19-mass-identity} gives
+\begin{align*}
+ \nu\{\Psi[u_*]<\infty\}
+ &=\mu\{\Phi[u_*]>0\}
+ +\int_{\{\Phi[u_*]>U\}}
+   \left(\frac{\Phi[u_*]}{u_*}-1\right)d\mu.
+\end{align*}
+The left-hand side is at most one and the first term on the right is one.  Thus the remaining nonnegative integral vanishes, $\Phi[u_*]\le U$ almost everywhere, and the truncation is inactive.  Lemma~\ref{lem:L19-ae-everywhere} upgrades the identity.
+\end{proof}
+
+\begin{lemma}[L\'eonard's Lemma 5.9]\label{lem:L19-comparable-mass}
+If $c^{-1}U\le u\le cU$ for some $c\ge1$, then
+\begin{equation}\label{eq:L19-unit-mass-ratio}
+ \int_X\frac{\Phi[u]}u\,d\mu=1.
+\end{equation}
+In particular, \eqref{eq:L19-unit-mass-ratio} holds for every finite-stage iterate $u_n$.
+\end{lemma}
+\begin{proof}
+The upper comparison makes $\Phi[u]$ finite everywhere through $\Phi[U]$, and the lower comparison makes $\Psi[u]$ finite everywhere through $\Psi[U]$.  Lemma~\ref{lem:L19-mass-identity} then has both full-measure sets and gives one.
+\end{proof}
+
+\begin{lemma}[L\'eonard's Lemma 5.10]\label{lem:L19-one-iterate-below}
+If $\Phi[u_{n_0}]\le U$ for some $n_0$, then
+\[
+ 0<u_*=\Phi[u_{n_0+1}]=\Phi[u_*]
+\]
+everywhere.
+\end{lemma}
+\begin{proof}
+Since $\Phi[u_n]$ decreases,
+\[
+ u_{n_0+1}=\frac{U}{n_0+1}\vee\Phi[u_{n_0}]
+ \ge\Phi[u_{n_0}]
+ \ge\Phi[u_{n_0+1}].
+\]
+Thus $\Phi[u_{n_0+1}]/u_{n_0+1}\le1$.  Its integral is one by Lemma~\ref{lem:L19-comparable-mass}, so equality holds almost everywhere.  The floor makes $u_{n_0+1}$ strictly positive.  Lemma~\ref{lem:L19-ae-everywhere} then gives the pointwise fixed point, and monotonicity of the iteration identifies it with $u_*$.
+\end{proof}
+
+\begin{lemma}[L\'eonard's Lemma 5.11]\label{lem:L19-dichotomy}
+If $p>0$ everywhere and $0\le u\le U$, then either $\Phi[u]\equiv0$ or $\Phi[u](x)>0$ for every $x$.
+\end{lemma}
+\begin{proof}
+If $\Phi[u](x_0)=0$, positivity of $p(x_0,\cdot)$ forces $\Psi[u]^{-1}=0$ almost everywhere, and then $\Phi[u]\equiv0$.
+\end{proof}
+
+\begin{lemma}[L\'eonard's Lemma 5.12]\label{lem:L19-uniform-zero}
+Under Hypotheses 5.4, if $\Phi[u_*](x_0)=0$ at one point, then $\Phi[u_n]\to0$ uniformly on $X$.
+\end{lemma}
+\begin{proof}
+Let
+\[
+ \gamma_u(dy):=\Psi[u](y)^{-1}\nu(dy).
+\]
+Because $u_n\downarrow u_*$, one has
+\[
+ 0\le\gamma_{u_{n+1}}\le\gamma_{u_n}\le\gamma_1.
+\]
+For $Y_k:=\{y:p(x_0,y)\ge1/k\}$,
+\[
+ \gamma_{u_n}(Y_k)
+ \le k\int_Yp(x_0,y)\gamma_{u_n}(dy)
+ =k\Phi[u_n](x_0)\longrightarrow0.
+\]
+Positivity gives $Y_k\uparrow Y$, while finiteness of $\gamma_1$ yields $\gamma_1(Y\setminus Y_k)\to0$.  Therefore, with $M:=\sup p$,
+\[
+ \sup_x\Phi[u_n](x)
+ \le M\bigl(\gamma_{u_n}(Y_k)+\gamma_1(Y\setminus Y_k)\bigr).
+\]
+First choose $k$ large, then $n$ large.
+\end{proof}
+
+\begin{theorem}[L\'eonard's Theorem 5.6]\label{thm:L19-fortet-existence}
+Under Hypotheses 5.4, the limit of the iteration with $U=1$ satisfies
+\[
+ 0<u_*=\Phi[u_*]\le1
+\]
+everywhere.
+\end{theorem}
+\begin{proof}
+Suppose $\Phi[u_*]$ vanishes somewhere.  Lemma~\ref{lem:L19-uniform-zero} gives uniform convergence $\Phi[u_n]\to0$, hence $\Phi[u_{n_0}]\le1$ for some $n_0$.  Lemma~\ref{lem:L19-one-iterate-below} then gives $\Phi[u_*]>0$ everywhere, a contradiction.  Lemma~\ref{lem:L19-positive-implies-fixed} completes the argument.
+\end{proof}
+
+Theorem~\ref{thm:L19-main-integral} follows by constructing
+\[
+ a=u_*^{-1}\mu,
+ \qquad
+ b=\Psi[u_*]^{-1}\nu,
+\]
+and invoking Proposition~\ref{prop:L19-unique}.  The alternative integral condition follows by exchanging $X$ and $Y$.
+
+\section{First variant: compact control and a twisted kernel}
+\sourceanchor{Section 6, Proposition 6.1, Proposition 6.2, Corollary 6.3, Lemmas 6.6 and 6.8.}
+The only use of Hypotheses 5.4 beyond the basic envelope assumptions occurs in Lemma~\ref{lem:L19-uniform-zero}.  Section 6 replaces that lemma by a compactness argument after twisting the kernel.
+
+Choose a probability measure $\bar\pi$ equivalent to $p\,\mu\otimes\nu$ whose marginals $\bar a$ and $\bar b$ are equivalent to $\mu$ and $\nu$.  Write the first marginal relation as
+\[
+ \bar a(dx)\int_Yp(x,y)\bar b(dy)=\rho(x)\mu(dx),
+\]
+where $\rho>0$.  Define
+\begin{equation}\label{eq:L19-twisted-kernel}
+ \widetilde p(x,y):=\frac{d\bar a}{d\mu}(x)p(x,y).
+\end{equation}
+
+\begin{proposition}[L\'eonard's Proposition 6.2]\label{prop:L19-twist-equivalence}
+Solutions of the Schr\"odinger system for $p$ correspond bijectively, by multiplication of the $X$-factor by $d\bar a/d\mu$, to solutions for $\widetilde p$.
+\end{proposition}
+
+For the twisted Fortet operators $\widetilde\Psi$ and $\widetilde\Phi$:
+
+\begin{lemma}[L\'eonard's Lemma 6.6]\label{lem:L19-twist-rho}
+The envelope $U=1$ satisfies the required finiteness estimates and
+\begin{equation}\label{eq:L19-twist-rho-eq}
+ \widetilde\Phi[1]=\rho.
+\end{equation}
+\end{lemma}
+\begin{proof}
+The second marginal equation gives
+\[
+ \widetilde\Psi[1](y)=\int_Xp(x,y)\bar a(dx),
+ \qquad
+ \bar b(dy)=\widetilde\Psi[1](y)^{-1}\nu(dy).
+\]
+Then
+\begin{align*}
+ \widetilde\Phi[1](x)
+ &=\frac{d\bar a}{d\mu}(x)
+   \int_Yp(x,y)\widetilde\Psi[1](y)^{-1}\nu(dy)\\
+ &=\frac{d\bar a}{d\mu}(x)
+   \int_Yp(x,y)\bar b(dy)
+ =\rho(x).
+\end{align*}
+\end{proof}
+
+Choose $\rho$ continuous with $\{\rho\ge1\}\subset K$.  Let $\widetilde u_n$ be the clipped iteration for $\widetilde\Phi$.
+
+\begin{lemma}[L\'eonard's Lemma 6.8]\label{lem:L19-nested-compact}
+If every $\widetilde\Phi[\widetilde u_n]$ is continuous on $K$, then the positivity condition needed to finish the fixed-point proof holds.
+\end{lemma}
+\begin{proof}
+Either $\widetilde\Phi[\widetilde u_{n_0}]<1$ everywhere for some $n_0$, in which case Lemma~\ref{lem:L19-one-iterate-below} applies, or the sets
+\[
+ A_n:=\{x:\widetilde\Phi[\widetilde u_n](x)\ge1\}
+\]
+are nonempty.  They decrease and, by \eqref{eq:L19-twist-rho-eq}, satisfy
+\[
+ A_n\subset\{\rho\ge1\}\subset K.
+\]
+Continuity makes them compact.  Their nested intersection is nonempty, giving a point at which $\widetilde\Phi[\widetilde u_*]\ge1$; the dichotomy then rules out total vanishing.
+\end{proof}
+
+Condition \eqref{eq:L19-finite-domination} makes the integrands defining $\widetilde\Phi[\widetilde u_n]$ uniformly integrable on $K$, so pointwise continuity of $p(\cdot,y)$ passes through the integral.  This proves Proposition 6.1 and therefore Theorem~\ref{thm:L19-topological}.
+
+For Corollary~\ref{cor:L19-radial}, take $K$ to be the unit ball.  Eventual monotonicity of $\theta$ implies that outside a fixed larger ball, every $p(x,y)$ with $x\in K$ is bounded by one of finitely many translates $p(\bar x_j,y)$ chosen from a finite cover of the sphere.  On the remaining compact set, positivity and continuity bound the ratio by a constant multiple of $p(0,y)$.  Combining the two regions gives \eqref{eq:L19-finite-domination}.
+
+\section{Second variant: a H\"older uniform-decay estimate}
+\sourceanchor{Section 7, Lemma 7.1 and Proposition 7.2.}
+Assume \eqref{eq:L19-holder-condition}.  If $\Phi[u_*](x_0)=0$, let $r^*=r/(r-1)$ and again write $\gamma_u=\Psi[u]^{-1}\nu$.  H\"older's inequality gives
+\begin{align*}
+ \Phi[u_n](x)
+ &=\int_Y\frac{p(x,y)}{p(x_0,y)}
+   p(x_0,y)^{1/r}p(x_0,y)^{1/r^*}\gamma_{u_n}(dy)\\
+ &\le
+ \left(\int_Yp(x_0,y)\gamma_{u_n}(dy)\right)^{1/r^*}
+ \left(\int_Y\left(\frac{p(x,y)}{p(x_0,y)}\right)^r
+ p(x_0,y)\gamma_U(dy)\right)^{1/r}\\
+ &\le c^{1/r}U(x)\Phi[u_n](x_0)^{1/r^*}.
+\end{align*}
+Thus
+\begin{equation}\label{eq:L19-holder-uniform}
+ \sup_x\frac{\Phi[u_n](x)}{U(x)}
+ \le c^{1/r}\Phi[u_n](x_0)^{1/r^*}\longrightarrow0.
+\end{equation}
+For some $n_0$, $\Phi[u_{n_0}]\le U$, and Lemma~\ref{lem:L19-one-iterate-below} contradicts the assumed zero.
+
+\begin{proposition}[L\'eonard's Proposition 7.2]\label{prop:L19-holder-fixed}
+Under the envelope hypotheses and \eqref{eq:L19-holder-condition}, the clipped iteration converges to an everywhere positive solution
+\[
+ 0<u_*=\Phi[u_*]\le U.
+\]
+\end{proposition}
+Proposition~\ref{prop:L19-holder-existence} follows by reconstructing $(a,b)$ from $u_*$.
+
+\section{What is proved and what remains gauge-dependent}
+Every existence argument produces a positive fixed point of $\Phi$.  The corresponding factors are
+\[
+ a(dx)=u(x)^{-1}\mu(dx),
+ \qquad
+ b(dy)=\Psi[u](y)^{-1}\nu(dy).
 \]
 Then
 \[
- \int_Yp(x,y)b(dy)=\Phi[u_*](x)=u_*(x),
+ \int_Yp(x,y)b(dy)=\Phi[u](x)=u(x),
 \]
-which proves \eqref{eq:L19-sch1}, and the definition of $b$ proves
-\eqref{eq:L19-sch2}.  Thus the monotone scalar iteration constructs the full
-Schr\"odinger factorization.
+which gives the first marginal equation, while the definition of $b$ gives the second.  Proposition~\ref{prop:L19-unique} shows that any two positive fixed points differ by a scalar, so the product measure $p\,a\otimes b$ is unique.
+
+\section*{Source issues and commentary}
+\begin{itemize}[leftmargin=2em]
+\item The source has duplicated letter labels in Hypotheses 1.11 and 5.4.  The reconstruction relabels them sequentially without changing their content.
+\item The proof deliberately uses extended-valued reciprocals.  The regularizations $u^{(k)}=U/k\vee u$ in Lemma 4.9 are not cosmetic: they prevent undefined $0\cdot\infty$ products in Tonelli's calculation.
+\item The floor $U/(n+1)$ is used only at the decisive finite stage in Lemma 5.10, where strict positivity of one iterate permits the almost-everywhere fixed-point identity to be upgraded.
+\item Section 6 is not merely a compactness proof for the original iteration.  The source first twists the kernel so that the initial image is a chosen continuous function $\rho$ whose unit superlevel set lies in the compact set.
+\item The paper's purpose is to reconstruct and sharpen Fortet's argument.  The proof is not replaced here by entropy minimization, Sinkhorn convergence, or projective contraction.
+\end{itemize}
 
 \input{references_manual}
 \end{document}

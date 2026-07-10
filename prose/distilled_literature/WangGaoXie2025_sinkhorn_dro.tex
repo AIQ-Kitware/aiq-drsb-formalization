@@ -1,265 +1,524 @@
 \input{preamble}
 \title{Sinkhorn Distributionally Robust Optimization}
 \author{}
-\date{Wang, Gao, and Xie (2025)}
+\date{Wang, Gao, and Xie (Operations Research, 2025)}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
-\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{wang-gao-xie-2023_sinkhorn-distributionally-robust-optimization__arXiv-2109.11926.pdf}}, \texttt{\detokenize{WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf}}
-\item[Coverage] Definition 1 and Theorem 1(I)--(IV): Sinkhorn ambiguity sets, dual log-partition formula, existence/structure of worst-case laws, and the radius boundary cases.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Section 2, Definition 1 and equations (2)--(3)
-  \item Assumption 1
-  \item Condition 1
-  \item Section 3, Theorem 1(I)--(IV)
-  \item Lemmas 1--2
-  \item electronic companion proof
-\end{itemize}
-\end{description}
+\begin{sourceguide}
+\item[Primary source] J.~Wang, R.~Gao, and Y.~Xie, \emph{Sinkhorn Distributionally Robust Optimization}, arXiv:2109.11926v5 and \emph{Operations Research} (2025) \cite{WangGaoXie2025}.
+\item[Coverage] Definition~1; equations (1)--(9); Assumption~1; Condition~1; Theorem~1(I)--(IV); Lemmas~1--3; Proposition~EC.1; Lemmas~EC.2--EC.5; the full positive-, zero-, and non-light-tailed multiplier cases; the worst-case-law formula; and the small-regularization comparison in Remark~3.
+\item[Method] The source proof route is retained: disintegrate the coupling, recenter the transport-plus-entropy cost at a Gibbs kernel, apply the one-measure entropy variational formula pointwise, reduce to a scalar convex multiplier, construct a Gibbs optimizer when the multiplier is positive, condition on the exact maximizer set when it is zero, and truncate the loss when no positive exponential moment exists.
+\item[Supplemental detail] Lemma~EC.2 is cited by the paper to the classical entropy variational formula.  Its short relative-entropy proof is written out here, with the modern information-projection formulation cited to Csisz\'ar \cite{Csiszar1975}, and is identified as a proof of the cited input rather than an argument supplied in the article.
+\item[Companion note] \texttt{WangGaoXie2025\_sinkhorn\_dro\_theorem1.tex} is kept textually synchronized, apart from its title, so that the broad and theorem-focused historical entry points cannot drift.
+\end{sourceguide}
 
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+\section{Sinkhorn distance and the robust expectation problem}
+\sourceanchor{Section 2, Definition 1, and the primal problem preceding equation (1).}
+Let $(\mathcal Z,\mathcal Z)$ be a measurable space.  For $P,Q\in\Pcal(\mathcal Z)$, reference measures $\mu,\nu$, transport cost $c:\mathcal Z^2\to[0,\infty]$, and $\epsilon\ge0$, the paper defines
+\begin{equation}\label{eq:WGX-distance}
+ \W_\epsilon(P,Q)
+ :=\inf_{\gamma\in\Pi(P,Q)}
+ \left\{
+ \int c(x,z)\,\gamma(dx,dz)
+ +\epsilon H(\gamma\mid\mu\otimes\nu)
+ \right\},
+\end{equation}
+where
+\[
+ H(\gamma\mid\mu\otimes\nu)
+ :=\int\log\!\left(\frac{d\gamma}{d(\mu\otimes\nu)}\right)d\gamma
+\]
+whenever the density exists, with the usual extended-value convention otherwise.  The reference need not be a probability measure, so this entropy term can be negative.  In the robust problem the first reference is fixed to the nominal law $\widehat P$.
 
-\section{Sinkhorn ambiguity sets}
-Let $(Z,\mathcal Z)$ be a measurable space, let $\widehat P\in\Pcal(Z)$ be nominal, let
-$\nu$ be a reference measure, let $c:Z\times Z\to[0,\infty]$, and let $\varepsilon>0$.  For
-$P\ll\nu$, define
-\[
- W_\varepsilon(\widehat P,P)
- :=\inf_{\gamma\in\Pi(\widehat P,P)}
- \left\{\int c(x,z)\,d\gamma
- +\varepsilon\KL(\gamma\,\|\,\widehat P\otimes\nu)\right\}.
-\]
-Given a radius $\rho$ and a measurable loss $f:Z\to\R\cup\{+\infty\}$, the primal value is
-\[
- V:=\sup\left\{\int f\,dP:
-      W_\varepsilon(\widehat P,P)\le\rho\right\}.
-\]
-Assume:
-\begin{enumerate}[label=(A\arabic*)]
+For a measurable loss $f:\mathcal Z\to\R\cup\{+\infty\}$ and radius $\rho\in\R$, the ambiguity set and worst-case value are
+\begin{align}
+ \mathcal B_{\rho,\epsilon}(\widehat P)
+ &:=\{P\in\Pcal(\mathcal Z):\W_\epsilon(\widehat P,P)\le\rho\},\label{eq:WGX-ball}\\
+ V&:=\sup_{P\in\mathcal B_{\rho,\epsilon}(\widehat P)}\int f\,dP.\label{eq:WGX-primal}
+\end{align}
+Convexity of the transport problem in its second marginal makes the ambiguity set convex.  The article's objective is to replace the infinite-dimensional problem by a scalar convex dual.
+
+\section{Gibbs recentering and the shifted radius}
+\sourceanchor{Equations (1)--(3), Assumption 1, and Condition 1.}
+The standing assumptions are:
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
 \item $c$ is $\widehat P\otimes\nu$-measurable and
-$\nu\{z:0\le c(x,z)<\infty\}=1$ for $\widehat P$-almost every $x$;
-\item $\int e^{-c(x,z)/\varepsilon}\nu(dz)<\infty$ for $\widehat P$-almost every $x$;
-\item $f$ is measurable;
-\item every joint law with first marginal $\widehat P$ admits a regular conditional distribution given
-its first coordinate.
+\[
+ \nu\{z:0\le c(x,z)<\infty\}=1
+ \quad\text{for }\widehat P\text{-almost every }x;
+\]
+\item
+\[
+ Z_\epsilon(x):=\int e^{-c(x,z)/\epsilon}\nu(dz)<\infty
+ \quad\widehat P\text{-a.s.};
+\]
+\item $f$ is measurable as an extended-real function;
+\item every probability law on $\mathcal Z^2$ with first marginal $\widehat P$ admits a regular conditional law given the first coordinate.
 \end{enumerate}
-Define the Gibbs reference kernel
-\[
- Q_{x,\varepsilon}(dz)
- :=\frac{e^{-c(x,z)/\varepsilon}\nu(dz)}
-          {\int e^{-c(x,u)/\varepsilon}\nu(du)}
-\]
+Define
+\begin{equation}\label{eq:WGX-Q}
+ Q_{x,\epsilon}(dz)
+ :=\frac{e^{-c(x,z)/\epsilon}}{Z_\epsilon(x)}\nu(dz)
+\end{equation}
 and the shifted radius
-\[
+\begin{equation}\label{eq:WGX-rhobar}
  \bar\rho
- :=\rho+\varepsilon\int
- \log\left(\int e^{-c(x,z)/\varepsilon}\nu(dz)\right)\widehat P(dx).
-\]
-The light-tail condition is:
-\begin{equation}\label{eq:WGX-light-tail}
- \text{there exists }\lambda>0\text{ such that }
- \int e^{f(z)/(\lambda\varepsilon)}Q_{x,\varepsilon}(dz)<\infty
+ :=\rho+\epsilon\E_{x\sim\widehat P}[\log Z_\epsilon(x)].
+\end{equation}
+The source subsequently writes the shifted quantity with a bar that is easily lost in text extraction.  All feasibility statements below concern $\bar\rho$.
+
+The light-tail hypothesis is:
+\begin{equation}\label{eq:WGX-condition1}
+ \exists\lambda>0\quad
+ \E_{Q_{x,\epsilon}}\!\left[e^{f/(\lambda\epsilon)}\right]<\infty
  \quad\widehat P\text{-a.s.}
 \end{equation}
+This is Condition~1.
 
-\section{Conditional-KL reformulation}
+\section{Exact conversion to an averaged conditional-KL problem}
+\sourceanchor{Lemma 2 and equations (6) and EC.3--EC.4 of the proof appendix.}
 Disintegrate a coupling with first marginal $\widehat P$ as
-$\gamma(dx,dz)=\widehat P(dx)\gamma_x(dz)$.  Since
 \[
- \log\frac{d\gamma_x}{d\nu}(z)
- =\log\frac{d\gamma_x}{dQ_{x,\varepsilon}}(z)
-   -\frac{c(x,z)}{\varepsilon}
-   -\log\int e^{-c(x,u)/\varepsilon}\nu(du),
+ \gamma(dx,dz)=\widehat P(dx)\gamma_x(dz).
 \]
-one obtains the exact identity
-\[
- \int c\,d\gamma+
- \varepsilon\KL(\gamma\,\|\,\widehat P\otimes\nu)
- =\varepsilon\int
- \KL(\gamma_x\,\|\,Q_{x,\varepsilon})\widehat P(dx)
- -\varepsilon\int\log Z_x\,\widehat P(dx),
-\]
-where $Z_x=\int e^{-c(x,u)/\varepsilon}\nu(du)$.  Hence
-\begin{equation}\label{eq:WGX-primal-kl}
+The conditional density identity is
+\begin{align*}
+ \log\frac{d\gamma_x}{dQ_{x,\epsilon}}(z)
+ &=\log\frac{d\gamma_x}{d\nu}(z)
+   +\frac{c(x,z)}\epsilon+\log Z_\epsilon(x).
+\end{align*}
+After integration,
+\begin{equation}\label{eq:WGX-recenter}
+ \int c\,d\gamma
+ +\epsilon H(\gamma\mid\widehat P\otimes\nu)
+ =\epsilon\E_{\widehat P}\!
+   [\KL(\gamma_x\|Q_{x,\epsilon})]
+ -\epsilon\E_{\widehat P}[\log Z_\epsilon(x)].
+\end{equation}
+Consequently
+\begin{equation}\label{eq:WGX-KL-primal}
  V=\sup_{(\gamma_x)}
  \left\{
- \int\!\int f(z)\gamma_x(dz)\widehat P(dx):
- \varepsilon\int\KL(\gamma_x\|Q_{x,\varepsilon})\widehat P(dx)
- \le\bar\rho
+ \E_{\widehat P}\E_{\gamma_x}f:
+ \epsilon\E_{\widehat P}\KL(\gamma_x\|Q_{x,\epsilon})\le\bar\rho
  \right\}.
 \end{equation}
-Because relative entropy is nonnegative, the ambiguity set is nonempty exactly when
-$\bar\rho\ge0$.  At $\bar\rho=0$, the only feasible conditional laws are
-$\gamma_x=Q_{x,\varepsilon}$ almost surely.
+The second marginal is recovered by
+\[
+ P(dz)=\int\gamma_x(dz)\widehat P(dx).
+\]
+The reformulation is exact in both directions because every admissible coupling has the stated disintegration and every measurable kernel family defines such a coupling.
 
-\section{Gibbs variational lemma}
-For any probability law $Q$, measurable $g$, and $a>0$,
-\begin{equation}\label{eq:WGX-gibbs}
- \sup_{R\in\Pcal(Z)}
- \left\{\int g\,dR-a\KL(R\|Q)\right\}
- =a\log\int e^{g/a}\,dQ.
+Since relative entropy is nonnegative,
+\begin{equation}\label{eq:WGX-feasibility}
+ \text{the primal is feasible}\quad\Longleftrightarrow\quad\bar\rho\ge0.
 \end{equation}
-When the exponential integral is finite, the unique maximizer is
-\[
- \frac{dR^*}{dQ}(z)=
- \frac{e^{g(z)/a}}{\int e^{g/a}\,dQ}.
-\]
-Indeed, if $Q_g$ denotes this tilted law, then
-\[
- \int g\,dR-a\KL(R\|Q)
- =a\log\int e^{g/a}\,dQ-a\KL(R\|Q_g).
-\]
+If $\bar\rho=0$, the only feasible family satisfies $\gamma_x=Q_{x,\epsilon}$ almost surely.
 
-\section{The scalar dual}
-Lagranging the constraint in \eqref{eq:WGX-primal-kl} and using
-\eqref{eq:WGX-gibbs} pointwise yields weak duality:
+\section{The one-measure entropy variational input}
+\sourceanchor{Lemma EC.2, cited there to the classical entropy-variational literature.}
+For a reference measure $\nu$, measurable $g$, and $\tau\ge0$, set
+\[
+ \Phi_\tau(g;\nu)
+ :=\sup_{P\in\Pcal(\mathcal Z)}
+ \left\{\int g\,dP-\tau\int\log\frac{dP}{d\nu}\,dP\right\}.
+\]
+The paper uses the following three cases.
+
+\begin{lemma}[Lemma EC.2]\label{lem:WGX-EC2}
+Assume that at least one probability measure is absolutely continuous with respect to $\nu$.
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+\item At $\tau=0$,
+\[
+ \Phi_0(g;\nu)=\esssup_\nu g.
+\]
+\item If $\tau>0$ and $\int e^{g/\tau}d\nu<\infty$, then
+\[
+ \Phi_\tau(g;\nu)
+ =\tau\log\int e^{g/\tau}d\nu,
+\]
+with optimizer
+\[
+ \frac{dP^*}{d\nu}
+ =\frac{e^{g/\tau}}{\int e^{g/\tau}d\nu},
+\]
+and $\Phi_\tau(g;\nu)\to\Phi_0(g;\nu)$ as $\tau\downarrow0$.
+\item If $\tau>0$ and $\int e^{g/\tau}d\nu=\infty$, then $\Phi_\tau(g;\nu)=+\infty$.
+\end{enumerate}
+\end{lemma}
+
+\paragraph{Proof of the cited input.}
+In the finite-exponential-moment case define $P^*$ by the displayed density.  Then
+\begin{align}
+ \int g\,dP-\tau\KL(P\|\nu)
+ &=\tau\log\int e^{g/\tau}d\nu
+   -\tau\KL(P\|P^*),\label{eq:WGX-Gibbs-decomposition}
+\end{align}
+which proves the value and optimizer.  At $\tau=0$, measures concentrated on sets where $g$ lies within $\delta$ of its essential supremum give the lower bound, while the definition of essential supremum gives the upper bound.  If the exponential integral diverges, truncate $g$ from above, apply the finite formula, and let the truncation level increase.  The small-$\tau$ limit follows from the same essential-supremum bounds.  This is the standard Gibbs--Donsker--Varadhan calculation used by the source, not a substitute for its later duality argument.
+
+\section{Measurability of the pointwise supremum}
+\sourceanchor{Lemma EC.3.}
+For fixed $\lambda\ge0$, define
+\begin{equation}\label{eq:WGX-vx}
+ v_x(\lambda)
+ :=\sup_{\gamma_x\in\Pcal(\mathcal Z)}
+ \left\{
+ \E_{\gamma_x}[f-\lambda c(x,\cdot)]
+ -\lambda\epsilon\int\log\frac{d\gamma_x}{d\nu}\,d\gamma_x
+ \right\}.
+\end{equation}
+At $\lambda=0$, Lemma~\ref{lem:WGX-EC2} makes $v_x(0)=\esssup_\nu f$, independent of $x$.  At $\lambda>0$,
+\begin{equation}\label{eq:WGX-vx-log}
+ v_x(\lambda)
+ =\lambda\epsilon\log
+ \int\exp\!\left(\frac{f(z)-\lambda c(x,z)}{\lambda\epsilon}\right)\nu(dz),
+\end{equation}
+with value $+\infty$ when the integral diverges.  Measurability of the integrand and the parameterized integral makes the finite part measurable; adjoining the measurable divergence set preserves measurability.  This is the paper's justification for integrating the pointwise supremum in the weak-duality proof.
+
+\section{Lemma 1: weak duality and the scalar dual}
+\sourceanchor{Section 3.4, Lemma 1 and equations (4)--(7).}
+Lagrange the budget in \eqref{eq:WGX-KL-primal}.  For every feasible family and every $\lambda\ge0$,
+\begin{align*}
+ \E_{\widehat P}\E_{\gamma_x}f
+ &\le\lambda\bar\rho
+ +\E_{\widehat P}
+ \left[
+ \E_{\gamma_x}f
+ -\lambda\epsilon\KL(\gamma_x\|Q_{x,\epsilon})
+ \right].
+\end{align*}
+Taking the supremum over kernels, using the measurability result above, and applying Lemma~\ref{lem:WGX-EC2} pointwise gives
 \begin{equation}\label{eq:WGX-dual}
  V\le V_D:=\inf_{\lambda\ge0}v(\lambda),
- \qquad
- v(\lambda):=
- \lambda\bar\rho+
- \lambda\varepsilon\int
- \log\left(\int e^{f(z)/(\lambda\varepsilon)}
- Q_{x,\varepsilon}(dz)\right)\widehat P(dx).
 \end{equation}
-The value at $\lambda=0$ is defined by the decreasing-temperature limit and equals
-$\esssup_\nu f$.  The function $v$ is convex.  Under \eqref{eq:WGX-light-tail} and
-$\bar\rho>0$, it is finite at some positive point and coercive as $\lambda\to\infty$, so it attains its
-minimum at $\lambda^*\ge0$.
+where, for $\lambda>0$,
+\begin{equation}\label{eq:WGX-v}
+ v(\lambda)
+ =\lambda\bar\rho
+ +\lambda\epsilon\E_{\widehat P}
+ \log\E_{Q_{x,\epsilon}}
+ \left[e^{f/(\lambda\epsilon)}\right].
+\end{equation}
+Undoing the recentering,
+\begin{equation}\label{eq:WGX-v-original}
+ v(\lambda)
+ =\lambda\rho
+ +\lambda\epsilon\E_{\widehat P}
+ \log\int
+ \exp\!\left(\frac{f(z)-\lambda c(x,z)}{\lambda\epsilon}\right)\nu(dz).
+\end{equation}
+The source defines the endpoint value by
+\begin{equation}\label{eq:WGX-v0}
+ v(0):=\lim_{\lambda\downarrow0}v(\lambda)=\esssup_\nu f.
+\end{equation}
+This proves Lemma~1.
 
-\section{Positive multiplier: first-order condition}
-Suppose $\lambda^*>0$.  For each $x$ define the Gibbs conditional law
-\begin{equation}\label{eq:WGX-gibbs-kernel}
- \frac{d\gamma_x^*}{dQ_{x,\varepsilon}}(z)
- :=\frac{e^{f(z)/(\lambda^*\varepsilon)}}
- {\int e^{f(u)/(\lambda^*\varepsilon)}Q_{x,\varepsilon}(du)}.
-\end{equation}
-Equivalently, with respect to $\nu$,
+\section{A sufficient condition for the light-tail hypothesis}
+\sourceanchor{Proposition EC.1.}
+The paper supplies a practical criterion.  Suppose that for some $p\ge1$ there are reference points $z_0,z_1$, constants $C_0,C_1,C_2>0$, and exponents arranged so that
+\begin{itemize}[leftmargin=2em]
+\item the loss has at most $p$-growth, $f(z)\le C_0+C_1d(z,z_0)^p$;
+\item the cost dominates $p$-growth away from $x$, in the form used in Proposition EC.1;
+\item the reference measure has a sufficiently strong exponential $p$-moment.
+\end{itemize}
+Then Young-type estimates absorb the positive growth of $f$ into the Gibbs weight $e^{-c/\epsilon}$, leaving an integrable exponential moment and hence Condition~1.  The exact constants in the proposition are bookkeeping for this domination argument; the theorem itself uses only Condition~1.
+
+\section{Existence of a minimizing multiplier}
+\sourceanchor{Lemma EC.4.}
+Assume $\bar\rho>0$ and Condition~1.  The map $v$ is convex because each log-moment term is the perspective of a convex log-partition function.  It is finite at at least one positive multiplier.
+
+To prove coercivity, set $\beta=1/\lambda$.  The paper computes
+\begin{align*}
+ \lim_{\lambda\to\infty}
+ \lambda\epsilon\log\E_{Q_{x,\epsilon}}e^{f/(\lambda\epsilon)}
+ &=\lim_{\beta\downarrow0}
+ \frac{\epsilon}{\beta}\log\E_{Q_{x,\epsilon}}e^{\beta f/\epsilon}\\
+ &=\E_{Q_{x,\epsilon}}f,
+\end{align*}
+using differentiation at $\beta=0$ and dominated convergence.  Hence
 \[
+ v(\lambda)=\lambda\bar\rho+O(1)\longrightarrow+\infty.
+\]
+Continuity on the finite region and lower semicontinuity at zero therefore give a minimizer $\lambda^*<\infty$.  Either $\lambda^*=0$, or its positive value lies in the domain where the exponential moment is finite.
+
+\section{Lemma 3: the positive-multiplier first-order condition}
+\sourceanchor{Lemma 3, equation (9), and its proof in Appendix EC.5.}
+For $\lambda>0$ in the finite domain, define the conditional exponential tilt
+\begin{equation}\label{eq:WGX-gamma-lambda}
+ \frac{d\gamma_x^\lambda}{dQ_{x,\epsilon}}(z)
+ :=\frac{e^{f(z)/(\lambda\epsilon)}}
+ {\E_{Q_{x,\epsilon}}e^{f/(\lambda\epsilon)}}.
+\end{equation}
+Differentiating \eqref{eq:WGX-v} yields
+\begin{align}
+ v'(\lambda)
+ &=\bar\rho
+ +\epsilon\E_{\widehat P}
+   \log\E_{Q_{x,\epsilon}}e^{f/(\lambda\epsilon)}
+ -\frac1\lambda\E_{\widehat P}\E_{\gamma_x^\lambda}f\label{eq:WGX-vprime-source}\\
+ &=\bar\rho
+ -\epsilon\E_{\widehat P}
+   \KL(\gamma_x^\lambda\|Q_{x,\epsilon}).\label{eq:WGX-vprime-KL}
+\end{align}
+At a positive minimizer,
+\begin{equation}\label{eq:WGX-binding}
+ \epsilon\E_{\widehat P}
+ \KL(\gamma_x^{\lambda^*}\|Q_{x,\epsilon})=\bar\rho.
+\end{equation}
+The article expands the second derivative as
+\begin{equation}\label{eq:WGX-vsecond}
+ v''(\lambda)
+ =\frac{1}{\lambda^3\epsilon}
+ \E_{\widehat P}\Var_{\gamma_x^\lambda}(f)\ge0.
+\end{equation}
+Its printed proof writes the variance numerator as a Cauchy--Schwarz determinant of three exponential moments.  Unless $f$ is essentially constant under the kernels, the inequality is strict and a positive minimizer is unique.  In the constant case the minimizing multiplier is zero, so the assumed positive minimizer is again unique.
+
+\section{Strong duality when the multiplier is positive}
+\sourceanchor{Main-text proof of Theorem 1(III), equations (8)--(9), and Remark 4.}
+Let $\lambda^*>0$ minimize $v$ and put $\gamma_x^*=\gamma_x^{\lambda^*}$.  Relative to $\nu$,
+\begin{equation}\label{eq:WGX-gamma-nu}
  \frac{d\gamma_x^*}{d\nu}(z)
  =\alpha_x
- \exp\left(\frac{f(z)-\lambda^*c(x,z)}
-                  {\lambda^*\varepsilon}\right).
-\]
-Differentiating the scalar objective gives
-\[
- v'(\lambda)
- =\bar\rho-
- \varepsilon\int
- \KL(\gamma_x^{\lambda}\|Q_{x,\varepsilon})\widehat P(dx),
-\]
-where $\gamma_x^{\lambda}$ is the Gibbs kernel at temperature
-$\lambda\varepsilon$.  The first-order condition $v'(\lambda^*)=0$ is therefore
-\begin{equation}\label{eq:WGX-binding}
- \varepsilon\int
- \KL(\gamma_x^*\|Q_{x,\varepsilon})\widehat P(dx)=\bar\rho.
+ \exp\!\left(
+ \frac{f(z)-\lambda^*c(x,z)}{\lambda^*\epsilon}
+ \right),
 \end{equation}
-Thus the coupling
-$\gamma^*(dx,dz)=\widehat P(dx)\gamma_x^*(dz)$ is feasible and exhausts the ambiguity budget.
-
-Apply the Gibbs identity at each $x$:
+where
 \[
- \int f\,d\gamma_x^*
- =\lambda^*\varepsilon
-   \log\int e^{f/(\lambda^*\varepsilon)}dQ_{x,\varepsilon}
- +\lambda^*\varepsilon
-   \KL(\gamma_x^*\|Q_{x,\varepsilon}).
+ \alpha_x^{-1}
+ =\int\exp\!\left(
+ \frac{f(u)-\lambda^*c(x,u)}{\lambda^*\epsilon}
+ \right)\nu(du).
 \]
-After integrating and using \eqref{eq:WGX-binding},
+Equation \eqref{eq:WGX-binding} says that the KL budget binds, so the coupling
 \[
- \int\!\int f(z)\gamma_x^*(dz)\widehat P(dx)
- =v(\lambda^*)=V_D.
+ \gamma^*(dx,dz)=\widehat P(dx)\gamma_x^*(dz)
 \]
-Weak duality then gives $V=V_D$, and the second marginal
-$P^*=\int\gamma_x^*\widehat P(dx)$ is the unique worst-case law whenever the strict convexity
-conditions hold.  Its density is
+is primal feasible.  The exact decomposition \eqref{eq:WGX-Gibbs-decomposition} gives
+\begin{align*}
+ \E_{\gamma_x^*}f
+ &=\lambda^*\epsilon
+   \log\E_{Q_{x,\epsilon}}e^{f/(\lambda^*\epsilon)}
+ +\lambda^*\epsilon
+   \KL(\gamma_x^*\|Q_{x,\epsilon}).
+\end{align*}
+Integrating and using the binding constraint gives
 \[
+ \E_{\gamma^*}f=v(\lambda^*)=V_D.
+\]
+Weak duality then yields $V=V_D$ and proves primal attainment.  The worst-case second marginal is
+\begin{equation}\label{eq:WGX-Pstar}
+ P^*(dz)=\int\gamma_x^*(dz)\widehat P(dx),
+\end{equation}
+with density
+\begin{equation}\label{eq:WGX-Pstar-density}
  \frac{dP^*}{d\nu}(z)
- =\int \alpha_x
- \exp\left(\frac{f(z)-\lambda^*c(x,z)}
-                  {\lambda^*\varepsilon}\right)\widehat P(dx).
-\]
+ =\E_{x\sim\widehat P}
+ \left[
+ \alpha_x\exp\!\left(
+ \frac{f(z)-\lambda^*c(x,z)}{\lambda^*\epsilon}
+ \right)
+ \right].
+\end{equation}
+Strict convexity of conditional KL gives uniqueness of each conditional optimizer and therefore of the resulting worst-case marginal.
 
-\section{Zero multiplier and a nonbinding constraint}
-Assume the light-tail condition and $\bar\rho>0$.  Let
+\section{Lemma EC.5: the zero-multiplier criterion}
+\sourceanchor{Lemma EC.5 and Theorem 1(IV).}
+Assume $\bar\rho>0$ and Condition~1.  Let
 \[
  H:=\esssup_\nu f,
  \qquad
  A:=\{z:f(z)=H\}.
 \]
-The dual minimizer is $\lambda^*=0$ if and only if
-\begin{enumerate}[label=(\roman*)]
-\item $H<\infty$;
-\item $Q_{x,\varepsilon}(A)>0$ for $\widehat P$-almost every $x$;
-\item
-\begin{equation}\label{eq:WGX-zero-condition}
- \bar\rho+
- \varepsilon\int\log Q_{x,\varepsilon}(A)\widehat P(dx)\ge0.
+The source proves
+\begin{equation}\label{eq:WGX-zero-iff}
+ \lambda^*=0
+ \quad\Longleftrightarrow\quad
+ H<\infty
+ \quad\text{and}\quad
+ \rho':=\bar\rho+
+ \epsilon\E_{\widehat P}\log Q_{x,\epsilon}(A)\ge0.
 \end{equation}
-\end{enumerate}
-Necessity follows by analyzing the right derivative of $v$ at zero.  If the maximizing set has zero
-$Q_{x,\varepsilon}$-mass on a positive-$\widehat P$ set, one can lower the dual objective by moving to a
-small positive temperature.  Otherwise Laplace's principle gives
+Equivalently,
+\begin{equation}\label{eq:WGX-radius-threshold}
+ \bar\rho\ge
+ \epsilon\E_{\widehat P}
+ \log\frac1{Q_{x,\epsilon}(A)}.
+\end{equation}
+
+\subsection{The essential supremum does not depend on $x$}
+For each $x$, let $H_x=\esssup_{Q_{x,\epsilon}}f$.  Since the density of $Q_{x,\epsilon}$ with respect to $\nu$ is strictly positive wherever $c(x,\cdot)<\infty$, and that set has full $\nu$-measure, the $Q_{x,\epsilon}$-null and $\nu$-null upper level sets coincide.  Thus $H_x=H$ for every relevant $x$.  If zero is a finite minimizer, then $v(0)=H<\infty$.
+
+\subsection{Why the exact maximizer set must have positive mass}
+Let
 \[
- \lim_{\lambda\downarrow0}v'(\lambda)
- =\bar\rho+
- \varepsilon\int\log Q_{x,\varepsilon}(A)\widehat P(dx).
+ D:=\{x:Q_{x,\epsilon}(A)=0\}.
 \]
-Convexity makes nonnegativity of this limit equivalent to minimization at zero.
-
-When \eqref{eq:WGX-zero-condition} holds, condition each $Q_{x,\varepsilon}$ on $A$:
+Suppose $\widehat P(D)>0$.  Given a small $\tau>0$, for each $x\in D$ choose $H^\ell(x)<H$ such that
 \[
- \gamma_x^*(dz)=
- \frac{\one_A(z)Q_{x,\varepsilon}(dz)}{Q_{x,\varepsilon}(A)}.
+ 0<h_x:=Q_{x,\epsilon}\{H^\ell(x)\le f\le H\}\le\tau.
 \]
-Its average KL cost is
-$-\int\log Q_{x,\varepsilon}(A)d\widehat P\le\bar\rho/\varepsilon$, so it is feasible, and its
-payoff is $H=v(0)$.  This proves strong duality in the zero-multiplier case.
-
-\section{Boundary radius and failure of the light-tail condition}
-If $\bar\rho=0$, the conditional-KL constraint forces
-$\gamma_x=Q_{x,\varepsilon}$, and
+Set $H^{\rm gap}(x)=H-H^\ell(x)$ and $h_x^c=1-h_x$.  Splitting the log moment over this upper band and its complement gives
+\begin{equation}\label{eq:WGX-gap-bound}
+ \lambda\epsilon\log\E_{Q_{x,\epsilon}}e^{f/(\lambda\epsilon)}
+ \le H+\lambda\epsilon
+ \log\!\left(h_x+e^{-H^{\rm gap}(x)/(\lambda\epsilon)}h_x^c\right).
+\end{equation}
+After averaging over $D$, the correction tends to zero as $\lambda\downarrow0$, but its right derivative is bounded above by
 \[
- V=\int\!\int f(z)Q_{x,\varepsilon}(dz)\widehat P(dx).
+ \bar\rho+\epsilon\log(\tau)\widehat P(D).
 \]
-The dual objective converges to this value as $\lambda\to\infty$, proving equality.
+Choosing
+\[
+ \tau=\exp\!\left(-\frac{2\bar\rho}{\epsilon\widehat P(D)}\right)
+\]
+makes this derivative negative.  Hence $v(\lambda)<v(0)$ for some small positive $\lambda$, contradicting optimality of zero.  Therefore
+\begin{equation}\label{eq:WGX-A-positive}
+ Q_{x,\epsilon}(A)>0
+ \quad\widehat P\text{-a.s.}
+\end{equation}
 
-If the light-tail condition fails, truncate the loss by
-$f_j=f\one_{\{f\le R_j\}}$ with $R_j\uparrow\infty$.  Each truncated problem satisfies the
-light-tail condition and has the established duality.  For large $j$ its optimizer is positive; the
-corresponding primal values increase without bound.  Monotone convergence then yields
-$V=V_D=+\infty$.
+\subsection{The right derivative at zero}
+Write
+\[
+ a_x:=Q_{x,\epsilon}(A),
+ \qquad
+ r_x(\lambda)
+ :=\E_{Q_{x,\epsilon}}
+ \left[e^{(f-H)/(\lambda\epsilon)}\one_{A^c}\right].
+\]
+Then
+\begin{equation}\label{eq:WGX-v-split}
+ v(\lambda)
+ =H+\lambda\bar\rho
+ +\lambda\epsilon\E_{\widehat P}\log(a_x+r_x(\lambda)).
+\end{equation}
+The paper differentiates this as
+\begin{align}
+ v'(\lambda)
+ &=\bar\rho
+ +\epsilon\E_{\widehat P}\log(a_x+r_x(\lambda))
+ +\E_{\widehat P}s_x(\lambda),\label{eq:WGX-vprime-split}
+\end{align}
+where
+\begin{equation}\label{eq:WGX-sx}
+ s_x(\lambda)
+ :=\frac{
+ \E_{Q_{x,\epsilon}}
+ [e^{(f-H)/(\lambda\epsilon)}\one_{A^c}(H-f)/\lambda]
+ }{a_x+r_x(\lambda)}\ge0.
+\end{equation}
+Both $r_x(\lambda)$ and $s_x(\lambda)$ tend to zero as $\lambda\downarrow0$.  Thus
+\begin{equation}\label{eq:WGX-vprime-zero}
+ v'(0+)=\bar\rho+
+ \epsilon\E_{\widehat P}\log a_x=\rho'.
+\end{equation}
+If zero is a minimizer, convexity forces $\rho'\ge0$.
 
-\begin{theorem}[Strong duality]
-Under the measurability and disintegration assumptions:
-\begin{enumerate}[label=(\roman*)]
-\item the primal problem is feasible exactly when $\bar\rho\ge0$;
+Conversely, if $H<\infty$, \eqref{eq:WGX-A-positive} holds, and $\rho'\ge0$, then the two correction terms in \eqref{eq:WGX-vprime-split} are nonnegative.  The source separates the cases $a_x=1$ and $0<a_x<1$ to conclude $v'(\lambda)>0$ for every $\lambda>0$.  Therefore $v$ is minimized at zero.
+
+\subsection{The primal optimizer at zero}
+Condition each reference kernel on the maximizer set:
+\begin{equation}\label{eq:WGX-zero-kernel}
+ \gamma_x^*(dz)
+ :=\frac{\one_A(z)Q_{x,\epsilon}(dz)}{Q_{x,\epsilon}(A)}.
+\end{equation}
+Then
+\[
+ \KL(\gamma_x^*\|Q_{x,\epsilon})
+ =-\log Q_{x,\epsilon}(A),
+\]
+so \eqref{eq:WGX-radius-threshold} is exactly feasibility of this family.  Since $f=H$ on $A$,
+\[
+ \E_{\widehat P}\E_{\gamma_x^*}f=H=v(0).
+\]
+Weak duality proves equality and primal attainment.
+
+\section{The radius boundary and the failure of Condition 1}
+\sourceanchor{The final proof of Theorem 1 in Appendix EC.5.}
+
+\subsection{The case $\bar\rho=0$}
+Equation \eqref{eq:WGX-KL-primal} forces $\gamma_x=Q_{x,\epsilon}$ almost surely.  Therefore
+\begin{equation}\label{eq:WGX-rho-zero-value}
+ V=\E_{\widehat P}\E_{Q_{x,\epsilon}}f.
+\end{equation}
+On the dual side, the large-multiplier calculation used in Lemma~EC.4 gives
+\[
+ V_D\le\lim_{\lambda\to\infty}
+ \lambda\epsilon\E_{\widehat P}
+ \log\E_{Q_{x,\epsilon}}e^{f/(\lambda\epsilon)}
+ =\E_{\widehat P}\E_{Q_{x,\epsilon}}f=V.
+\]
+Together with weak duality, this proves equality.
+
+\subsection{The case $\bar\rho>0$ without Condition 1}
+Choose $R_j\uparrow\infty$ and truncate
+\[
+ f_j:=f\one_{\{f\le R_j\}}.
+\]
+Every $f_j$ satisfies a positive exponential-moment condition.  For sufficiently large $j$, the zero-multiplier criterion fails, so its dual minimizer $\lambda_j^*$ is positive.  The positive-multiplier construction then gives
+\begin{align*}
+ \sup_{P\in\mathcal B_{\rho,\epsilon}(\widehat P)}\E_P[f_j]
+ =\lambda_j^*\bar\rho
+ +\lambda_j^*\epsilon\E_{\widehat P}
+ \log\E_{Q_{x,\epsilon}}e^{f_j/(\lambda_j^*\epsilon)}.
+\end{align*}
+As $j\to\infty$, failure of Condition~1 forces the right side upward without bound.  Since $f_j\uparrow f$ on the relevant upper tail, the primal robust value is $+\infty$; the scalar dual is also $+\infty$.
+
+\subsection{The case $\bar\rho<0$}
+The primal is infeasible by \eqref{eq:WGX-feasibility} and is assigned value $-\infty$.  The article states that the dual has the same value by convention and refers to its appendix, although the cross-reference names Lemma~EC.4 even though that lemma concerns existence for positive radius.  The equality assertion is part of the paper's extended-value convention rather than a separately developed minimization argument.
+
+\section{Theorem 1 in source order}
+\sourceanchor{Section 3.1, Theorem 1.}
+\begin{theorem}[Wang--Gao--Xie, Theorem 1]\label{thm:WGX-main}
+Under Assumption~1:
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+\item the primal is feasible if and only if $\bar\rho\ge0$;
 \item whenever $\bar\rho\ge0$, $V=V_D$;
-\item if $\bar\rho>0$ and the exponential light-tail condition holds, the common value is finite;
-otherwise it is $+\infty$;
-\item the zero-multiplier criterion is exactly \eqref{eq:WGX-zero-condition} together with finite
-essential supremum.
+\item if Condition~1 holds and $\bar\rho>0$, then $V=V_D<\infty$; the printed statement says ``otherwise'' $V=V_D=\infty$;
+\item under Condition~1 and $\bar\rho>0$, $\lambda^*=0$ exactly under \eqref{eq:WGX-zero-iff}.
 \end{enumerate}
 \end{theorem}
 
-\section{Small-regularization limit}
-For fixed $\lambda>0$, Laplace's principle gives
-\[
- \lambda\varepsilon
- \log\int
- \exp\left(\frac{f(z)-\lambda c(x,z)}{\lambda\varepsilon}\right)\nu(dz)
- \longrightarrow
- \sup_{z\in\supp\nu}\{f(z)-\lambda c(x,z)\}.
-\]
-Thus the Sinkhorn dual converges formally to the Wasserstein-DRO robust-envelope dual as
-$\varepsilon\downarrow0$.  At positive regularization, however, the extremal response to each
-nominal point is a full Gibbs conditional distribution rather than a pointwise maximizer.
+\begin{remark}[The printed zero-radius inconsistency]
+Read literally, the word ``otherwise'' in part~(III) includes $\bar\rho=0$ and declares the value infinite.  The appendix proof instead obtains the explicit value \eqref{eq:WGX-rho-zero-value}, which is finite whenever the corresponding first moment is finite.  The proof-supported partition is therefore:
+\begin{enumerate}[label=(\alph*),leftmargin=2em]
+\item $\bar\rho<0$: infeasible, with value $-\infty$ by convention;
+\item $\bar\rho=0$: value \eqref{eq:WGX-rho-zero-value};
+\item $\bar\rho>0$ and Condition~1: finite strong duality;
+\item $\bar\rho>0$ and failure of Condition~1: both values $+\infty$.
+\end{enumerate}
+The source wording is retained here and the conflict is recorded rather than silently repaired.
+\end{remark}
+
+\section{Small-regularization comparison with Wasserstein DRO}
+\sourceanchor{Remark 3 and the corresponding electronic-companion limit.}
+For fixed $\lambda>0$, the Laplace principle gives
+\begin{align}
+ &\lambda\epsilon\log\int
+ \exp\!\left(
+ \frac{f(z)-\lambda c(x,z)}{\lambda\epsilon}
+ \right)\nu(dz)\notag\\
+ &\qquad\longrightarrow
+ \esssup_{z\in\supp\nu}
+ \{f(z)-\lambda c(x,z)\}
+ \quad(\epsilon\downarrow0).\label{eq:WGX-small-eps}
+\end{align}
+Thus, when $\supp\nu=\mathcal Z$, the positive-temperature Sinkhorn dual tends to the usual Wasserstein robust-envelope dual.  The paper uses this as a comparison, not as a step in Theorem~1.  For every fixed positive $\epsilon$, the response to each $x$ is the diffuse Gibbs law \eqref{eq:WGX-gamma-nu}, rather than a pointwise maximizer.
+
+\section*{Source fidelity notes}
+\begin{itemize}[leftmargin=2em]
+\item The source uses both the original radius and the shifted radius.  Loss of the bar in text extraction changes the theorem, so the two quantities are kept distinct throughout.
+\item The main text contains only a proof sketch.  The zero-multiplier, zero-radius, and non-light-tailed cases are taken from Appendix EC.5 and restored to their logical positions here.
+\item Lemma EC.2 is a cited entropy-variational input.  Its proof above is supplemental and is not attributed to Wang--Gao--Xie.
+\item The weak-duality interchange of pointwise supremum and nominal expectation depends on Lemma EC.3's measurability argument.
+\item Differentiation of log moments and passage of limits through the nominal expectation are justified in the paper by its exponential-moment hypotheses and assertions of dominated convergence; no separate uniform domination assumption is stated in Theorem~1.
+\item The necessity proof for $Q_{x,\epsilon}(A)>0$ uses a measurable-looking choice $H^\ell(x)$ without separately proving measurable selection of that level.  The source integrates the resulting bound directly.
+\item The appendix reference attached to the negative-radius convention appears to point to the wrong numbered lemma.
+\item The theorem's printed ``otherwise'' clause conflicts with its own zero-radius proof, as detailed above.
+\end{itemize}
 
 \input{references_manual}
 \end{document}

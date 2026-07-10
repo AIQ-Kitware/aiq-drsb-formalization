@@ -1,7 +1,7 @@
 \input{preamble}
-\title{Modernized proof notes: Sinkhorn--Knopp (1967)}
+\title{Nonnegative Matrices and Doubly Stochastic Scaling}
 \author{}
-\date{Source PDF: \texttt{SinkhornKnopp1967.pdf}}
+\date{Sinkhorn and Knopp (1967)}
 
 \begin{document}
 \maketitle
@@ -28,7 +28,7 @@ commentary remark.
 This note expands Sinkhorn and Knopp, \emph{Concerning Nonnegative Matrices and Doubly Stochastic Matrices}, Pacific Journal of Mathematics 21(2), 343--348, 1967 \cite{SinkhornKnopp1967}.
 
 \section*{Scope}
-Sinkhorn--Knopp is the classical finite nonnegative matrix-scaling theorem.  Its positive-matrix specialization states: positive row/column scaling factors exist, the resulting doubly stochastic matrix is unique, and alternating row/column normalization converges.  The paper also proves the exact support hypotheses needed for arbitrary nonnegative matrices.  The paper also determines the exact support conditions for arbitrary nonnegative matrices.
+Sinkhorn--Knopp is the classical finite nonnegative matrix-scaling theorem.  Its positive-matrix specialization states: positive row/column scaling factors exist, the resulting doubly stochastic matrix is unique, and alternating row/column normalization converges.  The paper also determines the exact support conditions for arbitrary nonnegative matrices.
 
 This note keeps the original proof structure but modernizes notation and fills in implicit algebraic steps.
 
@@ -428,11 +428,9 @@ The same diagonal product for \(C\) has the same positive value, so \(c_{i_0j_0}
 
 By construction, for each \(k\) there are positive diagonal matrices
 \[
-  D_{1,k}=\diag(w_{1,k},
-\ldots,w_{N,k}),
+  D_{1,k}=\diag(w_{1,k},\ldots,w_{N,k}),
   \qquad
-  D_{2,k}=\diag(z_{1,k},
-\ldots,z_{N,k})
+  D_{2,k}=\diag(z_{1,k},\ldots,z_{N,k})
 \]
 such that
 \[
@@ -442,7 +440,7 @@ For entries with \(b_{ij}>0\),
 \[
   w_{i,k}z_{j,k}\to \frac{c_{ij}}{b_{ij}}>0.
 \]
-Lemma 2 supplies modified factors \(w'_{i,k}\), \(z'_{j,k}\) converging to positive limits and preserving all products on the support.  Passing to the limit gives positive diagonal matrices \(D_1,D_2\) such that
+At this point the matrix to which Lemma 2 is applied is the limit matrix \(B\), not necessarily the original \(A\).  Since \(B\) is doubly stochastic, every positive entry of \(B\) lies on a positive diagonal by Birkhoff's theorem; hence \(B\) has total support.  Lemma 2 therefore supplies modified factors \(w'_{i,k}\), \(z'_{j,k}\) converging to positive limits and preserving all products on the support of \(B\).  Passing to the limit gives positive diagonal matrices \(D_1,D_2\) such that
 \[
   C=D_1BD_2.
 \]
@@ -493,6 +491,33 @@ If \(A\) is strictly positive, then every entry lies on every sufficiently chose
 \item convergence of alternating row/column normalization to that unique matrix.
 \end{enumerate}
 This is the strictly positive finite-kernel specialization of the general theorem.
+
+\section{Source-specific proof features and later comparison}
+\sourceanchor{Final two pages of the source proof, following Lemma 2.}
+The source proves convergence without a contraction estimate.  Its invariant is the product of the entries on a fixed positive diagonal, compared before and after each row or column normalization.  Lemma 1 turns equality of the limiting product into convergence of every row and column sum to one.  Compactness then produces subsequential doubly stochastic limits, and Lemma 2 converts convergence of products of diagonal factors into convergence of the factors themselves on each fully indecomposable support block.  This exact route is retained above.
+
+The scanned source has several typographical artifacts in products and subscripts; the formulas above follow the algebra dictated by the surrounding sentences.  No mathematical correction beyond normalization of those OCR artifacts is required.
+
+
+\section{Exact logical separation of the theorem's five claims}
+The paper's single unnumbered theorem contains five logically different conclusions, and its proof establishes them in this order.
+\begin{enumerate}[leftmargin=2em]
+\item \emph{Uniqueness of the scaled matrix.}  If two positive diagonal scalings are doubly stochastic, the max/min ratio argument identifies a closed support block on which they agree; recursion proves equality everywhere.
+\item \emph{Uniqueness of the factors.}  The same block argument collapses to the whole matrix exactly when the zero pattern is fully indecomposable, leaving only the global reciprocal scalar.
+\item \emph{Necessity of total support.}  Positive diagonal scaling preserves the zero pattern, and Birkhoff's convex-hull theorem puts every positive entry of a doubly stochastic matrix on a positive permutation diagonal.
+\item \emph{Convergence under support.}  A single positive diagonal gives a positive, bounded, monotone product along that diagonal.  Lemma 1 forces every successive row and column normalizer to converge to one.  Compactness gives doubly stochastic limit points, and Lemma 2 plus uniqueness shows all limit points coincide.
+\item \emph{Existence of a fixed positive scaling under total support.}  Total support prevents any original positive entry from disappearing in the limit.  Lemma 2 renormalizes the cumulative row and column factors so they converge separately, producing finite positive limiting diagonal matrices.
+\end{enumerate}
+This separation is important because convergence needs only one positive diagonal, whereas existence of finite positive limiting factors needs every positive entry to lie on one.
+
+\section*{Source issues and fidelity notes}
+\begin{itemize}[leftmargin=2em]
+\item The scanned source has severe OCR corruption in the recursive definitions of \(x_{i,n},y_{j,n},\alpha_{i,n},\beta_{j,n}\).  The reconstruction restores the formulas from the surrounding statements that the intermediate matrices are alternately column and row stochastic.
+\item The proof invokes Birkhoff's theorem twice: first for necessity of total support, and later to show that the support of any doubly stochastic limit has total support.  The latter point is what permits Lemma 2 to be used even when the original matrix has support but not total support.
+\item The source says that \(D_1\) and \(D_2\) are ``unique up to a scalar multiple.''  The precise paired statement is \(D_1' = cD_1\) and \(D_2'=c^{-1}D_2\).
+\item The convergence argument is qualitative.  It proves \(\alpha_{i,n},\beta_{j,n}\to1\) and uniqueness of the cluster point, but gives no contraction factor or rate.
+\item The projective-metric proofs of later authors are not used here; they are mathematically different baselines.
+\end{itemize}
 
 \section{Proof dependencies and alternative convergence routes}
 \begin{enumerate}[leftmargin=2em]

@@ -1,6 +1,6 @@
 {
-  "version": 1,
-  "purpose": "Source map for proof-level modernized reconstructions of the mathematical arguments used from each cited paper.",
+  "version": "2026-07-10-final-21-of-21",
+  "purpose": "Source-anchored, proof-level modern reconstructions of the target theorem families in all 21 unique source papers.",
   "notes": {
     "AdjointMatching2025_memoryless_soc.tex": {
       "citation_key": "DomingoEnrichDrozdzalKarrerChen2025",
@@ -192,13 +192,19 @@
     },
     "ClassicalFoundations_DV_KLconvexity_supergradient.tex": {
       "citation_key": "ClassicalFoundations",
-      "source_files": [],
+      "source_files": [
+        "Multiple classical sources; see the note bibliography and source map."
+      ],
       "scope": "A normalized proof dossier for the Donsker--Varadhan variational identity, Gibbs attainment, KL convexity/data processing, and one-dimensional supporting-slope arguments.",
       "anchors": [
         "Donsker--Varadhan/Gibbs variational identity",
         "log-sum inequality",
         "data-processing variational proof",
         "supporting-line theorem for concave functions"
+      ],
+      "status": "Multi-source synthesis maintained separately from the 21-paper completion count; its component arguments are source-anchored but it is not treated as a single paper reconstruction.",
+      "source_issues": [
+        "This note combines several classical results and therefore has no single associated primary paper."
       ]
     },
     "DSBM2023_diffusion_schrodinger_bridge_matching.tex": {
@@ -461,20 +467,26 @@
       ]
     },
     "Leonard2019_revisiting_fortet.tex": {
-      "citation_key": "Leonard2019Fortet",
+      "citation_key": "Leonard2019",
       "source_files": [
         "Leonard 2019-revisit-fortet-1904.13211v1.pdf"
       ],
-      "scope": "The fixed-point proof of Fortet's theorem: reduction, monotone scheme, uniqueness, positivity dichotomy, existence theorem, and the variants in Sections 6--7.",
+      "scope": "Sections 1--7 in source order: reduction of the Schrodinger system to Fortet's scalar equation, the extended-valued monotone scheme, mass identity, uniqueness, Theorem 5.6, compact-continuity/kernel-twist variant, L^r ratio variant, and Gaussian example.",
       "anchors": [
         "Theorems 1.1 and 1.9",
+        "Corollary 1.10",
+        "Proposition 1.12",
         "Proposition 4.4",
         "Lemmas 4.1--4.13",
         "Proposition 5.1",
-        "Theorem 5.6",
-        "Lemmas 5.7--5.12",
-        "Proposition 6.1",
-        "Proposition 7.2"
+        "Theorem 5.6 and Lemmas 5.7--5.12",
+        "Proposition 6.1 and Lemmas 6.6--6.8",
+        "Lemma 7.1 and Proposition 7.2"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 final five-paper pass.",
+      "source_issues": [
+        "Hypotheses 1.11 and 5.4 contain duplicated letter labels in the source; the note relabels without changing content.",
+        "The clipped floor U/(n+1) is retained because it is used at the decisive finite stopping stage, not treated as cosmetic regularization."
       ]
     },
     "MohajerinEsfahaniKuhn2018_data_driven_wdro.tex": {
@@ -482,13 +494,21 @@
       "source_files": [
         "mohajerin-esfahani-kuhn-2018_data-driven-wasserstein-DRO__arXiv-1505.05116.pdf"
       ],
-      "scope": "The finite-dimensional reformulation theorem and worst-case distribution construction for empirical Wasserstein balls, together with the concentration/performance guarantee used to choose the radius.",
+      "scope": "Sections 3--4 and the supporting appendix arguments: concentration radius, finite-sample guarantee, asymptotic consistency, exact finite convex reformulation, perspective duality, and finite-atomic extremal distributions.",
       "anchors": [
-        "Theorem 3.4",
-        "Corollary 3.5",
-        "Theorem 4.2",
-        "proof in Appendix",
-        "finite-support construction"
+        "Definition 3.1 and Theorem 3.2",
+        "Assumption 3.3 and Theorems 3.4--3.6",
+        "Lemma 3.7",
+        "Assumption 4.1",
+        "Theorem 4.2 and equations (12a)--(12f)",
+        "Corollary 4.3",
+        "Lemma 4.5",
+        "Theorem 4.4 and Corollary 4.6"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 final five-paper pass.",
+      "source_issues": [
+        "The concentration theorem is cited by the paper rather than proved there; the note preserves that dependency.",
+        "The conjugate constraints depend on a global sign convention for the dual vector; the note fixes one equivalent convention throughout."
       ]
     },
     "SinkhornKnopp1967_matrix_scaling.tex": {
@@ -496,12 +516,21 @@
       "source_files": [
         "SinkhornKnopp1967.pdf"
       ],
-      "scope": "The complete support theorem, uniqueness of diagonal scaling, convergence of alternating normalization, and the total-support/full-indecomposability distinctions.",
+      "scope": "The complete six-page theorem: support and total support, full indecomposability, uniqueness of the doubly stochastic representative and scaling factors, Lemmas 1--2, alternating-normalization convergence, and the non-total-support limit.",
       "anchors": [
-        "main theorem",
-        "Lemmas 1--2",
-        "necessity and sufficiency of total support",
-        "convergence proof"
+        "Main theorem, all five assertions",
+        "Uniqueness argument",
+        "Birkhoff support necessity",
+        "Lemma 1",
+        "Lemma 2",
+        "Product-invariant convergence proof",
+        "Total-support scaling construction",
+        "Support-but-not-total-support conclusion"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 final five-paper pass.",
+      "source_issues": [
+        "The scan contains OCR damage in products and subscripts; the note normalizes these from the surrounding algebra.",
+        "The source proves convergence by product monotonicity and compactness, not by a projective contraction; that distinction is preserved."
       ]
     },
     "WangGaoXie2025_sinkhorn_dro.tex": {
@@ -510,14 +539,27 @@
         "wang-gao-xie-2023_sinkhorn-distributionally-robust-optimization__arXiv-2109.11926.pdf",
         "WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf"
       ],
-      "scope": "Definition 1 and Theorem 1(I)--(IV): Sinkhorn ambiguity sets, dual log-partition formula, existence/structure of worst-case laws, and the radius boundary cases.",
+      "scope": "Definition 1; equations (1)--(9); Assumption 1; Condition 1; Theorem 1(I)--(IV); Lemmas 1--3; Proposition EC.1; Lemmas EC.2--EC.5; positive-, zero-, and non-light-tailed multiplier cases; the worst-case-law formula; and the small-regularization comparison.",
       "anchors": [
-        "Section 2, Definition 1 and equations (2)--(3)",
-        "Assumption 1",
-        "Condition 1",
-        "Section 3, Theorem 1(I)--(IV)",
-        "Lemmas 1--2",
-        "electronic companion proof"
+        "Definition 1 and equations (1)--(3)",
+        "Assumption 1 and Condition 1",
+        "Theorem 1(I)--(IV)",
+        "Lemmas 1--3",
+        "Proposition EC.1",
+        "Lemmas EC.2--EC.5",
+        "Remark 3"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 final five-paper pass.",
+      "source_issues": [
+        "The source reuses rho for the shifted entropy budget; the notes write bar-rho.",
+        "The arXiv and final publication use different year labels; the notes cite the final 2025 publication.",
+        "The printed Theorem 1(III) appears to classify the shifted-radius boundary bar-rho = 0 as infinite, while the appendix proof gives the explicit baseline value; the notes preserve both and identify the conflict.",
+        "The appendix reference attached to the negative-radius convention appears to point to Lemma EC.4 even though that lemma concerns existence for positive radius.",
+        "The zero-mass contradiction chooses a level H^ell(x) pointwise and then integrates the resulting bound without a separate measurable-selection argument.",
+        "Minor dummy-variable and multiplier-subscript slips in the electronic companion are normalized without changing the proof route."
+      ],
+      "supplementary_references": [
+        "Csiszar1975"
       ]
     },
     "WangGaoXie2025_sinkhorn_dro_theorem1.tex": {
@@ -526,12 +568,27 @@
         "wang-gao-xie-2023_sinkhorn-distributionally-robust-optimization__arXiv-2109.11926.pdf",
         "WangGaoXie2023-supplement-opre.2023.0294.sm2.pdf"
       ],
-      "scope": "A theorem-by-theorem reconstruction of Theorem 1, including the shifted radius, weak duality, Gibbs conditional optimizer, concave value function, Slater/boundary analysis, and worst-case law.",
+      "scope": "Definition 1; equations (1)--(9); Assumption 1; Condition 1; Theorem 1(I)--(IV); Lemmas 1--3; Proposition EC.1; Lemmas EC.2--EC.5; positive-, zero-, and non-light-tailed multiplier cases; the worst-case-law formula; and the small-regularization comparison.",
       "anchors": [
+        "Definition 1 and equations (1)--(3)",
+        "Assumption 1 and Condition 1",
         "Theorem 1(I)--(IV)",
-        "equations (4)--(8)",
-        "Lemmas 1--2",
-        "Appendix EC.5"
+        "Lemmas 1--3",
+        "Proposition EC.1",
+        "Lemmas EC.2--EC.5",
+        "Remark 3"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 final five-paper pass.",
+      "source_issues": [
+        "The source reuses rho for the shifted entropy budget; the notes write bar-rho.",
+        "The arXiv and final publication use different year labels; the notes cite the final 2025 publication.",
+        "The printed Theorem 1(III) appears to classify the shifted-radius boundary bar-rho = 0 as infinite, while the appendix proof gives the explicit baseline value; the notes preserve both and identify the conflict.",
+        "The appendix reference attached to the negative-radius convention appears to point to Lemma EC.4 even though that lemma concerns existence for positive radius.",
+        "The zero-mass contradiction chooses a level H^ell(x) pointwise and then integrates the resulting bound without a separate measurable-selection argument.",
+        "Minor dummy-variable and multiplier-subscript slips in the electronic companion are normalized without changing the proof route."
+      ],
+      "supplementary_references": [
+        "Csiszar1975"
       ]
     },
     "Yeh1978_conditional_wiener_translation.tex": {
@@ -539,13 +596,35 @@
       "source_files": [
         "Transformations of Wiener Integrals Under Translations-Yeh-1977.pdf"
       ],
-      "scope": "Lemmas 1--2, abstract Theorem 1 for conditional expectations, Wiener-specific Theorem 2, its corollary, and the exponential-integral example.",
+      "scope": "Section 1 equations (1.1)--(1.6); Section 2 definition, Lemmas 1--2, and Theorem 1 through equation (2.19); Section 3 Cameron--Martin specialization, Theorem 2, corollary, and the final Paley--Wiener endpoint integral through equation (3.12).",
       "anchors": [
-        "Section 2, Lemmas 1--2 and Theorem 1",
-        "Section 3, Theorem 2",
-        "corollary",
-        "final example"
+        "Section 1, equations (1.1)--(1.6)",
+        "Definition and equations (2.1)--(2.3)",
+        "Lemma 1, equations (2.4)--(2.10)",
+        "Lemma 2, equations (2.11)--(2.12)",
+        "Theorem 1, equations (2.13)--(2.19)",
+        "Theorem 2, equations (3.1)--(3.6)",
+        "Corollary, equations (3.7)--(3.10)",
+        "Example, equations (3.11)--(3.12), and final endpoint integral"
+      ],
+      "status": "Proof-level source-order reconstruction completed in the 2026-07-10 final five-paper pass.",
+      "source_issues": [
+        "The archive filename says 1977 while the journal volume is 1978; the note follows the published citation.",
+        "Yeh cites the 1944 Cameron--Martin translation paper, not the different 1945 general-linear-transformation paper.",
+        "The corollary explicitly transports endpoint null sets because conditional expectations are equivalence classes.",
+        "The source distinguishes the bounded-variation Riemann--Stieltjes integral from the L2 Paley--Wiener--Zygmund integral; the note retains that distinction."
+      ],
+      "supplementary_references": [
+        "CameronMartin1944Translations",
+        "Sunouchi1951",
+        "Segal1958",
+        "PaleyWiener1934"
       ]
     }
+  },
+  "paper_progress": {
+    "completed": 21,
+    "total": 21,
+    "counting_rule": "Unique associated source papers; theorem-focused companion notes and the multi-source classical synthesis are not counted separately."
   }
 }

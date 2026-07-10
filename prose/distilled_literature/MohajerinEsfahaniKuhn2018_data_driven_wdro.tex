@@ -1,206 +1,422 @@
 \input{preamble}
 \title{Data-Driven Distributionally Robust Optimization with the Wasserstein Metric}
 \author{}
-\date{Mohajerin Esfahani and Kuhn (2018), Theorems 3.4--3.6 and 4.2--4.4}
+\date{Mohajerin Esfahani and Kuhn (2018)}
 \begin{document}
 \maketitle
 
 \section*{Source map and scope}
-\begin{description}[style=nextline,leftmargin=3.2cm,labelwidth=3cm]
-\item[Primary source] \texttt{\detokenize{mohajerin-esfahani-kuhn-2018_data-driven-wasserstein-DRO__arXiv-1505.05116.pdf}}
-\item[Coverage] The finite-dimensional reformulation theorem and worst-case distribution construction for empirical Wasserstein balls, together with the concentration/performance guarantee used to choose the radius.
-\item[Source anchors]
-\begin{itemize}[leftmargin=2em]
-  \item Theorem 3.4
-  \item Corollary 3.5
-  \item Theorem 4.2
-  \item proof in Appendix
-  \item finite-support construction
-\end{itemize}
-\end{description}
-
-The exposition below preserves the source proof order and proof technique.  Notation is normalized
-and intermediate calculations are made explicit.  When the source contains a gap, ambiguity, or
-apparently incorrect step, the reconstruction records the source step before adding a separate
-commentary remark.
+\begin{sourceguide}
+\item[Primary source] Peyman Mohajerin Esfahani and Daniel Kuhn, \emph{Data-Driven Distributionally Robust Optimization Using the Wasserstein Metric: Performance Guarantees and Tractable Reformulations} \cite{MohajerinEsfahaniKuhn2018}.
+\item[Coverage] The mathematical chain in Sections 3--4 and Appendix A that supports the empirical Wasserstein ambiguity set: Definition 3.1, Theorem 3.2, Assumption 3.3, Theorems 3.4--3.6, Lemma 3.7, Assumption 4.1, Theorem 4.2, Corollary 4.3, Theorem 4.4, Lemma 4.5, and the upper-Lipschitz-majorant lemma used in asymptotic consistency.
+\item[Target results] The finite-sample guarantee, asymptotic consistency, exact finite convex reformulation of the empirical worst-case expectation, and finite-atomic extremal-law construction.
+\item[Method] The proof retains the source's generalized moment problem, Lagrangian dual, robust-counterpart, minimax, conjugate-infimal-convolution, and perspective-duality route.  It does not substitute a later general optimal-transport duality theorem.
+\end{sourceguide}
 
 \section{Empirical Wasserstein ambiguity sets}
-Let $\Xi\subseteq\R^m$ be closed and let
-$\widehat P_N=N^{-1}\sum_{i=1}^N\delta_{\widehat\xi_i}$ be the empirical law of independent samples
-from an unknown law $P$.  Using the $1$-Wasserstein distance induced by a norm $\|\cdot\|$, define
+Let $\Xi\subseteq\R^m$ be closed, let $\|\cdot\|$ be a norm on $\R^m$, and let $\Mcal(\Xi)$ denote the probability measures on $\Xi$ having finite first moment.  For $Q_1,Q_2\in\Mcal(\Xi)$, define
+\begin{equation}\label{eq:MEK-W1}
+ d_W(Q_1,Q_2)
+ :=\inf_{\Pi\in\Pi(Q_1,Q_2)}
+   \int_{\Xi\times\Xi}\|\xi_1-\xi_2\|\,\Pi(d\xi_1,d\xi_2).
+\end{equation}
+For independent samples $\widehat\xi_1,\dots,\widehat\xi_N$ from an unknown law $P$, write
 \[
+ \widehat P_N:=\frac1N\sum_{i=1}^N\delta_{\widehat\xi_i},
+ \qquad
  B_\varepsilon(\widehat P_N)
- :=\{Q\in\Pcal(\Xi):W_1(Q,\widehat P_N)\le\varepsilon\}.
-\]
-For a loss $\ell:\Xi\to\overline\R$, the basic worst-case expectation is
-\[
- \sup_{Q\in B_\varepsilon(\widehat P_N)}\E_Q[\ell(\xi)].
+ :=\{Q\in\Mcal(\Xi):d_W(Q,\widehat P_N)\le\varepsilon\}.
 \]
 
-\section{Finite-sample and asymptotic guarantees}
-Suppose the data-generating law has a light tail of order $a>1$:
-$\E_P[\exp(\|\xi\|^a)]<\infty$.  A Wasserstein concentration theorem gives constants
-$c_1,c_2>0$ such that
+The Kantorovich--Rubinstein representation used in the statistical argument is
+\begin{equation}\label{eq:MEK-KR}
+ d_W(Q_1,Q_2)
+ =\sup_{f:\,\Lip(f)\le1}
+ \left\{\int f\,dQ_1-\int f\,dQ_2\right\}.
+\end{equation}
+The paper cites the classical theorem and a modern unbounded-support treatment rather than proving \eqref{eq:MEK-KR}; the reconstruction uses it exactly where the source does.
+
+For a decision $x\in\mathcal X$ and loss $h(x,\xi)$, the distributionally robust problem is
+\begin{equation}\label{eq:MEK-DRO}
+ \widehat J_N
+ :=\inf_{x\in\mathcal X}
+ \sup_{Q\in B_{\varepsilon_N}(\widehat P_N)}
+ \E_Q[h(x,\xi)].
+\end{equation}
+Let $J^*:=\inf_{x\in\mathcal X}\E_P[h(x,\xi)]$ denote the true stochastic-program value.
+
+\section{Measure concentration and the radius choice}
+\sourceanchor{Assumption 3.3 and Theorem 3.4.}
+Assume that there is $a>1$ such that
+\begin{equation}\label{eq:MEK-light-tail}
+ A:=\E_P[\exp(\|\xi\|^a)]<\infty.
+\end{equation}
+The paper imports the following empirical-measure concentration estimate from Fournier and Guillin.
+
+\begin{theorem}[Source Theorem 3.4: concentration]\label{thm:MEK-concentration}
+There are $c_1,c_2>0$, depending only on $a$, $A$, and $m$, such that for $N\ge1$, $m\ne2$, and $\varepsilon>0$,
+\begin{equation}\label{eq:MEK-concentration}
+ P^N\{d_W(P,\widehat P_N)\ge\varepsilon\}
+ \le
+ \begin{cases}
+ c_1\exp[-c_2N\varepsilon^{\max\{m,2\}}],&\varepsilon\le1,\\
+ c_1\exp[-c_2N\varepsilon^a],&\varepsilon>1.
+ \end{cases}
+\end{equation}
+\end{theorem}
+
+For confidence level $1-\beta$, invert the right-hand side:
+\begin{equation}\label{eq:MEK-radius}
+ \varepsilon_N(\beta):=
+ \begin{cases}
+ \left(\dfrac{\log(c_1/\beta)}{c_2N}\right)^{1/\max\{m,2\}},
+ &N\ge\dfrac{\log(c_1/\beta)}{c_2},\\[1.2ex]
+ \left(\dfrac{\log(c_1/\beta)}{c_2N}\right)^{1/a},
+ &N<\dfrac{\log(c_1/\beta)}{c_2}.
+ \end{cases}
+\end{equation}
+Then
 \[
- P^N\{W_1(P,\widehat P_N)>\varepsilon\}
- \le c_1\exp\bigl(-c_2N\varepsilon^{\max\{m,2\}}\bigr)
+ P^N\{P\in B_{\varepsilon_N(\beta)}(\widehat P_N)\}\ge1-\beta.
 \]
-in the small-radius regime, with the corresponding $a$-power exponent in the large-radius regime.
-Choose $\varepsilon_N(\beta)$ by inverting this bound.  Then with probability at least $1-\beta$,
-$P\in B_{\varepsilon_N(\beta)}(\widehat P_N)$.  Consequently, for every decision $x$,
+
+\begin{theorem}[Source Theorem 3.5: finite-sample guarantee]\label{thm:MEK-finite-sample}
+Let $\widehat x_N$ solve \eqref{eq:MEK-DRO} with radius \eqref{eq:MEK-radius}.  Then
+\begin{equation}\label{eq:MEK-finite-guarantee}
+ P^N\left\{
+ \E_P[h(\widehat x_N,\xi)]\le\widehat J_N
+ \right\}\ge1-\beta.
+\end{equation}
+\end{theorem}
+\begin{proof}
+On the event $P\in B_{\varepsilon_N(\beta)}(\widehat P_N)$,
 \[
- \E_P[h(x,\xi)]
+ \E_P[h(\widehat x_N,\xi)]
  \le\sup_{Q\in B_{\varepsilon_N(\beta)}(\widehat P_N)}
-      \E_Q[h(x,\xi)].
+ \E_Q[h(\widehat x_N,\xi)]
+ =\widehat J_N.
 \]
-In particular, the robust value provides an out-of-sample upper confidence bound for the true cost
-of a robust optimizer.
+The concentration theorem bounds the complement of this event by $\beta$.
+\end{proof}
 
-If $\sum_N\beta_N<\infty$, the chosen radii tend to zero, and $h(x,\cdot)$ is upper semicontinuous
-with at most linear growth, then the robust objective converges almost surely to the true objective
-pointwise in $x$.  If in addition $h(\cdot,\xi)$ is lower semicontinuous and the decision set has the
-needed compactness/coercivity, the robust optimal values converge to the true optimal value and every
-accumulation point of robust minimizers is a true minimizer.  The proof combines Borel--Cantelli,
-Wasserstein convergence of empirical laws, and semicontinuity of integral functionals.
+\section{Asymptotic consistency}
+\sourceanchor{Theorem 3.6, Lemma 3.7, and Appendix Lemma A.1.}
+Let $\beta_N\in(0,1)$ satisfy
+\begin{equation}\label{eq:MEK-beta-summable}
+ \sum_{N=1}^\infty\beta_N<\infty,
+ \qquad
+ \varepsilon_N(\beta_N)\longrightarrow0.
+\end{equation}
 
-\section{Convex-reduction assumptions}
-Write
+\begin{lemma}[Source Lemma 3.7]\label{lem:MEK-distribution-convergence}
+For any possibly data-dependent sequence
 \[
- \ell(\xi)=\max_{1\le k\le K}\ell_k(\xi).
+ \widehat Q_N\in B_{\varepsilon_N(\beta_N)}(\widehat P_N),
 \]
-Assume $\Xi$ is closed and convex and each $-\ell_k$ is proper, convex, and lower semicontinuous;
-equivalently, each constituent $\ell_k$ is concave on its effective domain.  Denote the convex
-conjugate by $f^*$, the support function of $\Xi$ by $\sigma_\Xi$, and the dual norm by
-$\|\cdot\|_*$.  The worst-case expectation equals the optimal value of
-\begin{equation}\label{eq:MEK-convex-program}
+one has
+\[
+ d_W(P,\widehat Q_N)\longrightarrow0
+ \quad P^\infty\text{-almost surely}.
+\]
+\end{lemma}
+\begin{proof}
+The triangle inequality gives
+\[
+ d_W(P,\widehat Q_N)
+ \le d_W(P,\widehat P_N)+\varepsilon_N(\beta_N).
+\]
+Theorem~\ref{thm:MEK-concentration} and the radius definition imply
+\[
+ P^N\{d_W(P,\widehat P_N)>\varepsilon_N(\beta_N)\}\le\beta_N.
+\]
+By Borel--Cantelli, almost surely the first term is at most $\varepsilon_N(\beta_N)$ for all sufficiently large $N$, and the sum tends to zero.
+\end{proof}
+
+The proof of value convergence uses a decreasing Lipschitz approximation from above.
+
+\begin{lemma}[Source Appendix Lemma A.1]\label{lem:MEK-lipschitz-majorants}
+Let $g:\Xi\to\R$ be upper semicontinuous and satisfy
+\[
+ |g(\xi)|\le L(1+\|\xi\|).
+\]
+For $k\ge2$, define
+\begin{equation}\label{eq:MEK-majorant}
+ g_k(\xi):=\sup_{\xi'\in\Xi}
+ \{g(\xi')-kL\|\xi-\xi'\|\}.
+\end{equation}
+Then $g_k$ is $kL$-Lipschitz, $g_k\ge g$, $g_k\downarrow g$ pointwise, and $g_k(\xi)\le L(1+\|\xi\|)$ up to an additive constant independent of $\xi$.
+\end{lemma}
+\begin{proof}
+Each function $\xi\mapsto g(\xi')-kL\|\xi-\xi'\|$ is $kL$-Lipschitz, so the supremum is too.  Choosing $\xi'=\xi$ gives $g_k\ge g$, and increasing $k$ decreases the supremum.  If $\xi_k'$ is a $1/k$-maximizer, linear growth gives
+\[
+ g(\xi)
+ \le g_k(\xi)
+ \le L(1+\|\xi_k'\|)-kL\|\xi-\xi_k'\|+\frac1k.
+\]
+Using $\|\xi_k'\|\le\|\xi\|+\|\xi_k'-\xi\|$ shows $\xi_k'\to\xi$.  Upper semicontinuity then gives $\limsup g_k(\xi)\le g(\xi)$.
+\end{proof}
+
+\begin{theorem}[Source Theorem 3.6]\label{thm:MEK-consistency}
+Assume \eqref{eq:MEK-light-tail} and \eqref{eq:MEK-beta-summable}.
+\begin{enumerate}[label=(\roman*),leftmargin=2em]
+\item If $h(x,\cdot)$ is upper semicontinuous and
+\[
+ |h(x,\xi)|\le L(1+\|\xi\|)
+\]
+uniformly in $x$, then $\widehat J_N\to J^*$ almost surely.
+\item If additionally $\mathcal X$ is closed and $h(\cdot,\xi)$ is lower semicontinuous for every $\xi$, then every accumulation point of $\widehat x_N$ is almost surely optimal for the true problem.
+\end{enumerate}
+\end{theorem}
+\begin{proof}
+The finite-sample theorem and Borel--Cantelli imply that, almost surely, for all large $N$,
+\begin{equation}\label{eq:MEK-eventual-sandwich}
+ J^*\le\E_P[h(\widehat x_N,\xi)]\le\widehat J_N.
+\end{equation}
+Fix $\delta>0$ and choose $x_\delta$ with
+\[
+ \E_P[h(x_\delta,\xi)]\le J^*+\delta.
+\]
+Choose $\widehat Q_N$ in the ambiguity ball that is $\delta$-optimal for the inner supremum at $x_\delta$.  Apply Lemma~\ref{lem:MEK-lipschitz-majorants} to $h(x_\delta,\cdot)$ and use \eqref{eq:MEK-KR}:
+\begin{align*}
+ \limsup_N\widehat J_N
+ &\le\limsup_N\E_{\widehat Q_N}[h(x_\delta,\xi)]+\delta\\
+ &\le\lim_{k\to\infty}\limsup_N
+ \left(\E_P[h_k(x_\delta,\xi)]
+ +L_kd_W(P,\widehat Q_N)\right)+\delta\\
+ &=\E_P[h(x_\delta,\xi)]+\delta
+ \le J^*+2\delta.
+\end{align*}
+Here Lemma~\ref{lem:MEK-distribution-convergence} removes the Wasserstein term, and monotone convergence from above is justified by the common integrable linear-growth bound.  Letting $\delta\downarrow0$ and combining with \eqref{eq:MEK-eventual-sandwich} proves (i).
+
+For (ii), take a convergent subsequence $\widehat x_{N_j}\to x^*$.  Closedness gives $x^*\in\mathcal X$.  Lower semicontinuity and Fatou's lemma yield
+\[
+ J^*\le\E_P[h(x^*,\xi)]
+ \le\liminf_j\E_P[h(\widehat x_{N_j},\xi)]
+ \le\lim_j\widehat J_{N_j}=J^*.
+\]
+Thus $x^*$ is optimal.
+\end{proof}
+
+The paper supplies counterexamples showing that upper semicontinuity in $\xi$, linear growth, and lower semicontinuity in $x$ cannot simply be dropped: a jump loss at the support point, a quadratic loss under a first-Wasserstein ball, and a discontinuous decision loss respectively break the conclusions.
+
+\section{The empirical worst-case expectation}
+Suppress the decision variable and write
+\begin{equation}\label{eq:MEK-wce}
+ \mathcal V_\varepsilon(\ell)
+ :=\sup_{Q\in B_\varepsilon(\widehat P_N)}\E_Q[\ell(\xi)].
+\end{equation}
+Assume
+\begin{equation}\label{eq:MEK-piecewise}
+ \ell(\xi)=\max_{1\le k\le K}\ell_k(\xi).
+\end{equation}
+
+\begin{assumption}[Source Assumption 4.1]\label{ass:MEK-convexity}
+The set $\Xi$ is closed and convex.  Each $-\ell_k$ is proper, convex, and lower semicontinuous, and no $\ell_k$ is identically $-\infty$ on $\Xi$.
+\end{assumption}
+
+Let $\chi_\Xi$ denote the convex indicator of $\Xi$, $\sigma_\Xi=\chi_\Xi^*$ its support function, and $\|\cdot\|_*$ the dual norm.
+
+\section{Disintegration into a generalized moment problem}
+Every coupling of $Q$ with the empirical law has the form
+\[
+ \Pi=\frac1N\sum_{i=1}^N\delta_{\widehat\xi_i}\otimes Q_i
+\]
+for conditional laws $Q_i\in\Mcal(\Xi)$.  Hence
+\begin{equation}\label{eq:MEK-moment-primal}
+ \mathcal V_\varepsilon(\ell)
+ =\sup_{Q_1,\dots,Q_N}
+ \left\{
+ \frac1N\sum_{i=1}^N\int_\Xi\ell(\xi)Q_i(d\xi):
+ \frac1N\sum_{i=1}^N\int_\Xi\|\xi-\widehat\xi_i\|Q_i(d\xi)
+ \le\varepsilon
+ \right\}.
+\end{equation}
+Dualize the single moment constraint with $\lambda\ge0$.  Weak max--min duality gives
+\begin{align}
+ \mathcal V_\varepsilon(\ell)
+ &\le\inf_{\lambda\ge0}
+ \left\{
+ \lambda\varepsilon
+ +\frac1N\sum_{i=1}^N
+ \sup_{\xi\in\Xi}
+ [\ell(\xi)-\lambda\|\xi-\widehat\xi_i\|]
+ \right\}.
+ \label{eq:MEK-scalar-dual}
+\end{align}
+Under Assumption~\ref{ass:MEK-convexity}, the generalized moment-problem duality cited by the paper makes this an equality for $\varepsilon>0$.  At $\varepsilon=0$, the multiplier can diverge without objective penalty; the source checks directly that the right-hand side decreases to the sample average.
+
+\section{Robust-counterpart derivation}
+Introduce epigraph variables $s_i$ in \eqref{eq:MEK-scalar-dual}:
+\begin{equation}\label{eq:MEK-semi-infinite}
+ \sup_{\xi\in\Xi}
+ [\ell_k(\xi)-\lambda\|\xi-\widehat\xi_i\|]
+ \le s_i,
+ \qquad i\le N,
+ \quad k\le K.
+\end{equation}
+The dual-norm formula gives
+\[
+ \lambda\|\xi-\widehat\xi_i\|
+ =\max_{\|z\|_*\le\lambda}
+ \langle z,\xi-\widehat\xi_i\rangle.
+\]
+Therefore
+\begin{align*}
+ &\sup_{\xi\in\Xi}
+ \left(\ell_k(\xi)-
+ \max_{\|z\|_*\le\lambda}
+ \langle z,\xi-\widehat\xi_i\rangle\right)\\
+ &\qquad\le
+ \min_{\|z_{ik}\|_*\le\lambda}
+ \sup_{\xi\in\Xi}
+ [\ell_k(\xi)-\langle z_{ik},\xi\rangle
+ +\langle z_{ik},\widehat\xi_i\rangle].
+\end{align*}
+Without convexity this is only an upper bound.  Under Assumption~\ref{ass:MEK-convexity}, the compactness of the dual-norm ball and the source's minimax theorem make it an equality.
+
+The remaining supremum is a conjugate:
+\[
+ \sup_{\xi\in\Xi}[\ell_k(\xi)-\langle z,\xi\rangle]
+ =[-\ell_k+\chi_\Xi]^*(-z).
+\]
+After replacing $-z$ by $z$, the sum-conjugate formula gives
+\begin{equation}\label{eq:MEK-inf-conv}
+ [-\ell_k+\chi_\Xi]^*(z)
+ =\operatorname{cl}\inf_{\nu\in\R^m}
+ \bigl\{[-\ell_k]^*(z-\nu)+\sigma_\Xi(\nu)\bigr\}.
+\end{equation}
+The closure does not alter a sublevel condition of the form ``$\le s_i$,'' so the auxiliary variable $\nu_{ik}$ yields the finite program.
+
+\begin{theorem}[Source Theorem 4.2]\label{thm:MEK-convex-reduction}
+Under Assumption~\ref{ass:MEK-convexity}, \eqref{eq:MEK-wce} equals
+\begin{equation}\label{eq:MEK-finite-program}
 \begin{aligned}
- \inf_{\lambda,s_i,z_{ik},\nu_{ik}}\quad
+ \inf_{\lambda,s,z,\nu}\quad
  &\lambda\varepsilon+\frac1N\sum_{i=1}^Ns_i\\
- \text{s.t.}\quad
- &[ -\ell_k]^*(z_{ik}-\nu_{ik})+\sigma_\Xi(\nu_{ik})
-       -\langle z_{ik},\widehat\xi_i\rangle\le s_i,
-       &&i\le N, k\le K,\\
+ \text{subject to}\quad
+ &[-\ell_k]^*(z_{ik}-\nu_{ik})
+ +\sigma_\Xi(\nu_{ik})
+ -\langle z_{ik},\widehat\xi_i\rangle
+ \le s_i,
+ &&i\le N,\ k\le K,\\
  &\|z_{ik}\|_*\le\lambda,
-       &&i\le N, k\le K,\\
+ &&i\le N,\ k\le K,\\
  &\lambda\ge0.
 \end{aligned}
 \end{equation}
-
-\section{Derivation of the finite convex program}
-Every coupling of $Q$ and $\widehat P_N$ disintegrates as
-\[
- \Pi=\frac1N\sum_{i=1}^N Q_i\otimes\delta_{\widehat\xi_i}.
-\]
-Thus the infinite-dimensional primal is the generalized moment problem
-\begin{equation}\label{eq:MEK-moment}
- \sup_{Q_i\in\Pcal(\Xi)}
- \left\{\frac1N\sum_i\int\ell(\xi)Q_i(d\xi):
- \frac1N\sum_i\int\|\xi-\widehat\xi_i\|Q_i(d\xi)\le\varepsilon\right\}.
-\end{equation}
-Dualizing the single moment constraint gives
-\[
- \inf_{\lambda\ge0}
- \left\{\lambda\varepsilon+\frac1N\sum_{i=1}^N
- \sup_{\xi\in\Xi}\bigl(\ell(\xi)-\lambda\|\xi-\widehat\xi_i\|\bigr)\right\}.
-\]
-Under the stated convexity assumptions, strong duality for generalized moment problems makes this
-an equality, including at $\varepsilon=0$.
-
-Introduce epigraph variables $s_i$ and split the maximum over $k$:
-\[
- \sup_{\xi\in\Xi}\bigl(\ell_k(\xi)-\lambda\|\xi-\widehat\xi_i\|\bigr)\le s_i.
-\]
-By the dual-norm formula
-$\lambda\|u\|=\sup_{\|z\|_*\le\lambda}\langle z,u\rangle$,
-this is equivalent, after minimax interchange, to existence of $z_{ik}$ with
-$\|z_{ik}\|_*\le\lambda$ and
-\[
- \sup_{\xi\in\Xi}\{\ell_k(\xi)-\langle z_{ik},\xi\rangle\}
- +\langle z_{ik},\widehat\xi_i\rangle\le s_i.
-\]
-The remaining supremum is
-$[-\ell_k+\chi_\Xi]^*( -z_{ik})$.  Infimal convolution of conjugates gives
-\[
- [-\ell_k+\chi_\Xi]^*(z)
- =\inf_{\nu}\{[-\ell_k]^*(z-\nu)+\sigma_\Xi(\nu)\},
-\]
-which yields \eqref{eq:MEK-convex-program}.  The minimax equalities are justified because the
-functions involved are proper closed convex functions and the norm ball is compact in finite
-dimensions.
-
-\begin{theorem}[Convex reduction]
-Under the convexity assumptions, for every $\varepsilon\ge0$ the worst-case expectation over the
-empirical Wasserstein ball equals the finite convex program \eqref{eq:MEK-convex-program}.
-Without those assumptions, the same program remains a valid conservative upper bound.
 \end{theorem}
 
-\section{Dualizing again: extremal distributions}
-The dual of \eqref{eq:MEK-convex-program} can be expressed using masses
-$\alpha_{ik}\ge0$ and displacement vectors $q_{ik}\in\R^m$:
-\begin{equation}\label{eq:MEK-extremal-program}
-\begin{aligned}
- \sup_{\alpha,q}\quad
- &\frac1N\sum_{i=1}^N\sum_{k=1}^K
-   \alpha_{ik}\,
-   \ell_k\left(\widehat\xi_i-\frac{q_{ik}}{\alpha_{ik}}\right)\\
- \text{s.t.}\quad
- &\frac1N\sum_{i,k}\|q_{ik}\|\le\varepsilon,\\
- &\sum_{k=1}^K\alpha_{ik}=1, &&i=1,\ldots,N,\\
- &\alpha_{ik}\ge0,
- \widehat\xi_i-\frac{q_{ik}}{\alpha_{ik}}\in\Xi.
-\end{aligned}
-\end{equation}
-The perspective convention is used at $\alpha_{ik}=0$: a nonzero $q_{ik}$ is infeasible, while
-$(\alpha,q)=(0,0)$ contributes zero.
+\begin{corollary}[Source Corollary 4.3]\label{cor:MEK-upper-reduction}
+Without Assumption~\ref{ass:MEK-convexity}, the pre-infimal-convolution finite program remains a conservative upper bound on \eqref{eq:MEK-wce}.
+\end{corollary}
+The distinction is important: the max--min and minimax exchanges are exact only under the source's duality and convexity hypotheses.
 
-The key calculation is the perspective identity.  If $f$ is proper closed convex and
+\section{Extremal distributions by dualizing the finite program}
+\sourceanchor{Theorem 4.4 and Lemma 4.5.}
+The source dualizes the finite convex program rather than invoking an abstract finite-support theorem.
+
+\begin{lemma}[Source Lemma 4.5: perspective identity]\label{lem:MEK-perspective}
+Let $f:\R^m\to\overline\R$ be proper, convex, and lower semicontinuous, and let $\widehat\xi\in\R^m$.  Define
 \[
- F(q,\alpha)=\inf_z
- \{\langle z,q\rangle-alpha\langle z,\widehat\xi\rangle+alpha f^*(z)\},
+ F(q,\alpha)
+ :=\inf_{z\in\R^m}
+ \{\langle z,q\rangle
+ -\alpha\langle z,\widehat\xi\rangle
+ +\alpha f^*(z)\},
+ \qquad \alpha\ge0.
 \]
-then
-\[
+Then
+\begin{equation}\label{eq:MEK-perspective}
  F(q,\alpha)=
  \begin{cases}
  -\alpha f(\widehat\xi-q/\alpha),&\alpha>0,\\
  -\chi_{\{0\}}(q),&\alpha=0.
  \end{cases}
-\]
-For $\alpha>0$ this is Fenchel--Moreau applied to $\alpha f^*$; for $\alpha=0$ it is the infimum of
-a linear functional.  Applying this identity to each dual block converts the Lagrange dual exactly
-into \eqref{eq:MEK-extremal-program}.
-
-For every feasible $(\alpha,q)$ define
+\end{equation}
+\end{lemma}
+\begin{proof}
+For $\alpha=0$, the infimum of $\langle z,q\rangle$ over all $z$ is zero if $q=0$ and $-\infty$ otherwise.  For $\alpha>0$,
 \[
- \xi_{ik}:=\widehat\xi_i-\frac{q_{ik}}{\alpha_{ik}},
- \qquad
- Q:=\frac1N\sum_{i=1}^N\sum_{k=1}^K
-      \alpha_{ik}\delta_{\xi_{ik}}.
+ F(q,\alpha)
+ =-[\alpha f^*]^*(\alpha\widehat\xi-q)
+ =-\alpha f(\widehat\xi-q/\alpha)
 \]
-The coupling that transports mass $\alpha_{ik}/N$ from $\widehat\xi_i$ to $\xi_{ik}$ has cost
+by Fenchel--Moreau and the scaling rule for conjugates.
+\end{proof}
+
+The Lagrange dual of the finite program introduces weights $\alpha_{ik}\ge0$ and transportation vectors $q_{ik}$.  Minimization over $s_i$ gives
+\[
+ \sum_{k=1}^K\alpha_{ik}=1
+ \qquad(i=1,\dots,N),
+\]
+and minimization over $\lambda$ gives
+\[
+ \frac1N\sum_{i=1}^N\sum_{k=1}^K\|q_{ik}\|\le\varepsilon.
+\]
+Lemma~\ref{lem:MEK-perspective}, with $f=-\ell_k+\chi_\Xi$, gives the objective and support constraints.
+
+\begin{theorem}[Source Theorem 4.4]\label{thm:MEK-worst-case-laws}
+Under Assumption~\ref{ass:MEK-convexity}, \eqref{eq:MEK-wce} equals
+\begin{equation}\label{eq:MEK-extremal-program}
+\begin{aligned}
+ \sup_{\alpha,q}\quad
+ &\frac1N\sum_{i=1}^N\sum_{k=1}^K
+ \alpha_{ik}\,
+ \ell_k\!\left(\widehat\xi_i-\frac{q_{ik}}{\alpha_{ik}}\right)\\
+ \text{subject to}\quad
+ &\frac1N\sum_{i,k}\|q_{ik}\|\le\varepsilon,\\
+ &\sum_{k=1}^K\alpha_{ik}=1,
+ &&i=1,\dots,N,\\
+ &\alpha_{ik}\ge0,
+ &&i\le N,\ k\le K,\\
+ &\widehat\xi_i-q_{ik}/\alpha_{ik}\in\Xi,
+ &&i\le N,\ k\le K.
+\end{aligned}
+\end{equation}
+The extended perspective convention is used: if $\alpha_{ik}=0$ and $q_{ik}\ne0$, the support constraint fails; if both vanish, the objective contribution is zero.
+
+If $(\alpha(r),q(r))$ is a maximizing sequence for \eqref{eq:MEK-extremal-program}, set
+\[
+ \xi_{ik}(r):=\widehat\xi_i-\frac{q_{ik}(r)}{\alpha_{ik}(r)},
+ \qquad
+ Q_r:=\frac1N\sum_{i=1}^N\sum_{k=1}^K
+ \alpha_{ik}(r)\delta_{\xi_{ik}(r)}.
+\]
+Then $Q_r\in B_\varepsilon(\widehat P_N)$ and
+\[
+ \E_{Q_r}[\ell]\longrightarrow\mathcal V_\varepsilon(\ell).
+\]
+If \eqref{eq:MEK-extremal-program} attains its optimum, the associated finite atomic measure is a worst-case distribution.
+\end{theorem}
+
+\begin{proof}
+Strong duality for the finite program holds because the conjugate constraint has a free epigraph variable.  The perspective calculation gives \eqref{eq:MEK-extremal-program}.  For any feasible $(\alpha,q)$, transport mass $\alpha_{ik}/N$ from $\widehat\xi_i$ to $\xi_{ik}$.  The resulting coupling has cost
 \[
  \frac1N\sum_{i,k}\alpha_{ik}
  \|\xi_{ik}-\widehat\xi_i\|
  =\frac1N\sum_{i,k}\|q_{ik}\|
- \le\varepsilon,
+ \le\varepsilon.
 \]
-so $Q\in B_\varepsilon(\widehat P_N)$.  Its expected loss dominates the objective of
-\eqref{eq:MEK-extremal-program} because
-$\ell=\max_k\ell_k$.  Conversely, duality shows that no feasible law can exceed that program.
-
-\begin{theorem}[Worst-case distributions]
-The optimal value of \eqref{eq:MEK-extremal-program} equals the worst-case expectation.  Any
-maximizing sequence $(\alpha(r),q(r))$ generates discrete laws
+Hence $Q\in B_\varepsilon(\widehat P_N)$.  Since $\ell=\max_k\ell_k$,
 \[
- Q_r=\frac1N\sum_{i,k}
- \alpha_{ik}(r)\delta_{\widehat\xi_i-q_{ik}(r)/\alpha_{ik}(r)}
+ \E_Q[\ell]
+ \ge\frac1N\sum_{i,k}
+ \alpha_{ik}\ell_k(\xi_{ik}),
 \]
-inside the Wasserstein ball whose expected losses converge to the worst-case value.  If the finite
-program attains its optimum, the associated $Q$ is a worst-case distribution.
-\end{theorem}
+which is the dual objective.  Equality of the finite primal and dual optimal values and weak duality for the original measure problem force convergence of the generated laws to the worst-case value.
+\end{proof}
 
-Thus, even though the ambiguity set is infinite-dimensional, extremal behavior is represented by a
-finite collection of displaced sample atoms, with at most $NK$ atoms in the direct construction.
+The construction uses at most $NK$ atoms.  It is not merely a generic Carath\'eodory reduction: each atom is tied to one empirical point and one active constituent of the pointwise-maximum loss.
+
+\section*{Source issues and fidelity notes}
+\begin{itemize}[leftmargin=2em]
+\item The concentration theorem is imported from Fournier--Guillin; the paper does not reprove it.  The finite-sample theorem is the immediate confidence-set consequence reproduced above.
+\item The asymptotic proof uses a decreasing sequence of Lipschitz majorants, not truncation of the loss or a generic epi-convergence theorem.
+\item In Theorem 4.2, equality at $\varepsilon=0$ is handled separately because ordinary interior-point moment duality does not apply directly to a zero budget.
+\item The passage from the semi-infinite constraint to the robust counterpart has two logically distinct steps: generalized-moment strong duality and the minimax interchange over the compact dual-norm ball.  Both are preserved.
+\item The source's extended-arithmetic convention at $\alpha=0$ is part of Theorem 4.4.  Removing it would change the feasible set of the perspective program.
+\item The finite-support laws in Theorem 4.4 are asymptotically worst-case for a maximizing sequence; actual attainment requires attainment of the finite program.
+\end{itemize}
 
 \input{references_manual}
 \end{document}

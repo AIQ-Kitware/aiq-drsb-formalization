@@ -12,23 +12,33 @@ The primary paper must remain the visible source of the reconstructed proof rout
 
 ## Current state
 
-The corpus currently represents **21 unique source papers** in 25 paper-specific TeX files. The file count is larger because Blanchet--Murthy, Gao--Kleywegt, and Wang--Gao--Xie each have both a broad note and a theorem-focused companion; `ClassicalFoundations_DV_KLconvexity_supergradient.tex` is a multi-source synthesis and is not counted as a paper.
+The corpus represents **21 unique source papers** in 25 paper-specific TeX files. The file count is larger because Blanchet--Murthy, Gao--Kleywegt, and Wang--Gao--Xie each have both a broad note and a theorem-focused companion; `ClassicalFoundations_DV_KLconvexity_supergradient.tex` is a multi-source synthesis and is not counted as a paper.
 
-As of the 2026-07-10 four-paper pass, **16/21 papers** have completed source-order proof reconstructions:
+As of the 2026-07-10 final five-paper pass, **21/21 papers** have completed source-order proof reconstructions:
 
 - Adjoint Matching (2025);
 - Birkhoff (1957);
 - Blanchet--Murthy (2019);
-- Chen--Georgiou--Pavon (2021);
 - Cameron--Martin (1945);
 - Carroll (2004);
+- Chen--Georgiou--Pavon (2021);
 - Diffusion Schrödinger Bridge Matching (2023);
 - Eveson--Nussbaum (1995);
 - Fortet (1940);
 - Franklin--Lorenz (1989), Section 3;
-- Generalized Schrödinger Bridge Matching (2024).
+- Gao--Kleywegt (2023);
+- Generalized Schrödinger Bridge Matching (2024);
+- Girsanov (1960);
+- Kakutani (1948);
+- Lemmens--Nussbaum (2013);
+- Léonard (2014);
+- Léonard (2019);
+- Mohajerin Esfahani--Kuhn (2018);
+- Sinkhorn--Knopp (1967);
+- Wang--Gao--Xie (2025);
+- Yeh (1978).
 
-The remaining ten papers retain expanded first-pass notes but still require the same source-by-source fidelity review before being marked complete. Completion status and exact source anchors are recorded in `source_manifest.json`.
+Completion means that the target theorem families are reconstructed in source order with explicit anchors, source-dependent inputs, preserved proof techniques, and recorded source issues. It does not mean that every section of every paper, such as numerical experiments or unrelated algorithmic material, has been reproduced. Exact scopes are recorded in `source_manifest.json`.
 
 ## Building a note
 

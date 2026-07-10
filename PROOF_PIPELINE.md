@@ -21,14 +21,22 @@ grep -rn --include=*.lean --exclude-dir=.lake --exclude-dir=.reference-clones --
 > retained as history. The live frontier is **Sinkhorn convergence via Birkhoff–Hopf**, upstream
 > `ForMathlib` infrastructure that no card claim depends on. Full orientation: **[`STATUS.md`](STATUS.md)**.
 
-**16 open goals.** Two *parallel, both-unfinished* routes to the same theorem — resolve this first:
+**16 open goals.** Two parallel routes to the same theorem exist. **Decision (2026-07-10): finish the
+Eveson–Nussbaum `PaperRoute`; *sequester* — do not delete — the Carroll weighted-average route.**
+Step-by-step first moves are in [`STATUS.md`](STATUS.md).
 
-| Route | Location | Open | Source paper |
-|---|---|---|---|
-| **Carroll (2004)** weighted-average | `ForMathlib/…/BirkhoffHopf.lean` | 3 | `prose/distilled_literature/Carroll2004_birkhoff_contraction.tex` |
-| **Eveson–Nussbaum (1995)** cone route | `ForMathlib/…/BirkhoffHopf/PaperRoute/*` | 10 | `…/EvesonNussbaum1995_birkhoff_hopf.tex` |
-| Franklin–Lorenz consumers | `ChenGeorgiouPavon2021/…/Compactness/FranklinLorenz.lean` | 2 | `…/FranklinLorenz1989_matrix_scaling.tex` |
-| analysis tail | `ForMathlib/Analysis/ExpLogBounds.lean` | 1 | — |
+| Route | Location | Open | Source paper | Priority |
+|---|---|---|---|---|
+| **Eveson–Nussbaum (1995)** cone route | `ForMathlib/…/BirkhoffHopf/PaperRoute/*` | 10 | `…/EvesonNussbaum1995_birkhoff_hopf.tex` | ⭐ **finish this** |
+| Carroll (2004) weighted-average | `ForMathlib/…/BirkhoffHopf.lean` | 3 | `prose/distilled_literature/Carroll2004_birkhoff_contraction.tex` | sequester (keep as an alternate route; useful as a cross-check on the 2×2 core) |
+| Franklin–Lorenz consumers | `ChenGeorgiouPavon2021/…/Compactness/FranklinLorenz.lean` | 2 | `…/FranklinLorenz1989_matrix_scaling.tex` | independent — attack any time |
+| analysis tail | `ForMathlib/Analysis/ExpLogBounds.lean` | 1 | — | independent |
+
+**The public seam is `positive_kernel_strict_birkhoff_contraction_coefficient`** — the only
+Birkhoff–Hopf theorem `FranklinLorenz.lean` consumes, and the single goal both routes exist to
+discharge. Every weighted-average theorem has **zero external consumers** (grep-verified), so
+sequestering them into `BirkhoffHopf/WeightedAverageRoute.lean` is mechanical. Keep the shared
+definitions and the proved core lemmas in `BirkhoffHopf.lean`.
 
 **Dependency facts (Lean-verified, not eyeballed):**
 - `positive_kernel_birkhoff_hopf_contraction` *looks* proved but its dependency audit reports the

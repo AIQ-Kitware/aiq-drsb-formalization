@@ -784,3 +784,35 @@ is already doing, so the direction was right — it just wasn't written down.
 Read `STATUS.md`, not this file, for where things are. Then, before writing a single tactic: **decide
 between the Carroll and Eveson–Nussbaum routes and delete or explicitly park the loser.** Two
 half-built proofs of one theorem is the largest avoidable cost in the current tree.
+
+### Session 10 addendum — route decision + handoff
+
+**Decision (Jon, 2026-07-10): finish the Eveson–Nussbaum `PaperRoute`; *sequester, don't delete,* the
+Carroll weighted-average route in `BirkhoffHopf.lean`.** Getting Carroll too would be nice, but the
+paper route is the more correct and (per the sources) easier one, and it is what `PaperRoute`'s own
+header already declares itself to be.
+
+The dependency analysis that makes this cheap (grep-verified, recorded so nobody redoes it):
+
+- `ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient` is **the public seam** —
+  the *only* Birkhoff–Hopf theorem `FranklinLorenz.lean` consumes (lines 507, 529). Both routes exist
+  purely to discharge its one open goal, so swapping routes touches nothing downstream.
+- **Every weighted-average theorem has zero external consumers.** Sequestration is therefore a pure
+  move of eight declarations into `BirkhoffHopf/WeightedAverageRoute.lean`; the shared definitions and
+  the proved core lemmas stay in `BirkhoffHopf.lean`.
+- ⚠️ The seam has **no** `[Nonempty ι]`/`[Nonempty κ]` but `…_paper_route` does, so wiring them needs an
+  empty-type case split (both sides degenerate to `0 ≤ γ·0`).
+
+Two findings worth not rediscovering:
+
+- `positive_kernel_apply_hilbert_log_diameter_bound_paper_route` (open, in `PositiveMatrixDiameter.lean`)
+  is *the same statement* as the already-proved, non-placeholder-backed
+  `positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound` in the core. It is free.
+- `positive_twoByTwo_reduces_to_symmetric_normal_form`: **do not follow Eveson–Nussbaum Lemma 5.1's
+  doubly-stochastic + IVT argument.** The Lean statement admits explicit closed-form witnesses. With
+  `ρ = A₀₀A₁₁/(A₀₁A₁₀)` — and `hdet` is *exactly* `ρ ≠ 1` — take `α = √ρ`, `c₁ = 1`,
+  `c₀ = √(A₀₁A₁₁/(A₀₀A₁₀))`, `r₀ = 1/(A₀₁c₁)`, `r₁ = 1/(A₁₀c₀)`; if `ρ < 1`, swap rows first
+  (`ρ ↦ 1/ρ > 1`). Verified algebraically, not yet in Lean.
+
+The ordered first-moves list (cheapest → hardest) lives in `STATUS.md`. No proofs were attempted this
+session; the only Lean edits were the two lint fixes recorded above.

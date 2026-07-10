@@ -46,24 +46,89 @@ this file — never trust a count in a doc, including this one.
 | `ForMathlib/Analysis/ExpLogBounds.lean` | 1 | `|exp t − 1| ≤ exp C · |t|` conversion |
 | `ChenGeorgiouPavon2021/…/Compactness/FranklinLorenz.lean` | 2 | geometric decay of the two scaling corrections |
 
-**Three things a fresh agent must know:**
+### The decision (made 2026-07-10) — finish the PAPER ROUTE
 
-1. **There are TWO parallel, unfinished routes to the same theorem.** `BirkhoffHopf.lean` is the
-   **Carroll (2004)** weighted-average route (3 open); `BirkhoffHopf/PaperRoute/*` is the
-   **Eveson–Nussbaum (1995)** cone route (10 open), whose header calls itself "the intended
-   replacement spine for the currently parked weighted-average route." **Pick one and delete or
-   explicitly park the other** — right now both are half-built and they duplicate each other.
-   The Carroll route is much closer to done, and its hardest analytic atom is *already proved*
-   in the other route (`PaperRoute/TwoByTwo.lean`'s `symmetricTwoByTwoPhi_le`).
-2. **The target is TRUE, and deliberately coarse.** `IsBirkhoffHopfContractionCoefficient G γ` is a
-   real, non-vacuous statement (`∀ x y > 0, logSpread(Gx,Gy) ≤ γ · logSpread(x,y)`; the diagonal
-   `i=i'` term forces `spread ≥ 0`). The chosen `γ = (B−1)/B` with `B = 1 + Σ cross-ratios` is
-   **weaker** than the sharp Birkhoff constant `tanh(Δ/4) = (√B−1)/(√B+1)`, since `B ≥ 1+M ≥ √B+1`.
-   ⚠️ But the coarse constant does **not** appear to make the proof easier — the analytic core is the
-   same. Consider proving Carroll's sharp `tanh` and weakening, rather than chasing `(B−1)/B` directly.
-3. **`FranklinLorenz.lean` is already decoupled.** Its hard cores take
-   `IsBirkhoffHopfContractionCoefficient G γ` as an explicit *hypothesis* (the house edge pattern),
-   so the Sinkhorn layer can be proved without waiting on the contraction theorem, and vice versa.
+Two parallel, unfinished routes to the same theorem coexist. **The Eveson–Nussbaum
+`PaperRoute/*` is the one to finish** — it is the more correct and (per the sources) the easier
+route, and it is what `PaperRoute`'s own header already declares itself to be: "the intended
+replacement spine for the currently parked weighted-average route."
+
+**The Carroll weighted-average route in `BirkhoffHopf.lean` is to be *sequestered, not deleted*.**
+Getting it too would be nice; it is simply not the priority. Sequester it into its own module rather
+than removing it — nothing is lost, and it stops competing for attention.
+
+### The architecture is already right — this is the key fact
+
+`ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient` is **the public seam**.
+It is the *only* Birkhoff–Hopf theorem `FranklinLorenz.lean` consumes (lines 507, 529), and both
+routes exist solely to discharge its single open goal. **Every weighted-average theorem has zero
+external consumers** (verified by grep), so the split below is mechanical and safe.
+
+```
+BirkhoffHopf.lean  = SHARED CORE (keep)                              PaperRoute/*  (finish this)
+  defs: positiveKernelApply, finiteHilbertProjectiveLogSpread,          PositiveConeHilbert
+        positiveKernelCrossRatio(Bound), positiveKernelBirkhoffCoefficient,   ConvexHullDiameter
+        IsBirkhoffHopfContractionCoefficient, IsStrict…                       PositiveMatrixDiameter
+  proved: positivity + sSup bridges + positive_kernel_apply_crossRatioBounded  TwoByTwo
+          + positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound   Assemble
+  seam:   positive_kernel_strict_birkhoff_contraction_coefficient  ◄──── discharged by
+                    ▲                                                    PaperRoute's
+                    └── consumed by FranklinLorenz.lean                  …_paper_route
+```
+
+### Your first moves (cheapest → hardest)
+
+1. **Sequester the Carroll route.** Move these eight declarations out of `BirkhoffHopf.lean` into a
+   new `BirkhoffHopf/WeightedAverageRoute.lean` (0 external consumers, so nothing else changes):
+   `two_point_weighted_average_…`, `finite_weighted_average_…_of_pairwise_log_bound`,
+   `finite_weighted_average_…_of_crossratio_bound`,
+   `positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_…`,
+   `positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_bound`,
+   `positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound`,
+   `positive_kernel_birkhoff_hopf_contraction`, `positive_kernel_birkhoff_contraction_coefficient`.
+   Keep the defs and the proved core lemmas where they are. Document it as an alternate route.
+2. **Free win — `positive_kernel_apply_hilbert_log_diameter_bound_paper_route`** (`PositiveMatrixDiameter.lean`)
+   is *the same statement* as the already-proved, **not** placeholder-backed
+   `positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound` in the core. Discharge
+   by `exact … G hG (positive_kernel_apply_crossRatioBounded G hG)`.
+3. **Near-trivial — `quadrant_hilbert_coordScale_eq` / `_equivPerm_eq`** (`PositiveConeHilbert.lean`).
+   The `d i` scale factors cancel *inside* the log, and reindexing a `Set.range` along an `Equiv`
+   leaves it literally equal. No positivity of `x`/`y` is needed (both sides degenerate to
+   `Real.log 0 = 0` consistently).
+4. **Easy — `positiveKernel_column_diameter_le_crossratio_bound`**: the spread of columns `j, j'` is a
+   `sSup` of `log (positiveKernelCrossRatio G i i' j j')`; bound each by `positiveKernelCrossRatio_le_bound`
+   and apply `Real.log_le_log`.
+5. **Moderate — `ConvexHullDiameter.lean`** (Eveson–Nussbaum Prop 2.9(b)). Then
+   `positiveKernelApply_image_diameter_le_column_diameter` follows: `G x = Σⱼ xⱼ · (column j)` is a
+   nonnegative combination of the columns, so it is exactly the nonnegative-hull lemma.
+6. **Moderate — `positive_twoByTwo_reduces_to_symmetric_normal_form`** (`TwoByTwo.lean`).
+   ⚠️ **Do not follow the paper here.** Eveson–Nussbaum Lemma 5.1 goes through a doubly-stochastic
+   normalization + intermediate value theorem; the Lean statement as written needs none of that.
+   Explicit closed-form witnesses exist: with `ρ = A₀₀A₁₁/(A₀₁A₁₀)` (and `hdet` is *exactly* `ρ ≠ 1`),
+   take `α = √ρ`, `c₁ = 1`, `c₀ = √(A₀₁A₁₁ / (A₀₀A₁₀))`, `r₀ = 1/(A₀₁c₁)`, `r₁ = 1/(A₁₀c₀)`;
+   if `ρ < 1`, swap the rows first (which sends `ρ ↦ 1/ρ > 1`).
+7. **Hard — `symmetricTwoByTwo_birkhoff_contraction`** (`TwoByTwo.lean`). The analytic core is
+   **already proved** in the same file as `symmetricTwoByTwoPhi_le` (the `α(α−1)(t−1)²` factorization).
+   What remains is connecting `φ` to the Hilbert spread. Carroll's Step 4 is the cross-check:
+   AM-GM `1 + rsy² ≥ 2y√(rs)`, then two mean-value comparisons.
+8. **Hardest — `positiveKernel_birkhoff_contraction_from_twoByTwo`** (`Assemble.lean`), Eveson–Nussbaum
+   Lemma 3.11: reduction to two-dimensional subspaces. ⚠️ Note the "public" theorem in that file is
+   currently just `exact` of this open goal, so `Assemble.lean` carries **no content** today.
+9. Finally, discharge the seam `positive_kernel_strict_birkhoff_contraction_coefficient` from
+   `…_paper_route`. Mind the instances: the seam has **no** `[Nonempty ι]`/`[Nonempty κ]`, so it needs
+   an empty-type case split (both sides degenerate to `0 ≤ γ·0`); the paper-route theorem assumes them.
+
+**Two facts to keep in mind while doing the above:**
+
+- **The target is TRUE, and deliberately coarse.** `IsBirkhoffHopfContractionCoefficient G γ` is a
+  real, non-vacuous statement (`∀ x y > 0, logSpread(Gx,Gy) ≤ γ · logSpread(x,y)`; the diagonal
+  `i=i'` term forces `spread ≥ 0`). The chosen `γ = (B−1)/B` with `B = 1 + Σ cross-ratios` is
+  **weaker** than the sharp Birkhoff constant `tanh(Δ/4) = (√B−1)/(√B+1)`, since `B ≥ 1+M ≥ √B+1`.
+  ⚠️ But the coarse constant does **not** appear to make the proof easier — the analytic core is the
+  same. Proving the sharp `tanh` and weakening may well be the shorter path.
+- **`FranklinLorenz.lean` is already decoupled.** Its hard cores take
+  `IsBirkhoffHopfContractionCoefficient G γ` as an explicit *hypothesis* (the house edge pattern),
+  so its 2 goals and the contraction theorem can be attacked independently, in either order.
 
 **Nothing here can be vendored.** The 2026-07-10 sweep (`SURVEY_LEADS.md` § Projective-metric
 frontier) found that the **Hilbert projective metric and the Birkhoff–Hopf contraction do not exist

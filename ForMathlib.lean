@@ -67,7 +67,9 @@ One file per proposed Mathlib destination area:
   Used by the Franklin--Lorenz projective contraction development.
 * `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf` — finite positive-matrix Hilbert
   projective contraction coefficient (Birkhoff--Hopf), the Franklin--Lorenz convergence engine.
-  The direct AI-discovered Doeblin/weighted-average route; see `LITERATURE_REFERENCES.md`.
+  Compatibility umbrella over `BirkhoffHopf.Basic` (route-neutral vocabulary) and
+  `BirkhoffHopf.Direct` (the AI-discovered Doeblin/weighted-average route); see
+  `LITERATURE_REFERENCES.md`.
 * `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.PaperRoute` — Eveson--Nussbaum finite-matrix
   proof spine: quadrant Hilbert formulas, convex-hull diameter, positive-matrix diameter,
   normalized `2 × 2` calculus, and assembly. This route is intentionally independent of the
@@ -98,6 +100,8 @@ import ForMathlib.OptimalTransport.StrongDualityGe
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling
+import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.Basic
+import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.Direct
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.PaperRoute
 -- Vendored Kolmogorov extension theorem (Apache-2.0, RemyDegenne/kolmogorov_extension4);

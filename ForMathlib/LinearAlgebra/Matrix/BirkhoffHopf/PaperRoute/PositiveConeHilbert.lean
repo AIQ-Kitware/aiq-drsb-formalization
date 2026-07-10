@@ -9,11 +9,12 @@ and the matrix formulas recorded in Section 6 of that paper:
 3. record invariance under positive coordinate scalings / cone automorphisms;
 4. feed those facts to convex-hull and two-dimensional reduction files.
 
-The older weighted-average route remains in `ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf` for now.
-This file is intentionally a paper-route staging surface, not a replacement API yet.
+This file is intentionally a paper-route staging surface, not a replacement API yet.  It depends
+only on the route-neutral `BirkhoffHopf.Basic` layer — never on the AI-discovered weighted-average
+proof in `BirkhoffHopf.Direct` — so the paper route stays structurally independent of that route.
 -/
 
-import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
+import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.Basic
 
 set_option autoImplicit false
 

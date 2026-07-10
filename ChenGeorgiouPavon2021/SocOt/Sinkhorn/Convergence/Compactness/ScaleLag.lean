@@ -237,7 +237,7 @@ theorem sinkhorn_phihat1_lagged_tendsto_from_current_right_normalization {ι : T
       subseq ψ0 ψhat0 ψhat0Succ ψ1 ψ1Succ ψhat1)
     (hright_current : ∀ j, ψ1 j * ψhat1 j = q j) :
     Filter.Tendsto (fun n => φhat1Iter ((subseq n).pred)) Filter.atTop (nhds ψhat1) := by
-  apply finite_function_tendsto_of_coordinate_tendsto
+  apply pi_tendsto_of_coordinate_tendsto
   intro j
   have hφ1 :
       Filter.Tendsto (fun n => φ1Iter (subseq n) j)

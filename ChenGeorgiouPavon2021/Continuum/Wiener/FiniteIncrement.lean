@@ -336,7 +336,7 @@ theorem normalizedWienerDyadicIncrementMap_standardWiener_law
 
 /-- The previous theorem discharges the target `Prop` used by earlier roadmap notes. -/
 theorem normalizedWienerDyadicIncrementMap_standardWiener_law_done :
-    normalizedWienerDyadicIncrementMap_standardWiener_law_target := by
+    normalizedWienerDyadicIncrementMapStandardWienerLawTarget := by
   intro level
   exact normalizedWienerDyadicIncrementMap_standardWiener_law level
 

@@ -62,6 +62,7 @@ structure ConditionalKLProjectionLimitData
     (Ku Kw : Kernel X 𝒴)
     {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
     (π : ∀ n, 𝒴 → 𝒵 n) where
+  /-- The concrete projection-level KL at grid depth `n`. -/
   projectionKL : ℕ → ℝ
   finite_projection_law : ∀ n, conditionalProjectedKernelKL ρ₀ Ku Kw π n = projectionKL n
   projectionKL_tendsto_kernelKL :
@@ -81,6 +82,7 @@ structure ConditionalKLEnergyLimitData
     (Ku Kw : Kernel X 𝒴)
     {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
     (π : ∀ n, 𝒴 → 𝒵 n) (energyVal : ℝ) where
+  /-- The finite-grid energy at depth `n`, whose limit is the continuum energy. -/
   gridEnergy : ℕ → ℝ
   finite_grid_girsanov : ∀ n, conditionalProjectedKernelKL ρ₀ Ku Kw π n = gridEnergy n
   gridEnergy_tendsto : Filter.Tendsto gridEnergy Filter.atTop (nhds energyVal)
@@ -93,8 +95,11 @@ start-plus-noise disintegration, finite-relative-entropy edges, and the conditio
 identity.  This structure records exactly those inputs, without assuming the final path-law identity. -/
 structure FiniteEnergyDiffusionEnergyIdentityData
     (d : SBData X) (u : Control X) (ρ₀ : ProbabilityMeasure X) where
+  /-- The measurable identification of a path with its initial point and the path itself. -/
   e : Path X ≃ᵐ X × Path X
+  /-- The disintegration kernel of the controlled path law over its initial marginal. -/
   Ku : Kernel X (Path X)
+  /-- The disintegration kernel of the reference path law over its initial marginal. -/
   Kw : Kernel X (Path X)
   isMarkovKu : IsMarkovKernel Ku
   isMarkovKw : IsMarkovKernel Kw
@@ -122,7 +127,7 @@ theorem conditional_gridKL_tendsto_kernelKL_of_finiteEnergyDiffusion
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (_hfe : FiniteEnergyDiffusion d u ρ₀)
     {𝒴 : Type*} [MeasurableSpace 𝒴]
-    (Ku Kw : Kernel X 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
+    (Ku Kw : Kernel X 𝒴)
     (_hkernel : IsControlledReferenceKernelPair d u ρ₀ Ku Kw)
     {𝒵 : ℕ → Type*} [∀ n, MeasurableSpace (𝒵 n)]
     (π : ∀ n, 𝒴 → 𝒵 n) (_hπ : ∀ n, Measurable (π n))
@@ -147,7 +152,7 @@ theorem conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (_hfe : FiniteEnergyDiffusion d u ρ₀)
     {𝒴 : Type*} [MeasurableSpace 𝒴]
-    (Ku Kw : Kernel X 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
+    (Ku Kw : Kernel X 𝒴)
     (_hkernel : IsControlledReferenceKernelPair d u ρ₀ Ku Kw)
     (energyVal : ℝ)
     (henergy : energyVal = energy u (d.pathLaw u ρ₀))
@@ -172,7 +177,7 @@ theorem conditional_kl_eq_control_energy_of_finiteEnergyDiffusion
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hfe : FiniteEnergyDiffusion d u ρ₀)
     {𝒴 : Type*} [MeasurableSpace 𝒴]
-    (Ku Kw : Kernel X 𝒴) [IsMarkovKernel Ku] [IsMarkovKernel Kw]
+    (Ku Kw : Kernel X 𝒴)
     (hkernel : IsControlledReferenceKernelPair d u ρ₀ Ku Kw)
     (energyVal : ℝ)
     (henergy : energyVal = energy u (d.pathLaw u ρ₀))

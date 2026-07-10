@@ -1780,3 +1780,36 @@ generalising from; it is one session.
 Build green (8761 jobs), zero warnings, zero `sorry`; `Drsb.sdrsb_strong_duality`,
 `Drsb.wdrsb_strong_duality_of_regularity`, `Drsb.sdrsb_cost_bound`, `Drsb.wdrsb_cost_bound` and
 `WangGaoXie2023.strong_duality` all axiom-clean.
+
+## 2026-07-10 (polish) — the repo is `#lint`-clean
+
+Ran Batteries' `#lint` (15 linters) over every namespace and drove it to zero.
+
+* **A superseded duplicate, deleted.** `DonskerVaradhanDual.toReal_klDiv_mix_le` proved KL convexity
+  from the DV dual formula, but had to assume the mixture's `≪` and `llr`-integrability. The ℝ≥0∞
+  `klDiv_mix_le` derives those, so the `toReal` form is now its corollary and inherits the plain
+  name. The DV argument is still recorded in KLConvex's module docstring — it is the slicker proof,
+  it just yields the weaker theorem.
+
+* **The `mix`-vocabulary KL lemmas moved** next to `mix` in `Convexity.lean`, where a reader looking
+  for the coupling-convexity toolkit will actually find them.
+
+* **~40 unused typeclass arguments removed**, across ForMathlib, GaoKleywegt2023,
+  MohajerinEsfahaniKuhn2018 and ChenGeorgiouPavon2021. This has a *fixpoint*: dropping `[Fintype ι]`
+  from `finiteHilbertProjectiveLogSpread` freed everything stated in terms of it, then their callers.
+  Five rounds.
+
+* **Misleading names fixed.** A cluster of `finite_function_*` topology lemmas needed no finiteness at
+  all — product convergence *is* coordinatewise convergence for any index type. I claimed mid-pass
+  that `finite_function_tendsto_of_unique_subseq_cluster` "genuinely uses" its `Fintype`; the linter
+  said otherwise on the next round, and it was right: the statement is the subsequence principle, true
+  in any topological space, needing neither finiteness nor compactness. Renamed to `pi_*`, docstrings
+  corrected. Removing an unused instance while keeping a name that advertises it would have left a
+  false claim in the API — worse than the unused argument.
+
+* Missing docstrings added to five structure fields; four `def`s with underscores renamed to
+  lowerCamelCase.
+
+Nothing about the mathematics changed: every removal is a strictly weaker hypothesis surface,
+machine-checked by the rebuild. Build green (8761 jobs), zero warnings, zero `sorry`, zero `sorryAx`;
+all four DRSB capstones axiom-clean.

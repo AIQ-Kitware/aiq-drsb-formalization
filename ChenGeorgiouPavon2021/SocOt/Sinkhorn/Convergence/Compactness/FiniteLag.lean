@@ -128,7 +128,7 @@ theorem finite_phase_lag_drift_zero_of_projective_scale_lag {ι : Type*} [Fintyp
   classical
   rcases hbox with ⟨ε, B, hε, hB, hbox⟩
   rcases hprojscale with ⟨hproj, hscale⟩
-  refine finite_function_tendsto_of_coordinate_tendsto
+  refine pi_tendsto_of_coordinate_tendsto
     (fun n => fun i => u (subseq n) i - u ((subseq n).pred) i) 0 ?_
   intro i
   let cross : ℕ → ι → ℝ := fun n j =>
@@ -141,7 +141,7 @@ theorem finite_phase_lag_drift_zero_of_projective_scale_lag {ι : Type*} [Fintyp
   have hcross_abs :
       Filter.Tendsto (fun n => fun j => |cross n j|) Filter.atTop
         (nhds (0 : ι → ℝ)) := by
-    refine finite_function_tendsto_of_coordinate_tendsto
+    refine pi_tendsto_of_coordinate_tendsto
       (fun n => fun j => |cross n j|) 0 ?_
     intro j
     have hcross_coord :

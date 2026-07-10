@@ -134,7 +134,7 @@ theorem sinkhorn_phase_drift_zero_of_denominator_lag_drift {ι : Type*} [Fintype
       exact Filter.mem_atTop_sets.mpr ⟨1, fun m hm => hm⟩
     exact hsubseq.tendsto_atTop.eventually hgt0
   refine ⟨?_, ?_⟩
-  · refine finite_function_tendsto_of_coordinate_tendsto
+  · refine pi_tendsto_of_coordinate_tendsto
       (fun n => fun i => φhat0Iter (subseq n + 1) i - φhat0Iter (subseq n) i)
       (0 : ι → ℝ) ?_
     intro i
@@ -173,7 +173,7 @@ theorem sinkhorn_phase_drift_zero_of_denominator_lag_drift {ι : Type*} [Fintype
         exact hnorm
       rw [hsucc_eq, hcurr_eq]
     exact hquot_tend.congr' hquot_eq.symm
-  · refine finite_function_tendsto_of_coordinate_tendsto
+  · refine pi_tendsto_of_coordinate_tendsto
       (fun n => fun j => φ1Iter (subseq n + 1) j - φ1Iter (subseq n) j)
       (0 : ι → ℝ) ?_
     intro j

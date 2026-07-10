@@ -49,7 +49,7 @@ on dyadic endpoint coordinates, normalized consecutive increments are iid standa
 
 This is now the single finite-dimensional theorem left between the concrete Wiener construction and
 the sequence-model Cameron--Martin theorem. -/
-def brownianProjectiveFamily_normalizedDyadicIncrement_law_target : Prop :=
+def brownianProjectiveFamilyNormalizedDyadicIncrementLawTarget : Prop :=
   ∀ level : ℕ,
     Measure.map (normalizedWienerDyadicIncrementFromGrid level)
         (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
@@ -60,7 +60,7 @@ def brownianProjectiveFamily_normalizedDyadicIncrement_law_target : Prop :=
 For each dyadic edge, the corresponding normalized increment should have law `N(0,1)`.
 This is the coordinate-level theorem that should follow from Mathlib's Brownian increment law
 `measurePreserving_eval_sub_eval_projectiveFamily` plus the scaling `Δt = 2⁻ˡᵉᵛᵉˡ`. -/
-def brownianProjectiveFamily_normalizedDyadicIncrement_coord_law_target : Prop :=
+def brownianProjectiveFamilyNormalizedDyadicIncrementCoordLawTarget : Prop :=
   ∀ (level : ℕ) (i : Fin (2 ^ level)),
     Measure.map (fun x : wienerDyadicGrid level → ℝ =>
         normalizedWienerDyadicIncrementFromGrid level x i)
@@ -70,9 +70,9 @@ def brownianProjectiveFamily_normalizedDyadicIncrement_coord_law_target : Prop :
 /-- Finite-dimensional independence target for normalized dyadic increments.
 
 Together with the coordinate law above, this is the product-law route to
-`brownianProjectiveFamily_normalizedDyadicIncrement_law_target`.  It isolates the remaining
+`brownianProjectiveFamilyNormalizedDyadicIncrementLawTarget`.  It isolates the remaining
 Brownian covariance/independent-increment work from the already-proved projective-limit reduction. -/
-def brownianProjectiveFamily_normalizedDyadicIncrement_indepFun_target : Prop :=
+def brownianProjectiveFamilyNormalizedDyadicIncrementIndepFunTarget : Prop :=
   ∀ level : ℕ,
     ProbabilityTheory.iIndepFun
       (fun i : Fin (2 ^ level) =>
@@ -84,7 +84,7 @@ def brownianProjectiveFamily_normalizedDyadicIncrement_indepFun_target : Prop :=
 field: derive the iid standard-normal law of normalized dyadic increments from
 `isPreBrownianReal_standardWienerMeasure`, Brownian independent increments, and the Gaussian
 product/normalization lemmas. -/
-def normalizedWienerDyadicIncrementMap_standardWiener_law_target : Prop :=
+def normalizedWienerDyadicIncrementMapStandardWienerLawTarget : Prop :=
   ∀ level : ℕ,
     Measure.map (normalizedWienerDyadicIncrementMap level) standardWienerMeasure
       = ForMathlib.MeasureTheory.stdGaussian (Fin (2 ^ level))
@@ -92,8 +92,8 @@ def normalizedWienerDyadicIncrementMap_standardWiener_law_target : Prop :=
 /-- Concrete normalized dyadic iid-Gaussian law for the vendored Wiener measure, assuming the finite
 Brownian projective-family increment algebra. -/
 theorem normalizedWienerDyadicIncrementMap_standardWiener_law_of_projectiveFamily
-    (hproj : brownianProjectiveFamily_normalizedDyadicIncrement_law_target) :
-    normalizedWienerDyadicIncrementMap_standardWiener_law_target := by
+    (hproj : brownianProjectiveFamilyNormalizedDyadicIncrementLawTarget) :
+    normalizedWienerDyadicIncrementMapStandardWienerLawTarget := by
   intro level
   rw [normalizedWienerDyadicIncrementMap_standardWiener_law_reduce_to_projectiveFamily level]
   exact hproj level

@@ -432,3 +432,28 @@ Lean proof workflow notes:
 - Do not change theorem statements or add axioms unless explicitly requested.
 - Keep Lean lines near mathlib style, roughly 100 characters.
 <!-- lean4-skills:end -->
+
+## Lint gate (Mathlib quality)
+
+The repo is **`#lint`-clean** under Batteries' 15 linters, for every namespace. Reproduce with:
+
+```lean
+import Batteries.Tactic.Lint
+import ForMathlib   -- or Drsb / WangGaoXie2023 / GaoKleywegt2023 / BlanchetMurthy2019 /
+                    -- MohajerinEsfahaniKuhn2018 / ChenGeorgiouPavon2021
+#lint in ForMathlib
+```
+
+run via `lake env lean <file>` (needs `ulimit -n 8192`; the CGP pass takes several minutes, so run it
+in the background rather than under a short timeout).
+
+Two things learned from the first clean-up:
+
+* **`unusedArguments` has a fixpoint.** Dropping `[Fintype ι]` from `finiteHilbertProjectiveLogSpread`
+  freed it from everything *stated* in terms of that def, which freed their callers, and so on —
+  five rounds, 40+ instance arguments. Re-lint after every round; do not assume one pass suffices.
+
+* **An unused instance often means the *name* is wrong too.** `finite_function_tendsto_of_unique_subseq_cluster`
+  turned out to be the subsequence principle, true in any topological space with no finiteness and no
+  compactness. Removing the instance and keeping the name would have left a false claim in the API.
+  Those lemmas are now `pi_*`. Check the docstring as well: several still said "for finite `ι`".

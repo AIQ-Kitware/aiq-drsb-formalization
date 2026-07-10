@@ -80,7 +80,7 @@ abbrev SinkhornDenominatorLagDriftZeroAlong {ι : Type*}
 
 The cross-product component says consecutive denominator vectors are becoming projectively parallel.
 It deliberately does not fix the scalar degree of freedom. -/
-abbrev SinkhornPhaseProjectiveLagZeroAlong {ι : Type*} [Fintype ι]
+abbrev SinkhornPhaseProjectiveLagZeroAlong {ι : Type*}
     (u : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
   Filter.Tendsto
     (fun n => fun ij : ι × ι =>
@@ -105,7 +105,7 @@ abbrev SinkhornPhaseProjectiveScaleLagZeroAlong {ι : Type*} [Fintype ι]
   SinkhornPhaseProjectiveLagZeroAlong u subseq ∧ SinkhornPhaseScaleLagZeroAlong u subseq
 
 /-- Projective lag collapse for the two denominator phases. -/
-abbrev SinkhornDenominatorProjectiveLagZeroAlong {ι : Type*} [Fintype ι]
+abbrev SinkhornDenominatorProjectiveLagZeroAlong {ι : Type*}
     (φ0Iter φhat1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
   SinkhornPhaseProjectiveLagZeroAlong φ0Iter subseq ∧
     SinkhornPhaseProjectiveLagZeroAlong φhat1Iter subseq

@@ -164,7 +164,7 @@ theorem sinkhorn_unique_along_cluster_points_imply_φ0_convergence {ι : Type*} 
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψ0 = φ0) :
     Filter.Tendsto φ0Iter Filter.atTop (nhds φ0) := by
-  refine finite_function_tendsto_of_unique_subseq_cluster φ0Iter φ0 ?_
+  refine pi_tendsto_of_unique_subseq_cluster φ0Iter φ0 ?_
   intro subseq hsubseq
   obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
   refine ⟨subsub, ?_, ?_⟩
@@ -185,7 +185,7 @@ theorem sinkhorn_unique_along_cluster_points_imply_φhat0_convergence {ι : Type
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψhat0 = φhat0) :
     Filter.Tendsto φhat0Iter Filter.atTop (nhds φhat0) := by
-  refine finite_function_tendsto_of_unique_subseq_cluster φhat0Iter φhat0 ?_
+  refine pi_tendsto_of_unique_subseq_cluster φhat0Iter φhat0 ?_
   intro subseq hsubseq
   obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
   refine ⟨subsub, ?_, ?_⟩
@@ -207,7 +207,7 @@ theorem sinkhorn_unique_along_cluster_points_imply_φ1_convergence {ι : Type*} 
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψ1 = φ1) :
     Filter.Tendsto φ1Iter Filter.atTop (nhds φ1) := by
-  refine finite_function_tendsto_of_unique_subseq_cluster φ1Iter φ1 ?_
+  refine pi_tendsto_of_unique_subseq_cluster φ1Iter φ1 ?_
   intro subseq hsubseq
   obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
   refine ⟨subsub, ?_, ?_⟩
@@ -229,7 +229,7 @@ theorem sinkhorn_unique_along_cluster_points_imply_φhat1_convergence {ι : Type
         subseq ψ0 ψhat0 ψ1 ψhat1 →
       ψhat1 = φhat1) :
     Filter.Tendsto φhat1Iter Filter.atTop (nhds φhat1) := by
-  refine finite_function_tendsto_of_unique_subseq_cluster φhat1Iter φhat1 ?_
+  refine pi_tendsto_of_unique_subseq_cluster φhat1Iter φhat1 ?_
   intro subseq hsubseq
   obtain ⟨subsub, ψ0, ψhat0, ψ1, ψhat1, halong⟩ := hsubseq_compact subseq hsubseq
   refine ⟨subsub, ?_, ?_⟩

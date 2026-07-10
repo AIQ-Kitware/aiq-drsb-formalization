@@ -221,6 +221,33 @@ theorem weak_duality_prop1
   linarith [hker, h1, h2]
 
 omit [NormedAddCommGroup X] in
+/-- **An attaining worst-case measure gives the `≥` direction.** The receipt that
+`strong_duality_thm1`'s `hge` is weaker than the customary attainment hypothesis: if some feasible
+`μ` achieves the dual value, then `dualValue ≤ primalValue`. The converse fails — a vanishing
+duality gap does not produce a maximizer.
+
+`BddAbove` is not assumed: `hbdd` at `lam = 0` says `Ψ` is bounded above
+(`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`). -/
+theorem dualValue_le_primalValue_of_attaining_measure
+    (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ)
+    (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,
+        BddAbove (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)))
+    (hΨμ : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → Integrable Ψ (μ : Measure X))
+    (hattain : ∃ μ : ProbabilityMeasure X,
+        μ ∈ ambiguitySet c ν δ ∧ expect μ Ψ = dualValue c Ψ ν δ) :
+    dualValue c Ψ ν δ ≤ primalValue c Ψ ν δ := by
+  haveI : IsProbabilityMeasure (ν : Measure X) := ν.2
+  have hne : Nonempty X := nonempty_of_isProbabilityMeasure (ν : Measure X)
+  have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+      μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ } :=
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ Ψ
+      (ForMathlib.OT.bddAbove_range_of_bddAbove_dualIntegrand Ψ c hne.some (hbdd 0 le_rfl hne.some))
+      hΨμ
+  obtain ⟨μ, hμ, hμeq⟩ := hattain
+  calc dualValue c Ψ ν δ = expect μ Ψ := hμeq.symm
+    _ ≤ primalValue c Ψ ν δ := le_csSup hbddP ⟨μ, hμ, rfl⟩
+
+omit [NormedAddCommGroup X] in
 /-- **Theorem 1 (Strong duality with finite optimal value).** *Consider any
 `p ∈ [1,∞)`, any `ν ∈ P(Ξ)`, any `θ > 0`, and any `Ψ ∈ L¹(ν)` such that `κ < ∞`.
 Then `v_P = v_D < ∞`.* (prose §2.2, Theorem 1.)
@@ -245,25 +272,15 @@ theorem strong_duality_thm1
     (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → ∀ η : ℝ, 0 < η →
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ ν ∧ couplingCost c π ≤ δ + η ∧
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
-    -- the `≥` direction: the worst-case distribution attains the dual value (the OT
-    -- measurable-selection / attainment result — NOT in Mathlib; the §6 research seam,
-    -- here isolated as a single explicit hypothesis). The primal's `BddAbove` gate is NOT a
-    -- hypothesis: it follows from `hbdd` at `lam = 0` (which says `Ψ` is bounded above) — see
-    -- `ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`.
-    (hattain : ∃ μ : ProbabilityMeasure X,
-        μ ∈ ambiguitySet c ν δ ∧ expect μ Ψ = dualValue c Ψ ν δ) :
-    primalValue c Ψ ν δ = dualValue c Ψ ν δ := by
-  haveI : IsProbabilityMeasure (ν : Measure X) := ν.2
-  have hne : Nonempty X := nonempty_of_isProbabilityMeasure (ν : Measure X)
-  have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
-      μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ } :=
-    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ Ψ
-      (ForMathlib.OT.bddAbove_range_of_bddAbove_dualIntegrand Ψ c hne.some (hbdd 0 le_rfl hne.some))
-      hΨμ
-  refine le_antisymm (weak_duality_prop1 c Ψ ν δ hΨ hδ hfeas hbdd hφint hΨμ hOT) ?_
-  obtain ⟨μ, hμ, hμeq⟩ := hattain
-  calc dualValue c Ψ ν δ = expect μ Ψ := hμeq.symm
-    _ ≤ primalValue c Ψ ν δ := le_csSup hbddP ⟨μ, hμ, rfl⟩
+    -- the `≥` direction — **the duality gap is zero**. This is the entire research content of
+    -- Theorem 1, isolated as one inequality. It is strictly weaker than the customary
+    -- "a worst-case distribution attains the dual value": that hypothesis bundles *attainment*
+    -- (a separate statement, false in general without compactness) with the vanishing gap.
+    -- The theorem never needed attainment; `dualValue_le_primalValue_of_attaining_measure` is the
+    -- machine-checked receipt that the old hypothesis implies this one.
+    (hge : dualValue c Ψ ν δ ≤ primalValue c Ψ ν δ) :
+    primalValue c Ψ ν δ = dualValue c Ψ ν δ :=
+  le_antisymm (weak_duality_prop1 c Ψ ν δ hΨ hδ hfeas hbdd hφint hΨμ hOT) hge
 
 /-!
 ## 2.3 Worst-case distribution (prose §2.3)
@@ -519,12 +536,10 @@ theorem dataDriven_strongDuality_cor2i [MeasurableSingletonClass X]
     (hOT : ∀ μ : ProbabilityMeasure X, μ ∈ ambiguitySet c ν δ → ∀ η : ℝ, 0 < η →
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ ν ∧ couplingCost c π ≤ δ + η ∧
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
-    -- the `≥`/attainment edge (the §6 OT worst-case-measure seam), as in `strong_duality_thm1`.
-    -- `BddAbove` is not assumed: `strong_duality_thm1` derives it from `hbdd` at `lam = 0`.
-    (hattain : ∃ μ : ProbabilityMeasure X,
-        μ ∈ ambiguitySet c ν δ ∧ expect μ Ψ = dualValue c Ψ ν δ) :
+    -- the `≥` edge: the duality gap vanishes (the §6 seam), as in `strong_duality_thm1`.
+    (hge : dualValue c Ψ ν δ ≤ primalValue c Ψ ν δ) :
     primalValue c Ψ ν δ = empiricalDual c Ψ xhat δ :=
-  (strong_duality_thm1 c Ψ ν δ hΨ hδ hκ hfeas hbdd hφint hΨμ hOT hattain).trans
+  (strong_duality_thm1 c Ψ ν δ hΨ hδ hκ hfeas hbdd hφint hΨμ hOT hge).trans
     (dualValue_eq_empiricalDual c Ψ ν xhat δ hN hν)
 
 omit [NormedAddCommGroup X] in

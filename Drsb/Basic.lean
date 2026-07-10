@@ -102,8 +102,11 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (hp2 : HasSecondMoment p₀)
     (hmom : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε →
         HasSecondMoment μ)
-    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε ∧
-        expect μ V = GaoKleywegt2023.dualValue sqCost V p₀ ε) :
+    -- the `≥` edge: the duality gap vanishes. Strictly weaker than assuming an attaining
+    -- worst-case measure — `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure` is
+    -- the receipt that the old hypothesis implies this one.
+    (hge : GaoKleywegt2023.dualValue sqCost V p₀ ε
+        ≤ GaoKleywegt2023.primalValue sqCost V p₀ ε) :
     droValue (wassersteinBall p₀ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * ε + expect p₀ (BlanchetMurthy2019.Lc sqCost V lam) } := by
@@ -140,7 +143,7 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     exact integral_congr_ae (Filter.Eventually.of_forall (fun ζ => hLcPhi lam ζ))
   -- apply the proved general strong duality (specialized to `sqCost, V, p₀, ε`)
   have hsd := GaoKleywegt2023.strong_duality_thm1 sqCost V p₀ ε hV hε _hκ hfeas hbdd hφint
-    hΨμ hOT hattain
+    hΨμ hOT hge
   rw [show droValue (wassersteinBall p₀ ε) V = GaoKleywegt2023.primalValue sqCost V p₀ ε from rfl,
     hsd, GaoKleywegt2023.dualValue]
   -- the two dual sets coincide (Φ-form = Lc-form)
@@ -385,9 +388,12 @@ theorem sdrsb_strong_duality
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
     (hVbdd : BddAbove (Set.range V))
-    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall sqCost p₀ ν κ ε ∧
-        expect μ V = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
-          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam }) :
+    (hfeas : (sinkhornBall sqCost p₀ ν κ ε).Nonempty)
+    -- the `≥` edge: the duality gap vanishes; strictly weaker than attainment
+    -- (`WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure` is the receipt).
+    (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam }
+        ≤ droValue (sinkhornBall sqCost p₀ ν κ ε) V) :
     droValue (sinkhornBall sqCost p₀ ν κ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
@@ -397,12 +403,10 @@ theorem sdrsb_strong_duality
     ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ V hVbdd hV
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
-    · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ V, μ, hμ, rfl⟩
+    · obtain ⟨μ, hμ⟩ := hfeas; exact ⟨expect μ V, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
       exact sdrsb_cost_bound p₀ ν V κ ε hκ μ hμ (hV μ hμ) h_exp hI_lp
-  · obtain ⟨μ, hμ, hμeq⟩ := hattain
-    rw [← hμeq]
-    exact le_csSup hbddP ⟨μ, hμ, rfl⟩
+  · exact hge
 
 /-- **SDRSB terminal-cost bound** — the closed form the `sdrsb_cost_bound.yaml` card's
 measurement compares against: the worst-case cost minus a log-partition term over the

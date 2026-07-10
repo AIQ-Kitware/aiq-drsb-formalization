@@ -225,8 +225,9 @@ theorem worstCaseExpectation_eq_dual [MeasurableSingletonClass X] [BorelSpace X]
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings Q μhat ∧
           couplingCost (fun x y => ‖x - y‖) π ≤ ε + η ∧
           Integrable (fun z : X × X => ‖z.1 - z.2‖) (π : Measure (X × X)))
-    -- the `≥`/attainment edge (the research-grade OT primal-dual seam, isolated as one hypothesis)
-    (hattain : sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+    -- the `≥` edge: **the duality gap vanishes** (the research-grade OT primal-dual seam,
+    -- isolated as one inequality). Note this is already the weak form — it asserts no maximizer.
+    (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * ε + (1 / (N : ℝ)) * ∑ i : Fin N,
               sSup ((fun ξ : X => ℓ ξ - lam * ‖ξ - ξhat i‖) '' Ξ) }
         ≤ droValue (wass1BallΞ μhat Ξ ε) ℓ) :
@@ -250,7 +251,7 @@ theorem worstCaseExpectation_eq_dual [MeasurableSingletonClass X] [BorelSpace X]
       integral_finsetSum_measure (fun i _ => integrable_dirac enorm_lt_top)]
     simp_rw [integral_dirac]
     rw [ENNReal.toReal_inv, ENNReal.toReal_natCast, smul_eq_mul, one_div]
-  refine le_antisymm ?_ hattain
+  refine le_antisymm ?_ hge
   -- weak direction: droValue ≤ dual, from the Ξ-restricted kernel + empirical collapse
   obtain ⟨Q₀, hQ₀⟩ := hfeas
   refine csSup_le ⟨expect Q₀ ℓ, Q₀, hQ₀, rfl⟩ ?_

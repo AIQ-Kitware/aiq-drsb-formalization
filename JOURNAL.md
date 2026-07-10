@@ -1407,3 +1407,60 @@ It also no longer needs `[NormedAddCommGroup X]`.
 four strong-duality capstones the only remaining hypothesis is `hattain`.
 
 Build green, zero warnings, sorry-free; the seven audited declarations axiom-clean.
+
+---
+
+# Session journal — `hattain` → `hge`, and a correction I owed (2026-07-10)
+
+## The correction first
+
+Earlier today I asserted, in STATUS.md, FOUNDATIONS.md and SURVEY_LEADS.md, that `hattain` is *"an
+extreme-value argument, not a duality theorem"*, reachable via tightness + Prokhorov + Portmanteau,
+and that Chain 1's `XL` measurable-selection row was therefore off its critical path.
+
+**That was wrong.** `hattain : ∃ μ ∈ ball, 𝔼_μ[f] = dualValue`. Together with weak duality
+(`𝔼_μ[f] ≤ primalValue ≤ dualValue`) it *forces* `primalValue = dualValue`. So it bundles two
+statements: the duality gap is zero, **and** the primal supremum is attained. Compactness delivers
+the second. It says nothing about the first. FOUNDATIONS' original assessment — that the seam is
+measurable selection — was right, and my reframing deleted a true claim in favour of a false one.
+
+Corrected in place in all three files, with the error named rather than quietly overwritten, since
+the wrong version had already been committed and could otherwise be re-derived from git history as
+if it were current.
+
+## The correction paid for itself: `hattain` is now `hge`
+
+Reading the proofs to check my error, `hattain` is used exactly once in each, to conclude
+`dualValue ≤ primalValue`. Nothing else. So the honest hypothesis is that inequality — **the
+duality gap is zero** — and the attainment content is surplus, exactly as `hOT`'s attainment
+content was surplus back at the start of the day.
+
+Replaced across every duality capstone:
+
+* `GaoKleywegt2023.{strong_duality_thm1, dataDriven_strongDuality_cor2i}`
+* `BlanchetMurthy2019.{wdro_strong_duality, wdro_strong_duality_dualFn}`
+* `WangGaoXie2023.strong_duality` (which also needed `hfeas`, since `hattain` had been silently
+  supplying the value set's nonemptiness)
+* `Drsb.{wdrsb_strong_duality, sdrsb_strong_duality}`
+* `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual` was *already* stated in the weak form —
+  only misnamed `hattain`. Renamed.
+
+Receipts, as the house rule demands: `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure`
+and `WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure` prove `hattain ⟹ hge`. The
+converse is false — a vanishing gap produces no maximizer.
+
+Dividend: `strong_duality_thm1` no longer needs `[NormedAddCommGroup X]` either.
+
+## Where that leaves the proof
+
+`hge` is Blanchet–Murthy Thm 1 / Gao–Kleywegt Thm 1. Its proof takes a near-optimal multiplier `λ*`,
+selects near-maximizers `x(y)` of the `c`-transform `sup_x (f x − λ* c(x,y))`, and pushes the nominal
+forward. That selection is **Kuratowski–Ryll-Nardzewski measurable selection**, absent from Mathlib.
+It is the single remaining edge on all four capstones, and it is now stated at its true strength:
+no attainment, no `BddAbove`, no transport hypotheses.
+
+The attainment statements that *do* need Prokhorov (`GaoKleywegt2023.worstCase_structure_cor1`,
+`MohajerinEsfahaniKuhn2018.worstCase_exists`) still assume it, and Prokhorov is in the pin for
+whoever takes them on.
+
+Build green, zero warnings, sorry-free, axiom-clean.

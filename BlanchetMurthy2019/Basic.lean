@@ -81,13 +81,13 @@ theorem wdro_strong_duality
     (hOT : ∀ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ → ∀ η : ℝ, 0 < η →
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ μhat ∧ couplingCost c π ≤ δ + η ∧
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
-    -- the `≥` direction: the worst-case distribution attains the dual (OT measurable
-    -- selection — §6 seam). The primal's `BddAbove` gate is NOT a hypothesis: it follows from
-    -- `hbdd` at `lam = 0` (`f` bounded above) via
-    -- `ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`.
-    (hattain : ∃ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ ∧
-        expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
-          v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }) :
+    -- the `≥` direction — **the duality gap is zero**. Strictly weaker than the customary
+    -- "a worst-case distribution attains the dual": that bundles *attainment* (a separate
+    -- statement, false without compactness) with the vanishing gap, and this proof only ever
+    -- used the gap. `dualValue_le_droValue_of_attaining_measure` is the receipt.
+    (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }
+        ≤ droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f) :
     droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * δ
@@ -126,9 +126,7 @@ theorem wdro_strong_duality
         rw [← mul_div_assoc, div_le_iff₀ (by linarith : (0 : ℝ) < lam + 1)]
         nlinarith [hη, hlam]
       linarith [hker, h1, h2]
-  · obtain ⟨μ, hμ, hμeq⟩ := hattain
-    rw [← hμeq]
-    exact le_csSup hbddP ⟨μ, hμ, rfl⟩
+  · exact hge
 
 omit [NormedAddCommGroup X] in
 /-- **WDRO strong duality — univariate dual, stated via the inner dual `Lc`**
@@ -154,13 +152,13 @@ theorem wdro_strong_duality_dualFn
     (hOT : ∀ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ → ∀ η : ℝ, 0 < η →
         ∃ π : ProbabilityMeasure (X × X), π ∈ couplings μ μhat ∧ couplingCost c π ≤ δ + η ∧
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
-    (hattain : ∃ μ : ProbabilityMeasure X, otCost c μ μhat ≤ δ ∧
-        expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
-          v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }) :
+    (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
+          v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }
+        ≤ droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f) :
     droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧ v = lam * δ + expect μhat (Lc c f lam) } := by
   -- `Lc c f lam` unfolds (delta) to `fun x => sSup (Set.range (fun y => f y − lam · c x y))`,
   -- so the goal is definitionally equal to `wdro_strong_duality`.
-  exact wdro_strong_duality μhat c f δ hc_symm hfeas hbdd hφint hfμ hOT hattain
+  exact wdro_strong_duality μhat c f δ hc_symm hfeas hbdd hφint hfμ hOT hge
 
 end BlanchetMurthy2019

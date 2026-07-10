@@ -46,7 +46,7 @@ distinctive filename; URLs are recorded when the source gave an exact org/repo.
 | Mathlib PF merged infra | https://github.com/leanprover-community/mathlib4/pull/28728 | 3 | Irreducible+Primitive matrices + Quiver links (merged Jul 2025). |
 | Mathlib `cgf`/`mgf` | https://leanprover-community.github.io/mathlib4_docs/Mathlib/Probability/Moments/Basic.html | 2 | log-partition = `ProbabilityTheory.cgf`. Use. |
 | ⭐ **`StatLean` / `Stat-Lean`** | GitHub code search: `KLDivergence.lean`, `Entropy.lean`, `PinskerInequality.lean`, `GaussianKLMulti.lean`, `Fano/MutualInformation.lean` | 2 | native KL / entropy / Pinsker / Gaussian-KL / Fano / mutual-info; "for-Mathlib" quality — **first repo to inspect after Mathlib for Chain 2** |
-| ⭐ **Mathlib `Measure/Prokhorov`, `Measure/Tight`, `Measure/Portmanteau`** ✅**NEW IN PIN, verified 2026-07-10** | `MeasureTheory.isCompact_closure_of_isTightMeasureSet`, `IsTightMeasureSet`, `Measure/Portmanteau.lean` | 1 | **The compactness half of worst-case-measure attainment (`hattain`) is now in Mathlib.** Tight ambiguity ball ⇒ compact closure ⇒ the `sSup` of a usc functional is attained. What is still missing is *closedness* of the ball: lsc of the transport cost, and lsc of `klDiv`. **Start `hattain` here.** |
+| ⭐ **Mathlib `Measure/Prokhorov`, `Measure/Tight`, `Measure/Portmanteau`** ✅**NEW IN PIN, verified 2026-07-10** | `MeasureTheory.isCompact_closure_of_isTightMeasureSet`, `IsTightMeasureSet`, `Measure/Portmanteau.lean` | 1 | **The compactness half of worst-case-measure *attainment*.** Tight ambiguity ball ⇒ compact closure ⇒ the `sSup` of a usc functional is attained. ⚠ This serves the "a worst-case measure exists" statements (`GaoKleywegt2023.worstCase_structure_cor1`, `MohajerinEsfahaniKuhn2018.worstCase_exists`) — it does **not** reach the strong-duality edge `hge` (zero duality gap), which needs measurable selection. Still missing for attainment: lsc of the transport cost, and lsc of `klDiv` (setwise lsc now proved). |
 | ⭐ **Mathlib doubly-stochastic API** | `Analysis/Convex/Birkhoff.lean`, `Analysis/Convex/DoublyStochasticMatrix.lean`, `LinearAlgebra/Matrix/Stochastic.lean` | 3 | native finite-dim stochastic/doubly-stochastic matrix API — **start the Sinkhorn build here**, not from PF (see FOUNDATIONS.md Chain 3) |
 
 ## Projective-metric frontier: Birkhoff–Hopf / Hilbert metric / PF / Sinkhorn (re-survey 2026-07-10)
@@ -169,32 +169,28 @@ No `gh` CLI / GitHub token in the survey environment, so authenticated **code**-
 | Brownian motion in Lean (paper) | https://arxiv.org/abs/2511.20118 | construction of Brownian motion |
 | Verified math-finance library (paper) | https://arxiv.org/abs/2606.01356 | L2 Itô integral, risk-neutral pricing measure |
 
-## The `hattain` capstone: three newly-named gaps (survey 2026-07-10)
+## The strong-duality capstone: `hge` (survey 2026-07-10, **corrected**)
 
-`hattain` — existence of the worst-case measure — is **one theorem serving all four strong-duality
-capstones** (`Drsb.{wdrsb,sdrsb}_strong_duality`, `BlanchetMurthy2019.wdro_strong_duality`,
-`WangGaoXie2023.strong_duality`, `MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual`). Its
-`BddAbove` companion `hbddP` is **no longer an edge** (deleted 2026-07-10;
-`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`).
+The last edge on all four strong-duality capstones is **`hge : dualValue ≤ primalValue`** — the
+duality gap is zero. It replaced `hattain` ("some feasible `μ` attains the dual value"), which
+bundled the gap with attainment; the proofs only used the gap. `hbddP` is gone too.
 
-The classical proof is: ball tight ⇒ Prokhorov ⇒ compact closure; ball weakly closed; `μ ↦ 𝔼_μ[V]`
-usc; extreme-value. **Prokhorov, `IsTightMeasureSet` and Portmanteau are now IN THE PIN.** What is
-missing, named precisely:
+⚠ **Correction to an earlier entry in this file.** `hge` is *not* reachable by tightness +
+Prokhorov. That route yields *attainment of the supremum*, which `hge` no longer needs. `hge` is
+Blanchet–Murthy Thm 1 / Gao–Kleywegt Thm 1, and its proof selects near-maximizers `x(y)` of the
+`c`-transform `sup_x (f x − λ* c(x,y))` and pushes the nominal forward — i.e. it needs
+**Kuratowski–Ryll-Nardzewski measurable selection**, `ABSENT` from Mathlib (FOUNDATIONS Chain 1).
 
 | Gap | Needed for | Lean status | Source |
 |---|---|---|---|
-| **(A) lsc of the transport cost / `otCost` in `μ`** | weak closedness of the Wasserstein ball | **ABSENT everywhere** (Mathlib has no Kantorovich layer at all) | Villani, *Optimal Transport: Old and New*, Thm 4.1; Santambrogio, *OT for Applied Mathematicians*, §1.2 |
-| **(B) lsc of `klDiv`** | weak closedness of the Sinkhorn ball | 🟡 **HALF-CLOSED (2026-07-10).** Setwise (τ-topology) lsc is **proved**: `ForMathlib.MeasureTheory.toReal_klDiv_le_of_tendsto_integral` — a `KL`-ball is closed under any convergence that integrates bounded **measurable** functions correctly. The *weak*-topology version needs the same sup over bounded **continuous** functions; upgrading is a regularity/Lusin argument on a Polish space. | Dupuis–Ellis, *A Weak Convergence Approach to the Theory of Large Deviations*, Lemma 1.4.3 |
-| **(C) Donsker–Varadhan *dual* variational formula** | the route to (B): `KL(μ‖ν) = sup_f (∫f dμ − log ∫e^f dν)` | ✅ **CLOSED (2026-07-10)** — `ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`, axiom-clean. Note this is *not* the Gibbs formula we already had (`isGreatest_donskerVaradhan`, sup over *measures*); it is the other Legendre transform, sup over *functions*, and unlike Gibbs its sup is **not attained**. | Dupuis–Ellis Prop 1.4.2; Donsker–Varadhan 1975 |
+| **measurable selection (KRN)** | `hge` — the duality gap | **ABSENT** | Kuratowski–Ryll-Nardzewski; Villani Thm 5.10 (`c`-transform); Blanchet–Murthy 2019 Thm 1 |
+| **(A) lsc of the transport cost / `otCost`** | attainment (worst-case-measure existence), *not* `hge` | **ABSENT** | Villani, *OT Old and New*, Thm 4.1; Santambrogio §1.2 |
+| **(B) lsc of `klDiv`** | attainment on the entropic ball | 🟡 **setwise version PROVED 2026-07-10** (`ForMathlib.MeasureTheory.toReal_klDiv_le_of_tendsto_integral`); weak version needs bounded *continuous* test functions (Lusin upgrade) | Dupuis–Ellis Lemma 1.4.3 |
+| **(C) Donsker–Varadhan *dual* variational formula** | the route to (B) | ✅ **CLOSED 2026-07-10** — `toReal_klDiv_eq_sSup_dvDualSet`, axiom-clean. Not the Gibbs formula (`isGreatest_donskerVaradhan`, sup over *measures*, attained); this sups over *functions* and is not attained. | Dupuis–Ellis Prop 1.4.2 |
 
-**(C) is done.** The `≥` half was our existing `integral_le_klDiv_add_log_integral_exp`; the new
-content is achievability. ⚠ The trap, and what the proof is built around: Lean's
-`llr μ ν x = log (dμ/dν x)` with `Real.log 0 = 0`, so `exp (llr μ ν) = 1` on `{dμ/dν = 0}`, *not*
-`0`. Truncating `llr` naively sends `∫ exp dν` to `1 + ν{dμ/dν = 0}` and the bound is off by
-`log (1 + ν{dμ/dν = 0})`. The fix (`truncLLR`) puts `-n`, not `0`, on the bad set; the bad set is
-`μ`-null so `∫ truncLLR n dμ` is unaffected, while `∫ exp (truncLLR n) dν → 1` exactly.
-
-**Remaining for `hattain`:** (A) lsc of the transport cost, and the continuous-`f` upgrade of (B).
+⚠ The trap in (C), and what its proof is built around: Lean's `llr μ ν x = log (dμ/dν x)` with
+`Real.log 0 = 0`, so `exp (llr μ ν) = 1` — *not* `0` — on `{dμ/dν = 0}`. `truncLLR` puts `-n`, not
+`0`, on that (μ-null) set; the partition functions then converge to exactly `1`.
 
 ## Continuum energy-identity: the three named gaps (re-survey 2026-07-04)
 

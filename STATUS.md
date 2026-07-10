@@ -79,31 +79,31 @@ These are the strong-duality and continuum capstones. Re-verified against the pi
 | `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
 | `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
 
-### Tier 1 — one theorem, papers exist, no Lean source: **worst-case-measure attainment**
+### Tier 1 — the duality gap: **one theorem, four capstones, no Lean source**
 
-`hattain` is now the **only** edge on all four strong-duality theorems (`hbddP` is gone). It is an
-**extreme-value argument, not a duality theorem** — it needs neither Kantorovich duality nor
-measurable selection, so the `XL` rows in FOUNDATIONS Chain 1 are off its critical path. It is
-genuinely attackable because **Prokhorov, `IsTightMeasureSet` and Portmanteau landed in the pin**
-(`MeasureTheory.isCompact_closure_of_isTightMeasureSet`, `Measure/Tight.lean`, `Portmanteau.lean`).
+The last edge on all four strong-duality capstones is now **`hge : dualValue ≤ primalValue`** — the
+statement that the **duality gap is zero**. It replaced the customary `hattain` on 2026-07-10:
+that hypothesis bundled a vanishing gap *with* attainment of the primal supremum, and none of the
+proofs ever used the attainment half. Receipts: `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure`,
+`WangGaoXie2023.sinkhornDual_le_droValue_of_attaining_measure` (`hattain ⟹ hge`; converse false).
 
-Needed, in order:
-1. **Tightness of the ambiguity ball** (Markov/moment bound around a tight nominal) → then Prokhorov.
-2. **Lower semicontinuity of the transport cost** in the coupling, and of `otCost`/`W2sq` in `μ`.
-   **ABSENT.** Paper: Villani, *Optimal Transport: Old and New*, Thm 4.1; Santambrogio §1.2.
-3. **Lower semicontinuity of `klDiv`** (for the Sinkhorn ball). 🟡 **Half-closed (2026-07-10).**
-   The Donsker–Varadhan **dual** variational formula `KL(μ‖ν) = sup_f (∫f dμ − log∫eᶠdν)` is now
-   **proved** — `ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet` (axiom-clean). It is *not*
-   the Gibbs formula we already had (`isGreatest_donskerVaradhan`, sup over *measures*, attained);
-   it is the other Legendre transform, sup over *functions*, not attained. From it,
-   `toReal_klDiv_le_of_tendsto_integral` gives **setwise** lsc: a `KL`-ball is closed under any
-   convergence integrating bounded *measurable* functions. The **weak**-topology version needs the
-   sup over bounded *continuous* functions — a Lusin/regularity upgrade on a Polish space. That
-   upgrade is what remains.
-4. Upper semicontinuity of `μ ↦ 𝔼_μ[V]` → Portmanteau (in pin), for bounded usc `V`.
+⚠ **Correction, recorded because it was asserted here in error earlier today.** `hge` is **not** an
+extreme-value argument and Prokhorov does **not** reach it. Compactness delivers *attainment of the
+sup*, which `hge` no longer requires. Proving `hge` is proving Blanchet–Murthy Thm 1 / Gao–Kleywegt
+Thm 1: for each `ε > 0`, produce a feasible `μ` with `𝔼_μ[f] ≥ dualValue − ε` by selecting
+near-maximizers of the `c`-transform `sup_x (f x − λ* c(x,y))` and pushing the nominal forward. The
+selection is **Kuratowski–Ryll-Nardzewski measurable selection** — genuinely absent from Mathlib
+(`FOUNDATIONS.md` Chain 1, `XL`). Papers: Blanchet–Murthy 2019 Thm 1; Gao–Kleywegt 2023 Thm 1;
+Villani Thm 5.10 for the `c`-transform machinery.
 
-This is the single highest-value target: **one theorem, four capstones**, and every piece is
-upstreamable (Mathlib has no Kantorovich layer at all).
+Prokhorov / `IsTightMeasureSet` / Portmanteau *are* in the pin, and remain the right tool for the
+separate "a worst-case measure exists" statements (`GaoKleywegt2023.worstCase_structure_cor1`,
+`MohajerinEsfahaniKuhn2018.worstCase_exists`), which still assume attainment.
+
+Also landed on the entropic side: the Donsker–Varadhan **dual** variational formula
+(`ForMathlib.MeasureTheory.toReal_klDiv_eq_sSup_dvDualSet`) and setwise lsc of `klDiv`
+(`toReal_klDiv_le_of_tendsto_integral`). Both are real Mathlib gaps and upstreamable; they serve
+the attainment statements, not `hge`.
 
 ### Tier 2 — Schrödinger-bridge structure (`ChenGeorgiouPavon2021.SocOt`)
 

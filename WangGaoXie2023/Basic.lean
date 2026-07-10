@@ -554,6 +554,27 @@ theorem sinkhorn_cost_bound [StandardBorelSpace X] [Nonempty X]
     exact hasSinkhornDisintegration_of_isSinkhornPlan hplan f hf h_exp hI_lp
 
 omit [NormedAddCommGroup X] in
+/-- **An attaining worst-case measure gives the `≥` direction.** The receipt that
+`strong_duality`'s `hge` is weaker than the customary attainment hypothesis. The converse fails:
+a vanishing duality gap does not produce a maximizer. -/
+theorem sinkhornDual_le_droValue_of_attaining_measure
+    (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ)
+    (hfbdd : BddAbove (Set.range f))
+    (hfAll : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε →
+        Integrable f (μ : Measure X))
+    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε ∧
+        expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = sinkhornDualObjective μhat ν c f κ ε lam }) :
+    sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam }
+      ≤ droValue (sinkhornBall c μhat ν κ ε) f := by
+  have hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
+      μ ∈ sinkhornBall c μhat ν κ ε ∧ r = expect μ f } :=
+    ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ f hfbdd hfAll
+  obtain ⟨μ, hμ, hμeq⟩ := hattain
+  rw [← hμeq]
+  exact le_csSup hbddP ⟨μ, hμ, rfl⟩
+
+omit [NormedAddCommGroup X] in
 /-- **Theorem 1 (Strong Duality), part (II)** — `V = V_D`: the Sinkhorn-DRO worst-case
 value over the ball equals the log-partition dual. `le_antisymm` of `droValue ≤ dual`
 (each source's Sinkhorn cost bound, inlined from `sinkhorn_weak_duality_kernel` + `le_csInf`,
@@ -580,9 +601,11 @@ theorem strong_duality [StandardBorelSpace X] [Nonempty X]
     (hI_lp : ∀ lam, 0 < lam → Integrable
         (fun x => logPartition ν c f κ lam x) (μhat : Measure X))
     (hfbdd : BddAbove (Set.range f))
-    (hattain : ∃ μ : ProbabilityMeasure X, μ ∈ sinkhornBall c μhat ν κ ε ∧
-        expect μ f = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
-          v = sinkhornDualObjective μhat ν c f κ ε lam }) :
+    (hfeas : (sinkhornBall c μhat ν κ ε).Nonempty)
+    -- the `≥` direction — **the duality gap is zero**; strictly weaker than assuming an attaining
+    -- worst-case measure (`sinkhornDual_le_droValue_of_attaining_measure` is the receipt).
+    (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧ v = sinkhornDualObjective μhat ν c f κ ε lam }
+        ≤ droValue (sinkhornBall c μhat ν κ ε) f) :
     droValue (sinkhornBall c μhat ν κ ε) f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
           v = sinkhornDualObjective μhat ν c f κ ε lam } := by
@@ -592,11 +615,9 @@ theorem strong_duality [StandardBorelSpace X] [Nonempty X]
     ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range _ f hfbdd hfAll
   refine le_antisymm ?_ ?_
   · refine csSup_le ?_ ?_
-    · obtain ⟨μ, hμ, _⟩ := hattain; exact ⟨expect μ f, μ, hμ, rfl⟩
+    · obtain ⟨μ, hμ⟩ := hfeas; exact ⟨expect μ f, μ, hμ, rfl⟩
     · rintro a ⟨μ, hμ, rfl⟩
       exact sinkhorn_cost_bound μhat ν c f κ ε hκ hc hcm μ hμ (hfAll μ hμ) h_exp hI_lp
-  · obtain ⟨μ, hμ, hμeq⟩ := hattain
-    rw [← hμeq]
-    exact le_csSup hbddP ⟨μ, hμ, rfl⟩
+  · exact hge
 
 end WangGaoXie2023

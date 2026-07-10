@@ -54,24 +54,25 @@ Sion's minimax theorem ✅ (Mathlib.Topology.Sion) ──┘                    
 > Lagrangian bound `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` plus a
 > *near-optimal* plan and a limit `η ↓ 0`. Nothing in this chain's ❌ column is on the card path.
 >
-> **A second shortcut, for the STRONG-duality `≥` seam.** The remaining edge is `hattain`
-> (`hbddP` was deleted 2026-07-10 — it is a consequence of `hbdd` at `lam = 0`). Note that
-> `hattain` asserts only that the *worst-case measure exists*, i.e. that a usc functional attains
-> its sup on the ball. **That is an extreme-value argument, not a duality theorem** — it needs
-> neither Kantorovich duality, nor Fenchel–Rockafellar, nor measurable selection. The route is:
+> **The STRONG-duality `≥` seam, stated correctly.** The remaining edge is now `hge`:
+> `dualValue ≤ primalValue`, i.e. **the duality gap is zero**. It replaced the customary
+> `hattain` ("some feasible `μ` attains the dual value") on 2026-07-10, because that hypothesis
+> bundled two separate things — a vanishing gap *and* attainment of the primal sup — and the
+> proofs only ever used the former. `dualValue_le_primalValue_of_attaining_measure` is the receipt
+> that `hattain ⟹ hge`; the converse is false.
 >
-> ```
-> ball tight ──► Prokhorov ✅ (Mathlib.MeasureTheory.isCompact_closure_of_isTightMeasureSet)
->                     │
-> lsc of otCost ❌ ───┴──► ball weakly compact ──┐
->                                                 ├──► sup attained  ⇒  hattain
-> μ ↦ 𝔼_μ[V] usc ✅ (Portmanteau, for bdd usc V) ─┘
-> ```
+> ⚠ **This is a duality theorem, not an extreme-value argument.** An earlier note in this file
+> claimed `hge` could be reached by tightness + Prokhorov + Portmanteau. That was **wrong**, and it
+> is corrected here: compactness gives you *attainment of the sup* (which `hge` no longer needs);
+> it does not give you *the vanishing gap*. Proving `hge` means proving Blanchet–Murthy Thm 1 /
+> Gao–Kleywegt Thm 1: for each `ε > 0` produce a feasible `μ` with `𝔼_μ[f] ≥ dualValue − ε`, by
+> selecting near-maximizers `x(y)` of the `c`-transform `sup_x (f x − λ* c(x,y))` and pushing `ν`
+> forward. That selection step is exactly **measurable selection (Kuratowski–Ryll-Nardzewski)**, the
+> `XL` row below. So Chain 1's original assessment was right; the reframing was not.
 >
-> So the `XL`-effort `Kantorovich duality` / `measurable selection` rows below are **not** the
-> critical path to `hattain`. The critical path is the single `M`-effort gap **lsc of the transport
-> cost** (Villani Thm 4.1), plus **lsc of `klDiv`** for the entropic ball (Chain 2). Both are
-> genuine Mathlib gaps and both are upstreamable. Re-scope before spending effort on Fenchel.
+> Prokhorov / `IsTightMeasureSet` / Portmanteau *are* now in the pin, and they remain the tool for
+> the separate statement "the worst-case measure exists" (`GaoKleywegt2023.worstCase_structure_cor1`
+> and friends still assume it). They are simply not on the path to `hge`.
 
 ---
 
@@ -248,9 +249,11 @@ Mirror DKPS's `Challenge/MathlibCandidate/<Name>/`:
 - Proved `ChenGeorgiouPavon2021.staticSB_eq_entropicOT` (T0).
 
 **2026-07-10.** Card path closed and edge-free; `hbddP` deleted from every duality theorem
-(`ForMathlib.OT.DroValue`). Chain 1's `hattain` re-scoped: it is an **extreme-value** argument, not
-a duality theorem — Prokhorov/Tight/Portmanteau are now in the pin, so the critical path is lsc of
-the transport cost (Villani Thm 4.1), *not* Kantorovich duality or measurable selection. Chain 2
+(`ForMathlib.OT.DroValue`). Chain 1's `hattain` **replaced by the weaker `hge`** (the duality gap is
+zero); the attainment half was never used. ⚠ A same-day note claiming `hge` is an extreme-value
+argument reachable by Prokhorov was **wrong and has been deleted**: compactness gives attainment of
+the sup, not the vanishing gap. `hge` is Blanchet–Murthy Thm 1, and its proof needs measurable
+selection of near-maximizers of the `c`-transform. Chain 2
 split the two Legendre transforms: the **Gibbs** formula is proved here, the **dual** formula (and
 hence lsc of `klDiv`) is not. Corrected the standing claim that `formal-mathfin` contains Girsanov —
 it does not (see `SURVEY_LEADS.md`).

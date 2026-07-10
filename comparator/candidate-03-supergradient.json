@@ -1,0 +1,16 @@
+{
+  "challenge_module": "Challenge.MathlibCandidate.Supergradient.Conformance",
+  "solution_module": "Challenge.MathlibCandidate.Supergradient.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.Analysis.exists_supergradient_of_concaveOn",
+    "ForMathlib.Analysis.exists_nonneg_multiplier",
+    "ForMathlib.Analysis.exists_supergradient_of_concaveOn'",
+    "ForMathlib.Analysis.exists_nonneg_multiplier'"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

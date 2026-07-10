@@ -1,0 +1,13 @@
+{
+  "challenge_module": "Challenge.MathlibPending.IntegrableIntegralCompProd.Conformance",
+  "solution_module": "Challenge.MathlibPending.IntegrableIntegralCompProd.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.OT.integrable_integral_compProd"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

@@ -1,0 +1,14 @@
+{
+  "challenge_module": "Challenge.MathlibPending.KLChainRule.Conformance",
+  "solution_module": "Challenge.MathlibPending.KLChainRule.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.MeasureTheory.klDiv_compProd_eq_lintegral",
+    "ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_integral"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

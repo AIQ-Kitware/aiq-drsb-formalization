@@ -1,0 +1,15 @@
+{
+  "challenge_module": "Challenge.MathlibPending.MeasurableArgmax.Conformance",
+  "solution_module": "Challenge.MathlibPending.MeasurableArgmax.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.MeasureTheory.exists_measurable_eps_argmax",
+    "ForMathlib.MeasureTheory.sSup_image_dense_eq",
+    "ForMathlib.MeasureTheory.exists_measurable_eps_argmax_of_separable"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

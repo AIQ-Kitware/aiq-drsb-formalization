@@ -65,6 +65,32 @@ would let `wdrsb_cost_bound` drop `hμ2`/`hp2` too, but `otCost` is used with a 
 several of them constructively (`otCost_le_couplingCost` inside worst-case-measure builds). That is
 a real refactor, not a rename, and it is *not* required for soundness of anything now proved.
 
+## Upstream challenge layer (2026-07-10)
+
+Reusable, paper-agnostic results are staged in `ForMathlib/` and exposed as comparator
+challenges under `Challenge/`, mirroring `aiq-dkps-formalization`:
+
+* **`MathlibCandidate/`** — the focused upstream push, three verified Mathlib gaps:
+  `DonskerVaradhan` (the Gibbs variational formula — Mathlib has `Measure.tilted` and all its `llr`
+  infrastructure but no DV statement), `KLConvexity` (`klDiv_mix_le`; Mathlib has the `smul` lemmas
+  but no convexity of `klDiv` in its first argument, in either `ℝ` or `ℝ≥0∞`), and `Supergradient`
+  (Mathlib has `ConcaveOn` and slope lemmas but **no** sub/supergradient existence).
+* **`MathlibPending/`** — proven but held back: `KLChainRule`, `GibbsTilt`, `MeasurableArgmax`,
+  `KLLowerSemicontinuous`, `IntegrableIntegralCompProd`, plus `TiltedKernel` and `BirkhoffHopf` as
+  dependency-audit `Leaderboard`s only (their statements name project definitions, so a Mathlib-only
+  `Conformance` cannot state them).
+
+The DRSB paper libraries and the `Drsb` capstone are deliberately **not** comparator challenges: the
+comparator certifies that a proof is dependency-clean, not that `couplings`/`sinkhornBall`/`droValue`
+faithfully model the papers. That is a human reading task.
+
+⚠ One gap claim was **wrong** when checked: Mathlib *does* have the additive KL chain rule
+(`klDiv_compProd_eq_add`). What it lacks is the *disintegration* form
+`klDiv (μ⊗ₘκ) (μ⊗ₘη) = ∫⁻ x, klDiv (κ x) (η x) ∂μ`. Corrected in `Challenge/README.md`.
+
+All 18 listed leaves are axiom-clean and pass the local pre-flight
+(`scripts/check_comparator_signatures.py`). The **real landrun comparator has not yet been run.**
+
 ## The remaining capstones (the next campaign)
 
 **Nothing below is on the card path** — `wdrsb_cost_bound` and `sdrsb_cost_bound` are edge-free.

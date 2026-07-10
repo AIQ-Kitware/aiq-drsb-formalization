@@ -52,6 +52,11 @@ number every declaration corresponds to.
 │   └── ChenGeorgiouPavon2021/        # split into Core, EnergyIdentity, SequenceGaussian,
 │       └── Continuum/                # RealPath, IntervalPath, Wiener/*, Closure frontiers
 ├── Drsb.lean / Drsb/                 # capstone (imports the paper libraries)
+├── Challenge/                        # comparator challenges for the Mathlib-candidate results
+│   ├── MathlibCandidate/             #   drop-ready upstream PRs
+│   └── MathlibPending/               #   proven, not yet PR-shaped
+├── comparator/                       # one comparator config per planned PR
+├── scripts/                          # comparator runner + signature pre-flight
 ├── prose/                            # faithful transcriptions of every source (papers/ = PDFs, git-ignored)
 ├── reference/                        # ⚠ OLD, trap-laden attempts — reference-only, NOT built
 ├── formalization.yaml               # project metadata (sources, targets, status, libraries)

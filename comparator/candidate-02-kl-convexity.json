@@ -1,0 +1,15 @@
+{
+  "challenge_module": "Challenge.MathlibCandidate.KLConvexity.Conformance",
+  "solution_module": "Challenge.MathlibCandidate.KLConvexity.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.MeasureTheory.klDiv_mix_le",
+    "ForMathlib.MeasureTheory.klDiv_mix_ne_top",
+    "ForMathlib.MeasureTheory.toReal_klDiv_mix_le"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

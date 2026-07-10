@@ -1,0 +1,14 @@
+{
+  "challenge_module": "Challenge.MathlibPending.GibbsTilt.Conformance",
+  "solution_module": "Challenge.MathlibPending.GibbsTilt.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.MeasureTheory.klDiv_tilted_ne_top",
+    "ForMathlib.MeasureTheory.entropic_gibbs_attained_tilted"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

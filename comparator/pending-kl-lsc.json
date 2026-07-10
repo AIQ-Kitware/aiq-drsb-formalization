@@ -1,0 +1,13 @@
+{
+  "challenge_module": "Challenge.MathlibPending.KLLowerSemicontinuous.Conformance",
+  "solution_module": "Challenge.MathlibPending.KLLowerSemicontinuous.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.MeasureTheory.toReal_klDiv_le_of_tendsto_integral"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

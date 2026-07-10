@@ -1,0 +1,14 @@
+{
+  "challenge_module": "Challenge.MathlibCandidate.DonskerVaradhan.Conformance",
+  "solution_module": "Challenge.MathlibCandidate.DonskerVaradhan.Leaderboard",
+  "theorem_names": [
+    "ForMathlib.MeasureTheory.isGreatest_donskerVaradhan",
+    "ForMathlib.MeasureTheory.log_integral_exp_eq_sSup"
+  ],
+  "permitted_axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "enable_nanoda": false
+}

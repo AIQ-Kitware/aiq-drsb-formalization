@@ -101,47 +101,98 @@ sources:
     library: "Drsb"   # capstone, composed from the published libraries above
 
 status:
-  phase: "BOTH cards + ALL strong-duality EQUALITIES (GaoKleywegt/WangGaoXie/BlanchetMurthy + both Drsb capstones) PROVED, each modulo one explicit OT-attainment edge; Drsb proved; primal_feasible resolved (necessity half proved); finite Sinkhorn scaling (ForMathlib.matrix_scaling_exists + sinkhorn_potentials_exist) PROVED dependency-clean via log-domain convex minimization; GaoKleywegt2023.dataDriven_strongDuality_cor2i (eq. 28) PROVED (house pattern) + the proved reduction dualValue_eq_empiricalDual; vendored Cameron-Martin KL (gibbs-variational) → EM discrete energy identity; MohajerinEsfahaniKuhn2018.{worstCase_program (Thm 4.4), worstCase_exists (Cor 4.6)} PROVED (shared constructive worst-case-law lemma worstCaseLaw_ball_ge + edges) with reusable finite-measure helpers + ForMathlib.OT.otCost_le_couplingCost. GaoKleywegt2023.{dataDriven_worstCase_cor2ii (eq. 29, ≤N+1-atom empirical worst case), worstCase_structure_cor1 (eq. 27, general-ν 2-map transport)} PROVED dependency-clean (same house pattern: constructive μ* + explicit transport plan, attainment isolated to ingredient-level edges — NOT the structured optimizer) — GaoKleywegt2023 now proved. MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual (Thm 4.2 data-driven duality equality) PROVED dependency-clean via le_antisymm(weak, attainment) — weak ≤ from the NEW Ξ-restricted ForMathlib kernel + empirical collapse + η-trick; STATEMENT CORRECTED to the P(Ξ)-restricted ball wass1BallΞ (the ℝ-valued ℓk encoding dropped the paper's P(Ξ) restriction) — MohajerinEsfahaniKuhn2018 now proved too. ChenGeorgiouPavon2021.dynamic_eq_static_SB (Léonard dynamic⇄static SB) PROVED one direction via the NEW ForMathlib KL DATA-PROCESSING INEQUALITY toReal_klDiv_map_le (a genuine Mathlib gap, proved by conditional Jensen), gluing direction isolated to an edge. 2026-07 SOUNDNESS AUDIT+FIX: the 4 HJB/factorization theorems were FALSE AS STATED (u*/dens* equated to FREE operator args, no linking hyp; grad:=0 refutes) and optimal_control_eq_neg_grad_value was GREEN BUT FALSE (rw-ing through the false grad_log, carried unsound dependency marker) — a hidden `if False then True`. All 4 reformulated to TRUE, dependency-clean statements by isolating the SDE verification (Hopf-Cole/product-form candidate is optimal) + optimizer uniqueness to explicit non-vacuous edges and deriving the identity. Blast radius contained (Drsb uses V abstractly). 2026-07 ENERGY_IDENTITY CLOSED — repo now PROVED: energy_identity (CGP 4.19) reshaped from a monolithic placeholder into a proved disintegration (KL invariance under a start-plus-centered-path measurable iso via klDiv_map_measurableEquiv + KL chain rule on the compProd factorizations via new ForMathlib.toReal_klDiv_compProd_eq_add + conditional term = energy via the hCM Cameron-Martin edge). hCM is the sole Girsanov content; its discrete Euler-Maruyama instance is the proved energy_identity_euler_maruyama. Continuum discharge of hCM (ROADMAP Phase 2) blocked on Mathlib's missing Ito integral/Girsanov (grep-confirmed absent, both routes) — an explicit non-vacuous edge, not a placeholder. 2026-07 ROADMAP Phase 1.5 (cond) PROVED dependency-clean: ForMathlib.{klDiv_compProd_eq_lintegral (ℝ≥0∞), toReal_klDiv_compProd_eq_integral (real)} = klDiv(μ⊗ₘκ)(μ⊗ₘη) = ∫ klDiv(κx)(ηx) dμ, closing Mathlib's own ChainRule.lean TODO (μ[klDiv(κx)(ηx)] form) via μ⊗ₘκ=(μ⊗ₘη).withDensity(Kernel.rnDeriv κ η) so no measurability side-condition on x↦klDiv(κx)(ηx); needs only ac + the standard CountableOrCountablyGenerated typeclass. NOTE it does NOT wire into the placeholder energy_identity (Path X=ℝ→X is not countably generated → that typeclass is unsatisfiable there; adding it = a vacuous edge, refused) — wiring requires upgrading Path to a standard-Borel continuous-path model (modeling, not new math). See ROADMAP_ENERGY_IDENTITY.md + JOURNAL.md. 2026-07-08 SEQUENCE-MODEL CAMERON-MARTIN/KAKUTANI CLOSED (GPT-5.5 Thinking, coordinated by Jon Crall, validated by local `lake build`): ForMathlib.MeasureTheory.GaussianCameronMartin now proves `stdSeqGaussian` finite-prefix marginals, 1-D and finite-dimensional shifted-Gaussian densities, prefix local-density and L² density-process bounds, square-summability ⇒ absolute continuity, `klDiv_stdSeqGaussian_map_add_of_summable`, the non-summable/infinite-KL converse, and the finite/top dichotomy wrappers. ChenGeorgiouPavon2021.energy_identity_sequenceModel is the honest CGP-facing sequence-coordinate restatement; it does NOT identify the sequence law with Wiener/SDE path kernels, so the remaining continuum bridge is still M4b path transport, not a closed feedback/Girsanov theorem."
+  phase: >-
+    PROVED, edge-free on the card path. Both MAGNET card claims (Drsb.wdrsb_cost_bound,
+    Drsb.sdrsb_cost_bound) carry no edge hypotheses. All four strong-duality capstones are
+    proved: the Wasserstein `hge` (zero duality gap) is discharged by
+    ForMathlib.OT.dualValue_le_droValue (Blanchet-Murthy Thm 1), and the Sinkhorn `hge` by
+    WangGaoXie2023.sinkhornDual_le_droValue, so neither WangGaoXie2023.strong_duality nor
+    Drsb.sdrsb_strong_duality carries `hge` any more. The Sinkhorn proof required replacing
+    `hge` with a *Slater* (strict-feasibility) hypothesis -- the entropic objective has no
+    zero, so the Wasserstein diagonal-coupling trick does not transfer; that hypothesis is
+    proved satisfiable by Drsb.sdrsb_strong_duality_of_radius_gt_independent_cost, which
+    discharges it from the single inequality E_{p0 (x) nu}[c] < eps. Remaining research
+    content is isolated in named, non-vacuous edges away from the card path: worst-case-measure
+    *existence* (GaoKleywegt2023.worstCase_structure_cor1, MohajerinEsfahaniKuhn2018.worstCase_exists)
+    and the continuum Girsanov/Cameron-Martin bridge (hCM), blocked on Mathlib's absent Ito
+    integral. Build green (8761 jobs), zero warnings, zero `sorry`, zero `sorryAx`;
+    `#lint`-clean under all 15 Batteries linters across every namespace.
   policy: >
-    First pass established theorem STATEMENTS as close to the published results as
-    possible (verified against prose/). The proof pass discharges the tractable/
-    self-contained leaves and the card `≤` (weak-duality) direction, while the
-    research-grade strong-duality `≥` (attainment) seams stay placeholder (they need OT
-    measurable-selection not in Mathlib — see AGENTS.md §6). PROVED so far: the
-    Donsker–Varadhan family + measure normalization (ForMathlib); the OT-DRO per-coupling
-    weak-duality kernel (ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost,
-    ported from reference/V4.lean) + WangGaoXie2023.sinkhorn_weak_duality_kernel (its
-    entropic analogue, per-point DV integrated over p₀); and — the headline — **BOTH
-    evaluation-card claims, Drsb.wdrsb_cost_bound and Drsb.sdrsb_cost_bound, dependency-clean**,
-    each under explicit regularity + an attainment/disintegration edge hypothesis (the T4
-    seam, stated not faked). Also WangGaoXie2023.exists_worstCase_gibbs,
-    ChenGeorgiouPavon2021.staticSB_eq_entropicOT, BlanchetMurthy2019.wdro_strong_duality_dualFn.
-    Both cards need only the `≤` direction, so the strong-duality `≥` seams remain placeholder.
-    The earlier hand-written attempts are quarantined in `reference/` — reference-only.
+    The first pass established theorem STATEMENTS as close to the published results as
+    possible (verified against prose/). The proof pass then discharged them. As of
+    2026-07-10 the strong-duality `>=` (zero-duality-gap) direction is PROVED, not
+    hypothesised, in both the Wasserstein and the Sinkhorn setting; the earlier `hattain`
+    (attaining worst-case measure) and `hge` hypotheses are gone from the capstones. Where a
+    hypothesis remains it is (a) named, (b) strictly weaker than what it replaced, and
+    (c) proved satisfiable rather than merely asserted -- e.g. the Sinkhorn Slater condition.
+    Reusable, paper-agnostic results are staged in ForMathlib/ and exposed as comparator
+    challenges under Challenge/ (see Challenge/README.md). The earlier hand-written attempts
+    are quarantined in `reference/` -- reference-only.
   build:
     toolchain: "leanprover/lean4:v4.32.0-rc1"
-    mathlib_rev: "d3716e6d2ea114ae7d9f994e5ebf3c064d80c8a7"
+    mathlib_rev: "e3b73828b03c9961c9b33aa95f1d2dc0dca82028"
     command: "lake exe cache get && lake build"
-    expectation: "builds green; repo is proved; sequence-model Cameron–Martin/Kakutani layer checked in the local 2026-07-08 build."
+    expectation: "builds green (8761 jobs); zero warnings; zero `sorry`/`sorryAx`; every audited leaf axiom-clean (propext, Classical.choice, Quot.sound); `#lint` (Batteries, 15 linters) reports zero errors in every namespace."
+  repository_build:
+    last_user_reported_build: "lake build green 2026-07-10 (8761 jobs, zero warnings). Sinkhorn `hge` proved; both card claims and all four strong-duality capstones edge-free. Challenge layer added 2026-07-10: MathlibCandidate (3) + MathlibPending (5 comparator configs + 2 leaderboard-only); all leaf `#print axioms` verified clean."
+    last_user_reported_challenge_summary: "Challenge/comparator layer is NEW and has NOT yet been run under the real landrun comparator. Conformance and Leaderboard modules elaborate, every listed leaf is axiom-clean, and the local pre-flight `scripts/check_comparator_signatures.py` (universe signature + full `pp.all` type, Conformance vs Leaderboard) is the gate that has been exercised. Run `bash scripts/run_challenge_comparator.sh` for the full sweep."
+    challenge_commands:
+      - "python3 scripts/check_comparator_signatures.py"
+      - "lake env lean Challenge/MathlibCandidate/DonskerVaradhan/Conformance.lean"
+      - "lake build Challenge.MathlibCandidate.DonskerVaradhan.Leaderboard"
+      - "bash scripts/run_challenge_comparator.sh"
+    comparator_configs:
+      - "comparator/candidate-01-donsker-varadhan.json"
+      - "comparator/candidate-02-kl-convexity.json"
+      - "comparator/candidate-03-supergradient.json"
+      - "comparator/pending-gibbs-tilt.json"
+      - "comparator/pending-kl-chain-rule.json"
+      - "comparator/pending-kl-lsc.json"
+      - "comparator/pending-measurable-argmax.json"
+      - "comparator/pending-integrable-integral-compprod.json"
   libraries:
     - name: "ForMathlib"
       role: "Paper-agnostic staging (Mathlib-upstreaming queue): Donsker–Varadhan variational formula; measure normalization; shared OT/DRO vocabulary (couplings, transport cost, Wasserstein-2 & Sinkhorn balls, KL, DRO worst-case value)."
-      note: "PROVED (dependency-clean): the DV family (ported from reference/WellKnown.lean); Normalization.isProbabilityMeasure_inv_univ_smul (finite nonzero measure → probability; consumed by WangGaoXie2023.exists_worstCase_gibbs); both weak-duality kernels (WeakDuality); and matrix_scaling_exists / sinkhorn_potentials_exist (finite Sinkhorn scaling, via log-domain convex minimization). The OT/DRO vocabulary is definitions-only. See PROOF_PIPELINE.md §3 — all queued ForMathlib items now proved."
+      note: >-
+        PROVED (dependency-clean). Beyond the earlier DV family, Normalization, both weak-duality
+        kernels and the finite Sinkhorn/matrix scaling, this now stages the machinery that closed the
+        strong-duality gap: klDiv_mix_le (convexity of KL in its first argument, ℝ≥0∞-valued and
+        hypothesis-free), tiltedKernel (the parametrized/kernel form of Measure.tilted),
+        entropic_gibbs_attained_tilted, exists_supergradient_of_concaveOn, exists_measurable_eps_argmax_of_separable,
+        klDiv_compProd_eq_lintegral, integrable_integral_compProd, and the two converse Lagrangian bounds
+        (exists_coupling_lagrangian_ge, exists_coupling_sinkhorn_lagrangian_eq). Upstream candidates are
+        exposed as comparator challenges under Challenge/ — see Challenge/README.md for the verified
+        Mathlib-gap claims.
     - name: "ChenGeorgiouPavon2021"
       role: "SB/SOC value function + optimal control u* = ∇log φ (abstract dynamics interface)."
       note: "Module split checkpoint (GPT-5.5 Thinking, 2026-07-08): public aggregates remain stable, but theorem libraries are now split more finely. `ForMathlib.MeasureTheory.GaussianCameronMartin` aggregates sequence-product, energy, finite-KL, infinite-KL, density, and absolute-continuity modules. `ChenGeorgiouPavon2021.Basic` aggregates split CGP modules; `Continuum.WienerDyadic`, `Continuum.Closure`, and `SocOt` are themselves aggregate imports over topic modules. Fresh validation should use `dev/check_cgp_module_split.sh`. Future placeholders should mark missing mathematical targets only, not downstream assembly lemmas."
     - name: "BlanchetMurthy2019"
       role: "Wasserstein DRO strong duality (primary)."
-      note: "wdro_strong_duality and its Lc-form wdro_strong_duality_dualFn are both PROVED (le_antisymm(weak, attainment); the strong-duality ≥ seam is isolated to one explicit OT-attainment hypothesis, not a placeholder)."
+      note: "wdro_strong_duality and its Lc-form wdro_strong_duality_dualFn are both PROVED. The strong-duality ≥ seam is no longer a hypothesis: it is discharged by ForMathlib.OT.dualValue_le_droValue (Blanchet–Murthy Thm 1), assembled from a measurable ε-argmax selector (no Kuratowski–Ryll-Nardzewski needed), supergradient existence, and concavity of the DRO value function."
     - name: "GaoKleywegt2023"
       role: "Wasserstein DRO strong duality + worst-case distribution."
     - name: "MohajerinEsfahaniKuhn2018"
       role: "Data-driven Wasserstein DRO convex reformulation."
     - name: "WangGaoXie2023"
       role: "Sinkhorn DRO strong duality (log-partition dual; backs the SDRSB card's bound)."
-      note: "logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs (Remark-4 Gibbs worst case), sinkhorn_weak_duality_kernel, and strong_duality (Thm 1(II), le_antisymm modulo one attainment+disintegration edge) are all PROVED — this library is proved. The mis-stated primal_feasible_iff was resolved → primal_feasible_radius_nonneg (necessity half, proved; see fidelity.known_limitations)."
+      note: >-
+        PROVED, and as of 2026-07-10 `strong_duality` (Thm 1(II)) carries **no `hge` edge**: the zero
+        duality gap is discharged by sinkhornDual_le_droValue, whose converse Lagrangian bound is an
+        *equality* with an explicit witness (γ = μ̂ ⊗ₘ P for the tilted kernel P) because the Gibbs
+        Donsker–Varadhan supremum over measures is attained. What `hge` cost is a **Slater**
+        (strict-feasibility) hypothesis: the entropic objective has no zero, so ε is interior to the
+        value function's domain only when some coupling is strictly feasible. That hypothesis is proved
+        satisfiable (ForMathlib.OT.exists_slater_of_couplingCost_prodCoupling_lt). Also proved:
+        logPartition_eq_gibbs_sSup, worstCase_conditional_tilted, exists_worstCase_gibbs (Remark-4),
+        sinkhorn_weak_duality_kernel, expect_le_sinkhornDualObjective, and
+        primal_feasible_radius_nonneg (the honest necessity half; see fidelity.known_limitations).
     - name: "Drsb"
       role: "Capstone: value function V, WDRSB & SDRSB worst-case cost bounds (the card claims) — composed from the published libraries above."
+      note: >-
+        Both card claims (wdrsb_cost_bound, sdrsb_cost_bound) are EDGE-FREE. Both strong-duality
+        capstones are proved: wdrsb_strong_duality_of_regularity and sdrsb_strong_duality (the latter
+        under Slater, discharged concretely by sdrsb_strong_duality_of_radius_gt_independent_cost).
+        sdrsb_cost_bound needs no second moments.
 
 main_results:
   note: >
@@ -277,7 +328,7 @@ main_results:
   BlanchetMurthy2019:
     - declaration: "BlanchetMurthy2019.wdro_strong_duality"
       source: "Theorem 1(a),(b) via Remark 1, eq. (9) — Wasserstein DRO univariate dual"
-      proved: true   # le_antisymm(weak, attainment); the strong-duality ≥ seam isolated to one explicit OT-attainment hypothesis
+      proved: true   # le_antisymm(weak, hge). The ≥ seam is PROVED (2026-07-10), not hypothesised: ForMathlib.OT.dualValue_le_droValue = Blanchet–Murthy Thm 1, from a measurable ε-argmax selector + supergradient existence + concavity of the DRO value function.
     - declaration: "BlanchetMurthy2019.wdro_strong_duality_dualFn"
       source: "Theorem 1(b) + Remark 1, eq. (9) — same dual, per-sample term written as the inner dual φ_λ = Lc"
       proved: true   # defeq to wdro_strong_duality (Lc unfolds to the explicit sup); derived from it, not independently proved
@@ -287,7 +338,7 @@ main_results:
       proved: true   # dependency-clean. csSup_le/le_csInf + per-coupling kernel + coupling ε-approx; Φ↔sup-form via Real.sSup_neg. Honest edges hfeas/hbdd/hφint/hΨμ/hOT.
     - declaration: "GaoKleywegt2023.strong_duality_thm1"
       source: "Theorem 1 (strong duality, κ<∞)"
-      proved: true   # dependency-clean. le_antisymm(weak_duality_prop1, attainment). The ≥ is a single explicit attainment edge — isolates the whole strong-duality gap to that OT measurable-selection fact.
+      proved: true   # dependency-clean. le_antisymm(weak_duality_prop1, hge). The ≥ is PROVED (2026-07-10) via ForMathlib.OT.dualValue_le_droValue; the wrapper strong_duality_thm1_of_regularity is edge-free. The OT measurable selection needed NO Kuratowski–Ryll-Nardzewski: a continuous integrand on a separable domain attains its sup to within ε on a countable dense set.
     - declaration: "GaoKleywegt2023.dualValue_eq_empiricalDual"
       source: "reduction: empirical ν ⇒ dualValue = empiricalDual (specialization to eq. 28)"
       proved: true   # dependency-clean, proved. Integral against the empirical measure: 𝔼_ν[Φ(λ,·)] = (1/N)Σᵢ Φ(λ,ξ̂ᵢ) via integral_dirac (any real integrand, [MeasurableSingletonClass X]); the two inf_{λ≥0} objectives coincide termwise. New proved content behind cor2i.
@@ -316,10 +367,16 @@ main_results:
   WangGaoXie2023:
     - declaration: "WangGaoXie2023.strong_duality"
       source: "Theorem 1(II) — Sinkhorn-DRO log-partition dual (backs the SDRSB card's bound)"
-      proved: true   # le_antisymm: ≤ via sinkhorn_weak_duality_kernel + le_csInf; ≥ via one attainment+disintegration edge (hSinkAll/hattain)
+      proved: true   # dependency-clean, NO hge edge (2026-07-10). ≤ via sinkhorn_weak_duality_kernel + le_csInf; ≥ via sinkhornDual_le_droValue. The converse Lagrangian bound is an EQUALITY with explicit witness γ = μ̂ ⊗ₘ P (tilted kernel) because the Gibbs DV supremum over measures is attained — no ε, no measurable selection. `hge` is replaced by a Slater hypothesis (ht₀/ht₀ε), itself proved satisfiable.
     - declaration: "WangGaoXie2023.primal_feasible_radius_nonneg"
       source: "Theorem 1(I) (feasibility), necessity half — was the mis-stated primal_feasible_iff"
-      proved: true   # dependency-clean. 0 ≤ κ ⇒ (Nonempty → 0 ≤ ε), from Wkappa ≥ 0. Sufficiency (full ↔ ρ≥0) holds only for the ρ̄-reformulated KL-ball and needs the worst-case attainment edge (deferred). See fidelity.known_limitations.
+      proved: true   # dependency-clean. 0 ≤ κ ⇒ (Nonempty → 0 ≤ ε), from Wkappa ≥ 0. Sufficiency (full ↔ ρ≥0) holds only for the ρ̄-reformulated KL-ball. The strictly-positive nonemptiness threshold is the same phenomenon that forces the Slater hypothesis in strong_duality. See fidelity.known_limitations.
+    - declaration: "WangGaoXie2023.sinkhornDual_le_droValue"
+      source: "Theorem 1(II), the ≥ direction — the entropic duality gap is zero"
+      proved: true   # dependency-clean (2026-07-10). Assembled from ForMathlib.OT.{sinkhornDual_le_sinkhornValueAt, sinkhornValueAt_le_droValue}. BddBelow of the dual set is DERIVED from weak duality at a feasible point (expect_le_sinkhornDualObjective), not assumed — an sInf over an unbounded-below set is the junk value 0. Requires Slater (strict feasibility), which is a statement change, not a proof gap.
+    - declaration: "WangGaoXie2023.exists_coupling_lagrangian_eq_logPartition"
+      source: "converse Lagrangian bound (ingredient (1) of the ≥ direction)"
+      proved: true   # rfl-thin receipt for ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq, so the link between the general lemma and this file's logPartition is compiler-checked rather than asserted.
     - declaration: "WangGaoXie2023.exists_worstCase_gibbs"
       source: "Remark 4 — continuous Gibbs (exponential-tilt) worst case"
       proved: true   # normalize the finite, nonzero unnormalized Gibbs measure to a probability measure
@@ -338,13 +395,89 @@ main_results:
 
 fidelity:
   known_limitations:
-    - "BOTH evaluation-card claims (Drsb.{wdrsb,sdrsb}_cost_bound) AND all strong-duality equalities (BlanchetMurthy2019.wdro_strong_duality, GaoKleywegt2023.strong_duality_thm1, WangGaoXie2023.strong_duality, Drsb.{wdrsb,sdrsb}_strong_duality) are PROVED — Drsb is proved. Each strong duality is le_antisymm(weak, attainment) with the research-grade `≥` isolated to ONE explicit OT-attainment hypothesis (not a placeholder, not faked). Also PROVED: the DV family, measure Normalization, both weak-duality kernels (Wasserstein + Sinkhorn), and WangGaoXie2023.primal_feasible_radius_nonneg (Thm 1(I) necessity), and the finite Sinkhorn/matrix scaling existence (ForMathlib.matrix_scaling_exists + sinkhorn_potentials_exist, dependency-clean, via log-domain convex minimization — no Brouwer/Birkhoff in Mathlib). GaoKleywegt2023.dataDriven_strongDuality_cor2i (data-driven strong duality, eq. 28) is also PROVED via the house pattern composed with the proved empirical-dual reduction dualValue_eq_empiricalDual. MohajerinEsfahaniKuhn2018.{worstCase_program (Thm 4.4), worstCase_exists (Cor 4.6)} PROVED (constructive), and GaoKleywegt2023.{dataDriven_worstCase_cor2ii (eq. 29), worstCase_structure_cor1 (eq. 27)} PROVED (same house pattern) — GaoKleywegt2023 is now proved. MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual (Thm 4.2) PROVED via le_antisymm(weak from the new Ξ-restricted ForMathlib kernel, attainment edge), statement corrected to the P(Ξ)-restricted ball — MohajerinEsfahaniKuhn2018 now proved. ChenGeorgiouPavon2021 soundness audit+fix (2026-07): 4 HJB/factorization theorems were false-as-stated (free operator args) + optimal_control_eq_neg_grad_value was green-but-false — all reformulated to TRUE dependency-clean statements (SDE verification + uniqueness isolated to explicit edges). 2026-07: ChenGeorgiouPavon2021.energy_identity CLOSED via the chain-rule disintegration (Girsanov content isolated to the hCM Cameron-Martin edge) — the repo is now PROVED and dependency-clean. The continuum discharge of hCM is blocked on Mathlib's missing Ito integral (ROADMAP_ENERGY_IDENTITY.md Phase 2) — an explicit edge, not a placeholder. See PROOF_PIPELINE.md §2 + JOURNAL.md. 2026-07-08 update: the iid Gaussian sequence-model Cameron–Martin/Kakutani theorem, finite-KL iff ℓ² criterion, and infinite-KL nonsummable branch are now proved by GPT-5.5 Thinking and exposed through ChenGeorgiouPavon2021.energy_identity_sequenceModel; the path-level Wiener/SDE transport remains the honest open bridge."
+    - >-
+      Both evaluation-card claims (Drsb.wdrsb_cost_bound, Drsb.sdrsb_cost_bound) are PROVED and
+      EDGE-FREE, as are all four strong-duality capstones. The strong-duality `>=` direction is no
+      longer an `hattain`/`hge` hypothesis in either setting; it is proved
+      (ForMathlib.OT.dualValue_le_droValue for Wasserstein, WangGaoXie2023.sinkhornDual_le_droValue
+      for Sinkhorn). The Sinkhorn proof needs a Slater / strict-feasibility hypothesis in place of
+      `hge` -- this is a STATEMENT change, not a proof gap: the entropic objective has no zero, so
+      mere feasibility does not place the radius in the interior of the value function's domain.
+      Whether entropic duality survives at the boundary eps = inf_gamma obj(gamma) is not established
+      here either way. The hypothesis is proved satisfiable
+      (ForMathlib.OT.exists_slater_of_couplingCost_prodCoupling_lt), so the capstones are not vacuous.
+    - >-
+      Research content that remains isolated in named, non-vacuous edges, all OFF the card path:
+      worst-case-measure *existence* (GaoKleywegt2023.worstCase_structure_cor1,
+      MohajerinEsfahaniKuhn2018.worstCase_exists -- these legitimately assume attainment);
+      four `hbddP` hypotheses on worst-case-*structure* theorems that carry no boundedness assumption
+      to derive it from; and the continuum Cameron-Martin/Girsanov bridge (hCM), blocked on Mathlib's
+      absent Ito integral (grep-confirmed absent; ROADMAP_ENERGY_IDENTITY.md Phase 2).
     - "PROVENANCE RULE: the GaTech team's own DRSB manuscript is NOT a source for this formalization and carries ~0 weight (it was wrong). Its internal labels ('Eq. 47', 'Algorithm 5', drsbm_paper) appear only in GaTech code comments — never published. We anchor solely on the MAGNET cards and the published theorems (Blanchet–Murthy, Gao–Kleywegt, Wang–Gao–Xie, Chen–Georgiou–Pavon). Do not chase or cite the manuscript. The reference/ directory (old TwoPager/PAC-Bayes + drsb scratch) is likewise near-0-weight — mine only for a proof pattern that helps a card-needed theorem."
     - "2026-07-08 theorem-target scaffold: `ChenGeorgiouPavon2021.ProjectTheoremTargets` imports the current global progress-bar theorem targets. A source scan after the scaffold overlay reports 27 executable target placeholders, intended to mark missing mathematical capstones only. Downstream assembly lemmas should be proved from these targets rather than adding separate assembly placeholders."
     - "Heavy analysis objects (SDE path measures, controlled dynamics) are captured via abstract `structure` interfaces, not built from Mathlib SDE theory (which does not exist yet)."
     - "Statements were AI-drafted against prose transcriptions; they still need expert review against the primary sources."
     - "SINKHORN AUDIT (2026-07, FIXED): the Sinkhorn ball (ForMathlib.OT.Wkappa/sinkhornBall) used KL against the product of the two coupling marginals (μ⊗μ̂), but Wang–Gao–Xie Def 1 uses KL against the nominal times an EXTERNAL reference ν (μ̂⊗ν) — the same ν the dual integrates over. The ball and dual referenced different measures, making strong_duality/sdrsb_*/primal_feasible_iff inconsistent. FIXED: Wkappa/sinkhornBall now carry ν and consumers thread it (see prose/sinkhorn-dro-duality.md audit note)."
-    - "WangGaoXie2023.primal_feasible_iff RESOLVED (2026-07) → primal_feasible_radius_nonneg. The naive `Nonempty ↔ 0 ≤ ε` is false even against the corrected external-ν ball: Wkappa κ ν μ̂ μ̂ > 0 for a non-degenerate nominal (the entropic term forbids the diagonal coupling), so the ball's true nonemptiness threshold is the free energy −κ·𝔼_μ̂[log ∫ e^{−c/κ} dν] ≥ 0 (generically > 0). Proved the honest necessity half (0 ≤ κ ⇒ Nonempty → 0 ≤ ε). The paper's full ↔ ρ≥0 (Thm 1(I)) holds only for the ρ̄-reformulated KL-ball; its sufficiency direction is the deferred worst-case-attainment edge (T4)."
+    - "WangGaoXie2023.primal_feasible_iff RESOLVED (2026-07) → primal_feasible_radius_nonneg. The naive `Nonempty ↔ 0 ≤ ε` is false even against the corrected external-ν ball: Wkappa κ ν μ̂ μ̂ > 0 for a non-degenerate nominal (the entropic term forbids the diagonal coupling), so the ball's true nonemptiness threshold is the free energy −κ·𝔼_μ̂[log ∫ e^{−c/κ} dν] ≥ 0 (generically > 0). Proved the honest necessity half (0 ≤ κ ⇒ Nonempty → 0 ≤ ε). The paper's full ↔ ρ≥0 (Thm 1(I)) holds only for the ρ̄-reformulated KL-ball. This is the same phenomenon that forces the Slater hypothesis in the Sinkhorn strong duality: the entropic ball's nonemptiness threshold is strictly positive."
+
+review:
+  status: "self-assessed"
+  reviewers:
+    - "Jon Crall"
+  notes: >
+    Self-assessed metadata and challenge package. The Challenge layer is NEW (2026-07-10): the
+    MathlibCandidate and MathlibPending modules build green with axiom-clean leaves, and each
+    comparator config passes the local pre-flight signature check
+    (scripts/check_comparator_signatures.py: universe signature + full `pp.all` type, Conformance vs
+    Leaderboard). It has NOT yet been run under the real landrun comparator, and the candidates have
+    not undergone independent Mathlib-reviewer approval or source-author verification. The Mathlib
+    gap claims in Challenge/README.md were grep-checked against this repo's Mathlib checkout on
+    2026-07-10; one earlier claim was found WRONG in that check and corrected (Mathlib does have the
+    additive KL chain rule `klDiv_compProd_eq_add`; what it lacks is the disintegration form).
+
+alignment:
+  statements:
+    - informal: "Donsker-Varadhan / Gibbs variational formula: log E_nu[e^f] is the supremum of E_mu[f] - KL(mu||nu), attained at the f-tilted measure."
+      lean: "ForMathlib.MeasureTheory.isGreatest_donskerVaradhan"
+      status: "proved in the ForMathlib staging library"
+    - informal: "Relative entropy is convex in its first argument."
+      lean: "ForMathlib.MeasureTheory.klDiv_mix_le"
+      status: "proved in the ForMathlib staging library"
+    - informal: "A concave function on an interval of the reals has a supergradient at every interior point."
+      lean: "ForMathlib.Analysis.exists_supergradient_of_concaveOn"
+      status: "proved in the ForMathlib staging library"
+    - informal: "Wasserstein-DRO strong duality: the duality gap is zero (Blanchet-Murthy Thm 1 / Gao-Kleywegt Thm 1)."
+      lean: "ForMathlib.OT.dualValue_le_droValue"
+      status: "proved; discharges the `hge` hypothesis the Wasserstein capstones used to carry"
+    - informal: "Sinkhorn/entropic-DRO strong duality: the duality gap is zero (Wang-Gao-Xie Thm 1), under strict feasibility."
+      lean: "WangGaoXie2023.sinkhornDual_le_droValue"
+      status: "proved; discharges the `hge` hypothesis, at the cost of an explicit Slater hypothesis that is itself proved satisfiable"
+    - informal: "The DRSB worst-case cost bounds: E_perturbed[V] <= E_worst-case[V] over a Wasserstein-2 ball and over a Sinkhorn ball."
+      lean: "Drsb.wdrsb_cost_bound, Drsb.sdrsb_cost_bound"
+      status: "proved, edge-free -- these are the two MAGNET evaluation-card claims"
+
+challenge_packages:
+  candidate_configs:
+    - comparator/candidate-01-donsker-varadhan.json
+    - comparator/candidate-02-kl-convexity.json
+    - comparator/candidate-03-supergradient.json
+  pending_configs:
+    - comparator/pending-gibbs-tilt.json
+    - comparator/pending-kl-chain-rule.json
+    - comparator/pending-kl-lsc.json
+    - comparator/pending-measurable-argmax.json
+    - comparator/pending-integrable-integral-compprod.json
+  leaderboard_only:
+    - Challenge/MathlibPending/TiltedKernel/Leaderboard.lean
+    - Challenge/MathlibPending/BirkhoffHopf/Leaderboard.lean
+  note: >-
+    One comparator config per planned PR. MathlibCandidate is the focused upstream push
+    (Donsker-Varadhan, convexity of klDiv, supergradient existence); MathlibPending holds proven
+    results that need further work before upstreaming. `TiltedKernel` and `BirkhoffHopf` carry an
+    axiom-audit Leaderboard only: their statements name project definitions, so a Mathlib-only
+    Conformance cannot state them. The five DRSB source-paper libraries and the Drsb capstone are the
+    repo's end states and are deliberately NOT comparator challenges -- their statements are in each
+    paper's own vocabulary, which the comparator cannot certify as faithful. See Challenge/README.md.
 
 automation:
   methods:
@@ -354,7 +487,7 @@ automation:
         - "Claude Opus 4.8 (1M context) — scaffolding, prose transcription, statement drafting"
         - "GPT-5.5 Thinking — sequence-model Cameron–Martin/Kakutani proof authoring and repair overlays (2026-07-08)"
       framework: "Coordinated LLM sessions with local `lake` type-checking against a pinned Mathlib."
-      review_status: "Local `lake build` green after the sequence-model Cameron–Martin/Kakutani overlays. The repo remains subject to expert Lean/subject-matter review; path-level Wiener/SDE transport is still explicitly out of scope for the sequence-model theorem."
+      review_status: "Local `lake build` green (8761 jobs, zero warnings, zero `sorry`); `#lint` (Batteries, 15 linters) zero errors in every namespace; every audited leaf axiom-clean. The repo remains subject to expert Lean/subject-matter review; path-level Wiener/SDE transport is still explicitly out of scope for the sequence-model theorem, and the Challenge layer has not yet been run under the real landrun comparator."
   resource_accounting:
     rationale: >
       Every commit here is produced by an LLM agent; this block makes the climate
@@ -365,10 +498,10 @@ automation:
       a later pass from the recorded tokens/time and the commit timestamp (which fixes
       the grid's carbon intensity — "how dirty was it" — at that moment).
     schema: "resource-ledger/v1"
-    module: "dev/resource_tally/            # self-contained, copy-pasteable (see its README.md)"
-    tool: "dev/resource_tally/resource_tally.py"
-    ledger: "dev/resource_tally/data/resource-ledger.jsonl"
-    lifetime_totals_file: "dev/resource_tally/data/lifetime-totals.yaml"
+    module: ".llm_resource_tally/            # self-contained, copy-pasteable (see its README.md)"
+    tool: ".llm_resource_tally/tool/"
+    ledger: ".llm_resource_tally/ledger/ledger.jsonl"
+    lifetime_totals_file: ".llm_resource_tally/lifetime-totals.json"
     unit: "per git commit, attributed per agent session (concurrency-safe; append-only; no double-count, no undercount)"
     measured:
       - "model"

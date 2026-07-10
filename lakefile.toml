@@ -50,3 +50,8 @@ name = "WangGaoXie2023"
 # --- Capstone: the DRSB paper's own results, composed from the libraries above ---
 [[lean_lib]]
 name = "Drsb"
+
+# Comparator/challenge modules for community calibration of AI-authored
+# ForMathlib candidates. Intentionally not default targets.
+[[lean_lib]]
+name = "Challenge"

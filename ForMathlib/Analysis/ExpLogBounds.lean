@@ -12,6 +12,36 @@ set_option autoImplicit false
 
 namespace ForMathlib.Analysis
 
+/-- Lipschitz-type bound for `exp` near `0` with an explicit constant on `[-C, C]`.
+
+For `|t| ≤ C` the convexity of `exp` gives `|exp t - 1| ≤ exp C * |t|`.  Both directions follow
+from `Real.add_one_le_exp`: at `-t` it yields `(1 - t) * exp t ≤ 1`, hence `exp t - 1 ≤ t * exp t`;
+at `t` it yields `1 - exp t ≤ -t`. -/
+theorem abs_exp_sub_one_le_exp_mul_abs {t C : ℝ} (hC : 0 ≤ C) (ht : |t| ≤ C) :
+    |Real.exp t - 1| ≤ Real.exp C * |t| := by
+  have hexp_pos : 0 < Real.exp t := Real.exp_pos t
+  have hexpC : 1 ≤ Real.exp C := Real.one_le_exp hC
+  rcases le_total 0 t with h | h
+  · have ht' : t ≤ C := le_trans (le_abs_self t) ht
+    have hmono : Real.exp t ≤ Real.exp C := Real.exp_le_exp.mpr ht'
+    have hkey : (1 - t) * Real.exp t ≤ 1 := by
+      have h1 := Real.add_one_le_exp (-t)
+      have h2 : Real.exp (-t) * Real.exp t = 1 := by
+        rw [← Real.exp_add]; simp
+      nlinarith [hexp_pos, h1, h2]
+    have habs1 : |Real.exp t - 1| = Real.exp t - 1 := by
+      rw [abs_of_nonneg]; nlinarith [Real.add_one_le_exp t]
+    have habs2 : |t| = t := abs_of_nonneg h
+    rw [habs1, habs2]
+    nlinarith [hkey, hmono, h]
+  · have habs2 : |t| = -t := abs_of_nonpos h
+    have hlow : Real.exp t ≤ 1 := Real.exp_le_one_iff.mpr h
+    have h1 := Real.add_one_le_exp t
+    have habs1 : |Real.exp t - 1| = 1 - Real.exp t := by
+      rw [abs_of_nonpos (by linarith)]; ring
+    rw [habs1, habs2]
+    nlinarith [hexpC, h1, h]
+
 /-- Hard analysis core with an explicit constant.
 
 If `0 ≤ γ < 1` and the logarithmic relative errors satisfy
@@ -30,12 +60,28 @@ scaling. -/
 theorem hard_core_relative_error_geometric_bound_explicit_constant_of_log_bound
     {ι : Type*} [Fintype ι]
     (r : ℕ → ι → ℝ) (C γ : ℝ)
-    (_hC_nonneg : 0 ≤ C)
-    (_hγ_nonneg : 0 ≤ γ) (_hγ_lt_one : γ < 1)
-    (_hr_pos : ∀ k j, 0 < r k j)
-    (_hlog : ∀ k j, |Real.log (r k j)| ≤ C * γ ^ k) :
+    (hC_nonneg : 0 ≤ C)
+    (hγ_nonneg : 0 ≤ γ) (hγ_lt_one : γ < 1)
+    (hr_pos : ∀ k j, 0 < r k j)
+    (hlog : ∀ k j, |Real.log (r k j)| ≤ C * γ ^ k) :
     ∀ k j, |r k j - 1| ≤ (Real.exp C * C) * γ ^ k := by
-  sorry
+  intro k j
+  have hpow_le_one : γ ^ k ≤ 1 := pow_le_one₀ hγ_nonneg (le_of_lt hγ_lt_one)
+  have hpow_nonneg : 0 ≤ γ ^ k := pow_nonneg hγ_nonneg k
+  set t : ℝ := Real.log (r k j) with ht_def
+  have habs_t : |t| ≤ C * γ ^ k := hlog k j
+  have habs_t_le_C : |t| ≤ C := by
+    refine le_trans habs_t ?_
+    calc C * γ ^ k ≤ C * 1 := mul_le_mul_of_nonneg_left hpow_le_one hC_nonneg
+      _ = C := mul_one C
+  have hexp_t : Real.exp t = r k j := Real.exp_log (hr_pos k j)
+  have hmain : |r k j - 1| ≤ Real.exp C * |t| := by
+    rw [← hexp_t]
+    exact abs_exp_sub_one_le_exp_mul_abs hC_nonneg habs_t_le_C
+  calc |r k j - 1| ≤ Real.exp C * |t| := hmain
+    _ ≤ Real.exp C * (C * γ ^ k) :=
+        mul_le_mul_of_nonneg_left habs_t (le_of_lt (Real.exp_pos C))
+    _ = (Real.exp C * C) * γ ^ k := by ring
 
 /-- Geometric decay of logarithmic relative error implies geometric decay of multiplicative
 relative error.

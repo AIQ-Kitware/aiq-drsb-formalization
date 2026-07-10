@@ -46,77 +46,98 @@ this file — never trust a count in a doc, including this one.
 | `ForMathlib/Analysis/ExpLogBounds.lean` | 1 | `|exp t − 1| ≤ exp C · |t|` conversion |
 | `ChenGeorgiouPavon2021/…/Compactness/FranklinLorenz.lean` | 2 | geometric decay of the two scaling corrections |
 
-### The decision (made 2026-07-10) — finish the PAPER ROUTE
+### The plan — close the seam by the DOEBLIN route; keep the paper route as a second proof
 
-Two parallel, unfinished routes to the same theorem coexist. **The Eveson–Nussbaum
-`PaperRoute/*` is the one to finish** — it is the more correct and (per the sources) the easier
-route, and it is what `PaperRoute`'s own header already declares itself to be: "the intended
-replacement spine for the currently parked weighted-average route."
+There is a third, much shorter proof of the contraction theorem, and it is the one to try first.
+It exploits the fact that our `γ = (B−1)/B` is *deliberately coarse*: the analytic core collapses to
+`nlinarith`. Neither Carroll's Step-3 linear program nor Eveson–Nussbaum's Lemma 3.11 is needed.
 
-**The Carroll weighted-average route in `BirkhoffHopf.lean` is to be *sequestered, not deleted*.**
-Getting it too would be nice; it is simply not the priority. Sequester it into its own module rather
-than removing it — nothing is lost, and it stops competing for attention.
+**The two published routes both stay.** Having the Lean text track a paper line-for-line is
+independently valuable — it makes the formalization checkable against a citation, and two
+independent proofs of one theorem are worth studying against each other. Nothing here gets deleted
+or sequestered; the Doeblin route is simply the shortest path to a *closed* seam, and the paper
+routes are then free to be finished at leisure, on their own merits, against their sources.
 
-### The architecture is already right — this is the key fact
+### The Doeblin route (three steps, all verified as standalone Lean snippets 2026-07-10)
+
+The only substantive Carroll goal is `finite_weighted_average_…_of_pairwise_log_bound`. Substitute
+`t_j = x_j / y_j` and normalize `p_j ∝ a_j y_j`, `q_j ∝ b_j y_j` to probability vectors; the goal
+becomes `log (E_p[t] / E_q[t]) ≤ γ · D`. Then, with `λ = 1/B`:
+
+1. **Summing** the pairwise weight hypothesis `a_j b_{j'} ≤ B (b_j a_{j'})` over `j'` collapses it to
+   the pointwise **Doeblin condition** `p_j ≤ B q_j` (and symmetrically `q_j ≤ B p_j`).
+   `Finset.sum_le_sum` then `linarith`. *This replaces Carroll Step 3 entirely — no LP, no
+   extremal-pair argument.*
+2. `p − λq` and `q − λp` are then nonnegative and sum to `1 − λ`. With `u = E_p[t]`, `v = E_q[t]`,
+   `m = min t`, `M = max t`, that yields `u ≤ λv + (1−λ)M` and `v ≥ λu + (1−λ)m`. Those two linear
+   facts *alone* force `u / v ≤ (λ + R)/(1 + λR)` where `R = M/m` — multiply the second by `R`, then
+   one `nlinarith`. No division, no case split.
+3. Finish with `log ((λ+R)/(1+λR)) ≤ (1−λ) · log R` for `R ≥ 1`, via `monotoneOn_of_deriv_nonneg`.
+   Its derivative inequality `(1−λ²)/((λ+R)(1+λR)) ≤ (1−λ)/R` is polynomial: `div_le_div_iff₀`, then
+   `nlinarith` with `lam * (R−1)^2` as a hint.
+
+And `1 − λ = (B−1)/B` is exactly the coefficient the file already commits to.
+
+⚠️ **Only the three atoms are verified, not the assembly.** The `Fintype` min/max bookkeeping and the
+reduction to `p ≤ Bq` are where a proof this size actually bleeds time. Land step 1 before relying
+on it anywhere.
+
+### The architecture — this is the key fact
 
 `ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient` is **the public seam**.
-It is the *only* Birkhoff–Hopf theorem `FranklinLorenz.lean` consumes (lines 507, 529), and both
-routes exist solely to discharge its single open goal. **Every weighted-average theorem has zero
-external consumers** (verified by grep), so the split below is mechanical and safe.
+It is the *only* Birkhoff–Hopf theorem `FranklinLorenz.lean` consumes (lines 507, 529). All three
+routes exist solely to discharge its single open goal, and **every weighted-average theorem has zero
+external consumers** (grep-verified), so the routes cannot interfere with each other.
 
 ```
-BirkhoffHopf.lean  = SHARED CORE (keep)                              PaperRoute/*  (finish this)
-  defs: positiveKernelApply, finiteHilbertProjectiveLogSpread,          PositiveConeHilbert
-        positiveKernelCrossRatio(Bound), positiveKernelBirkhoffCoefficient,   ConvexHullDiameter
-        IsBirkhoffHopfContractionCoefficient, IsStrict…                       PositiveMatrixDiameter
-  proved: positivity + sSup bridges + positive_kernel_apply_crossRatioBounded  TwoByTwo
-          + positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound   Assemble
-  seam:   positive_kernel_strict_birkhoff_contraction_coefficient  ◄──── discharged by
-                    ▲                                                    PaperRoute's
-                    └── consumed by FranklinLorenz.lean                  …_paper_route
+BirkhoffHopf.lean = SHARED CORE + Carroll/Doeblin route      PaperRoute/*  (Eveson–Nussbaum)
+  defs: positiveKernelApply, finiteHilbertProjectiveLogSpread,   PositiveConeHilbert
+        positiveKernelCrossRatio(Bound), …BirkhoffCoefficient,   ConvexHullDiameter
+        IsBirkhoffHopfContractionCoefficient, IsStrict…          PositiveMatrixDiameter
+  proved: positivity + sSup bridges + …apply_crossRatioBounded   TwoByTwo
+          + …hilbert_log_diameter_bound_of_apply_crossratio_bound   Assemble
+  seam:   positive_kernel_strict_birkhoff_contraction_coefficient  ◄── may be discharged by
+                    ▲                                                  EITHER route
+                    └── consumed by FranklinLorenz.lean
 ```
 
-### Your first moves (cheapest → hardest)
+### Order of attack (Doeblin first)
 
-1. **Sequester the Carroll route.** Move these eight declarations out of `BirkhoffHopf.lean` into a
-   new `BirkhoffHopf/WeightedAverageRoute.lean` (0 external consumers, so nothing else changes):
-   `two_point_weighted_average_…`, `finite_weighted_average_…_of_pairwise_log_bound`,
-   `finite_weighted_average_…_of_crossratio_bound`,
-   `positive_kernel_birkhoff_hopf_pointwise_log_crossratio_contraction_…`,
-   `positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_bound`,
-   `positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound`,
-   `positive_kernel_birkhoff_hopf_contraction`, `positive_kernel_birkhoff_contraction_coefficient`.
-   Keep the defs and the proved core lemmas where they are. Document it as an alternate route.
-2. **Free win — `positive_kernel_apply_hilbert_log_diameter_bound_paper_route`** (`PositiveMatrixDiameter.lean`)
-   is *the same statement* as the already-proved, **not** placeholder-backed
-   `positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound` in the core. Discharge
-   by `exact … G hG (positive_kernel_apply_crossRatioBounded G hG)`.
-3. **Near-trivial — `quadrant_hilbert_coordScale_eq` / `_equivPerm_eq`** (`PositiveConeHilbert.lean`).
-   The `d i` scale factors cancel *inside* the log, and reindexing a `Set.range` along an `Equiv`
-   leaves it literally equal. No positivity of `x`/`y` is needed (both sides degenerate to
-   `Real.log 0 = 0` consistently).
-4. **Easy — `positiveKernel_column_diameter_le_crossratio_bound`**: the spread of columns `j, j'` is a
-   `sSup` of `log (positiveKernelCrossRatio G i i' j j')`; bound each by `positiveKernelCrossRatio_le_bound`
-   and apply `Real.log_le_log`.
-5. **Moderate — `ConvexHullDiameter.lean`** (Eveson–Nussbaum Prop 2.9(b)). Then
-   `positiveKernelApply_image_diameter_le_column_diameter` follows: `G x = Σⱼ xⱼ · (column j)` is a
-   nonnegative combination of the columns, so it is exactly the nonnegative-hull lemma.
-6. **Moderate — `positive_twoByTwo_reduces_to_symmetric_normal_form`** (`TwoByTwo.lean`).
-   ⚠️ **Do not follow the paper here.** Eveson–Nussbaum Lemma 5.1 goes through a doubly-stochastic
-   normalization + intermediate value theorem; the Lean statement as written needs none of that.
-   Explicit closed-form witnesses exist: with `ρ = A₀₀A₁₁/(A₀₁A₁₀)` (and `hdet` is *exactly* `ρ ≠ 1`),
-   take `α = √ρ`, `c₁ = 1`, `c₀ = √(A₀₁A₁₁ / (A₀₀A₁₀))`, `r₀ = 1/(A₀₁c₁)`, `r₁ = 1/(A₁₀c₀)`;
-   if `ρ < 1`, swap the rows first (which sends `ρ ↦ 1/ρ > 1`).
-7. **Hard — `symmetricTwoByTwo_birkhoff_contraction`** (`TwoByTwo.lean`). The analytic core is
-   **already proved** in the same file as `symmetricTwoByTwoPhi_le` (the `α(α−1)(t−1)²` factorization).
-   What remains is connecting `φ` to the Hilbert spread. Carroll's Step 4 is the cross-check:
-   AM-GM `1 + rsy² ≥ 2y√(rs)`, then two mean-value comparisons.
-8. **Hardest — `positiveKernel_birkhoff_contraction_from_twoByTwo`** (`Assemble.lean`), Eveson–Nussbaum
-   Lemma 3.11: reduction to two-dimensional subspaces. ⚠️ Note the "public" theorem in that file is
-   currently just `exact` of this open goal, so `Assemble.lean` carries **no content** today.
-9. Finally, discharge the seam `positive_kernel_strict_birkhoff_contraction_coefficient` from
-   `…_paper_route`. Mind the instances: the seam has **no** `[Nonempty ι]`/`[Nonempty κ]`, so it needs
-   an empty-type case split (both sides degenerate to `0 ≤ γ·0`); the paper-route theorem assumes them.
+1. **`finite_weighted_average_…_of_pairwise_log_bound`** (`BirkhoffHopf.lean`), by the three steps
+   above. ~120 lines; the only fiddly part is step 3's `monotoneOn_of_deriv_nonneg` plumbing.
+2. **The seam, `positive_kernel_strict_birkhoff_contraction_coefficient`** — ⚠️ **this open goal is
+   not mathematical content.** `positive_kernel_birkhoff_hopf_contraction`, two declarations above
+   it, proves the *identical* statement; the seam merely drops the `[Nonempty ι]`/`[Nonempty κ]`
+   instances. It needs only an empty-type case split (every degenerate branch is `0 ≤ γ·0`).
+   Closing 1 + 2 makes FranklinLorenz's `γ` supply real rather than placeholder-backed.
+3. **`ExpLogBounds`** — fully independent of everything else; do it any time. `|e^t − 1| ≤ e^C·|t|`
+   for `|t| ≤ C`: for `t ≥ 0`, `Real.add_one_le_exp` at `−t` gives `e^t − 1 ≤ t·e^t`; for `t < 0` it
+   gives `1 − e^t ≤ −t` directly. ~20 lines, no calculus.
+4. **`FranklinLorenz` hard core 2** — the last genuinely mathematical goal. ⚠️ **Fix its statement
+   first (see below).** It needs two new `finiteHilbertProjectiveLogSpread` lemmas: symmetry
+   (immediate — the `sSup` ranges over *ordered* pairs, so the `(j,i)` term negates the `(i,j)` term;
+   this also means it already equals `max |log ratio|`), and invariance under `x ↦ c/x` for positive
+   `c`. Given those, `q_j / c_k(j) = b_{k+1}(j)/b_k(j)`, so the target *is* `d_H(b_{k+1}, b_k)`, and
+   the two-step recursion gives `C·γ^k`. `hbox` is not needed — a finite spread is finite anyway.
+5. **`FranklinLorenz` hard core 4** — an *instantiation*, not a proof, if 4 is stated generically over
+   `IsFiniteFranklinLorenzScalingOrbit`: the structure is symmetric under
+   `(p,q,G,a,b) ↦ (q,p,Gᵀ,b,a)` (`row_update` and `column_update` swap into each other). Needs one
+   missing mirror lemma, the row analogue of
+   `sinkhorn_phi1_forward_ratio_spread_eq_column_marginal_correction_spread`.
+
+The paper route is then unblocked work of its own; `STATUS`'s earlier cheapest-first reading of it
+still holds and is recorded in `PROOF_PIPELINE.md`.
+
+### ⚠️ A statement bug in `FranklinLorenz.lean` (found 2026-07-10, not yet fixed)
+
+`hard_core_franklinLorenz_right_column_pairwise_log_correction_geometric_bound` assumes
+`IsBirkhoffHopfContractionCoefficient G γ`, but its proof needs the coefficient for **`Gᵀ` as well**.
+The orbit alternates `a_{k+1} = p/(G b_k)` and `b_{k+1} = q/(Gᵀ a_k)`, so the recursion is
+`d(b_{k+1},b_k) ≤ γ_{Gᵀ} · γ_G · d(b_{k−1},b_{k−2})`. Deriving `Gᵀ`'s coefficient from `G`'s would
+require knowing `γ` is the **sharp** Birkhoff constant — a strictly harder theorem than the one being
+proved. Fix: add a `hγ_contract_transpose` hypothesis and discharge it at the two call sites (lines
+507, 529) via `positiveKernelCrossRatioBound Gᵀ = positiveKernelCrossRatioBound G`, which is a
+`Finset.sum` reindexing (the cross-ratio index set is transpose-stable).
 
 **Two facts to keep in mind while doing the above:**
 
@@ -124,8 +145,10 @@ BirkhoffHopf.lean  = SHARED CORE (keep)                              PaperRoute/
   real, non-vacuous statement (`∀ x y > 0, logSpread(Gx,Gy) ≤ γ · logSpread(x,y)`; the diagonal
   `i=i'` term forces `spread ≥ 0`). The chosen `γ = (B−1)/B` with `B = 1 + Σ cross-ratios` is
   **weaker** than the sharp Birkhoff constant `tanh(Δ/4) = (√B−1)/(√B+1)`, since `B ≥ 1+M ≥ √B+1`.
-  ⚠️ But the coarse constant does **not** appear to make the proof easier — the analytic core is the
-  same. Proving the sharp `tanh` and weakening may well be the shorter path.
+  The coarseness is exactly what makes the Doeblin route's step 3 an `nlinarith` instead of a
+  `tanh` identity. Sharpening to `(B−1)/(B+1)` needs only a tighter step 3 — and that is precisely
+  what `PaperRoute/TwoByTwo.lean`'s **already-proved** `symmetricTwoByTwoPhi_le` states, since
+  `R · d/dR log((1+BR)/(B+R)) = symmetricTwoByTwoPhi B R`. The two routes meet there.
 - **`FranklinLorenz.lean` is already decoupled.** Its hard cores take
   `IsBirkhoffHopfContractionCoefficient G γ` as an explicit *hypothesis* (the house edge pattern),
   so its 2 goals and the contraction theorem can be attacked independently, in either order.

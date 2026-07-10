@@ -14,3 +14,5 @@ prose/papers/*.pdf
 *.aux
 *.synctex
 *.tar.gz
+*.zip
+*.agents

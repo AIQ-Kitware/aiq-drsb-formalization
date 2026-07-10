@@ -156,18 +156,28 @@ ForMathlib.Matrix.BirkhoffHopf.PaperRoute
   .positive_kernel_birkhoff_hopf_contraction_paper_route
 ```
 
-1. [`BirkhoffHopf.lean`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean) contains an
-   AI-discovered Doeblin/weighted-average proof. It normalizes weighted sums, turns pairwise
-   cross-ratio bounds into pointwise comparisons, and finishes with a scalar logarithmic
+1. [`BirkhoffHopf/Direct.lean`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/Direct.lean)
+   contains an AI-discovered Doeblin/weighted-average proof. It normalizes weighted sums, turns
+   pairwise cross-ratio bounds into pointwise comparisons, and finishes with a scalar logarithmic
    estimate. It is **not** Carroll's linear-programming reduction.
 2. [`BirkhoffHopf/PaperRoute/`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/PaperRoute/)
-   follows the Eveson--Nussbaum cone and two-dimensional-subspace architecture, including
-   their sharper two-dimensional coefficient.
+   follows the Eveson--Nussbaum cone and two-dimensional-subspace architecture, proving their
+   sharper two-dimensional coefficient `(α-1)/(α+1)` *internally*.
+
+Both routes share the route-neutral
+[`BirkhoffHopf/Basic.lean`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/Basic.lean) layer; the
+root [`BirkhoffHopf.lean`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean) is a compatibility
+umbrella re-exporting `Basic` + `Direct`. The paper route imports `Basic` alone, so neither route
+imports the other.
+
+**Same exported coefficient.** Both capstones export the *same* coarse
+`positiveKernelBirkhoffCoefficient G = (B-1)/B`; the paper route's sharper coefficient is a
+*local* two-dimensional fact that its assembly relaxes back to `(B-1)/B`. The strict gap
+`(α-1)/(α+1) < (α²-1)/α²` is proved in
+[`BirkhoffHopf/Comparison.lean`](ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/Comparison.lean).
 
 This proof pluralism is a research feature: an independently discovered machine-assisted
-argument can be compared against a proof that tracks published human reasoning. Refactors
-may share definitions and elementary lemmas, but neither route should call the other route's
-hard contraction theorem.
+argument can be compared against a proof that tracks published human reasoning.
 
 Published references: Birkhoff (1957), and S. P. Eveson and R. D. Nussbaum,
 *An Elementary Proof of the Birkhoff--Hopf Theorem*, Mathematical Proceedings of the

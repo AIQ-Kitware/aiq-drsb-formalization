@@ -122,14 +122,23 @@ regularity assumptions.
 
 The positive-kernel contraction result is present through two independent proof routes:
 
-1. `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf.lean` — an AI-discovered
+1. `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/Direct.lean` — an AI-discovered
    Doeblin/weighted-average argument;
 2. `ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/PaperRoute/*` — a source-faithful
-   Eveson--Nussbaum route with the sharper two-dimensional coefficient.
+   Eveson--Nussbaum route.
 
-Both are repository features. The direct implementation is not Carroll's linear-programming
-reduction, although Carroll remains useful comparison literature. Future refactors should keep the
-route-specific hard arguments independent.
+The two routes share the route-neutral `BirkhoffHopf/Basic.lean` layer; the root
+`BirkhoffHopf.lean` is a compatibility umbrella re-exporting `Basic` + `Direct`, and the paper
+route imports `Basic` alone (never `Direct`), so the route-specific hard arguments are structurally
+independent at the module-import level.
+
+**Coefficient distinction (do not overstate the paper route).** *Both* public capstones export the
+**same** coarse coefficient `positiveKernelBirkhoffCoefficient G = (B-1)/B`. The paper route proves
+a sharper *local* two-dimensional coefficient `(α-1)/(α+1)` internally, but its assembly relaxes back
+to the coarse global `(B-1)/B` — it does **not** yet export a sharper global matrix coefficient. The
+gap `(α-1)/(α+1) < (α²-1)/α²` is formalized in `BirkhoffHopf/Comparison.lean`. The direct
+implementation is not Carroll's linear-programming reduction, although Carroll remains useful
+comparison literature.
 
 Finite Sinkhorn convergence and the Franklin--Lorenz geometric-decay route are already represented
 in the source tree. They are not the current card bottleneck.

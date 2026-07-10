@@ -71,10 +71,13 @@ capstone:
 
 1. Map the stages of `ForMathlib.matrix_scaling_exists` to Sinkhorn--Knopp,
    Franklin--Lorenz, and the repository's independent log-domain minimization proof.
-2. Record that `BirkhoffHopf.lean` uses an AI-discovered Doeblin/weighted-average route,
-   not Carroll's linear-programming reduction.
-3. Compare `BirkhoffHopf/PaperRoute/*` theorem-by-theorem with Eveson--Nussbaum and
-   retain the sharper two-dimensional coefficient where the source route obtains it.
+2. Record that `BirkhoffHopf/Direct.lean` uses an AI-discovered Doeblin/weighted-average route
+   (over the route-neutral `BirkhoffHopf/Basic.lean`), not Carroll's linear-programming reduction.
+3. Compare `BirkhoffHopf/PaperRoute/*` theorem-by-theorem with Eveson--Nussbaum. The source route
+   obtains the sharper two-dimensional coefficient `(α-1)/(α+1)` *locally* (`symmetricTwoByTwoPhi_le`),
+   but its assembly relaxes back to the coarse global `(B-1)/B`; both capstones therefore export the
+   *same* coefficient. The strict local-vs-coarse gap is formalized in `BirkhoffHopf/Comparison.lean`.
+   A sharper *global* paper-route coefficient remains open (see `audits/UPSTREAM_CANDIDATES_2026-07-10.md`).
 4. Audit the Franklin--Lorenz wrappers for assumptions used only by paper-facing
    presentation, extracting minimal `_core` theorems without deleting source-facing wrappers.
 5. Treat the ProjectiveLag no-positive-subsequence path as alternate compactness

@@ -104,6 +104,7 @@ import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.Basic
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.Direct
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf
 import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.PaperRoute
+import ForMathlib.LinearAlgebra.Matrix.BirkhoffHopf.Comparison
 -- Vendored Kolmogorov extension theorem (Apache-2.0, RemyDegenne/kolmogorov_extension4);
 -- see ForMathlib/KolmogorovExtension/README.md. Supplies `projectiveLimit` for the
 -- continuum reference path measure.

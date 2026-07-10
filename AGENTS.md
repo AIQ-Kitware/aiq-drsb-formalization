@@ -183,10 +183,16 @@ The **`Drsb` capstone** composes the above:
 ### Proof pluralism is a repository feature
 
 The positive-kernel Birkhoff--Hopf contraction is intentionally formalized twice: an
-AI-discovered Doeblin/weighted-average argument in `BirkhoffHopf.lean`, and a
-source-faithful Eveson--Nussbaum argument in `BirkhoffHopf/PaperRoute/*`. The direct proof is
-not Carroll's linear-programming reduction. Shared definitions are welcome, but neither route's
-hard theorem may become a dependency of the other. Preserve both for comparison and study.
+AI-discovered Doeblin/weighted-average argument in `BirkhoffHopf/Direct.lean`, and a
+source-faithful Eveson--Nussbaum argument in `BirkhoffHopf/PaperRoute/*`. Both sit over the
+route-neutral `BirkhoffHopf/Basic.lean` (shared vocabulary, imports neither route); the root
+`BirkhoffHopf.lean` is a compatibility umbrella re-exporting `Basic` + `Direct`, and the paper
+route imports `Basic` alone. Route independence is therefore structural at the import level:
+neither route's hard theorem may become a dependency of the other. The direct proof is not
+Carroll's linear-programming reduction. Both capstones export the *same* coarse coefficient
+`(B-1)/B`; the paper route's sharper `(α-1)/(α+1)` is a *local* two-dimensional fact its assembly
+relaxes back to `(B-1)/B` (do not claim a sharper *exported* coefficient), and the strict gap is
+proved in `BirkhoffHopf/Comparison.lean`. Preserve both routes for comparison and study.
 
 ### The two house rules that keep this repo sound
 

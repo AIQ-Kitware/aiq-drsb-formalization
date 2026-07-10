@@ -458,13 +458,19 @@ Eveson--Nussbaum two-dimensional subspace reduction.  Writing `t j = x j / y j` 
 3. `log_mobius_le_one_sub_mul_log` converts that into `(1 - lam) * log R ≤ (1 - lam) * D`.
 
 The coarseness of `(B-1)/B` (versus the sharp Birkhoff constant `(B-1)/(B+1)`) is exactly what makes
-step 3 elementary. -/
-theorem finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound {κ : Type*}
+step 3 elementary.
+
+This `_core` form carries the *minimal* hypotheses actually used in the proof: notably it needs no
+`0 ≤ D` sign condition. Under the pairwise hypotheses (`hweight`, `hxy`) and nonemptiness of `κ`, a
+negative `D` may simply be impossible; the `_core` statement makes no positive claim about that
+regime, it merely does not assume it. The source/context-facing wrapper
+`finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound` retains `0 ≤ D`. -/
+theorem finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound_core {κ : Type*}
     [Fintype κ] [Nonempty κ]
     (a b x y : κ → ℝ) (B D : ℝ)
     (ha : ∀ j, 0 < a j) (hb : ∀ j, 0 < b j)
     (hx : ∀ j, 0 < x j) (hy : ∀ j, 0 < y j)
-    (hB : 1 ≤ B) (_hD : 0 ≤ D)
+    (hB : 1 ≤ B)
     (hweight : ∀ j j' : κ, a j * b j' ≤ B * (b j * a j'))
     (hxy : ∀ j j' : κ, Real.log ((x j * y j') / (x j' * y j)) ≤ D) :
     Real.log (((∑ j : κ, a j * x j) * (∑ j : κ, b j * y j)) /
@@ -597,6 +603,27 @@ theorem finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound
     _ ≤ (1 - lam) * Real.log R := log_mobius_le_one_sub_mul_log hlam0 hlam1 hR1
     _ ≤ (1 - lam) * D := mul_le_mul_of_nonneg_left hlogR (by linarith)
 
+/-- Source/context-facing wrapper for
+`finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound_core`.
+
+The extra `_hD : 0 ≤ D` is retained for compatibility and source fidelity — the elementary
+Birkhoff--Hopf presentations state the pairwise-bounded scalar core with `D` a nonnegative diameter.
+It is **not** a mathematical premise of the estimate: the proof lives entirely in the `_core` lemma,
+which needs no sign condition on `D`. -/
+theorem finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound {κ : Type*}
+    [Fintype κ] [Nonempty κ]
+    (a b x y : κ → ℝ) (B D : ℝ)
+    (ha : ∀ j, 0 < a j) (hb : ∀ j, 0 < b j)
+    (hx : ∀ j, 0 < x j) (hy : ∀ j, 0 < y j)
+    (hB : 1 ≤ B) (_hD : 0 ≤ D)
+    (hweight : ∀ j j' : κ, a j * b j' ≤ B * (b j * a j'))
+    (hxy : ∀ j j' : κ, Real.log ((x j * y j') / (x j' * y j)) ≤ D) :
+    Real.log (((∑ j : κ, a j * x j) * (∑ j : κ, b j * y j)) /
+        ((∑ j : κ, b j * x j) * (∑ j : κ, a j * y j))) ≤
+      ((B - 1) / B) * D :=
+  finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound_core
+    a b x y B D ha hb hx hy hB hweight hxy
+
 /-- Two-point weighted-average Birkhoff inequality.
 
 The elementary proofs of Birkhoff--Hopf treat this two-atom case as the irreducible scalar core, and
@@ -615,7 +642,7 @@ theorem two_point_weighted_average_log_crossratio_contraction_of_crossratio_boun
     Real.log ((((a₀ * x₀ + a₁ * x₁) * (b₀ * y₀ + b₁ * y₁)) /
         ((b₀ * x₀ + b₁ * x₁) * (a₀ * y₀ + a₁ * y₁)))) ≤
       ((B - 1) / B) * D := by
-  have key := finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound
+  have key := finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound_core
     (κ := Fin 2) ![a₀, a₁] ![b₀, b₁] ![x₀, x₁] ![y₀, y₁] B D
     (by
       intro j
@@ -637,7 +664,7 @@ theorem two_point_weighted_average_log_crossratio_contraction_of_crossratio_boun
       fin_cases j
       · exact hy₀
       · exact hy₁)
-    hB hD
+    hB
     (by
       intro j j'
       fin_cases j <;> fin_cases j'
@@ -670,11 +697,10 @@ theorem finite_weighted_average_log_crossratio_contraction_of_crossratio_bound {
     Real.log (((∑ j : κ, a j * x j) * (∑ j : κ, b j * y j)) /
         ((∑ j : κ, b j * x j) * (∑ j : κ, a j * y j))) ≤
       ((B - 1) / B) * finiteHilbertProjectiveLogSpread x y := by
-  exact finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound
+  exact finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound_core
     (a := a) (b := b) (x := x) (y := y)
     (B := B) (D := finiteHilbertProjectiveLogSpread x y)
     ha hb hx hy hB
-    (finiteHilbertProjectiveLogSpread_nonneg_of_pos x y hx hy)
     hweight
     (fun j j' => finiteHilbertProjectiveLogSpread_pair_le x y j j')
 

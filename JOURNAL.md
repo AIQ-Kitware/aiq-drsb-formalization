@@ -1573,3 +1573,48 @@ Both are corrected in FOUNDATIONS, STATUS and SURVEY_LEADS with the error named.
 repo's own: *verify before you trust*, including when the thing you'd be trusting is yourself.
 
 Build green, zero warnings, sorry-free, axiom-clean.
+
+---
+
+# Session journal — `hge` is a theorem (2026-07-10)
+
+The duality gap of Wasserstein-DRO is zero, and it is now *proved*, not assumed:
+`ForMathlib.OT.dualValue_le_droValue`, axiom-clean. This is Blanchet–Murthy Thm 1 / Gao–Kleywegt
+Thm 1 — the statement the four strong-duality capstones had carried as a hypothesis since the repo
+began.
+
+## The three ingredients, all landed today
+
+1. `exists_coupling_lagrangian_ge` — the converse Lagrangian bound. `𝔼_ν[φ_λ]` is achieved, to
+   within `ε`, by pushing `ν` forward along a measurable near-maximizer of the `c`-transform.
+   The selector needs **no KRN**: a continuous integrand on a separable domain attains its supremum
+   to within `ε` on a countable dense set, and `Nat.find` on an enumeration is measurable.
+2. `exists_nonneg_multiplier'` — the optimal multiplier. Mathlib has `ConcaveOn` and slope lemmas but
+   **no sub/supergradient existence at all**; the one-dimensional case is now in `ForMathlib`.
+3. `concaveOn_droValueAt` — the DRO value function is concave and nondecreasing, because the coupling
+   set is convex (`mix_mem_couplings`: `a·π₁ + (1−a)·π₂` couples `a·μ₁ + (1−a)·μ₂` with the *same*
+   `ν`) and cost/reward are affine on it.
+
+## The one trick in the assembly
+
+Run (1) at `λ = λ* + η` for small `η > 0` rather than at `λ*` itself. Two things fall out at once:
+`λ > 0` is available for the cost-integrability step of the converse bound, and the `λ* = 0` case —
+where the budget constraint is inactive and the naive argument stalls — needs no separate treatment,
+because `t ≥ 0` makes `η(δ − t) ≤ ηδ`, which is absorbed by choosing `η ≤ ε/(2δ)`.
+
+The dual set's `BddBelow` (needed for `csInf_le`) comes from the *forward* Lagrangian bound applied
+at the zero-cost feasible plan.
+
+## Three wrong claims, all mine, all caught by trying to prove the thing
+
+* "`hattain` is an extreme-value argument, reachable by Prokhorov." False — it bundles the vanishing
+  gap with attainment of the sup.
+* "`hge` needs Kuratowski–Ryll-Nardzewski." False — separability plus continuity makes the selection
+  countable.
+* "Mathlib's convex-analysis rows are the critical path." False — what was missing was one
+  supergradient lemma, which is thirty lines.
+
+Each was corrected in FOUNDATIONS, STATUS and SURVEY_LEADS with the error named. The reason all three
+survived as long as they did is that I reasoned about the proof instead of writing it.
+
+Build green, zero warnings, sorry-free, axiom-clean.

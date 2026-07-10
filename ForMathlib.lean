@@ -34,6 +34,15 @@ One file per proposed Mathlib destination area:
   extraction of near-optimal plans from the `otCost` infimum, and "finite second moments
   ⟹ every coupling has integrable quadratic cost". These are what let the DRSB
   Wasserstein cost bound drop its OT-*attainment* hypothesis.
+* `ForMathlib.OptimalTransport.Convexity` — **the set of couplings is convex**, and `expect` /
+  `couplingCost` are affine on it: `a·π₁ + (1−a)·π₂` couples `a·μ₁ + (1−a)·μ₂` with the *same* `ν`.
+* `ForMathlib.OptimalTransport.DroValueFunction` — **the DRO value function
+  `h t = sup{𝔼_μ[f] : ∃π ∈ Π(μ,ν), 𝔼_π[c] ≤ t}` is concave and nondecreasing.** Ingredient (3) of
+  the last open edge `hge`; the other two are `ConverseLagrangian` and `Analysis.Supergradient`.
+* `ForMathlib.OptimalTransport.StrongDualityGe` — **`hge`, proved**: the duality gap of
+  Wasserstein-DRO is zero. `dualValue_le_droValue` assembles the converse Lagrangian bound, the
+  optimal multiplier, and concavity of the DRO value function. This is Blanchet–Murthy Thm 1 /
+  Gao–Kleywegt Thm 1, the theorem the four strong-duality capstones had carried as a hypothesis.
 * `ForMathlib.OptimalTransport.DroValue` — the DRO worst-case value `sSup`: a function bounded
   above has bounded-above expectations, so the `BddAbove` side condition of every strong-duality
   theorem is a consequence of its own `λ = 0` conjugate hypothesis, not an assumption.
@@ -74,7 +83,10 @@ import ForMathlib.Analysis.Supergradient
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Coupling
 import ForMathlib.OptimalTransport.ConverseLagrangian
+import ForMathlib.OptimalTransport.Convexity
 import ForMathlib.OptimalTransport.DroValue
+import ForMathlib.OptimalTransport.DroValueFunction
+import ForMathlib.OptimalTransport.StrongDualityGe
 import ForMathlib.OptimalTransport.WeakDuality
 import ForMathlib.Analysis.ExpLogBounds
 import ForMathlib.LinearAlgebra.Matrix.SinkhornScaling

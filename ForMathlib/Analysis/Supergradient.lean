@@ -110,4 +110,56 @@ theorem exists_nonneg_multiplier {a b : ℝ} {h : ℝ → ℝ}
   have hring : m * (t - δ) = -(m * (δ - t)) := by ring
   linarith
 
+/-! ## The same, on an arbitrary convex set
+
+The DRO value function lives on `Set.Ici t₀`, not on a compact interval, so the supergradient
+statement is repeated for a general convex `s` containing a point on each side of `δ`. The proof is
+identical: the supremum of the right-hand slopes is a supergradient, and every left-hand slope
+bounds that supremum. -/
+
+/-- **Supergradient existence on a convex subset of `ℝ`.** -/
+theorem exists_supergradient_of_concaveOn' {s : Set ℝ} {h : ℝ → ℝ} (hconc : ConcaveOn ℝ s h)
+    {a b δ : ℝ} (hamem : a ∈ s) (hbmem : b ∈ s) (haδ : a < δ) (hδb : δ < b) (hδ : δ ∈ s) :
+    ∃ m : ℝ, ∀ t ∈ s, h t ≤ h δ + m * (t - δ) := by
+  set S : Set ℝ := (fun t => (h t - h δ) / (t - δ)) '' {t | t ∈ s ∧ δ < t} with hSdef
+  have hSne : S.Nonempty := ⟨_, ⟨b, ⟨hbmem, hδb⟩, rfl⟩⟩
+  have hub : ∀ r ∈ S, r ≤ (h δ - h a) / (δ - a) := by
+    rintro r ⟨t, ⟨htmem, hδt⟩, rfl⟩
+    exact hconc.slope_anti_adjacent hamem htmem haδ hδt
+  have hSbdd : BddAbove S := ⟨_, hub⟩
+  refine ⟨sSup S, fun t ht => ?_⟩
+  rcases lt_trichotomy t δ with hlt | heq | hgt
+  · have hkey : sSup S ≤ (h δ - h t) / (δ - t) := by
+      refine csSup_le hSne ?_
+      rintro r ⟨u, ⟨humem, hδu⟩, rfl⟩
+      exact hconc.slope_anti_adjacent ht humem hlt hδu
+    have hpos : 0 < δ - t := by linarith
+    rw [le_div_iff₀ hpos] at hkey
+    have hring : sSup S * (t - δ) = -(sSup S * (δ - t)) := by ring
+    linarith [hring]
+  · subst heq; simp
+  · have hmem : (h t - h δ) / (t - δ) ∈ S := ⟨t, ⟨ht, hgt⟩, rfl⟩
+    have hle : (h t - h δ) / (t - δ) ≤ sSup S := le_csSup hSbdd hmem
+    have hpos : 0 < t - δ := by linarith
+    rw [div_le_iff₀ hpos] at hle
+    linarith
+
+/-- **The DRO optimal multiplier, on a convex set.** For a nondecreasing concave `h` on `s` and
+`δ ∈ s` with points of `s` on either side, there is `λ* ≥ 0` with
+`h t + λ*·(δ − t) ≤ h δ` for every `t ∈ s`. -/
+theorem exists_nonneg_multiplier' {s : Set ℝ} {h : ℝ → ℝ} (hconc : ConcaveOn ℝ s h)
+    (hmono : MonotoneOn h s) {a b δ : ℝ} (hamem : a ∈ s) (hbmem : b ∈ s)
+    (haδ : a < δ) (hδb : δ < b) (hδ : δ ∈ s) :
+    ∃ m : ℝ, 0 ≤ m ∧ ∀ t ∈ s, h t + m * (δ - t) ≤ h δ := by
+  obtain ⟨m, hm⟩ := exists_supergradient_of_concaveOn' hconc hamem hbmem haδ hδb hδ
+  have hm0 : 0 ≤ m := by
+    have h1 : h δ ≤ h b := hmono hδ hbmem hδb.le
+    have h2 : h b ≤ h δ + m * (b - δ) := hm b hbmem
+    have hpos : 0 < b - δ := by linarith
+    nlinarith [h1, h2]
+  refine ⟨m, hm0, fun t ht => ?_⟩
+  have := hm t ht
+  have hring : m * (t - δ) = -(m * (δ - t)) := by ring
+  linarith
+
 end ForMathlib.Analysis

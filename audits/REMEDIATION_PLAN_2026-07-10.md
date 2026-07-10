@@ -79,12 +79,12 @@ Single theorem, `ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean:49–354`.
 
 | Piece | Content | Source lines | Status |
 |---|---|---|---|
-| **M1** `common_column_residual_eq_zero` | mass conservation ⟹ common residual `μ = 0` | ~312–337 | scratch-elaborated ✔ → **landing now** |
-| **M2** `column_scaling_of_zero_residual` | zero residual ⟹ column scaling equation | ~345–353 | scratch-elaborated ✔ → **landing now** |
-| **M3a** directional-variation pairwise residual equality | ψ-specific `HasDerivAt` core | ~210–311 | next; split from M3b |
-| **M3b** `exists_eq_add_of_pairwise_residual_eq` | pairwise-equal family ⟹ constant | (new) | next; elementary |
+| **M1** `common_column_residual_eq_zero` | mass conservation ⟹ common residual `μ = 0` | ~312–337 | **LANDED** (commit 3791d88) |
+| **M2** `column_scaling_of_zero_residual` | zero residual ⟹ column scaling equation | ~345–353 | **LANDED** (commit 3791d88) |
+| **M3a** `stationarity_pairwise_residual_eq` | ψ-specific `HasDerivAt` core | ~210–311 | **LANDED** (this overlay) |
+| **M3b** pairwise-equal family ⟹ constant | choose `j0`, `μ := r j0` | inline | **LANDED inline** (in `key`/`hresid`) |
 | **M4** compact interior minimizer exists | boundary-coercivity confinement + EVT | ~62–201 | **not this overlay** |
-| **M5** assembly | short public-theorem body | 49–56, 338–353 | follows M1–M3 |
+| **M5** assembly | short public-theorem body | 49–56, 338–353 | done for the tail; M4 pending |
 
 M1 passes the row relation as the construction-independent
 `hrow : ∀ i, a i * ∑ j, G i j * b j = p i` (never sees `ψ`/`D2`/`aa`). M3a takes
@@ -94,4 +94,17 @@ explicit first. Do **not** start M4 in the M3 overlay.
 
 ## Execution log
 
-- 2026-07-10: plan locked with reviewer. Landing M1+M2 (this overlay).
+- 2026-07-10: plan locked with reviewer. Landed M1+M2 (commit 3791d88);
+  `lake build ...SinkhornScaling` OK, axioms clean.
+- 2026-07-10: landed M3a (`stationarity_pairwise_residual_eq`) + inline M3b.
+  M3a signature: primary data `(p q G hG δ hδ_pos bs hbs_gt hbs_sum)` + `IsMinOn ψ K bs`
+  (ψ, K reconstructed inline); **no `hp`/`hq` positivity** (p, q are coefficients only);
+  `classical` at top (was file-level in `matrix_scaling_exists`); derivative body copied
+  verbatim (j0→j₀); **no per-lemma `maxHeartbeats` needed** (elaborates under default
+  200000 in isolation). No private structure required — explicit args stayed readable.
+  CLI validation: `lake env lean SinkhornScaling.lean` exit 0; full `lake build` 8761 jobs
+  exit 0 (incl. `Drsb.Basic`); CLI `#print axioms`:
+  `matrix_scaling_exists`, `wdrsb_cost_bound`, `sdrsb_cost_bound` all
+  `[propext, Classical.choice, Quot.sound]`. MCP and CLI agreed throughout.
+- Next: report M3 to reviewer; then decide M4 first target (convex-combination lower
+  bound `hGb_ge` vs. logarithmic sublevel confinement `hsublevel`).

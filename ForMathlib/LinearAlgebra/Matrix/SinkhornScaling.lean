@@ -91,6 +91,129 @@ private theorem column_scaling_of_zero_residual
   rw [hval]
   field_simp
 
+/-- **[M3a] Directional-variation pairwise residual equality.** At a positive interior
+minimizer `bs` of the log-domain objective `ψ` over the truncated simplex `K`, the column
+residual `(∑ᵢ aaᵢ Gᵢⱼ) − qⱼ/bsⱼ` (with `aaᵢ = pᵢ / ∑ⱼ Gᵢⱼ bsⱼ`) takes the same value at
+every pair `j, j₀`.
+
+This is the analytic core of `matrix_scaling_exists`: the first-order condition of `ψ`
+restricted to the line `bs + t·(eⱼ − e_{j₀})`. `ψ` and the feasible set `K` are
+reconstructed inline from the primary data `(p, q, G, δ)`; only the `IsMinOn` witness is
+assumed. No positivity of `p, q` is needed — they enter only as coefficients. -/
+private theorem stationarity_pairwise_residual_eq
+    {ι : Type*} [Fintype ι]
+    (p q : ι → ℝ)
+    (G : ι → ι → ℝ) (hG : ∀ i j, 0 < G i j)
+    (δ : ℝ) (hδ_pos : 0 < δ)
+    (bs : ι → ℝ) (hbs_gt : ∀ l, δ < bs l) (hbs_sum : ∑ l, bs l = 1)
+    (hbs_min : IsMinOn
+      (fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j))
+      {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} bs)
+    (j j₀ : ι) :
+    (∑ i, (p i / (∑ jj, G i jj * bs jj)) * G i j) - q j / bs j
+      = (∑ i, (p i / (∑ jj, G i jj * bs jj)) * G i j₀) - q j₀ / bs j₀ := by
+  classical
+  have hbs_pos : ∀ l, 0 < bs l := fun l => lt_trans hδ_pos (hbs_gt l)
+  set ψ : (ι → ℝ) → ℝ :=
+    fun b => (∑ i, p i * Real.log (∑ j, G i j * b j)) - ∑ j, q j * Real.log (b j) with hψ
+  set K : Set (ι → ℝ) := {b | (∀ l, δ ≤ b l) ∧ ∑ l, b l = 1} with hK
+  set D2 : ι → ℝ := fun i => ∑ jj, G i jj * bs jj with hD2
+  have hD2_pos : ∀ i, 0 < D2 i := fun i => by
+    rw [hD2]; exact Finset.sum_pos (fun jj _ => mul_pos (hG i jj) (hbs_pos jj)) ⟨j, Finset.mem_univ j⟩
+  set aa : ι → ℝ := fun i => p i / D2 i with haa
+  set w : ι → ℝ := fun l => (if l = j then (1:ℝ) else 0) - (if l = j₀ then (1:ℝ) else 0) with hw
+  have hwsum : ∑ l, w l = 0 := by simp [hw]
+  have hc : ∀ i, ∑ j', G i j' * w j' = G i j - G i j₀ := by
+    intro i
+    simp only [hw, mul_sub, Finset.sum_sub_distrib]
+    simp
+  set Fc : ℝ → ℝ := fun t =>
+    (∑ i, p i * Real.log (D2 i + t * (G i j - G i j₀)))
+      - (∑ l, q l * Real.log (bs l + t * w l)) with hFc
+  have hinner : ∀ (t : ℝ) i, (∑ j', G i j' * (bs j' + t * w j')) = D2 i + t * (G i j - G i j₀) := by
+    intro t i
+    have hstep : (∑ j', G i j' * (bs j' + t * w j'))
+        = (∑ j', G i j' * bs j') + t * (∑ j', G i j' * w j') := by
+      rw [Finset.mul_sum, ← Finset.sum_add_distrib]
+      apply Finset.sum_congr rfl; intro j' _; ring
+    rw [hstep, hc i]
+  have hFct : ∀ t, Fc t = ψ (fun l => bs l + t * w l) := by
+    intro t
+    simp only [hFc, hψ]
+    have hpart : (∑ i, p i * Real.log (D2 i + t * (G i j - G i j₀)))
+        = ∑ i, p i * Real.log (∑ j', G i j' * (bs j' + t * w j')) := by
+      apply Finset.sum_congr rfl; intro i _; rw [hinner t i]
+    rw [hpart]
+  have hFc0 : Fc 0 = ψ bs := by
+    have hbs_eq : (fun l => bs l + (0:ℝ) * w l) = bs := by funext l; ring
+    rw [hFct 0, hbs_eq]
+  have heventK : ∀ᶠ t in nhds (0:ℝ), (fun l => bs l + t * w l) ∈ K := by
+    have hsum_t : ∀ t : ℝ, ∑ l, (bs l + t * w l) = 1 := by
+      intro t
+      rw [Finset.sum_add_distrib, hbs_sum, ← Finset.mul_sum, hwsum, mul_zero, add_zero]
+    have hfloor : ∀ᶠ t in nhds (0:ℝ), ∀ l, δ ≤ bs l + t * w l := by
+      rw [Filter.eventually_all]
+      intro l
+      have hcont : ContinuousAt (fun t : ℝ => bs l + t * w l) 0 := by fun_prop
+      have h0 : δ < bs l + (0:ℝ) * w l := by
+        have he : bs l + (0:ℝ) * w l = bs l := by ring
+        rw [he]; exact hbs_gt l
+      have hmem : {t : ℝ | δ < bs l + t * w l} ∈ nhds (0:ℝ) :=
+        hcont.preimage_mem_nhds (isOpen_Ioi.mem_nhds h0)
+      filter_upwards [hmem] with t ht
+      exact le_of_lt ht
+    filter_upwards [hfloor] with t ht
+    exact ⟨ht, hsum_t t⟩
+  have hlm : IsLocalMin Fc 0 := by
+    have hev : ∀ᶠ t in nhds (0:ℝ), Fc 0 ≤ Fc t := by
+      filter_upwards [heventK] with t ht
+      rw [hFc0, hFct t]
+      exact isMinOn_iff.mp hbs_min _ ht
+    exact hev
+  have hlog_i : ∀ i, HasDerivAt (fun t => Real.log (D2 i + t * (G i j - G i j₀)))
+      ((G i j - G i j₀) / (D2 i + 0 * (G i j - G i j₀))) 0 := by
+    intro i
+    refine HasDerivAt.log ((hasDerivAt_mul_const (G i j - G i j₀)).const_add (D2 i)) ?_
+    show D2 i + (0:ℝ) * (G i j - G i j₀) ≠ 0
+    simp only [zero_mul, add_zero]; exact (hD2_pos i).ne'
+  have hlog_l : ∀ l, HasDerivAt (fun t => Real.log (bs l + t * w l))
+      (w l / (bs l + 0 * w l)) 0 := by
+    intro l
+    refine HasDerivAt.log ((hasDerivAt_mul_const (w l)).const_add (bs l)) ?_
+    show bs l + (0:ℝ) * w l ≠ 0
+    simp only [zero_mul, add_zero]; exact (hbs_pos l).ne'
+  have hd1 : HasDerivAt (fun t => ∑ i, p i * Real.log (D2 i + t * (G i j - G i j₀)))
+      (∑ i, p i * ((G i j - G i j₀) / (D2 i + 0 * (G i j - G i j₀)))) 0 :=
+    HasDerivAt.fun_sum (fun i _ => (hlog_i i).const_mul (p i))
+  have hd2 : HasDerivAt (fun t => ∑ l, q l * Real.log (bs l + t * w l))
+      (∑ l, q l * (w l / (bs l + 0 * w l))) 0 :=
+    HasDerivAt.fun_sum (fun l _ => (hlog_l l).const_mul (q l))
+  have hderiv : HasDerivAt Fc
+      ((∑ i, p i * ((G i j - G i j₀) / (D2 i + 0 * (G i j - G i j₀))))
+        - (∑ l, q l * (w l / (bs l + 0 * w l)))) 0 := by
+    rw [hFc]; exact hd1.sub hd2
+  have hval0 := hlm.hasDerivAt_eq_zero hderiv
+  simp only [zero_mul, add_zero] at hval0
+  have e1 : (∑ i, p i * ((G i j - G i j₀) / D2 i))
+      = (∑ i, aa i * G i j) - (∑ i, aa i * G i j₀) := by
+    rw [← Finset.sum_sub_distrib]
+    apply Finset.sum_congr rfl
+    intro i _
+    simp only [haa]
+    have hne := (hD2_pos i).ne'
+    field_simp
+  have e2 : (∑ l, q l * (w l / bs l)) = q j / bs j - q j₀ / bs j₀ := by
+    have hpoint : ∀ l, q l * (w l / bs l)
+        = (if l = j then q l / bs l else 0) - (if l = j₀ then q l / bs l else 0) := by
+      intro l
+      simp only [hw]
+      split_ifs <;> ring
+    rw [Finset.sum_congr rfl (fun l _ => hpoint l), Finset.sum_sub_distrib]
+    simp
+  rw [e1, e2] at hval0
+  show (∑ i, aa i * G i j) - q j / bs j = (∑ i, aa i * G i j₀) - q j₀ / bs j₀
+  linarith [hval0]
+
 /-- **Matrix scaling / Sinkhorn existence.** For a strictly positive kernel `G` on a
 finite index set and strictly positive marginals `p, q` of equal total mass, there exist
 strictly positive scalings `a, b` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = pᵢ` and `bⱼ·(∑ᵢ Gᵢⱼ aᵢ) = qⱼ`.
@@ -257,107 +380,12 @@ theorem matrix_scaling_exists {ι : Type*} [Fintype ι]
   have haa_pos : ∀ i, 0 < aa i := fun i => by rw [haa]; exact div_pos (hp i) (hD2_pos i)
   -- fix a base index
   obtain ⟨j0⟩ := hne
-  -- KEY: the quantity `(∑ i, aa i * G i j) - q j / bs j` is independent of j
+  -- KEY: the residual `(∑ i, aa i * G i j) - q j / bs j` is independent of `j` (M3a);
+  -- `hbs_gt : δ < bs l` comes from `δ < δ0 ≤ bs l`, and ψ/K are reconstructed inside M3a.
   have key : ∀ j, (∑ i, aa i * G i j) - q j / bs j
-      = (∑ i, aa i * G i j0) - q j0 / bs j0 := by
-    intro j
-    -- direction w = e_j - e_{j0}
-    set w : ι → ℝ := fun l => (if l = j then (1:ℝ) else 0) - (if l = j0 then (1:ℝ) else 0) with hw
-    have hwsum : ∑ l, w l = 0 := by
-      simp [hw, Finset.sum_sub_distrib]
-    have hc : ∀ i, ∑ j', G i j' * w j' = G i j - G i j0 := by
-      intro i
-      simp only [hw, mul_sub, mul_ite, mul_one, mul_zero, Finset.sum_sub_distrib]
-      simp
-    -- objective restricted to the line
-    set Fc : ℝ → ℝ := fun t =>
-      (∑ i, p i * Real.log (D2 i + t * (G i j - G i j0)))
-        - (∑ l, q l * Real.log (bs l + t * w l)) with hFc
-    have hinner : ∀ (t : ℝ) i, (∑ j', G i j' * (bs j' + t * w j')) = D2 i + t * (G i j - G i j0) := by
-      intro t i
-      have hstep : (∑ j', G i j' * (bs j' + t * w j'))
-          = (∑ j', G i j' * bs j') + t * (∑ j', G i j' * w j') := by
-        rw [Finset.mul_sum, ← Finset.sum_add_distrib]
-        apply Finset.sum_congr rfl; intro j' _; ring
-      rw [hstep, hc i]
-    have hFct : ∀ t, Fc t = ψ (fun l => bs l + t * w l) := by
-      intro t
-      simp only [hFc, hψ]
-      have hpart : (∑ i, p i * Real.log (D2 i + t * (G i j - G i j0)))
-          = ∑ i, p i * Real.log (∑ j', G i j' * (bs j' + t * w j')) := by
-        apply Finset.sum_congr rfl; intro i _; rw [hinner t i]
-      rw [hpart]
-    have hFc0 : Fc 0 = ψ bs := by
-      have hbs_eq : (fun l => bs l + (0:ℝ) * w l) = bs := by funext l; ring
-      rw [hFct 0, hbs_eq]
-    -- IsLocalMin Fc 0
-    have heventK : ∀ᶠ t in nhds (0:ℝ), (fun l => bs l + t * w l) ∈ K := by
-      have hsum_t : ∀ t : ℝ, ∑ l, (bs l + t * w l) = 1 := by
-        intro t
-        rw [Finset.sum_add_distrib, hbs_sum, ← Finset.mul_sum, hwsum, mul_zero, add_zero]
-      have hfloor : ∀ᶠ t in nhds (0:ℝ), ∀ l, δ ≤ bs l + t * w l := by
-        rw [Filter.eventually_all]
-        intro l
-        have hcont : ContinuousAt (fun t : ℝ => bs l + t * w l) 0 := by fun_prop
-        have h0 : δ < bs l + (0:ℝ) * w l := by
-          have he : bs l + (0:ℝ) * w l = bs l := by ring
-          rw [he]; exact lt_of_lt_of_le hδ_lt_δ0 (hbs_ge_δ0 l)
-        have hmem : {t : ℝ | δ < bs l + t * w l} ∈ nhds (0:ℝ) :=
-          hcont.preimage_mem_nhds (isOpen_Ioi.mem_nhds h0)
-        filter_upwards [hmem] with t ht
-        exact le_of_lt ht
-      filter_upwards [hfloor] with t ht
-      exact ⟨ht, hsum_t t⟩
-    have hlm : IsLocalMin Fc 0 := by
-      have hev : ∀ᶠ t in nhds (0:ℝ), Fc 0 ≤ Fc t := by
-        filter_upwards [heventK] with t ht
-        rw [hFc0, hFct t]
-        exact isMinOn_iff.mp hbs_min _ ht
-      exact hev
-    -- first-order condition
-    have hlog_i : ∀ i, HasDerivAt (fun t => Real.log (D2 i + t * (G i j - G i j0)))
-        ((G i j - G i j0) / (D2 i + 0 * (G i j - G i j0))) 0 := by
-      intro i
-      refine HasDerivAt.log ((hasDerivAt_mul_const (G i j - G i j0)).const_add (D2 i)) ?_
-      show D2 i + (0:ℝ) * (G i j - G i j0) ≠ 0
-      simp only [zero_mul, add_zero]; exact (hD2_pos i).ne'
-    have hlog_l : ∀ l, HasDerivAt (fun t => Real.log (bs l + t * w l))
-        (w l / (bs l + 0 * w l)) 0 := by
-      intro l
-      refine HasDerivAt.log ((hasDerivAt_mul_const (w l)).const_add (bs l)) ?_
-      show bs l + (0:ℝ) * w l ≠ 0
-      simp only [zero_mul, add_zero]; exact (hbs_pos l).ne'
-    have hd1 : HasDerivAt (fun t => ∑ i, p i * Real.log (D2 i + t * (G i j - G i j0)))
-        (∑ i, p i * ((G i j - G i j0) / (D2 i + 0 * (G i j - G i j0)))) 0 :=
-      HasDerivAt.fun_sum (fun i _ => (hlog_i i).const_mul (p i))
-    have hd2 : HasDerivAt (fun t => ∑ l, q l * Real.log (bs l + t * w l))
-        (∑ l, q l * (w l / (bs l + 0 * w l))) 0 :=
-      HasDerivAt.fun_sum (fun l _ => (hlog_l l).const_mul (q l))
-    have hderiv : HasDerivAt Fc
-        ((∑ i, p i * ((G i j - G i j0) / (D2 i + 0 * (G i j - G i j0))))
-          - (∑ l, q l * (w l / (bs l + 0 * w l)))) 0 := by
-      rw [hFc]; exact hd1.sub hd2
-    have hval0 := hlm.hasDerivAt_eq_zero hderiv
-    simp only [zero_mul, add_zero] at hval0
-    -- rewrite the two sums
-    have e1 : (∑ i, p i * ((G i j - G i j0) / D2 i))
-        = (∑ i, aa i * G i j) - (∑ i, aa i * G i j0) := by
-      rw [← Finset.sum_sub_distrib]
-      apply Finset.sum_congr rfl
-      intro i _
-      simp only [haa]
-      have hne := (hD2_pos i).ne'
-      field_simp
-    have e2 : (∑ l, q l * (w l / bs l)) = q j / bs j - q j0 / bs j0 := by
-      have hpoint : ∀ l, q l * (w l / bs l)
-          = (if l = j then q l / bs l else 0) - (if l = j0 then q l / bs l else 0) := by
-        intro l
-        simp only [hw]
-        split_ifs <;> ring
-      rw [Finset.sum_congr rfl (fun l _ => hpoint l), Finset.sum_sub_distrib]
-      simp
-    rw [e1, e2] at hval0
-    linarith [hval0]
+      = (∑ i, aa i * G i j0) - q j0 / bs j0 := fun j =>
+    stationarity_pairwise_residual_eq p q G hG δ hδ_pos bs
+      (fun l => lt_of_lt_of_le hδ_lt_δ0 (hbs_ge_δ0 l)) hbs_sum hbs_min j j0
   -- the common column residual `μ`, constant in `j` by `key`, packaged as `∑ = μ + q/bs`
   set μ := (∑ i, aa i * G i j0) - q j0 / bs j0
   have hresid : ∀ j, (∑ i, aa i * G i j) = μ + q j / bs j := fun j => by

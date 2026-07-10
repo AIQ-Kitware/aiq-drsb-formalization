@@ -1099,8 +1099,9 @@ Untouched by any of the above, and taken on after this polish:
 1. **Worst-case-measure attainment** (`hattain`/`hbddP`) — the `≥` half of all four strong-duality
    theorems, the OT measurable-selection fact. The cards are `≤`-only and never need it.
 2. **Continuum `hCM`** — Itô/Girsanov; Mathlib-PR-scale port (`formal-mathfin` has 1-D).
-3. **Kolmogorov extension for dependent projective families** — `RemyDegenne/brownian-motion` has it.
-4. **Infinite-product absolute continuity (Kakutani)** — no Lean source anywhere.
+3. ~~Kolmogorov extension~~ — **already closed** (vendored 2026-07-04); this line was stale.
+4. ~~Kakutani~~ — the sequence-model Cameron–Martin/Kakutani theorem is **already proved** (Phase 2a);
+   only a general Hellinger dichotomy is absent, and only an alternate route would need it.
 
 Everything `lake build` green (8748 jobs); all card-path theorems, the weakened kernel, and the new
 `ForMathlib` lemmas `#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.
@@ -1168,9 +1169,15 @@ constructively (`otCost_le_couplingCost` inside worst-case-measure builds). That
 not a rename — and **nothing now proved is unsound without it**. Flagged in `STATUS.md` for the
 audit/refactor pass.
 
-The deferred campaign is unchanged and recorded in `STATUS.md`: worst-case-measure attainment
-(the `≥` half, which the `≤`-only cards never need), Itô/Girsanov, Kolmogorov extension for
-dependent families, Kakutani.
+The deferred campaign is recorded in `STATUS.md`. **Correction to the two entries above:** they
+listed "Kolmogorov extension for dependent families" and "Kakutani" as open gaps. Both were carried
+over from a stale reading. Kolmogorov extension was vendored and closed on 2026-07-04
+(`ForMathlib/KolmogorovExtension/` → `ForMathlib.MeasureTheory.wienerMeasure`, sorry-free and
+axiom-clean), and the sequence-model Cameron–Martin/Kakutani theorem was proved in Phase 2a. The
+real remaining capstones are worst-case-measure attainment (`hattain`, one theorem serving all four
+strong-duality results, now attackable since Prokhorov/Portmanteau landed in the pin), the
+Schrödinger-bridge structure edges (`hglue`, `hprod_exists`, `hHC`), and continuum Girsanov
+(`hCM`/`hconv`/`hac`) — the last genuinely absent from every Lean source surveyed.
 
 Everything `lake build` green (8748 jobs); all card-path theorems, the renamed declarations, and the
 new `ForMathlib` lemmas `#print axioms`-clean (`propext, Classical.choice, Quot.sound`), no `sorryAx`.

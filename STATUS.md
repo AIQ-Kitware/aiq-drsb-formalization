@@ -64,21 +64,73 @@ would let `wdrsb_cost_bound` drop `hμ2`/`hp2` too, but `otCost` is used with a 
 several of them constructively (`otCost_le_couplingCost` inside worst-case-measure builds). That is
 a real refactor, not a rename, and it is *not* required for soundness of anything now proved.
 
-## The deferred campaign (not closable now — taken on after this polish)
+## The remaining capstones (the next campaign)
 
-Unchanged, and untouched by any of the above. These are the real research seams.
+**Nothing below is on the card path** — `wdrsb_cost_bound` and `sdrsb_cost_bound` are edge-free.
+These are the strong-duality and continuum capstones. Re-verified against the pin 2026-07-10;
+"ABSENT" means grep-verified absent from the pin *and* from `.reference-clones/`.
 
-1. **Worst-case-measure attainment** (`hattain`, `hbddP`) — the `≥` direction of all four
-   strong-duality theorems; the OT measurable-selection fact. The *cards* never need it: they are
-   `≤`-only, which is the whole point of the edge deletions above. Keep as honest edges.
-2. **Continuum `hCM` (Itô/Girsanov)** — `ChenGeorgiouPavon2021`. Mathlib-PR-scale port;
-   `raphaelrrcoelho/formal-mathfin` has 1-D Itô/Girsanov. See `ROADMAP_ENERGY_IDENTITY.md`.
-3. **Kolmogorov extension for dependent projective families** — the continuum reference measure.
-   `RemyDegenne/brownian-motion` has it; vendor, or bump the pin when it lands on master.
-4. **Infinite-product absolute continuity (Kakutani dichotomy)** — no Lean source anywhere.
+### Tier 0 — no new mathematics; wiring only
 
-Items 2–4 are grep-verified absent from the current pin; see `SURVEY_LEADS.md` and
-[`FOUNDATIONS.md`](FOUNDATIONS.md). Item 1 is a statement we deliberately do not need.
+| Edge | Where | Why it is not research |
+|---|---|---|
+| `hbddP` (×8) | all four strong-duality thms | Derivable: `hbdd` at `lam = 0` already asserts `BddAbove (Set.range V)`, and `expect μ V ≤ sup V` by `integral_mono`. Verified in Lean. |
+| `hSinkAll` | `WangGaoXie2023.strong_duality` | Now discharged by `exists_isSinkhornPlan_of_mem_sinkhornBall` + `hasSinkhornDisintegration_of_isSinkhornPlan`, once those are generalised from `sqCost` to a general nonneg cost `c`. |
+| `hKL` (dyadic KL-exhaustion) | `Continuum/Assembly.lean` | `KLExhaustion.lean` says it outright: once the dyadic σ-algebras are packaged as a filtration and identified with the projections, "the proof is exactly the already-proved `ForMathlib.MeasureTheory.klDiv_map_tendsto`". Structural, not mathematical. |
+| `otCost` → `ℝ≥0∞` | `ForMathlib.OT` | The `Wkappa` fix, applied to the Wasserstein side. Would let `wdrsb_cost_bound` drop `hμ2`/`hp2`. |
+
+### Tier 1 — one theorem, papers exist, no Lean source: **worst-case-measure attainment**
+
+`hattain` is the *same* edge in all four strong-duality theorems (Groups A–C). It is now genuinely
+attackable because **Prokhorov and Portmanteau landed in the pin**
+(`MeasureTheory.isCompact_closure_of_isTightMeasureSet`, `Measure/Tight.lean`, `Portmanteau.lean`).
+
+Needed, in order:
+1. **Tightness of the ambiguity ball** (Markov/moment bound around a tight nominal) → then Prokhorov.
+2. **Lower semicontinuity of the transport cost** in the coupling, and of `otCost`/`W2sq` in `μ`.
+   **ABSENT.** Paper: Villani, *Optimal Transport: Old and New*, Thm 4.1; Santambrogio §1.2.
+3. **Lower semicontinuity of `klDiv`** (for the Sinkhorn ball). **ABSENT** — but reachable *from our
+   own* Donsker–Varadhan lemma: relative entropy is a sup of continuous functionals, hence lsc
+   (Dupuis–Ellis, *A Weak Convergence Approach*, Lemma 1.4.3). Mathlib has `convexOn_klFun` but no
+   `klDiv` lsc.
+4. Upper semicontinuity of `μ ↦ 𝔼_μ[V]` → Portmanteau (in pin), for bounded usc `V`.
+
+This is the single highest-value target: **one theorem, four capstones**, and every piece is
+upstreamable (Mathlib has no Kantorovich layer at all).
+
+### Tier 2 — Schrödinger-bridge structure (`ChenGeorgiouPavon2021.SocOt`)
+
+| Edge | Mathematical content | Source |
+|---|---|---|
+| `hglue` | Léonard's gluing / path-space reconstruction (static coupling lifts to a path law of equal entropy) | Léonard, *A survey of the Schrödinger problem*, arXiv:1308.0215, Prop 2.3 / Thm 2.4. No Lean source. |
+| `hstrict`, `huniq` | strict convexity of KL over `Π(ρ₀,ρ₁)`; uniqueness of the I-projection | Csiszár 1975 (*I-divergence geometry*). Mathlib has `strictConvexOn_klFun` — lifting it to `klDiv` over couplings is real but tractable. |
+| `hprod_exists`, `hprodopt` | solvability of the Schrödinger system (existence of potentials `φ̂, φ`) | Rüschendorf–Thomsen; Nutz, *Introduction to Entropic Optimal Transport*, Thm 4.2. **The finite case is already proved in this repo** (matrix scaling + Birkhoff–Hopf); the continuum case is Csiszár's I-projection. |
+| `hHC` | Hopf–Cole verification: the value-gradient control is optimal | CGP Thm 4.22; a stochastic-control verification theorem. Needs the SOC/PDE layer. |
+
+### Tier 3 — continuum Girsanov (`hCM`, `hconv`, `hac`) — the genuine long-horizon port
+
+- `hac` (**Cameron–Martin quasi-invariance**, `W.map (·+h) ≪ W`) is the nearest. Both halves of the
+  route now exist in-repo: the continuum reference `ForMathlib.MeasureTheory.wienerMeasure` (vendored
+  Kolmogorov extension, sorry-free, axiom-clean) and `ForMathlib.absolutelyContinuous_of_densityProcess`
+  (`≪` from a uniformly-integrable martingale density process). Missing: the CM density process on
+  `wienerMeasure` (Brick 2 of `ROADMAP_ENERGY_IDENTITY.md`), which needs finite-dimensional Gaussian
+  **Radon–Nikodym derivatives** (we have only the KL, `klDiv_stdGaussian_map_add`). Paper: Bogachev,
+  *Gaussian Measures*, Thm 2.4.5; Da Prato–Zabczyk.
+- `hCM` / `hconv` (**Girsanov**) — `⚠️ ABSENT EVERYWHERE`. `RemyDegenne/brownian-motion` has Brownian
+  existence sorry-free but only a *simple-process* stochastic integral (its `DoobMeyer.lean` carries
+  25 open goals). `raphaelrrcoelho/formal-mathfin` has an Itô development, but its `Girsanov.lean` is
+  a single Black–Scholes martingale statement and `GaussianGirsanov.lean` is a finite-dimensional
+  Esscher tilt — **neither is the Girsanov theorem**. Stochastic exponential (Doléans-Dade): absent
+  everywhere. This remains the multi-session port, and no existing Lean artifact shortcuts it.
+- **Kakutani / infinite-product absolute continuity**: the *sequence-model* Cameron–Martin/Kakutani
+  theorem is **already proved** here (`ForMathlib/MeasureTheory/GaussianCameronMartin.lean`, Phase 2a:
+  `klDiv_stdSeqGaussian_map_add_of_summable` + the `⊤` converse). What is still absent everywhere is a
+  general Hellinger/Kakutani dichotomy — needed only if a route other than the CM density process is
+  taken.
+
+**Kolmogorov extension is CLOSED**, not deferred: vendored as `ForMathlib/KolmogorovExtension/`
+(Apache-2.0, attributed) and used by `ForMathlib.MeasureTheory.wienerMeasure`; both sorry-free and
+axiom-clean. Mathlib's own `Probability/BrownianMotion/` still lacks it.
 
 ## The card claims' assumption surface
 

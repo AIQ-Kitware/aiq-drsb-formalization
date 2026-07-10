@@ -1813,3 +1813,18 @@ Ran Batteries' `#lint` (15 linters) over every namespace and drove it to zero.
 Nothing about the mathematics changed: every removal is a strictly weaker hypothesis surface,
 machine-checked by the rebuild. Build green (8761 jobs), zero warnings, zero `sorry`, zero `sorryAx`;
 all four DRSB capstones axiom-clean.
+
+## 2026-07-10 (polish, cont.) — non-vacuity of the Slater hypothesis, proved
+
+`hge` was replaced by a Slater condition. A hypothesis nobody can satisfy makes a theorem vacuously
+true, so that swap owed a receipt, and now has one:
+
+* `ForMathlib.OT.sinkhornObjective_prodCoupling` — the independent coupling `μ̂ ⊗ ν` has vanishing
+  entropic term (`klDiv (μ̂⊗ν) (μ̂⊗ν) = 0`), so its objective is exactly `𝔼_{μ̂⊗ν}[c]`.
+* `couplingCost_prodCoupling_mem_sinkhornDomain` — hence the entropic domain is inhabited.
+* `exists_slater_of_couplingCost_prodCoupling_lt` — hence Slater holds whenever `ε > 𝔼_{μ̂⊗ν}[c]`.
+* `Drsb.sdrsb_strong_duality_of_radius_gt_independent_cost` — the capstone with Slater discharged to
+  that one number comparison.
+
+So the hypothesis that replaced `hge` is not merely weaker on paper; it is satisfiable, and satisfied
+by an explicit coupling. Axiom-clean, `#lint`-clean, build green.

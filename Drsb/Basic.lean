@@ -29,6 +29,7 @@ import ForMathlib.MeasureTheory.KLChainRule
 import BlanchetMurthy2019.Basic
 import GaoKleywegt2023.Basic
 import WangGaoXie2023.Basic
+import ForMathlib.OptimalTransport.SinkhornValueFunction
 import ChenGeorgiouPavon2021.Basic
 
 set_option autoImplicit false
@@ -465,5 +466,45 @@ with `f := ρ·g`, `c := 0` at the terminal layer — the mathematical backing o
 normative status and is not a source here — see the module header.) -/
 noncomputable def sdrsbTerminalBound (ν : ProbabilityMeasure X) (g : X → ℝ) (ρ Ewc : ℝ) : ℝ :=
   Ewc - ρ * Real.log (∫ x, Real.exp (g x) ∂(ν : Measure X))
+
+
+/-- **SDRSB strong duality, with Slater discharged to a checkable inequality.**
+
+The strict-feasibility hypothesis of `sdrsb_strong_duality` holds as soon as the radius `ε` exceeds
+the transport cost of the **independent coupling** `p₀ ⊗ ν`, whose entropic term vanishes. This is
+the receipt that the capstone is not vacuous: its hypotheses are jointly satisfiable, and the one
+that replaced `hge` is a single number comparison. -/
+theorem sdrsb_strong_duality_of_radius_gt_independent_cost
+    [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
+    (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (hVm : Measurable V)
+    (hV : ∀ μ : ProbabilityMeasure X, μ ∈ sinkhornBall sqCost p₀ ν κ ε → Integrable V (μ : Measure X))
+    (h_exp : ∀ lam, 0 < lam → ∀ x, Integrable
+        (fun y => Real.exp ((V y - lam * sqCost x y) / (lam * κ))) (ν : Measure X))
+    (hI_lp : ∀ lam, 0 < lam → Integrable
+        (fun x => WangGaoXie2023.logPartition ν sqCost V κ lam x) (p₀ : Measure X))
+    (hV_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable V
+      ((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ)))
+    (hc_P : ∀ lam : ℝ, 0 < lam → ∀ x, Integrable (fun y => sqCost x y)
+      ((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ)))
+    (hV_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖V y‖
+      ∂((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ))) (p₀ : Measure X))
+    (hc_norm : ∀ lam : ℝ, 0 < lam → Integrable (fun x => ∫ y, ‖sqCost x y‖
+      ∂((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ))) (p₀ : Measure X))
+    (hklint : ∀ lam : ℝ, 0 < lam → Integrable (fun x => klReal
+      ((ν : Measure X).tilted fun y => (V y - lam * sqCost x y) / (lam * κ)) (ν : Measure X))
+      (p₀ : Measure X))
+    (hVbdd : BddAbove (Set.range V))
+    (hfeas : (sinkhornBall sqCost p₀ ν κ ε).Nonempty)
+    (hVν : Integrable V (ν : Measure X))
+    (hcprod : Integrable (fun z : X × X => sqCost z.1 z.2) (ForMathlib.OT.prodMeasure p₀ ν))
+    -- **Slater, concretely**: the radius beats the independent coupling's transport cost.
+    (hεgt : couplingCost sqCost (ForMathlib.OT.prodCoupling p₀ ν) < ε) :
+    droValue (sinkhornBall sqCost p₀ ν κ ε) V
+      = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
+          v = WangGaoXie2023.sinkhornDualObjective p₀ ν sqCost V κ ε lam } := by
+  obtain ⟨t₀, ht₀, ht₀ε⟩ := ForMathlib.OT.exists_slater_of_couplingCost_prodCoupling_lt
+    sqCost V κ p₀ ν hVν hcprod hεgt
+  exact sdrsb_strong_duality p₀ ν V κ ε hκ hVm hV h_exp hI_lp hV_P hc_P hV_norm hc_norm hklint
+    hVbdd hfeas ht₀ ht₀ε
 
 end Drsb

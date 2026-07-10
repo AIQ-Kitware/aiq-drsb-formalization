@@ -157,7 +157,10 @@ domain exactly when some coupling is *strictly* feasible. Both capstones now tak
 
 in place of `hge`. Mere feasibility (`hfeas`, i.e. `ε ≥ inf_γ obj γ`) is **not** enough, and no
 rearrangement of the proof avoids it. This is a strictly better assumption surface: Slater is
-checkable, `hge` was the conclusion. Whether duality survives at the boundary `ε = inf_γ obj γ` is
+checkable, `hge` was the conclusion. And it is **checked**: `Drsb.sdrsb_strong_duality_of_radius_gt_independent_cost`
+discharges Slater from the single inequality `𝔼_{p₀⊗ν}[c] < ε`, because the independent coupling
+`p₀ ⊗ ν` has vanishing entropic term (`ForMathlib.OT.sinkhornObjective_prodCoupling`). So the
+capstone's hypotheses are jointly satisfiable, and the theorem is not vacuous. Whether duality survives at the boundary `ε = inf_γ obj γ` is
 not established here either way.
 
 Also proved on the entropic side: the DV **dual** variational formula

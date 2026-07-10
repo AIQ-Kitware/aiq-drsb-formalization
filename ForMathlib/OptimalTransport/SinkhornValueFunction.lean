@@ -23,6 +23,7 @@ is exactly what the assembly needs.
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
 import ForMathlib.OptimalTransport.Convexity
+import ForMathlib.OptimalTransport.Coupling
 import ForMathlib.OptimalTransport.DroValue
 
 set_option autoImplicit false
@@ -156,6 +157,49 @@ theorem concaveOn_sinkhornValueAt (hfb : ∀ x, f x ≤ C) (hκ : 0 ≤ κ) :
   have hb2 := mul_le_mul_of_nonneg_left hr₂.le h1a
   have h3 : a * ε + (1 - a) * ε = ε := by ring
   nlinarith [hb1, hb2, hle, h3]
+
+/-! ## Non-vacuity: the domain is inhabited, and Slater is checkable
+
+The independent coupling `μ̂ ⊗ ν` is a coupling of `μ̂` with `ν` whose entropic term vanishes
+(`klDiv (μ̂⊗ν) (μ̂⊗ν) = 0`), so its objective is exactly the transport cost `𝔼_{μ̂⊗ν}[c]`. Hence the
+domain is nonempty, and the strict-feasibility (Slater) hypothesis of the Sinkhorn `hge` holds
+whenever the radius exceeds that one number. Without this the capstones would be vacuously true. -/
+
+/-- **The independent coupling's objective is its transport cost** — the entropic term vanishes. -/
+theorem sinkhornObjective_prodCoupling (c : α → β → ℝ) (κ : ℝ) (μhat : ProbabilityMeasure α)
+    (ν : ProbabilityMeasure β) :
+    sinkhornObjective c κ μhat ν (prodCoupling μhat ν)
+      = couplingCost c (prodCoupling μhat ν) := by
+  haveI : IsProbabilityMeasure (prodMeasure μhat ν) := (prodCoupling μhat ν).2
+  have hcoe : ((prodCoupling μhat ν : ProbabilityMeasure (α × β)) : Measure (α × β))
+      = prodMeasure μhat ν := rfl
+  rw [sinkhornObjective, klReal, hcoe, klDiv_self]
+  simp
+
+/-- **The entropic domain is inhabited**, at the independent coupling's transport cost. -/
+theorem couplingCost_prodCoupling_mem_sinkhornDomain (c : α → β → ℝ) (f : β → ℝ) (κ : ℝ)
+    (μhat : ProbabilityMeasure α) (ν : ProbabilityMeasure β)
+    (hf : Integrable f (ν : Measure β))
+    (hc : Integrable (fun z : α × β => c z.1 z.2) (prodMeasure μhat ν)) :
+    couplingCost c (prodCoupling μhat ν) ∈ sinkhornDomain c f κ μhat ν := by
+  haveI : IsProbabilityMeasure (prodMeasure μhat ν) := (prodCoupling μhat ν).2
+  have hcoe : ((prodCoupling μhat ν : ProbabilityMeasure (α × β)) : Measure (α × β))
+      = prodMeasure μhat ν := rfl
+  refine ⟨expect ν f, ν, prodCoupling μhat ν, prodCoupling_mem_couplings μhat ν, hf, ?_, ?_, ?_, rfl⟩
+  · rw [hcoe]; exact hc
+  · rw [hcoe, klDiv_self]; exact ENNReal.zero_ne_top
+  · exact le_of_eq (sinkhornObjective_prodCoupling c κ μhat ν)
+
+/-- **Slater holds as soon as the radius beats the independent coupling's transport cost.** This is
+the concrete, checkable form of the strict-feasibility hypothesis carried by
+`ForMathlib.OT.sinkhornDual_le_sinkhornValueAt`, and the proof that those theorems are not vacuous. -/
+theorem exists_slater_of_couplingCost_prodCoupling_lt (c : α → β → ℝ) (f : β → ℝ) (κ : ℝ)
+    (μhat : ProbabilityMeasure α) (ν : ProbabilityMeasure β) {ε : ℝ}
+    (hf : Integrable f (ν : Measure β))
+    (hc : Integrable (fun z : α × β => c z.1 z.2) (prodMeasure μhat ν))
+    (hε : couplingCost c (prodCoupling μhat ν) < ε) :
+    ∃ t₀ : ℝ, t₀ ∈ sinkhornDomain c f κ μhat ν ∧ t₀ < ε :=
+  ⟨_, couplingCost_prodCoupling_mem_sinkhornDomain c f κ μhat ν hf hc, hε⟩
 
 end ValueFunction
 

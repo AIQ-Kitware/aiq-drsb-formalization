@@ -1,0 +1,31 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Kolmogorov extension and Wiener reference measure: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{G/V}: concrete Wiener measure on the unrestricted coordinate path space built from a vendored extension theorem}{The measure lives on all functions $\R_{\ge0}\to\R$; concentration on a canonical continuous anchored path space and its Borel generation are not yet formalized.}
+\section{Result}
+\Lean{ForMathlib.MeasureTheory.wienerMeasure} in
+\RepoFile{ForMathlib/MeasureTheory/WienerMeasure.lean} applies a Kolmogorov extension theorem to Mathlib's consistent Brownian Gaussian projective family.  The repository proves that it is a probability measure and that every finite coordinate restriction has the expected centered Gaussian law with covariance $\min(s,t)$.
+
+\section{Provenance}
+The projective-limit implementation under \RepoFile{ForMathlib/KolmogorovExtension/} is vendored from Remy Degenne's
+\url{https://github.com/RemyDegenne/kolmogorov_extension4} under Apache-2.0; exact commit metadata is recorded in the vendored headers/README.  The assembly using Mathlib's Brownian projective family is local.
+
+\section{Literature comparison}
+Kolmogorov's extension theorem produces a measure on a coordinate product.  The classical Wiener construction then proves continuity of sample paths (or constructs directly on a continuous-path carrier after modification).  The current Lean result completes the projective-limit step but not the continuity/support step.
+
+\begin{comparison}
+Index set & Nonnegative real times.\\
+Carrier & Unrestricted functions $\R_{\ge0}\to\R$.\\
+Finite-dimensional laws & Fully proved.\\
+Probability mass & Fully proved.\\
+Continuous-path concentration & Open.\\
+Anchored path type & Open/provisional.\\
+Dyadic Borel generation & Open.\\
+\end{comparison}
+
+\section{Role in DRSB}
+This gives a concrete reference law for finite-dimensional projection arguments.  It does not by itself support path-level Cameron--Martin translation, disintegration into Brownian bridges, SDE laws, or Girsanov.
+\end{document}

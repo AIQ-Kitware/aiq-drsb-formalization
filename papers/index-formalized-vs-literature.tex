@@ -1,0 +1,51 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Index of formalized-versus-literature result notes}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{documentation index}}{This index is a snapshot map, not a replacement for checking live Lean declarations.}
+\section{Purpose}
+This directory provides one result-centered comparison note for every headline theorem family in the repository.  The notes are deliberately adversarial: a theorem is classified by what its live Lean statement and proof term establish, not by its name or by a future roadmap.
+
+\section{Classification}
+\begin{description}[leftmargin=2.8em,style=nextline]
+\item[G] General reusable theorem near its natural mathematical level.
+\item[S] Complete special model, such as finite positive kernels or iid Gaussian sequences.
+\item[R] Central result proved under materially stronger assumptions than the source.
+\item[A] Assembly theorem whose central source-level ingredient remains an explicit hypothesis.
+\item[P] Partial theorem family.
+\item[V] Vendored foundation or a local theorem whose central base is vendored.
+\item[O] Open or roadmap-only.
+\end{description}
+Labels may be combined.
+
+\section{Result files}
+\begin{description}[leftmargin=4.2em,style=nextline]
+\item[\Class{S/G}] \RepoFile{papers/wdrsb-cost-bound-formalized-vs-literature.tex}: Wasserstein card weak-duality bound.
+\item[\Class{S/G}] \RepoFile{papers/sdrsb-cost-bound-formalized-vs-literature.tex}: Sinkhorn card weak-duality bound.
+\item[\Class{R}] \RepoFile{papers/gao-kleywegt-theorem1-formalized-vs-literature.tex}: Gao--Kleywegt Theorem 1 strong duality.
+\item[\Class{A/R}] \RepoFile{papers/gao-kleywegt-worst-case-structure-formalized-vs-literature.tex}: Gao--Kleywegt worst-case structure.
+\item[\Class{A}] \RepoFile{papers/blanchet-murthy-theorem1-formalized-vs-literature.tex}: Blanchet--Murthy Theorem 1.
+\item[\Class{A/R}] \RepoFile{papers/mek-wdro-duality-formalized-vs-literature.tex}: MEK Theorem 4.2.
+\item[\Class{A/R}] \RepoFile{papers/mek-worst-case-program-formalized-vs-literature.tex}: MEK Theorem 4.4 / Corollary 4.6.
+\item[\Class{R}] \RepoFile{papers/wang-gao-xie-theorem1-formalized-vs-literature.tex}: Wang--Gao--Xie Theorem 1.
+\item[\Class{G/A}] \RepoFile{papers/sinkhorn-gibbs-worst-case-formalized-vs-literature.tex}: Fixed-multiplier Gibbs optimizer.
+\item[\Class{G}] \RepoFile{papers/donsker-varadhan-gibbs-formalized-vs-literature.tex}: Donsker--Varadhan/Gibbs variational principle.
+\item[\Class{G}] \RepoFile{papers/kl-processing-chain-rule-formalized-vs-literature.tex}: KL data processing and chain rules.
+\item[\Class{G/S}] \RepoFile{papers/positive-matrix-scaling-existence-formalized-vs-literature.tex}: Positive rectangular matrix scaling.
+\item[\Class{G/S}] \RepoFile{papers/finite-birkhoff-hopf-contraction-formalized-vs-literature.tex}: Finite Birkhoff--Hopf contraction.
+\item[\Class{S/R}] \RepoFile{papers/finite-sinkhorn-convergence-formalized-vs-literature.tex}: Finite Sinkhorn iteration convergence.
+\item[\Class{S/V}] \RepoFile{papers/finite-gaussian-control-energy-formalized-vs-literature.tex}: Finite Gaussian/Euler--Maruyama energy identity.
+\item[\Class{S}] \RepoFile{papers/sequence-gaussian-cameron-martin-formalized-vs-literature.tex}: Gaussian sequence Cameron--Martin/Kakutani.
+\item[\Class{G/V}] \RepoFile{papers/wiener-measure-construction-formalized-vs-literature.tex}: Kolmogorov extension and Wiener measure.
+\item[\Class{A/P}] \RepoFile{papers/schrodinger-bridge-soc-entropic-ot-formalized-vs-literature.tex}: SB/SOC/entropic-OT equivalences.
+\item[\Class{A/P}] \RepoFile{papers/continuum-control-energy-kl-formalized-vs-literature.tex}: Continuum control-energy/KL identity.
+\end{description}
+
+\section{Scope rule}
+Supporting lemmas are grouped with the headline theorem they serve.  For example, measurable selection, supergradients, finite weighted-Dirac integration, and Gibbs normalization do not receive separate ``literature result'' files unless they are themselves the subject of an independent source theorem.  This avoids turning a helper inventory into inflated theorem-completion claims.
+
+\section{Snapshot}
+All comparisons in this first overlay are tied to repository commit \snapshot.  Later proof campaigns should update the corresponding result file in the same commit that changes the theorem's assumptions or conclusion.
+\end{document}

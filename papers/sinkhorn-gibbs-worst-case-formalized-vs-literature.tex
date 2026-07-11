@@ -1,0 +1,39 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Sinkhorn-DRO Gibbs worst-case conditional: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{G/A}: exact normalization and density identity at a fixed multiplier}{The theorem does not derive an optimal multiplier, budget feasibility, or primal optimality of the assembled law.}
+\section{Source target}
+Wang--Gao--Xie Remark~4 identifies the conditional worst-case law as an exponential tilt of the external reference measure:
+\[
+ dP_x^*(y)\propto
+ \exp\left(\frac{f(y)-\lambda^*c(x,y)}{\lambda^*\kappa}\right)d\nu(y).
+\]
+See \RepoFile{prose/distilled_literature/WangGaoXie2025_sinkhorn_dro.tex}.
+
+\section{Lean declarations}
+\begin{itemize}[leftmargin=2em]
+\item \Lean{WangGaoXie2023.gibbsUnnormalized};
+\item \Lean{WangGaoXie2023.exists_worstCase_gibbs};
+\item \Lean{WangGaoXie2023.worstCase_conditional_tilted};
+\item \Lean{WangGaoXie2023.logPartition_eq_gibbs_sSup}.
+\end{itemize}
+
+\section{What is complete}
+Given a fixed multiplier and finite nonzero normalizing masses, Lean constructs a probability kernel pointwise by inverse-mass scaling, proves proportionality to the unnormalized Gibbs measure, and identifies it with Mathlib's tilted measure.  The Gibbs variational identity proves that this tilt exactly attains the inner entropy-penalized supremum.
+
+\section{What is not yet derived}
+\begin{comparison}
+Normalizability & Assumed pointwise through finite and nonzero partition functions.\\
+Optimal multiplier & Not supplied by this result.\\
+Joint measurability as a kernel & The existence theorem returns a family of measures; stronger kernel packaging is separate.\\
+Budget feasibility & Not proved for the fixed tilt.\\
+Complementary slackness & Not proved.\\
+Primal attainment & Not proved.\\
+\end{comparison}
+
+\section{Correct reading}
+This is a complete measure-normalization and inner-Gibbs theorem.  It must not be cited alone as existence of a worst-case distribution for the outer Sinkhorn-DRO problem.
+\end{document}

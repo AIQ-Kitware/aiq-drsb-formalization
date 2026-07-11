@@ -1,0 +1,43 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Schr\"odinger bridge, stochastic control, and entropic OT equivalences: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{A/P}: several exact algebraic/DPI directions plus explicit interfaces for the path-space and optimizer content}{The headline equivalences are not yet concrete end-to-end continuum theorems; key Girsanov, gluing, optimizer, and PDE ingredients remain hypotheses.}
+\section{Literature targets}
+The main source is Chen--Georgiou--Pavon (2021), with static/dynamic background from Fortet and L\'eonard.  Relevant local reconstructions are
+\RepoFile{prose/distilled_literature/CGP2021_sinkhorn_schrodinger_bridge.tex},
+\RepoFile{prose/distilled_literature/Fortet1940_schrodinger_system.tex}, and
+\RepoFile{prose/distilled_literature/Leonard2014_schrodinger_survey.tex}.
+
+\section{Lean declarations}
+\begin{itemize}[leftmargin=2em]
+\item \Lean{ChenGeorgiouPavon2021.schrodingerBridge_KL_eq_SOC};
+\item \Lean{ChenGeorgiouPavon2021.dynamic_eq_static_SB};
+\item \Lean{ChenGeorgiouPavon2021.staticSB_eq_entropicOT};
+\item \Lean{ChenGeorgiouPavon2021.optimal_control_eq_grad_log};
+\item \Lean{ChenGeorgiouPavon2021.optimal_control_eq_grad_value} and sign/scaled variants;
+\item finite potential existence and convergence results under \RepoFile{ChenGeorgiouPavon2021/SocOt/Sinkhorn/}.
+\end{itemize}
+
+\section{What is genuinely proved}
+\begin{itemize}[leftmargin=2em]
+\item The static value is no larger than the dynamic value by KL data processing under endpoint projection.
+\item Static SB equals the entropic-OT value once the two reference endpoint measures are identified; this is a definitional rewrite rather than the analytic Gibbs-kernel theorem.
+\item Algebraic conversions among control, log-potential, and value gradients are proved from explicit identification hypotheses.
+\item Finite strictly positive Schrödinger potentials exist, are unique up to gauge, and gauge-normalized iterates converge.
+\end{itemize}
+
+\section{Assembly edges}
+\begin{comparison}
+SB KL $=$ SOC & Depends on the path-law KL/control-energy identity.\\
+Dynamic $\le$ static & Depends on gluing reference bridges onto an endpoint coupling.\\
+Static optimizer & Existence/uniqueness theorems accept verification or compactness ingredients.\\
+Optimal drift formula & Analytic HJB/Hopf--Cole identifications are supplied explicitly.\\
+Continuum path carrier & Current unrestricted function carrier is provisional.\\
+\end{comparison}
+
+\section{Correct scope}
+The repository contains strong finite/discrete mathematics and verified assembly logic, but not yet a concrete continuum Schr\"odinger bridge with constructed SDE path laws, bridge disintegrations, optimizer existence, and HJB verification all derived from primitive assumptions.
+\end{document}

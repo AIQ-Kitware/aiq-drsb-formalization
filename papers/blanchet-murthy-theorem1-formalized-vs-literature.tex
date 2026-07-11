@@ -1,0 +1,43 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Blanchet--Murthy Theorem 1: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{A}: weak-duality proof plus an explicit reverse-inequality premise}{The difficult minimax/reverse-duality direction, dual attainment, and complementary slackness are not derived from Assumptions (A1)--(A2).}
+\section{Source theorem}
+Blanchet and Murthy, ``Quantifying Distributional Model Risk via Optimal Transport,'' Theorem~1(a) proves equality between the robust primal and an infinite-dimensional dual; Theorem~1(b) gives a dual optimizer and complementary-slackness relations.  Remark~1 reduces the value to the scalar dual
+\[
+ \inf_{\lambda\ge0}\left\{\lambda\delta+
+ \int \sup_y(f(y)-\lambda c(x,y))\,\widehat\mu(dx)\right\}.
+\]
+The complete local reconstruction is
+\RepoFile{prose/distilled_literature/BlanchetMurthy2019_theorem1.tex}.
+
+\section{Lean declarations}
+\Lean{BlanchetMurthy2019.wdro_strong_duality} and
+\Lean{BlanchetMurthy2019.wdro_strong_duality_dualFn} are in
+\RepoFile{BlanchetMurthy2019/Basic.lean}.
+
+\section{What Lean proves internally}
+The proof derives the full weak-duality direction from the reusable per-coupling Lagrangian inequality, handles the source/scaffold orientation through an explicit symmetry assumption, derives boundedness of the primal expectation set, and performs the real $sSup/sInf$ bookkeeping.
+
+The theorem then accepts
+\[
+ \text{dual value}\le \text{primal value}
+\]
+as an explicit hypothesis \texttt{hge}.  Consequently the final equality is machine checked, but the source theorem has not been derived from its primitive topological hypotheses.
+
+\section{Axis-by-axis comparison}
+\begin{comparison}
+Cost assumptions & Source: nonnegative lower-semicontinuous cost with identity-of-indiscernibles. Lean: arbitrary real cost in the type, plus symmetry and explicit finiteness/integrability premises.\\
+Reward assumptions & Source: upper semicontinuous and $L^1$ under the nominal law. Lean: explicit envelope boundedness and integrability under all feasible laws.\\
+Reverse inequality & Source: proved by the paper's minimax argument. Lean: supplied as \texttt{hge}.\\
+Dual attainment & Source: yes. Lean: absent.\\
+Complementary slackness & Source: yes. Lean: absent.\\
+Primal attainment & Source: conditional and discussed separately. Lean: absent.\\
+\end{comparison}
+
+\section{Relationship to the Gao--Kleywegt route}
+The repository contains a genuinely proved reverse-duality theorem under stronger bounded-continuous assumptions in \RepoFile{ForMathlib/OptimalTransport/StrongDualityGe.lean}.  A future Blanchet--Murthy completion may reuse that infrastructure after generalizing it, or it may formalize the source's Fenchel--Sion proof to obtain the stronger optimizer and complementary-slackness conclusions.
+\end{document}

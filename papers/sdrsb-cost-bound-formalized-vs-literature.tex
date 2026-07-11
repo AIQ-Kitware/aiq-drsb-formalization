@@ -1,0 +1,49 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Sinkhorn DRSB card bound: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{S/G}: complete quadratic entropic weak-duality specialization using an extended-valued plan cost}{The dual is restricted to positive multipliers and the theorem does not cover the paper's shifted-radius boundary or the $\lambda=0$ endpoint.}
+\section{Comparison target}
+The production declaration is \Lean{Drsb.sdrsb_cost_bound} in
+\RepoFile{Drsb/Basic.lean}.  Its principal source is Wang--Gao--Xie, ``Sinkhorn Distributionally Robust Optimization,'' especially Lemma~1 and Theorem~1.  The detailed local source reconstruction is
+\RepoFile{prose/distilled_literature/WangGaoXie2025_sinkhorn_dro_theorem1.tex}.
+
+\section{Literature inequality}
+For a nominal law $p_0$, external reference $\nu$, entropy weight $\kappa>0$, reward $V$, and Sinkhorn budget $\epsilon$, the entropic Lagrangian gives
+\[
+ \int V\,d\mu
+ \le
+ \inf_{\lambda>0}\left\{
+ \lambda\epsilon+
+ \lambda\kappa\int
+ \log\int \exp\left(\frac{V(y)-\lambda c(x,y)}{\lambda\kappa}\right)\nu(dy)\,p_0(dx)
+ \right\}
+\]
+for every feasible source law $\mu$.
+
+\section{What Lean proves}
+The card wrapper specializes $c(x,y)$ to $\lVert x-y\rVert^2$.  Ball membership is enough to obtain, for every tolerance, a near-optimal coupling with finite $\ENN$ Sinkhorn objective.  The proof then:
+\begin{enumerate}[leftmargin=2em]
+\item disintegrates the coupling with \Lean{Measure.condKernel};
+\item uses the KL chain rule to obtain a conditional budget;
+\item applies the pointwise Donsker--Varadhan inequality;
+\item integrates over $p_0$ and sends the plan tolerance to zero.
+\end{enumerate}
+The load-bearing theorem is \Lean{WangGaoXie2023.sinkhorn_weak_duality_kernel}.
+
+\section{Axis-by-axis comparison}
+\begin{comparison}
+Reference measure & Lean correctly carries the external $\nu$ appearing in the paper's entropic reference.\\
+Cost & Quadratic in the card; general real nonnegative cost in the source-facing kernel.\\
+Plan objective & $\ENN$-valued, so singular or infinite-entropy plans score $\Top$.\\
+Multiplier domain & Lean uses $\lambda>0$.\\
+Paper endpoint & The paper includes a $\lambda=0$ endpoint through an essential-supremum convention.\\
+Radius & Lean exposes the raw cost budget; the paper's clean feasibility statement uses a shifted radius.\\
+Duality level & One feasible-law inequality, not value equality.\\
+\end{comparison}
+
+\section{Explicit nonclaims}
+The theorem does not prove the boundary-radius case, existence of an optimal multiplier, feasibility of the normalized Gibbs conditional at that multiplier, primal attainment, or equality between the robust value and the dual.  It also does not construct $V$ from a continuum stochastic-control problem.
+\end{document}

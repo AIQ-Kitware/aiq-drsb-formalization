@@ -1,0 +1,41 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{KL data processing, chain rules, and projection exhaustion: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{G}: reusable information-theoretic foundation; some chain-rule ingredients are Mathlib-backed and some are local extensions}{The API mixes $\ENN$ and real-valued corollaries, and the strongest projection-exhaustion statements still require explicit convergence hypotheses.}
+\section{Result family}
+This comparison covers:
+\begin{itemize}[leftmargin=2em]
+\item KL data processing under measurable pushforward;
+\item product/kernel chain rules;
+\item conditional KL as an integral of pointwise KL;
+\item monotone finite-projection bounds and exhaustion results.
+\end{itemize}
+The main local files are \RepoFile{ForMathlib/MeasureTheory/KLDataProcessing.lean} and
+\RepoFile{ForMathlib/MeasureTheory/KLChainRule.lean}.
+
+\section{Headline declarations}
+\begin{itemize}[leftmargin=2em]
+\item \Lean{ForMathlib.MeasureTheory.klDiv_map_le};
+\item \Lean{ForMathlib.MeasureTheory.toReal_klDiv_map_le};
+\item \Lean{ForMathlib.MeasureTheory.toReal_klDiv_compProd_eq_add};
+\item \Lean{ForMathlib.MeasureTheory.klDiv_compProd_eq_lintegral};
+\item projection-limit lemmas such as \Lean{le_toReal_klDiv_of_map_tendsto}.
+\end{itemize}
+
+\section{Literature comparison}
+Data processing is the standard convex-Jensen theorem for $f$-divergences.  Lean proves it from Mathlib's Radon--Nikodym derivative of a pushforward, conditional expectation, Jensen's inequality for the KL generator, and the integral representation of KL.  The kernel chain rule extends Mathlib's product/comp-product infrastructure to the exact conditional form needed by the continuum energy decomposition.
+
+\begin{comparison}
+Data processing & Fully proved, including an $\ENN$ inequality and finite-real corollary.\\
+Kernel chain rule & Proved under countable-generation and absolute-continuity/finiteness assumptions required by Mathlib's RN-derivative API.\\
+Projection exhaustion & Upper bounds are general; equality requires a sequence of projections whose KL values converge appropriately.\\
+Primary client & \Lean{ChenGeorgiouPavon2021.dynamic_eq_static_SB} and the energy-identity decomposition.\\
+Literature source & Classical information theory rather than one unique paper; local source attribution should remain theorem-specific.\\
+\end{comparison}
+
+\section{Nonclaims}
+This family is not a general formalization of all $f$-divergence data processing, nor does it automatically prove path-space KL exhaustion for arbitrary coordinate systems.  The latter requires a Borel-generation or density-martingale theorem specialized to the chosen path carrier.
+\end{document}

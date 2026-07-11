@@ -1,0 +1,43 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Finite Gaussian shift and Euler--Maruyama control-energy identity: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{S/V}: complete finite-dimensional model built on a vendored Gaussian-KL theorem}{This is a discrete Gaussian/Euler--Maruyama identity, not a path-space Cameron--Martin or Girsanov theorem.}
+\section{Result}
+The finite-dimensional Cameron--Martin entropy formula is
+\[
+ \KL\bigl((\mathcal N(0,I))\circ(x\mapsto x+h)^{-1}\,\Vert\,\mathcal N(0,I)\bigr)
+ =\frac12\sum_i h_i^2.
+\]
+After scaling independent increments by $\sqrt{\Delta t}$, this yields the Euler--Maruyama identity between path-law KL and the discrete control energy $\sum_k\Delta t\,\lVert u_k\rVert^2/2$.
+
+\section{Lean declarations}
+\begin{itemize}[leftmargin=2em]
+\item \Lean{ForMathlib.MeasureTheory.klDiv_stdGaussian_map_add};
+\item \Lean{ForMathlib.MeasureTheory.klDiv_emShift_eq_emEnergy};
+\item \Lean{ChenGeorgiouPavon2021.energy_identity_euler_maruyama}.
+\end{itemize}
+The first theorem is in \RepoFile{ForMathlib/MeasureTheory/GaussianEntropy.lean}; the discrete control wrapper is in \RepoFile{ChenGeorgiouPavon2021/SequenceGaussian.lean}.
+
+\section{Provenance}
+The finite Gaussian entropy block is literally vendored from Michael R. Douglas's
+\url{https://github.com/mrdouglasny/gibbs-variational} at commit
+\texttt{75e08d8aaca83bb090fc43855898991fbfc9abf3}, Apache-2.0, with namespace adaptation.  The Euler--Maruyama control-energy theorem is local work built on that block.
+
+\section{Comparison}
+\begin{comparison}
+Dimension & Finite.\\
+Covariance & Standard independent coordinates after explicit scaling.\\
+Shift & Deterministic vector/control array.\\
+Identity & Exact KL equals discrete energy.\\
+Continuum limit & Not included.\\
+Adapted random drift & Not included.\\
+\end{comparison}
+
+\section{Literature relation}
+The result is the finite-coordinate atom behind Cameron--Martin and Girsanov arguments, and the local distilled sources
+\RepoFile{prose/distilled_literature/CameronMartin1945_wiener_transformations.tex} and
+\RepoFile{prose/distilled_literature/Girsanov1960_change_of_measure.tex} explain the continuum statements.  The Lean theorem should not be labeled as either full theorem.
+\end{document}

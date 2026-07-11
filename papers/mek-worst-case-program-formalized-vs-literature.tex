@@ -1,0 +1,35 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Mohajerin Esfahani--Kuhn Theorem 4.4 and Corollary 4.6: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{A/R}: constructive finite-law direction with dominance and attainment supplied as explicit edges}{Lean constructs and verifies the proposed worst-case law, but does not prove existence of an optimal extremal program solution from the paper's convex assumptions.}
+\section{Source targets}
+Theorem~4.4 identifies the robust value with a finite convex extremal program, and Corollary~4.6 gives a discrete worst-case law supported on atoms of the form
+$\widehat\xi_i-q_{ik}/\alpha_{ik}$.  The local source reconstruction is
+\RepoFile{prose/distilled_literature/MohajerinEsfahaniKuhn2018_data_driven_wdro.tex}.
+
+\section{Lean declarations}
+\begin{itemize}[leftmargin=2em]
+\item \Lean{MohajerinEsfahaniKuhn2018.worstCaseLaw_ball_ge};
+\item \Lean{MohajerinEsfahaniKuhn2018.worstCase_program};
+\item \Lean{MohajerinEsfahaniKuhn2018.worstCase_exists}.
+\end{itemize}
+All are in \RepoFile{MohajerinEsfahaniKuhn2018/Basic.lean}.
+
+\section{Constructive theorem already proved}
+From any feasible extremal variables $(\alpha,q)$, Lean builds the weighted Dirac law, proves it has total mass one, constructs an explicit transport plan from the empirical nominal law, bounds its transport cost by the program budget, and proves that its expected max-loss dominates the extremal objective.  This is the substantial reusable core.
+
+\section{Remaining source edges}
+\begin{comparison}
+Program $\le$ robust value & Proved constructively by the explicit law.\\
+Robust value $\le$ program & Supplied as the dominance edge \texttt{hdom}.\\
+Existence of program optimizer & Supplied as \texttt{hattain}.\\
+Worst-case law verification & Proved once an optimizer is supplied.\\
+Atom count and form & Explicitly represented by the finite weighted sum.\\
+\end{comparison}
+
+\section{Interpretation}
+The code should be read as a verified reduction and optimizer-construction layer, not as a formal proof that the source assumptions imply finite-program attainment.  Closing the theorem requires convex compactness/coercivity and finite-dimensional duality results, or a direct formalization of the source's argument.
+\end{document}

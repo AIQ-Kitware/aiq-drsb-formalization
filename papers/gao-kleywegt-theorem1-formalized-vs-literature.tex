@@ -1,0 +1,49 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Gao--Kleywegt Theorem 1: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{R}: genuine strong-duality equality under materially stronger regularity and explicit integrability assumptions}{The paper's growth-rate hypothesis has not yet been proved to discharge the Lean premises, and the real-valued API cannot express the source conclusion $v_P=v_D<\infty$.}
+\section{Source theorem}
+Gao and Kleywegt, ``Distributionally Robust Stochastic Optimization with Wasserstein Distance,'' Theorem~1, prove for a Polish state space, $p\ge1$, $\nu\in\mathcal P_p$, radius $\theta>0$, upper-semicontinuous reward $\Psi\in L^1(\nu)$, and finite growth rate $\kappa$ that
+\[
+ v_P=v_D<\infty.
+\]
+The source defines $\kappa$ through finiteness of the integrated Moreau--Yosida regularization and proves its equivalence with asymptotic $d^p$ growth.  See
+\RepoFile{prose/distilled_literature/GaoKleywegt2023_theorem1.tex} and
+\RepoFile{prose/distilled_literature/GaoKleywegt2023_wasserstein_drso.tex}.
+
+\section{Lean declarations}
+The relevant declarations in \RepoFile{GaoKleywegt2023/Basic.lean} are:
+\begin{itemize}[leftmargin=2em]
+\item \Lean{GaoKleywegt2023.weak_duality_prop1};
+\item \Lean{GaoKleywegt2023.strong_duality_thm1};
+\item \Lean{GaoKleywegt2023.strong_duality_thm1_of_regularity};
+\item \Lean{GaoKleywegt2023.dualValue_le_primalValue}.
+\end{itemize}
+The first strong-duality declaration is an assembly theorem with the reverse inequality supplied explicitly.  The \Lean{GaoKleywegt2023.strong_duality_thm1_of_regularity} theorem genuinely proves that reverse inequality using measurable $\varepsilon$-argmax selection, concavity of the transport-budget value function, and a nonnegative multiplier.
+
+\section{Current Lean hypothesis package}
+The edge-free equality theorem requires a second-countable Borel space, a nonempty carrier, continuous reward, continuous nonnegative cost, a global bound $|\Psi|\le C$, explicit integrability of the pointwise envelope for every nonnegative multiplier, integrability of $\Psi$ under every feasible law, near-optimal integrable couplings, and a nonempty zero-budget value set.
+
+By contrast, the source derives the needed finiteness and coercivity facts from upper semicontinuity, the moment condition, and $\kappa<\infty$.
+
+\section{Axis-by-axis comparison}
+\begin{comparison}
+State space & Source: Polish. Lean: second-countable Borel topological space, with additional structures inherited by clients.\\
+Reward & Source: upper semicontinuous, integrable, finite asymptotic growth. Lean: continuous and globally bounded, plus explicit feasible-law integrability.\\
+Cost & Source: metric power; Remark~2 permits a suitable general nonnegative measurable cost. Lean: continuous nonnegative real cost.\\
+Growth rate & Lean defines \Lean{GaoKleywegt2023.kappa}, but does not yet derive the theorem's regularity package from it.\\
+Value type & Source reasons in extended values and concludes finiteness. Lean uses $\R$-valued $sSup/sInf$.\\
+Equality & Genuinely proved by \Lean{GaoKleywegt2023.strong_duality_thm1_of_regularity}.\\
+Dual attainment & Not part of the Lean theorem.\\
+Primal attainment & Not part of Theorem~1 and not claimed by the Lean equality.\\
+\end{comparison}
+
+\section{Proof-architecture difference}
+The paper analyzes the scalar dual objective through the minimizing radii $D^\pm$, measurable selectors, and the cases $\lambda^*>\kappa$, $\lambda^*=\kappa>0$, and $\kappa=0$.  Lean instead proves a reusable converse-duality theorem from bounded continuity, countable dense-set $\varepsilon$-argmax selectors, and a concave value function.  The conclusion is mathematically substantial, but it is not yet a line-by-line formalization of the source proof.
+
+\section{Definition of source-level completion}
+Completion requires an extended-value transport/primal/dual layer, exact formalization of the source growth rate, derivation of envelope and feasible-law integrability from that growth condition, replacement of continuity by upper semicontinuity where the paper permits it, removal of the explicit near-optimal-integrable-coupling premise, and a theorem that states both equality and finite value.
+\end{document}

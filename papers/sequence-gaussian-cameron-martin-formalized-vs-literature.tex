@@ -1,0 +1,46 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Iid Gaussian sequence Cameron--Martin/Kakutani theorem: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{S}: complete infinite-product special model}{The carrier is a countable product of iid standard real Gaussians; this is not an abstract Wiener-space or continuous-path theorem.}
+\section{Literature targets}
+Kakutani's product-measure dichotomy and Cameron--Martin translation theory imply that a deterministic Gaussian shift is absolutely continuous exactly in the square-summable directions, with KL equal to half the squared Cameron--Martin norm.  See
+\RepoFile{prose/distilled_literature/Kakutani1948_product_measures.tex} and
+\RepoFile{prose/distilled_literature/CameronMartin1945_wiener_transformations.tex}.
+
+\section{Lean declarations}
+The theorem family under \RepoFile{ForMathlib/MeasureTheory/GaussianCameronMartin/} includes:
+\begin{itemize}[leftmargin=2em]
+\item \Lean{absolutelyContinuous_stdSeqGaussian_map_add_of_summable};
+\item \Lean{klDiv_stdSeqGaussian_map_add_of_summable};
+\item \Lean{summable_iff_klDiv_stdSeqGaussian_map_add_ne_top};
+\item \Lean{klDiv_stdSeqGaussian_map_add_eq_top_iff_not_summable}.
+\end{itemize}
+The CGP-facing wrappers are \Lean{energy_identity_sequenceModel},
+\Lean{energy_identity_sequenceModel_finite_iff_summable}, and
+\Lean{energy_identity_sequenceModel_top_iff_not_summable}.
+
+\section{Formalized statement}
+For the iid standard Gaussian law on $\R^{\mathbb N}$ and deterministic shift $c$:
+\begin{itemize}[leftmargin=2em]
+\item if $\sum_n c_n^2<\infty$, the shifted law is absolutely continuous and
+$\KL=\frac12\sum_n c_n^2$;
+\item if the square sum diverges, the KL divergence is $\Top$;
+\item finite KL is equivalent to square summability.
+\end{itemize}
+
+\section{Proof architecture}
+Lean proves finite-prefix density formulas, an $L^2$ bound for the density martingale, absolute continuity of the projective limit, finite-prefix KL formulas, and the infinite branch.  This is a genuine end-to-end model rather than an assembly theorem.
+
+\section{Comparison}
+\begin{comparison}
+Gaussian space & Countable iid product of one-dimensional standard Gaussians.\\
+Cameron--Martin space & $\ell^2$.\\
+Absolute continuity/singularity & Encoded through absolute continuity and finite/infinite KL.\\
+RN density & Prefix density process is formalized; a maximally packaged terminal density theorem is secondary.\\
+Continuous Wiener paths & Not represented.\\
+Adapted shifts & Not represented.\\
+\end{comparison}
+\end{document}

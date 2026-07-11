@@ -1,0 +1,25 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{booktabs,tabularx,array}
+\usepackage{enumitem}
+\usepackage[margin=1in]{geometry}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{microtype}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.55em}
+\newcommand{\Lean}[1]{\texttt{\nolinkurl{#1}}}
+\newcommand{\RepoFile}[1]{\texttt{\nolinkurl{#1}}}
+\newcommand{\Class}[1]{\textbf{#1}}
+\newcommand{\Top}{\mathord{\top}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\ENN}{\mathbb{R}_{\ge 0}^{\infty}}
+\newcommand{\KL}{\operatorname{KL}}
+\newcommand{\W}{\mathsf{W}}
+\newcommand{\statusline}[2]{%
+  \begin{center}\fbox{\begin{minipage}{0.92\linewidth}\textbf{Completion class:} #1\\[2pt]
+  \textbf{Strongest caveat:} #2\end{minipage}}\end{center}}
+\newenvironment{comparison}{\tabularx{\linewidth}{>{\bfseries}p{0.25\linewidth}X}}{\endtabularx}
+\newcommand{\snapshot}{\texttt{902f51aa01a737af68f6feb71c83263cc9b1f4d9}}

@@ -1,0 +1,38 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Mohajerin Esfahani--Kuhn Theorem 4.2: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{A/R}: source-shaped empirical scalar dual with a proved weak direction and an explicit reverse-duality edge}{The Lean theorem uses a support-restricted ambiguity set needed by its total real-valued loss encoding, and it does not derive strong duality from Assumption 4.1.}
+\section{Source target}
+Theorem~4.2 of Mohajerin Esfahani and Kuhn gives a finite-sample Wasserstein-DRO reformulation whose intermediate scalar dual is
+\[
+ \inf_{\lambda\ge0}\left\{\lambda\epsilon+
+ \frac1N\sum_{i=1}^N\sup_{\xi\in\Xi}
+ \bigl(\ell(\xi)-\lambda\lVert\xi-\widehat\xi_i\rVert\bigr)\right\}.
+\]
+See \RepoFile{prose/distilled_literature/MohajerinEsfahaniKuhn2018_data_driven_wdro.tex}.
+
+\section{Lean declaration}
+\Lean{MohajerinEsfahaniKuhn2018.worstCaseExpectation_eq_dual} in
+\RepoFile{MohajerinEsfahaniKuhn2018/Basic.lean}.
+
+\section{Formalized content}
+Lean proves the weak direction with a support-restricted version of the general OT Lagrangian kernel and proves the empirical integral collapse to a finite average.  The equality is completed from an explicit reverse inequality \texttt{hge}.
+
+The ambiguity set is \Lean{MohajerinEsfahaniKuhn2018.wass1BallΞ}, requiring feasible laws to be supported on $\Xi$.  This is a deliberate fidelity correction: the paper effectively encodes $+\infty$ outside $\Xi$, whereas the Lean loss is a total $\R$-valued function.  Without the support restriction, mass could escape $\Xi$ and violate the displayed dual.
+
+\section{Comparison}
+\begin{comparison}
+Nominal law & Finite empirical law, faithfully represented.\\
+Ground cost & Norm cost, matching the order-one formulation in this declaration.\\
+Support & Explicit $Q(\Xi)=1$ restriction in Lean; implicit through the paper's extended loss/domain.\\
+Convexity and semicontinuity & Retained as source-facing hypotheses but not used to derive \texttt{hge}.\\
+Strong-duality proof & Not formalized from primitive assumptions.\\
+Finite convex program & Handled by separate declarations.\\
+\end{comparison}
+
+\section{Nonclaims}
+This theorem is not yet a complete formalization of Theorem~4.2's derivation.  In particular, it does not prove the needed finite-dimensional convex/LP duality or an extremal representation that would discharge the reverse inequality.
+\end{document}

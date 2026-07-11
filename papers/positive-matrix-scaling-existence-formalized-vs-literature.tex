@@ -1,0 +1,48 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Positive matrix scaling and discrete Schrödinger potentials: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{G/S}: complete finite strictly-positive rectangular existence theorem and square Schrödinger-potential specialization}{The theorem does not cover nonnegative matrices with support conditions, and its proof is an independent log-domain convex-minimization route rather than Sinkhorn--Knopp convergence.}
+\section{Literature targets}
+The relevant literature includes Sinkhorn's scaling theorem, Sinkhorn--Knopp (1967), Franklin--Lorenz (1989), and the finite Schrödinger system used by Chen--Georgiou--Pavon.  The local source reconstructions are
+\RepoFile{prose/distilled_literature/SinkhornKnopp1967_matrix_scaling.tex},
+\RepoFile{prose/distilled_literature/FranklinLorenz1989_matrix_scaling.tex}, and
+\RepoFile{prose/distilled_literature/CGP2021_sinkhorn_schrodinger_bridge.tex}.
+
+\section{Lean declarations}
+\begin{itemize}[leftmargin=2em]
+\item \Lean{ForMathlib.matrix_scaling_exists_rectangular};
+\item \Lean{ForMathlib.matrix_scaling_exists};
+\item \Lean{ForMathlib.sinkhorn_potentials_exist};
+\item \Lean{ChenGeorgiouPavon2021.sinkhorn_potentials_exist}.
+\end{itemize}
+The core is in \RepoFile{ForMathlib/LinearAlgebra/Matrix/SinkhornScaling.lean}.
+
+\section{What Lean proves}
+For finite row and column index types, strictly positive prescribed marginals with equal total mass, and a strictly positive rectangular kernel $G$, Lean constructs positive scalings $a,b$ such that
+\[
+ a_i\sum_jG_{ij}b_j=p_i,
+ \qquad
+ b_j\sum_iG_{ij}a_i=q_j.
+\]
+The square theorem and four-potential Schrödinger-system theorem are thin specializations.
+
+\section{Proof architecture}
+The proof minimizes a log-domain convex potential on an open simplex.  Boundary blow-up confines a sublevel set to a compact region; the extreme-value theorem supplies a minimizer; one-dimensional directional derivatives give the marginal equations; equal total mass removes the Lagrange multiplier.  This is not a proof by convergence of alternating row/column normalization.
+
+\section{Comparison}
+\begin{comparison}
+Matrix entries & Strictly positive only.\\
+Shape & Rectangular core and square wrapper.\\
+Marginals & Strictly positive with equal mass.\\
+Existence & Complete.\\
+Uniqueness up to gauge & Proved elsewhere for finite potential systems, not bundled into this existence theorem.\\
+Algorithmic convergence & Separate theorem family.\\
+Support-sensitive case & Not formalized.\\
+\end{comparison}
+
+\section{Nonclaims}
+No claim is made for matrices with zeros, total support, full indecomposability, or the exact support criteria of Sinkhorn--Knopp.  The proof also does not show that raw Sinkhorn iterates converge to the constructed scaling.
+\end{document}

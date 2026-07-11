@@ -1,0 +1,62 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Wasserstein DRSB card bound: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{S/G}: complete quadratic weak-duality specialization built from a reusable general-cost kernel}{This is a one-sided bound for one feasible law, not Gao--Kleywegt or Blanchet--Murthy strong duality, and the radius is a budget on squared transport cost rather than the unsquared $W_2$ radius.}
+\section{Comparison target}
+The production declaration is
+\[
+  \Lean{Drsb.wdrsb_cost_bound}
+  \quad\text{in}\quad
+  \RepoFile{Drsb/Basic.lean}.
+\]
+It supports the evaluation-card claim that a particular perturbed source law inside the quadratic transport ambiguity set has expected value no larger than the scalar Wasserstein-DRO dual bound.
+
+The closest literature sources are Blanchet--Murthy (2019), Theorem~1 and Remark~1, and Gao--Kleywegt (2023), Proposition~1 and Theorem~1.  The local reconstructions are
+\RepoFile{prose/distilled_literature/BlanchetMurthy2019_theorem1.tex} and
+\RepoFile{prose/distilled_literature/GaoKleywegt2023_theorem1.tex}.
+
+\section{Literature statement used by the card}
+For a nominal law $p_0$, reward $V$, nonnegative cost $c$, and budget $\delta$, weak duality gives, for every feasible $\mu$,
+\[
+  \int V\,d\mu
+  \le
+  \inf_{\lambda\ge 0}
+  \left\{\lambda\delta+
+  \int \sup_x\bigl(V(x)-\lambda c(x,y)\bigr)\,p_0(dy)\right\}.
+\]
+The card uses $c(x,y)=\lVert x-y\rVert^2$.  If a paper writes $W_2(\mu,p_0)\le r$, then the corresponding Lean budget is $\delta=r^2$.
+
+\section{What Lean proves}
+The theorem assumes:
+\begin{itemize}[leftmargin=2em]
+\item $\mu$ belongs to the real-valued quadratic-cost ball \Lean{wassersteinBall p0 epsilon};
+\item $V$ is integrable under $\mu$;
+\item every pointwise dual envelope is bounded above and integrable under $p_0$;
+\item both $\mu$ and $p_0$ have finite second moments.
+\end{itemize}
+It then proves the displayed one-sided bound.  No optimal transport plan is assumed to attain the infimum.  Instead, the proof selects plans with cost below $\epsilon+\eta$ and sends $\eta\downarrow0$.  The second-moment assumptions imply integrability of the quadratic cost for every coupling.
+
+The load-bearing paper-agnostic theorem is
+\Lean{ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost} in
+\RepoFile{ForMathlib/OptimalTransport/WeakDuality.lean}.
+
+\section{Axis-by-axis comparison}
+\begin{comparison}
+Source scope & General nonnegative lower-semicontinuous or metric-power costs, depending on the source theorem.\\
+Lean scope & Quadratic norm cost in the card wrapper; the underlying Lagrangian inequality is general-cost.\\
+Value type & The card uses real Bochner integrals, real $sInf$, and real $sSup$.\\
+Radius convention & $\epsilon$ bounds $W_2^2$, not $W_2$.\\
+Duality level & One feasible-law inequality only.\\
+Attainment & Neither primal nor dual attainment is claimed or needed.\\
+Continuum DRSB dependency & None: $V$ is an abstract function.\\
+\end{comparison}
+
+\section{Why the second-moment hypotheses remain}
+The current real-valued \Lean{couplingCost} uses a Bochner integral.  A nonintegrable cost can therefore collapse to the real integral's junk value.  Finite moments prevent this pathology for the quadratic cost.  This is a formalization artifact, not a hypothesis in the natural extended-valued formulation.  A canonical $\ENN$ transport layer should eventually remove it.
+
+\section{Explicit nonclaims}
+This result does not prove equality of primal and dual values, finiteness of either optimization problem, existence of a worst-case distribution, or construction of the stochastic-control value function $V$.  Those are separate results and campaigns.
+\end{document}

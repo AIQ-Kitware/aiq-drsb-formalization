@@ -1,0 +1,46 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Finite positive-kernel Birkhoff--Hopf contraction: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{G/S}: two independent complete finite-coordinate contraction proofs with a common coarse global coefficient}{This is not the abstract proper-cone theorem, and the paper route does not yet export the sharp global $\tanh(\Delta/4)$ coefficient.}
+\section{Literature targets}
+The source family includes Birkhoff (1957), Eveson--Nussbaum (1995), and modern Hilbert-metric treatments such as Lemmens--Nussbaum.  Relevant local reconstructions are
+\RepoFile{prose/distilled_literature/Birkhoff1957_extensions_jentzsch.tex},
+\RepoFile{prose/distilled_literature/EvesonNussbaum1995_birkhoff_hopf.tex}, and
+\RepoFile{prose/distilled_literature/LemmensNussbaum2013_hilbert_metric_survey.tex}.
+
+\section{Lean theorem routes}
+The route-neutral definitions are in
+\RepoFile{ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/Basic.lean}.
+Two independent hard proofs are preserved:
+\begin{enumerate}[leftmargin=2em]
+\item \Lean{positive_kernel_birkhoff_hopf_contraction} in \RepoFile{ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/Direct.lean}, using a weighted-average/Doeblin argument;
+\item \Lean{positive_kernel_birkhoff_hopf_contraction_paper_route} in \RepoFile{ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/PaperRoute/Assemble.lean}, using the Eveson--Nussbaum two-dimensional reduction and convex-hull diameter route.
+\end{enumerate}
+
+\section{Formalized statement}
+For a finite strictly positive rectangular kernel $G$ and positive vectors, application of $G$ contracts finite Hilbert projective log spread by
+\[
+ \gamma_G=\frac{B_G-1}{B_G},\qquad 0\le\gamma_G<1,
+\]
+where $B_G$ is a finite cross-ratio bound.  Both routes produce the same public coefficient.
+
+\section{Sharpness distinction}
+The paper route proves the sharper normalized $2\times2$ coefficient
+$(\alpha-1)/(\alpha+1)$ locally.  During global assembly it relaxes this to the same coarse coefficient exported by the direct route.  \RepoFile{ForMathlib/LinearAlgebra/Matrix/BirkhoffHopf/Comparison.lean} formalizes the strict local-versus-coarse gap.
+
+\section{Comparison}
+\begin{comparison}
+Cone & Positive orthant in finite coordinates.\\
+Operator & Strictly positive finite matrix/kernel.\\
+Abstract cone theorem & Absent.\\
+Projective diameter & Finite cross-ratio diameter is formalized.\\
+Global sharp coefficient & Not yet exported by either public capstone.\\
+Proof plurality & Deliberately preserved and module-independent above the shared basic layer.\\
+\end{comparison}
+
+\section{Nonclaims}
+The result is not a formalization of Birkhoff--Hopf for arbitrary proper cones or positive linear maps on infinite-dimensional spaces.  It also does not handle kernels with zeros.
+\end{document}

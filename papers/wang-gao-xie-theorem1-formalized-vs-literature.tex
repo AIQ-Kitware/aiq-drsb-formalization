@@ -1,0 +1,39 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Wang--Gao--Xie Theorem 1: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{R}: genuine Sinkhorn-DRO equality in a strict-interior regime}{The paper's shifted-radius boundary case and $\lambda=0$ endpoint are absent; the current theorem requires a Slater point and positive multipliers.}
+\section{Source theorem}
+Wang, Gao, and Xie, ``Sinkhorn Distributionally Robust Optimization,'' Theorem~1 treats feasibility, strong duality, finiteness, and optimizer structure using a shifted radius $\bar\rho$.  Its scalar dual includes a limiting $\lambda=0$ term.  The source proof and supplement dependencies are reconstructed in
+\RepoFile{prose/distilled_literature/WangGaoXie2025_sinkhorn_dro_theorem1.tex}.
+
+\section{Lean declarations}
+The principal equality is \Lean{WangGaoXie2023.strong_duality} in
+\RepoFile{WangGaoXie2023/Basic.lean}.  The reverse direction is supplied by
+\Lean{WangGaoXie2023.sinkhornDual_le_droValue}, built from the general value-function and Gibbs-attainment machinery in \RepoFile{ForMathlib/OptimalTransport/}.
+
+\section{What Lean proves}
+For a standard Borel nonempty space, measurable reward and cost, positive entropy parameter $\kappa$, extensive integrability conditions for the Gibbs kernels, bounded-above reward, a nonempty feasible ball, and a strict feasible budget value $t_0<\epsilon$, Lean proves
+\[
+ \sup_{\mu\in\mathcal B_{\rm Sink}(\epsilon)}\int f\,d\mu
+ =
+ \inf_{\lambda>0}\operatorname{DualObjective}(\lambda).
+\]
+No duality-gap inequality is assumed.  The proof combines edge-free weak duality with concavity of the budget value function and a supergradient multiplier, while the pointwise entropic converse is attained exactly by a Gibbs tilt.
+
+\section{Axis-by-axis comparison}
+\begin{comparison}
+Radius & Lean exposes the raw objective budget; the source theorem is cleanest in shifted radius $\bar\rho$.\\
+Feasibility & Lean proves only the unconditional necessity $\epsilon\ge0$ for a nonempty raw ball.\\
+Interior & Lean requires an explicit strict feasible value.\\
+Boundary $\bar\rho=0$ & Not proved.\\
+Multiplier domain & $\lambda>0$ in Lean; source also includes a $\lambda=0$ limiting endpoint.\\
+Value equality & Genuinely proved in the strict-interior regime.\\
+Finite value & Encoded indirectly through real-valued definitions and boundedness assumptions.\\
+\end{comparison}
+
+\section{Definition of source-level completion}
+Introduce the shifted-radius API, prove the exact feasibility equivalence, formalize the essential-supremum endpoint at $\lambda=0$, prove the $\bar\rho=0$ boundary by the source's limiting argument, and then derive the full theorem without Slater.
+\end{document}

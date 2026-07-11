@@ -1,0 +1,41 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Finite Sinkhorn iteration convergence: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{S/R}: complete convergence theorem for explicitly packaged positive, gauge-normalized iterate systems}{The theorem starts from an iterate-system predicate and a named target potential system; it is not yet a single raw-initialization theorem with the exact Franklin--Lorenz sharp rate.}
+\section{Literature targets}
+The principal sources are Sinkhorn--Knopp (1967), Franklin--Lorenz (1989) Section~3, and the finite Fortet/IPF discussion in Chen--Georgiou--Pavon.  See
+\RepoFile{prose/distilled_literature/SinkhornKnopp1967_matrix_scaling.tex} and
+\RepoFile{prose/distilled_literature/FranklinLorenz1989_matrix_scaling.tex}.
+
+\section{Lean capstone}
+\Lean{ChenGeorgiouPavon2021.sinkhorn_iterates_converge_to_potentials} in
+\RepoFile{ChenGeorgiouPavon2021/SocOt/Sinkhorn/Convergence/Gauge.lean} proves coordinatewise convergence of all four potential sequences.
+
+Its inputs include:
+\begin{itemize}[leftmargin=2em]
+\item positive marginals and strictly positive finite kernel;
+\item \Lean{IsFiniteSinkhornIterateSystem}, which packages positivity and the four update equations;
+\item \Lean{IsFiniteSinkhornGaugeNormalized}, fixing the multiplicative gauge;
+\item \Lean{IsFiniteSinkhornPotentialSystem}, identifying the target solution.
+\end{itemize}
+
+\section{Proof architecture}
+The development proves uniform boxes, subsequence compactness, passage of mixed-phase equations to cluster points, uniqueness up to scaling, gauge-fixed uniqueness, and convergence from uniqueness of all cluster points.  A Franklin--Lorenz branch proves geometric decay of projective ratio spreads using the finite Birkhoff coefficient.  A separate projective-lag branch is retained as alternate compactness scaffolding.
+
+\section{Comparison}
+\begin{comparison}
+Kernel & Strictly positive finite square kernel.\\
+Raw initialization & Encoded indirectly by the iterate-system predicate rather than a constructor from one seed.\\
+Existence of target & Available from the separate matrix-scaling theorem, but supplied to this capstone.\\
+Gauge & Explicitly fixed, avoiding the false claim of convergence to an arbitrary representative.\\
+Convergence & All four potential sequences converge.\\
+Rate & Several geometric spread bounds are proved; the capstone does not package the exact source rate in its conclusion.\\
+Zeros/support & Not handled.\\
+\end{comparison}
+
+\section{Next source-faithful strengthening}
+Construct the iterate system from a raw positive seed, compose existence and uniqueness internally, expose convergence of the scaled matrices as well as potentials, and package the Franklin--Lorenz geometric constant and tail estimate in a theorem directly comparable with Theorem~4.
+\end{document}

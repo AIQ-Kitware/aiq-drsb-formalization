@@ -1,0 +1,47 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Continuum control-energy/KL identity: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{A/P}: chain-rule decomposition and lower-bound infrastructure are proved; the pathwise Cameron--Martin/Girsanov equality remains an explicit edge}{The central adapted-drift stochastic-exponential theorem is not formalized, so the displayed continuum identity is not yet closed.}
+\section{Source targets}
+The target identity, appearing in stochastic-control formulations of the Schr\"odinger bridge, is schematically
+\[
+ \KL(P^{u,\rho_0}\Vert R)
+ =\KL(\rho_0\Vert\rho_0^R)
+ +\mathbb E_{P^{u,\rho_0}}\int_0^1\frac12\lVert u_t\rVert^2\,dt.
+\]
+The source chain uses Cameron--Martin for deterministic shifts and Girsanov for adapted drifts.  See
+\RepoFile{prose/distilled_literature/Girsanov1960_change_of_measure.tex},
+\RepoFile{prose/distilled_literature/CameronMartin1945_wiener_transformations.tex}, and
+\RepoFile{prose/distilled_literature/Yeh1978_conditional_wiener_translation.tex}.
+
+\section{Lean declarations}
+\Lean{ChenGeorgiouPavon2021.energy_identity} and
+\Lean{ChenGeorgiouPavon2021.energy_identity_conditional} are in
+\RepoFile{ChenGeorgiouPavon2021/EnergyIdentity.lean}.  Finite and sequence-model instances are in \RepoFile{ChenGeorgiouPavon2021/SequenceGaussian.lean}.
+
+\section{Proved decomposition}
+Given a measurable equivalence that separates the initial coordinate and a conditional path, explicit comp-product factorizations of the controlled and reference laws, finite marginal and conditional KL, and the conditional Cameron--Martin identity, Lean proves the full KL decomposition by:
+\begin{enumerate}[leftmargin=2em]
+\item invariance of KL under measurable equivalence;
+\item the kernel/product KL chain rule;
+\item substitution of the conditional energy identity.
+\end{enumerate}
+A conditional version rewrites the conditional KL as the nominal average of pointwise kernel KL.  Projection/data-processing lemmas also prove the It\^o-free lower-bound direction once projected KL values converge to the energy.
+
+\section{Comparison}
+\begin{comparison}
+KL chain rule & Proved.\\
+Conditional KL integral & Proved under countable-generation assumptions.\\
+Finite Gaussian energy atom & Proved.\\
+Iid sequence deterministic shift & Proved completely.\\
+Continuous deterministic path shift & Not yet transported to a canonical continuous-path law.\\
+Adapted drift/Girsanov & Open.\\
+It\^o integral/SDE path laws & Open in the current dependency stack.\\
+\end{comparison}
+
+\section{Nonclaims}
+The theorem named \Lean{energy_identity} is an assembly theorem over a genuine nonvacuous interface.  It must not be described as a completed proof of Girsanov or of the continuum DRSB energy identity.
+\end{document}

@@ -1,0 +1,41 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Gao--Kleywegt worst-case-law structure: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{A/R}: constructive source-shaped law assembly from explicit measurable maps, budget, and attainment ingredients}{The Lean theorem constructs the structured law, but it does not derive the selectors, optimal multiplier, or primal attainment from the source hypotheses.}
+\section{Source targets}
+The comparison targets are Gao--Kleywegt Corollary~1 and Corollary~2(ii), including the two-map form
+\[
+ \mu^*=p^*\,\bar T_\#\nu+(1-p^*)\,T^*_\#\nu
+\]
+and the empirical $N+1$-atom structure.  The source proof and exact conditions are reconstructed in
+\RepoFile{prose/distilled_literature/GaoKleywegt2023_theorem1.tex}.
+
+\section{Lean declarations}
+\begin{itemize}[leftmargin=2em]
+\item \Lean{GaoKleywegt2023.worstCase_structure_cor1};
+\item \Lean{GaoKleywegt2023.dataDriven_worstCase_cor2ii};
+\item the empirical dual reduction \Lean{GaoKleywegt2023.dualValue_eq_empiricalDual}.
+\end{itemize}
+These declarations live in \RepoFile{GaoKleywegt2023/Basic.lean}.
+
+\section{What is constructed}
+Given explicit measurable pointwise minimizer maps, a mixing weight, a transport-budget inequality, regularity sufficient to compute expectations, and an attainment-value edge, Lean constructs the mixture law, proves it is a probability measure, builds an explicit coupling to the nominal law, proves ambiguity-ball membership, computes its expectation, and proves the desired optimal-value equality or inequality.
+
+The empirical theorem similarly constructs the weighted finite Dirac sum and its explicit transport plan.
+
+\section{Comparison}
+\begin{comparison}
+Structured law & Constructed in Lean, not assumed as the conclusion.\\
+Selectors & Supplied as hypotheses rather than obtained from upper semicontinuity and measurable-selection theory.\\
+Optimal multiplier & Supplied externally.\\
+Budget balance & Supplied as an explicit inequality.\\
+Attainment & Supplied through an objective-value edge.\\
+Card dependency & None; these are parallel source-facing results.\\
+\end{comparison}
+
+\section{Nonclaims}
+The declarations do not prove that a worst-case distribution exists under the paper's primitive assumptions, do not prove the source iff criterion for existence, and do not derive the two maps from the minimizing-radius analysis.  They should be read as verified constructive assembly theorems and useful targets for a later measurable-selection and attainment campaign.
+\end{document}

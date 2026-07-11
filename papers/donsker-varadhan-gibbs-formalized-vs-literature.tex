@@ -1,0 +1,42 @@
+\IfFileExists{papers/formalized-vs-literature-preamble.tex}{\input{papers/formalized-vs-literature-preamble}}{\input{formalized-vs-literature-preamble}}
+\title{Donsker--Varadhan and Gibbs variational principle: formalized result versus the literature}
+\author{}
+\date{Formalization snapshot \snapshot}
+\begin{document}
+\maketitle
+\statusline{\Class{G}: complete reusable probability-measure theorem in a finite-real regime}{The main API uses real integrals and explicit integrability of the log-likelihood ratio rather than a maximally general extended-value formulation.}
+\section{Literature result}
+For probability measures $\mu\ll\nu$ and a measurable potential $f$, the change-of-measure inequality is
+\[
+ \int f\,d\mu\le \KL(\mu\Vert\nu)+\log\int e^f\,d\nu,
+\]
+and the corresponding supremum is attained at the Gibbs tilt of $\nu$ by $f$.
+The local literature note is
+\RepoFile{prose/distilled_literature/ClassicalFoundations_DV_KLconvexity_supergradient.tex}.
+
+\section{Lean declarations}
+The complete theorem family in \RepoFile{ForMathlib/MeasureTheory/DonskerVaradhan.lean} includes:
+\begin{itemize}[leftmargin=2em]
+\item \Lean{integral_le_klDiv_add_log_integral_exp};
+\item \Lean{integral_tilted_sub_klDiv_tilted};
+\item \Lean{isGreatest_donskerVaradhan};
+\item \Lean{log_integral_exp_eq_sSup};
+\item \Lean{entropic_gibbs_attained_tilted}.
+\end{itemize}
+
+\section{Formalized proof}
+Lean tilts $\nu$ by $f$, applies nonnegativity of relative entropy against the tilted measure, rewrites the tilted log-likelihood ratio, and rearranges.  Equality is proved by direct evaluation at the tilt.  The result is consumed by the Sinkhorn-DRO weak and converse Lagrangian theorems.
+
+\section{Comparison}
+\begin{comparison}
+Measure class & Probability measures, matching the primary DRO application.\\
+Absolute continuity & Explicit $\mu\ll\nu$.\\
+Integrability & $f$ and the log-likelihood ratio are explicitly integrable under $\mu$; $e^f$ is integrable under $\nu$.\\
+Value type & Real equality through \texttt{(klDiv ...).toReal}.\\
+Optimizer & The tilted measure is explicitly constructed and proved optimal.\\
+Equality characterization & Attainment at the tilt is proved; uniqueness is not packaged as a standalone theorem.\\
+\end{comparison}
+
+\section{Provenance}
+The file records these proofs as dependency-clean ports of the internal predecessor \texttt{reference/WellKnown.lean} (not present in this source archive).  It is not literal source-paper code.  Exact classical bibliographic anchoring should distinguish the original Donsker--Varadhan asymptotic theory from the probability-measure Gibbs variational lemma used here.
+\end{document}

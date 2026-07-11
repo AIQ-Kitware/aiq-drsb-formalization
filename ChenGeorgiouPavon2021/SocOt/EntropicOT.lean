@@ -65,15 +65,10 @@ density of the reference endpoint law `R₀₁ = endpointLaw` w.r.t. Lebesgue, s
 here (`dπ*/dR₀₁ = φ̂(x)·φ(y)`, i.e. `π* = R₀₁.withDensity (φ̂(x)·φ(y))`); multiplying by
 `dR₀₁/dLeb = p` recovers the printed `φ̂·p·φ` form.
 
-**Soundness note (2026-07 audit).** As originally scaffolded this was *false as stated*: it
-asserted a pointwise identity `∀ x y, dens_star(x,y) = φhat0 x · p x y · φ1 y` with `dens_star`,
-`p`, `φhat0`, `φ1` all free (counterexample `dens_star := 0`), and a pointwise-everywhere density
-identity is anyway ill-typed (densities are only a.e.-defined). Reformulated to the well-typed
-**measure** identity `π* = R₀₁.withDensity (φ̂(x)·φ(y))`, derived — as everywhere else — by
-isolating the genuine content to explicit edges: the **verification** that the product-form
-coupling `π_prod` is feasible and optimal (`hprodfeas`, `hprodopt`; the Schrödinger structure of
-CGP (4.11)) and **uniqueness** of the KL-projection optimizer (`huniq`; strict convexity of KL
-over `Π(ρ₀,ρ₁)`). Given them, `π* = π_prod` and `π_prod`'s density is the product (`hπprod`). -/
+The factorization is expressed as an equality of measures, so the density is interpreted in the
+usual almost-everywhere sense.  The hypotheses separate the Schrödinger-system construction from
+this uniqueness wrapper: `hπprod` gives the product-density measure, `hprodfeas` and `hprodopt`
+verify that it is an optimal coupling, and `huniq` identifies it with `π_star`. -/
 theorem optimal_coupling_factorization
     (φhat0 φ1 : X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X) (π_star π_prod : ProbabilityMeasure (X × X))

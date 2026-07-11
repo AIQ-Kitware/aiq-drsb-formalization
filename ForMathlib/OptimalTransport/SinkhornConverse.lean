@@ -170,7 +170,7 @@ theorem exists_coupling_sinkhorn_lagrangian_eq
   · show (∫ y, f y ∂μm) - lam * ((∫ z, c z.1 z.2 ∂γm) + κ * klReal γm (prodMeasure μhat ν))
       = ∫ x, lam * κ * Real.log (∫ y, Real.exp (A x y) ∂(ν : Measure X)) ∂(μhat : Measure X)
     -- ascribe the lambdas: `Integrable.add` states `Integrable (f + g)`, and the unapplied
-    -- `Pi.add` blocks `rw [integral_sub]` from matching (AGENTS.md §6).
+    -- Ascribe the lambdas so `rw [integral_sub]` sees the pointwise addition explicitly.
     have hkl2 : Integrable (fun x => κ * klReal (P x) (ν : Measure X)) (μhat : Measure X) :=
       hkl'.const_mul κ
     have hG : Integrable

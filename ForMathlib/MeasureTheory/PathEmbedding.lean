@@ -4,11 +4,8 @@
 A standard-Borel space `E` equipped with a **countable point-separating family of measurable
 real coordinates** `φ : ℕ → E → ℝ` embeds measurably into the countable product `ℕ → ℝ`, and the
 embedding has a **measurable left inverse**. This is the "lossless reparametrisation by countably
-many reals" that `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` needs: its abstract edge is
-exactly a measurable embedding `e : Path X ↪ (ℕ → ℝ)` with a measurable left inverse, so this file
-turns that *satisfiable but abstract* edge into a **proved construction** for the standard model.
-
-STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
+many reals" used by `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding`: a measurable
+embedding `e : Path X ↪ (ℕ → ℝ)` with a measurable left inverse.
 
 Two results:
 
@@ -29,7 +26,7 @@ Two results:
 The `C(T, ℝ)` case takes `[MeasurableSpace C(T, ℝ)] [BorelSpace C(T, ℝ)]` as instances (Mathlib does
 not register a measurable space on `C(X, Y)`; `RemyDegenne/brownian-motion` supplies the same
 `borel _` instance locally — cited as related work, `DRSB-INDEP`). Requiring the Borel structure as a
-hypothesis keeps the statement honest (it holds for *the* Borel σ-algebra) without foisting an orphan
+hypothesis identifies the intended Borel σ-algebra without adding an orphan
 instance on downstream code.
 -/
 import Mathlib
@@ -52,7 +49,7 @@ a standard-Borel space into a countably-separated space — `ℕ → ℝ` is sta
 This is the reusable core discharging the "embedding edge" of the continuum energy identity: a path
 law that is determined by countably many measurable readouts is losslessly reparametrised by
 `ℕ → ℝ`, so `toReal_klDiv_map_eq_of_leftInverse` transports its KL to the countable-product setting
-where the finite-prefix filtration generates the σ-algebra. Lean dependency audit-clean. -/
+where the finite-prefix filtration generates the σ-algebra. -/
 theorem exists_measurableEmbedding_nat_of_separating
     {E : Type*} [MeasurableSpace E] [StandardBorelSpace E] [Nonempty E]
     (φ : ℕ → E → ℝ) (hφ : ∀ n, Measurable (φ n))
@@ -79,7 +76,7 @@ the countable dense time set `denseSeq T` is:
 So the engine `exists_measurableEmbedding_nat_of_separating` applies with
 `φ n := fun f => f (denseSeq T n)`. This is the concrete `e`, `g` (with `Measurable`/`LeftInverse`
 witnesses) that instantiate the abstract embedding edge of `energy_eq_klReal_via_embedding` for the
-standard DRSB continuous-path model `Path X := C([0,1], X)`. Lean dependency audit-clean. -/
+standard DRSB continuous-path model `Path X := C([0,1], X)`. -/
 theorem exists_measurableEmbedding_nat_continuousMap
     {T : Type*} [TopologicalSpace T] [CompactSpace T] [LocallyCompactSpace T]
     [SecondCountableTopology T] [Nonempty T]
@@ -112,11 +109,10 @@ first `n+1` coordinates (`Preorder.frestrictLe n`), the martingale-convergence i
 `iSup_comap_frestrictLe_eq_pi` on the countable product — gives that these finite-dimensional
 divergences converge to `KL(P‖R)`.
 
-This is the **embedding edge of the continuum energy identity, discharged**: it converts the abstract
-hypothesis `e : Path X ↪ (ℕ → ℝ)` of `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` into a
-theorem for any path model with a countable separating family of measurable readouts (e.g. a
-continuous-path law read at dense times, via `exists_measurableEmbedding_nat_continuousMap`), leaving
-only the energy-convergence edge `hconv`. Lean dependency audit-clean. -/
+This gives a version of `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` for any path model
+with a countable separating family of measurable readouts, such as continuous paths evaluated at
+dense times via `exists_measurableEmbedding_nat_continuousMap`. The remaining hypothesis `hconv`
+identifies the limit of the finite-dimensional divergences. -/
 theorem toReal_klDiv_map_frestrictLe_tendsto_of_separating
     {E : Type*} [MeasurableSpace E] [StandardBorelSpace E] [Nonempty E]
     (φ : ℕ → E → ℝ) (hφ : ∀ n, Measurable (φ n))
@@ -168,10 +164,9 @@ theorem toReal_klDiv_map_frestrictLe_tendsto_of_separating
   exact htends
 
 /-- **The continuum KL is the limit of grid-projected divergences through a separating family**
-(convenience `=` form of `toReal_klDiv_map_frestrictLe_tendsto_of_separating`). If those grid
-divergences are additionally known to converge to some `L` (the energy-convergence edge `hconv` of the
-CGP identity), then `L = KL(P‖R)`. The embedding edge is discharged internally; only `hconv` remains.
-Lean dependency audit-clean. -/
+(convenience `=` form of `toReal_klDiv_map_frestrictLe_tendsto_of_separating`). If the grid
+divergences also converge to `L`, then uniqueness of limits gives `L = KL(P‖R)`. The hypothesis
+`hconv` supplies that second convergence statement. -/
 theorem eq_toReal_klDiv_of_separating_tendsto
     {E : Type*} [MeasurableSpace E] [StandardBorelSpace E] [Nonempty E]
     (φ : ℕ → E → ℝ) (hφ : ∀ n, Measurable (φ n))
@@ -186,15 +181,14 @@ theorem eq_toReal_klDiv_of_separating_tendsto
   tendsto_nhds_unique hconv
     (toReal_klDiv_map_frestrictLe_tendsto_of_separating φ hφ hsep P R hac hfin)
 
-/-- **Continuum energy identity for the continuous-path model, embedding edge discharged.**
-For continuous-path laws `P ≪ R` on `C(T, ℝ)` (`T` compact/locally-compact/second-countable/nonempty)
-with finite KL, if the divergences of their finite-time marginals — sampled at the first `n+1` of a
-countable dense set of times `denseSeq T` — converge to `L` (the energy-convergence edge `hconv`),
-then `L = KL(P‖R)`. This is `ChenGeorgiouPavon2021.energy_eq_klReal_via_embedding` with its abstract
-measurable-embedding edge **replaced by a proof**: dense-time evaluation is a measurable
-point-separating family (`continuous_eval_const` + `Continuous.ext_on`), so
-`eq_toReal_klDiv_of_separating_tendsto` applies. Only `hconv` (finite-dim marginal KLs → control
-energy — the Girsanov/Cameron–Martin content) is left as an edge. Lean dependency audit-clean. -/
+/-- **Continuum energy identity for the continuous-path model.**
+For continuous-path laws `P ≪ R` on `C(T, ℝ)` (`T` compact, locally compact, second countable,
+and nonempty) with finite KL, suppose the divergences of their finite-time marginals, sampled at
+the first `n+1` points of `denseSeq T`, converge to `L`. Dense-time evaluation is a measurable
+point-separating family (`continuous_eval_const` and `Continuous.ext_on`), so
+`eq_toReal_klDiv_of_separating_tendsto` gives `L = KL(P‖R)`. The hypothesis `hconv` contains the
+finite-dimensional KL-to-energy convergence supplied by the relevant Cameron--Martin or
+Girsanov argument. -/
 theorem eq_toReal_klDiv_continuousMap_of_tendsto
     {T : Type*} [TopologicalSpace T] [CompactSpace T] [LocallyCompactSpace T]
     [SecondCountableTopology T] [Nonempty T]

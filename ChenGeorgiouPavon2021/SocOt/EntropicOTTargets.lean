@@ -32,10 +32,9 @@ structure IsSchrodingerProductCoupling
 omit [NormedSpace ℝ X] in
 /-- Marginal extraction for a Schrödinger product-form coupling.
 
-The previous scaffold tried to derive arbitrary marginals from the density identity alone, which is
-false.  The corrected statement extracts the two marginal identities from the actual product-coupling
-data package; proving existence of such data is the separate static Schrödinger-system construction
-edge. -/
+The density identity alone does not determine arbitrary prescribed marginals.  This theorem
+extracts the two marginal identities from the product-coupling data package; constructing such data
+is the separate static Schrödinger-system existence problem. -/
 theorem schrodinger_product_coupling_marginals
     (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
     (π_prod : ProbabilityMeasure (X × X))
@@ -47,7 +46,7 @@ theorem schrodinger_product_coupling_marginals
 omit [NormedSpace ℝ X] in
 /-- Feasibility wrapper for the Schrödinger product-form coupling.
 
-This theorem is now just the definition of `couplings` after the product-coupling data package has
+This theorem is just the definition of `couplings` after the product-coupling data package has
 supplied the two endpoint marginal identities. -/
 theorem schrodinger_product_coupling_feasible
     (φhat0 φ1 : X → ℝ) (ρ₀ ρ₁ : ProbabilityMeasure X)
@@ -176,7 +175,7 @@ theorem schrodinger_product_coupling_data_exists
 omit [NormedSpace ℝ X] in
 /-- Existence/attainment wrapper for the static Schrödinger bridge optimizer.
 
-The constructive static Schrödinger-system work is now exposed as `hprod_exists`: construction of a
+The constructive static Schrödinger-system work is exposed as `hprod_exists`: construction of a
 product-form endpoint coupling satisfying both marginal equations.  Given that data and the dual
 variational lower bound, optimizer existence is a definition-level consequence. -/
 theorem staticSB_optimizer_exists

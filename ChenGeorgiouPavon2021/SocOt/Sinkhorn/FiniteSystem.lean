@@ -1,10 +1,9 @@
 /-
-# Finite Sinkhorn system scaffolding
+# Finite Sinkhorn system interfaces
 
 This module contains the finite-dimensional data structures shared by the finite Sinkhorn
-uniqueness and convergence targets.  The remaining proof obligations are intentionally kept out of
-this file, so later agents can work either on the finite maximum-principle side or on the
-finite-dimensional compactness side without editing the capstone target file.
+uniqueness and convergence developments.  Maximum-principle and compactness arguments live in
+separate modules and consume these common interfaces.
 -/
 
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn
@@ -94,8 +93,8 @@ structure IsFiniteSinkhornClusterPointAlong {ι : Type*} [Fintype ι]
 
 /-- Phase-compatible subsequence cluster-point assertion for finite Sinkhorn iterates.
 
-This existential wrapper preserves the old target-facing predicate while the harder convergence core
-can now talk about cluster points along explicit subsequences via
+This existential wrapper exposes the target-facing predicate in terms of cluster points along
+explicit subsequences via
 `IsFiniteSinkhornClusterPointAlong`. -/
 structure IsFiniteSinkhornClusterPoint {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)

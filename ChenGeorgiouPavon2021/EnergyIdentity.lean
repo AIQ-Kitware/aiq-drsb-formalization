@@ -29,7 +29,7 @@ finite-energy diffusion `P = P^{u,ρ₀}`,
 `D(P‖R) = D(ρ₀‖ρ₀^W) + 𝔼_P[∫₀¹ ½‖u_t‖² dt]`,
 i.e. relative entropy splits into a constant endpoint term plus the control energy.
 
-**Proof by the roadmap decomposition (`ROADMAP_ENERGY_IDENTITY.md`), no placeholder.**  Both path
+**Proof by the decomposition in `ROADMAP_ENERGY_IDENTITY.md`.**  Both path
 laws disintegrate over the initial coordinate through a measurable iso `e : Path X ≃ᵐ X × Path X`
 (start-plus-centered-path; a genuine structural fact for a normed path space): `e_# P = ρ₀ ⊗ₘ Kᵘ`
 and `e_# R = ρ₀^W ⊗ₘ Kᵂ` with `ρ₀ = initialMarginal P`, `ρ₀^W = initialMarginal R` and Markov
@@ -39,13 +39,12 @@ bridge kernels `Kᵘ, Kᵂ` (`hPfact`, `hRfact`). Then:
   (`ForMathlib…toReal_klDiv_compProd_eq_add`, real-valued via the finiteness edges `hfin_marg`,
   `hfin_cond`, i.e. the finite-relative-entropy regime);
 * the **conditional term equals the control energy** (`hCM`) — the *sole* Girsanov content, the
-  per-trajectory Cameron–Martin identity, isolated as one explicit non-vacuous edge exactly as the
-  strong-duality equalities isolate their attainment edge.
+  per-trajectory Cameron--Martin identity, supplied as the explicit hypothesis `hCM`.
 
 `hCM`'s **discrete Euler–Maruyama instance is a theorem** (`energy_identity_euler_maruyama` below,
 via the vendored Cameron–Martin `klDiv_stdGaussian_map_add`); the continuum `hCM` is the `Δt→0`
-limit (ROADMAP Phase 2, the last research seam). The disintegration + finiteness hypotheses are
-honest structural facts of a finite-energy diffusion — no placeholder, Lean dependency audit-clean. -/
+limit (ROADMAP Phase 2, the last research seam). The disintegration and finiteness hypotheses are the structural properties required of the
+finite-energy diffusion model. -/
 theorem energy_identity (u : Control X) (ρ₀ : ProbabilityMeasure X)
     -- disintegration over the initial coordinate (structural edges; true for a real diffusion):
     (e : Path X ≃ᵐ X × Path X)
@@ -81,28 +80,17 @@ theorem energy_identity (u : Control X) (ρ₀ : ProbabilityMeasure X)
         (initialMarginal (d.pathLaw u ρ₀)) (initialMarginal d.R) Ku Kw hfin_marg hfin_cond,
       hCM]
 
-/-- **Energy identity, conditional / per-trajectory form — the `hCM` edge reduced (ROADMAP Phase
-1.5 wired).**
+/-- **Energy identity in conditional, per-trajectory form.**
 
-Same disintegration as `energy_identity`, but the Girsanov edge is now the **per-trajectory
-Cameron–Martin atom** `∫⁻ x, D(Kᵘ_x ‖ Kᵂ_x) dρ₀` rather than the abstract conditional relative
-entropy `D(ρ₀⊗ₘKᵘ ‖ ρ₀⊗ₘKᵂ)`. The reduction between the two is the **proved** (cond) lemma
-`ForMathlib…klDiv_compProd_eq_lintegral` (which closes Mathlib's own `ChainRule.lean` TODO), applied
-internally; absolute continuity comes for free from the finiteness edge `hfin_cond`.
+For disintegrations `P = ρ₀ ⊗ₘ Kᵘ` and `R = ρ₀' ⊗ₘ Kᵂ`, the KL chain rule separates the initial
+marginal divergence from the conditional divergence. The conditional chain rule identifies the
+second term with `∫⁻ x, D(Kᵘ_x ‖ Kᵂ_x) ∂ρ₀`; the hypothesis `hCM` identifies its real value with
+`energyVal`.
 
-**Why this theorem is stated over an abstract path-space factor `𝓨` (and `energy_identity` is not).**
-(cond) needs `Kernel.rnDeriv Kᵘ Kᵂ` to be jointly measurable, i.e. the standard typeclass
-`CountableOrCountablyGenerated 𝒳 𝓨`. Here `𝓨` is a *free type variable*, so that hypothesis is
-**satisfiable** — it holds for every standard-Borel / Polish path space — making this a genuine
-conditional theorem, not a vacuous one. It is deliberately *not* instantiated at the placeholder
-`Path X = ℝ→X` of `energy_identity`, whose uncountable-index `Pi` σ-algebra is **not** countably
-generated (so forcing the typeclass there would be a false instance = a vacuous edge, forbidden).
-
-This is exactly the shape Phase 2 must discharge: with `𝓨` a standard-Borel continuous-path space and
-`Kᵘ, Kᵂ` the SDE/reference kernels, `hCM`'s continuum instance is the Cameron–Martin/Girsanov
-identity `∫⁻ D(Kᵘ_x‖Kᵂ_x) dρ₀ = 𝔼[∫½‖u‖²]`, whose **discrete Euler–Maruyama instance is the proved
-`energy_identity_euler_maruyama`** and whose continuum discharge is blocked only on Mathlib's missing
-Itô integral (ROADMAP Phase 2). No placeholder, Lean dependency audit-clean. -/
+The theorem uses a free standard-Borel-compatible path factor `𝒴`, expressed by
+`CountableOrCountablyGenerated 𝒳 𝒴`, because joint measurability of `Kernel.rnDeriv Kᵘ Kᵂ` is needed
+for the conditional KL formula. A concrete continuous-path or SDE model supplies the kernels and
+the model-specific Cameron--Martin or Girsanov identity used as `hCM`. -/
 theorem energy_identity_conditional
     {𝒳 𝒴 Ω : Type*} [MeasurableSpace 𝒳] [MeasurableSpace 𝒴] [MeasurableSpace Ω]
     [MeasurableSpace.CountableOrCountablyGenerated 𝒳 𝒴]
@@ -129,23 +117,17 @@ theorem energy_identity_conditional
       hcond, hCM]
 
 omit [NormedSpace ℝ X] in
-/-- **Energy identity (4.19), lower-bound (`≥`) half — Itô-free, via finite-dimensional projections.**
+/-- **Energy identity (4.19), lower-bound (`≥`) half via finite-dimensional projections.**
 
-For the continuous energy identity `D(P^{u,ρ₀}‖R) = D(ρ₀‖ρ₀^W) + 𝔼[∫₀¹ ½‖u‖²]`, the **`≥`
-direction** (specifically `𝔼[∫₀¹ ½‖u‖²] ≤ D(P^{u,ρ₀}‖R)` when both chains start alike) is provable
-with **no stochastic integral**: it rests only on the KL data-processing inequality.
+Suppose measurable time-grid projections `π i` have relative entropies converging to the control
+energy. KL data processing bounds every projected divergence by the full path-law divergence, so
+the limit gives
 
-Given measurable *time-grid projections* `π i : Path X → 𝓨 i` (e.g. `ω ↦ (ω_{t₀},…,ω_{t_k})`) whose
-projected relative entropies `D(π i _# P ‖ π i _# R)` converge to the control energy — which holds in
-any concrete SDE model by the **proved** discrete Cameron–Martin layer `energy_identity_euler_maruyama`
-(each grid KL is the discrete energy `emEnergy`, a Riemann sum of `𝔼[∫½‖u‖²]`) — the data-processing
-inequality (`ForMathlib…le_toReal_klDiv_of_map_tendsto`) forces the limit `≤` the full path-measure
-KL, since each projection only loses information.
+`energy u (d.pathLaw u ρ₀) ≤ klReal (d.pathLaw u ρ₀) d.R`.
 
-This **splits the monolithic Girsanov edge `hCM`**: the lower bound is now a *theorem* (modulo the
-Itô-free convergence edge `hconv`), and only the matching upper bound — the direction requiring the
-projections to exhaust the σ-algebra, i.e. the genuine stochastic-exponential / Itô content — remains
-(ROADMAP Phase 2). Lean dependency audit-clean. -/
+This argument is independent of stochastic integration. Concrete Gaussian or diffusion models
+supply `hconv` by identifying each grid divergence with a discrete energy and proving convergence
+of those energies to the continuum control energy. -/
 theorem energy_le_klReal_of_projections
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))
@@ -164,34 +146,18 @@ theorem energy_le_klReal_of_projections
     (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) hac hfin π hπ hconv
 
 omit [NormedSpace ℝ X] in
-/-- **Energy identity (4.19), FULL `=` — the `≤` half's Itô-free structural core wired in.**
+/-- **Energy identity (4.19) from KL exhaustion and projected-energy convergence.**
 
-Upgrades `energy_le_klReal_of_projections` from `≥` to the full equality
-`𝔼[∫₀¹ ½‖u‖²] = D(P^{u,ρ₀}‖R)` (when both chains start alike, so the endpoint-entropy term
-vanishes), assuming the time-grid projections `π n : Path X → 𝓨 n` **generate** the path σ-algebra
-via a filtration `ℱ` (`⨆ n, ℱ n = ‹MeasurableSpace (Path X)›`, `ℱ n = comap (π n)`).
+Assume the time-grid projections `π n` generate the path σ-algebra through a filtration `ℱ`.
+Lévy's upward theorem, packaged as `ForMathlib.MeasureTheory.klDiv_map_tendsto_toReal`, shows that
+the projected divergences converge to the full path-law KL. If `hconv` also identifies their limit
+with the control energy, uniqueness of limits yields
 
-Both directions now come from one martingale-convergence fact and one edge:
-`ForMathlib…klDiv_map_tendsto_toReal` (Lévy's upward theorem — **Itô-free**) shows the projected
-divergences converge to the full `D(P‖R)`, while the convergence edge `hconv` says they converge to
-the energy; limit-uniqueness (`tendsto_nhds_unique`) forces the two equal.
+`energy u (d.pathLaw u ρ₀) = klReal (d.pathLaw u ρ₀) d.R`.
 
-The **entire remaining Itô content is now localised to `hconv`** — the statement that the
-finite-dimensional (grid) relative entropies converge to the control energy. For the
-Euler–Maruyama/Gaussian marginals (the card's object) `hconv` factors into two Itô-free pieces:
-(i) *grid KL = discrete energy* (`energy_identity_euler_maruyama`, the vendored discrete
-Cameron–Martin identity), and (ii) *discrete energy → continuum energy integral*
-(`ForMathlib…tendsto_emEnergy_sampled`, now **proved** — equispaced Riemann-sum convergence, pure
-analysis). The one gap left for the EM model's `hconv` is *grid KL of the continuum path measure =
-discrete energy*, i.e. the existence + finite-dim projection of the continuum reference itself — the
-**Kolmogorov-extension** gap (dependent projective families are not yet in the Mathlib pin; the
-Brownian projective family is proved consistent in `Mathlib.Probability.BrownianMotion.GaussianProjectiveFamily`
-but not yet extendable). For the exact feedback-diffusion marginals `hconv` is additionally the
-finite-dimensional Girsanov density, the genuine stochastic-exponential content (ROADMAP Phase 2).
-So the continuum wall is now two sharply-named, disjoint Mathlib gaps: Kolmogorov extension + Itô.
-The generation hypothesis holds for a standard-Borel continuous-path model (countably many rational
-times determine the path); it is a satisfiable hypothesis on the abstract `𝓨`/`ℱ`, not a vacuous
-edge. Lean dependency audit-clean. -/
+For a concrete path model, the generation hypothesis is a path-space measurability theorem, while
+`hconv` contains the finite-dimensional Cameron--Martin or Girsanov calculation and its continuum
+limit. -/
 theorem energy_eq_klReal_of_projections
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))
@@ -214,7 +180,7 @@ theorem energy_eq_klReal_of_projections
 
 omit [NormedSpace ℝ X] in
 /-- **Energy identity (4.19), FULL `=`, discharged via a KL-preserving embedding into `ℕ→ℝ`
-(plan A — the honest continuum `hgen`).**
+(plan A: the continuum generation hypothesis `hgen`).**
 
 The generation hypothesis `hgen` of `energy_eq_klReal_of_projections` is **false** for the raw path
 space `Path X = ℝ→X` (a countable family of finite-time projections cannot generate its uncountable-
@@ -231,7 +197,7 @@ The proof composes three Itô-free `ForMathlib` results: `toReal_klDiv_map_eq_of
 (the embedding preserves `KL`, from the DPI both ways), then on the countable product `ℕ→ℝ`
 `iSup_comap_frestrictLe_eq_pi` (the finite-prefix restrictions generate) feeds `klDiv_map_tendsto`
 (Lévy martingale convergence) so the finite-grid divergences converge to `KL(e_#P ‖ e_#R) = KL(P‖R)`;
-limit-uniqueness against the energy edge `hconv` closes it. Lean dependency audit-clean. -/
+limit uniqueness against the energy convergence hypothesis `hconv` closes it. -/
 theorem energy_eq_klReal_via_embedding
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hac : (d.pathLaw u ρ₀ : Measure (Path X)) ≪ (d.R : Measure (Path X)))

@@ -1,10 +1,9 @@
 /-
-# Phase-compatible compactness seams for finite Sinkhorn convergence
+# Phase-compatible compactness interfaces for finite Sinkhorn convergence
 
-This is now an import wrapper.  The compactness frontier is split so follow-on agents can work on
-independent files:
+This import wrapper separates the compactness development into focused modules:
 
-* `Compactness.Basic` contains shared predicates and no proof debt.
+* `Compactness.Basic` contains shared predicates.
 * `Compactness.Precluster` owns raw bounded subsequence extraction.
 * `Compactness.Projective` owns Sinkhorn projective/scale lag seams.
 * `Compactness.FiniteLag` owns finite positive-box lag conversion.

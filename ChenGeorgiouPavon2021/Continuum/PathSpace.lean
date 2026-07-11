@@ -1,9 +1,9 @@
 /-
 # Ideal interval path-space carrier targets
 
-This module records the path-space carrier facts that should eventually make the
-continuum DRSB/M4 theorem live on a canonical anchored continuous interval path
-space rather than on the ambient `RealPath := ℝ → ℝ` scaffold.
+This module develops the path-space carrier facts needed to move the continuum DRSB/M4 theorem
+from the ambient function space `RealPath := ℝ → ℝ` to a canonical anchored continuous interval
+path space.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.IntervalPath
@@ -129,9 +129,9 @@ theorem unitIntervalOne_mem_closure_range_boundedIntervalDyadicGridPoint :
 
 /-- Analytic density interface for bounded dyadic-grid vertices.
 
-The missing real-analysis fact is no longer hidden in a theorem body: every point of `[0,1]`
-should lie in the closure of true bounded dyadic vertices `i / 2^level`, `i ≤ 2^level`.  This is
-the precise density statement needed by the path-separation wrappers below. -/
+The required real-analysis fact is that every point of `[0,1]` lies in the closure of the bounded
+dyadic vertices `i / 2^level`, `i ≤ 2^level`.  This interface is the precise density statement used
+by the path-separation wrappers below. -/
 structure HasBoundedIntervalDyadicGridDensity : Prop where
   mem_closure : ∀ t : UnitInterval,
     t ∈ closure (Set.range boundedIntervalDyadicGridPoint)
@@ -230,7 +230,7 @@ theorem continuousAnchoredIntervalPath_dyadicGrid_eq_of_rawIncrements_eq
 
 /-- Dyadic increment equality recovers equality at every true finite dyadic grid point.
 
-The bounded index `i ≤ 2^level` is the honest finite-grid statement; unbounded natural indices in
+The bounded index `i ≤ 2^level` describes the finite grid; unbounded natural indices in
 `intervalDyadicTime` are merely a clamped implementation detail, not part of the mathematical grid. -/
 theorem continuousAnchoredIntervalPath_dyadicGrid_eq_of_normalizedDyadicIncrements_eq
     (ω η : ContinuousAnchoredIntervalPath)
@@ -287,7 +287,7 @@ theorem intervalPath_eq_of_continuous_of_dyadicGrid_eq
 
 /-- Equality on all true dyadic grid points extends to equality of anchored continuous interval paths.
 
-This wrapper now contains only subtype bookkeeping; the analytic density statement is isolated in
+This wrapper contains only subtype bookkeeping; the analytic density statement is isolated in
 `intervalPath_eq_of_continuous_of_dyadicGrid_eq`. -/
 theorem continuousAnchoredIntervalPath_toIntervalPath_eq_of_dyadicGrid_eq
     (hdense : HasBoundedIntervalDyadicGridDensity)

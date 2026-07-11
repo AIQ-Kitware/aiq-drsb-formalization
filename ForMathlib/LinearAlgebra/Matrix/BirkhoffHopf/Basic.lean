@@ -236,9 +236,8 @@ def PositiveKernelApplyCrossRatioBounded {ι κ : Type*} [Fintype ι] [Fintype �
 
 /-- Finite-sum image cross-ratio bound, assuming the pointwise cross-product inequality.
 
-This is now the remaining algebra-only summation seam.  It should be proved by expanding the two
-products of finite sums and summing `hpoint i i' j j'` against the nonnegative weights
-`x j * y j'`. -/
+The proof expands the two products of finite sums and sums `hpoint i i' j j'` against the
+nonnegative weights `x j * y j'`. -/
 theorem positive_kernel_apply_crossRatioBounded_of_pointwise_bound {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)
@@ -275,9 +274,8 @@ theorem positive_kernel_apply_crossRatioBounded_of_pointwise_bound {ι κ : Type
 
 /-- Finite-sum image cross-ratio bound for a strictly positive kernel.
 
-The pointwise cross-product estimate is proved above from the explicit cross-ratio bound.  The only
-remaining algebraic work is the separate summation seam
-`positive_kernel_apply_crossRatioBounded_of_pointwise_bound`. -/
+The pointwise cross-product estimate follows from the explicit cross-ratio bound, and
+`positive_kernel_apply_crossRatioBounded_of_pointwise_bound` performs the finite summation. -/
 theorem positive_kernel_apply_crossRatioBounded {ι κ : Type*}
     [Fintype ι] [Fintype κ]
     (G : ι → κ → ℝ)
@@ -347,9 +345,9 @@ def PositiveKernelApplyHilbertLogDiameterBounded {ι κ : Type*} [Fintype κ]
 
 /-- The finite image cross-ratio bound gives a finite Hilbert projective diameter bound.
 
-This is still substantial but algebraic/topological rather than the full Birkhoff oscillation
-estimate: prove every image cross-ratio is at most `positiveKernelCrossRatioBound G`, take logs,
-and pass to the finite supremum defining `finiteHilbertProjectiveLogSpread`. -/
+This algebraic/topological theorem bounds every image cross-ratio by
+`positiveKernelCrossRatioBound G`, takes logarithms, and passes to the finite supremum defining
+`finiteHilbertProjectiveLogSpread`. -/
 theorem positive_kernel_apply_hilbert_log_diameter_bound_of_apply_crossratio_bound {ι κ : Type*}
     [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)

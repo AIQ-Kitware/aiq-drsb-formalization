@@ -2,7 +2,7 @@
 # Continuum frontier: final M4 assembly wrappers
 
 This module contains only the final M4 assembly wrappers that consume the
-frontier theorem interfaces. It should not host new mathematical proof debt.
+frontier theorem interfaces.  New mathematical arguments belong in the focused foundation modules.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.Sobolev

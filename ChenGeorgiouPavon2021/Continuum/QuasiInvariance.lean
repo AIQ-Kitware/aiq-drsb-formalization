@@ -59,9 +59,9 @@ theorem finiteDyadic_absCont_standardWienerRealPath_shift_of_isCameronMartinPath
 
 /-- Sharp remaining density-closure interface behind the current finite-dyadic density theorem.
 
-The current `RealPath := ℝ → ℝ` scaffold does not contain enough structure to derive this theorem
+The ambient `RealPath := ℝ → ℝ` carrier does not contain enough structure to derive this theorem
 from `IsCameronMartinPath` alone: negative-time/frozen coordinates and non-dyadic path information
-must be controlled by a real path-space model.  This lemma is therefore honest assembly from an
+must be controlled by a concrete path-space model.  This lemma therefore assembles the result from an
 explicit absolute-continuity hypothesis. -/
 theorem cameronMartinDyadicDensity_closes_path_absCont_of_isCameronMartinPath
     (W : ProbabilityMeasure RealPath)
@@ -96,7 +96,7 @@ theorem absCont_of_finiteDyadic_absCont_and_density_closure
 /-- Cameron--Martin shifts of the transported Wiener law are absolutely continuous, when the
 path-space quasi-invariance interface is supplied explicitly.
 
-This avoids an overclaim from the present lightweight `IsCameronMartinPath` scaffold, which only
+The lightweight `IsCameronMartinPath` interface controls only
 controls dyadic energies and does not by itself constrain all coordinates of `RealPath := ℝ → ℝ`.
 The actual closure is supplied by the explicit hypothesis `hac`; the finite-dyadic absolute
 continuity below is the source-facing finite-dimensional evidence, not a derivation of `hac`. -/

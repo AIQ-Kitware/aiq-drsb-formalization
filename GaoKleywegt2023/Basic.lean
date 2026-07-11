@@ -1,7 +1,7 @@
 /-
 # Gao–Kleywegt (2023): Wasserstein DRO strong duality + worst-case structure
 
-Statement-only Lean scaffold for the core results of
+Lean formalization of selected duality and worst-case-structure results from
 
   R. Gao, A. Kleywegt, "Distributionally Robust Stochastic Optimization with
   Wasserstein Distance", *Mathematics of Operations Research* (2023),
@@ -22,8 +22,8 @@ We therefore state everything for a general cost `c : X → X → ℝ` and radiu
 printed statement; with `c = ‖·‖²`, `δ = ε` it is the DRSB `W₂²` ball.
 
 The shared OT vocabulary (`expect`, `otCost`, `droValue`, …) lives in
-`ForMathlib.OptimalTransport.Basic` and is re-derived from the prose, not from the
-trap-laden `reference/V4.lean`.
+`ForMathlib.OptimalTransport.Basic`. The statements below are aligned with the literature
+transcription and use the repository's current optimal-transport API.
 -/
 import Mathlib
 import ForMathlib.OptimalTransport.Basic
@@ -47,9 +47,9 @@ The data-driven worst-case distribution of Corollary 2(ii) is a finite weighted 
 Dirac masses `(1/N) Σᵢ Σₖ aᵢₖ δ_{zᵢₖ}` (here the `≤ N+1`-atom split is the `K = 2` case).
 The three lemmas below package the facts needed to work with such sums — total mass,
 expectation, and pushforward (marginal) — under `[MeasurableSingletonClass Z]`. They are
-verbatim copies of the sibling helpers in `MohajerinEsfahaniKuhn2018/Basic.lean` (kept local
-here to avoid a cross-namespace `open` ambiguity); both consumers now exist, so they are the
-natural next `ForMathlib.OT` extraction (a small dedup follow-up). -/
+verbatim copies of the sibling helpers in `MohajerinEsfahaniKuhn2018/Basic.lean` and are kept
+local to avoid a cross-namespace `open` ambiguity. A future `ForMathlib.OT` extraction can
+consolidate the two copies. -/
 
 /-- **Total mass of the weighted Dirac double-sum is 1** (a probability measure), given
 nonnegative weights summing to `1` over `k` for each `i`, and `0 < N`. -/
@@ -128,14 +128,14 @@ noncomputable def primalValue (c : X → X → ℝ) (Ψ : X → ℝ)
 
 /-- **Moreau–Yosida inner map** `Φ(λ, ζ) := inf_ξ (λ c(ξ, ζ) − Ψ(ξ))`
 (prose §2.1, Definition 3). Its negation is the pointwise conjugate
-`sup_ξ (Ψ(ξ) − λ c(ξ, ζ))` (the scaffold's `L_wdro`). -/
+`sup_ξ (Ψ(ξ) − λ c(ξ, ζ))`, the pointwise Lagrangian envelope used by the shared OT API. -/
 noncomputable def Phi (c : X → X → ℝ) (Ψ : X → ℝ) (lam : ℝ) (ζ : X) : ℝ :=
   sInf (Set.range (fun ξ => lam * c ξ ζ - Ψ ξ))
 
 /-- **Dual value** `v_D := inf_{λ ≥ 0} { λ δ − ∫ Φ(λ, ζ) ν(dζ) }`
 (prose §2.1, "Dual", with `θᵖ = δ`). Using `−inf_ξ(λc − Ψ) = sup_ξ(Ψ − λc)` this
 is the univariate strong dual `inf_{λ≥0}{λδ + 𝔼_ν[sup_ξ(Ψ(ξ) − λ c(ξ,ζ))]}`,
-i.e. the scaffold's `wdro_dual` / `wdrsbDualObjective` right-hand side. -/
+which is the right-hand side used by the shared Wasserstein-DRO dual API. -/
 noncomputable def dualValue (c : X → X → ℝ) (Ψ : X → ℝ)
     (ν : ProbabilityMeasure X) (δ : ℝ) : ℝ :=
   sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
@@ -169,7 +169,7 @@ theorem weak_duality_prop1
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ)
     (_hΨ : Integrable Ψ (ν : Measure X))  -- Ψ ∈ L¹(ν) (faithful paper premise; subsumed by `hφint`)
     (_hδ : 0 < δ)                         -- δ = θᵖ > 0 (faithful paper premise; not proof-critical)
-    -- regularity / formalization edges (cf. AGENTS.md §6):
+    -- regularity assumptions used by the real-valued formulation:
     (hfeas : (ambiguitySet c ν δ).Nonempty)                 -- the ambiguity set is nonempty
     (hbdd : ∀ lam : ℝ, 0 ≤ lam → ∀ ζ : X,                   -- the pointwise conjugate is finite
         BddAbove (Set.range (fun ξ => Ψ ξ - lam * c ξ ζ)))
@@ -223,16 +223,15 @@ theorem weak_duality_prop1
 
 omit [NormedAddCommGroup X] in
 
-/-! ## The `≥` direction, discharged
+/-! ## Reverse duality
 
-`hge` is no longer a hypothesis of this development: it is
-`ForMathlib.OT.dualValue_le_droValue` (Blanchet–Murthy Thm 1), specialized to this file's
-`dualValue`/`primalValue`. -/
+The reverse inequality is obtained by specializing
+`ForMathlib.OT.dualValue_le_droValue` to this file's `dualValue` and `primalValue`. -/
 
 omit [NormedAddCommGroup X] in
-/-- **The duality gap is zero.** Discharges `strong_duality_thm1`'s `hge` from regularity:
-a continuous bounded objective, a continuous nonnegative cost, a separable Borel sample space, a
-strictly positive radius, and a zero-cost feasible plan. -/
+/-- **Reverse duality under explicit regularity assumptions.** A continuous bounded objective,
+a continuous nonnegative cost, a separable Borel sample space, a strictly positive radius, and a
+zero-cost feasible plan imply `dualValue ≤ primalValue`. -/
 theorem dualValue_le_primalValue
     [TopologicalSpace X] [SecondCountableTopology X] [Nonempty X] [BorelSpace X]
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ) (hδ : 0 < δ)
@@ -303,10 +302,9 @@ theorem dualValue_le_primalValue
 
 
 omit [NormedAddCommGroup X] in
-/-- **An attaining worst-case measure gives the `≥` direction.** The receipt that
-`strong_duality_thm1`'s `hge` is weaker than the customary attainment hypothesis: if some feasible
-`μ` achieves the dual value, then `dualValue ≤ primalValue`. The converse fails — a vanishing
-duality gap does not produce a maximizer.
+/-- **An attaining worst-case measure gives the reverse inequality.** If some feasible `μ`
+achieves the dual value, then `dualValue ≤ primalValue`. This implication does not assert that a
+vanishing duality gap produces a maximizer.
 
 `BddAbove` is not assumed: `hbdd` at `lam = 0` says `Ψ` is bounded above
 (`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`). -/
@@ -358,16 +356,15 @@ theorem strong_duality_thm1
     -- Theorem 1, isolated as one inequality. It is strictly weaker than the customary
     -- "a worst-case distribution attains the dual value": that hypothesis bundles *attainment*
     -- (a separate statement, false in general without compactness) with the vanishing gap.
-    -- The theorem never needed attainment; `dualValue_le_primalValue_of_attaining_measure` is the
-    -- machine-checked receipt that the old hypothesis implies this one.
+    -- Attainment is sufficient but not required; the theorem assumes only the reverse inequality.
     (hge : dualValue c Ψ ν δ ≤ primalValue c Ψ ν δ) :
     primalValue c Ψ ν δ = dualValue c Ψ ν δ :=
   le_antisymm (weak_duality_prop1 c Ψ ν δ hΨ hδ hfeas hbdd hφint hΨμ hOT) hge
 
 omit [NormedAddCommGroup X] in
-/-- **Theorem 1, with no edges at all.** `v_P = v_D`, from regularity alone: the `≤` half is
-`weak_duality_prop1`, the `≥` half is `dualValue_le_primalValue` (Blanchet–Murthy Thm 1, proved in
-`ForMathlib.OT.StrongDualityGe`). Nothing is assumed about worst-case measures or duality gaps. -/
+/-- **Strong duality from explicit regularity assumptions.** The weak-duality half is
+`weak_duality_prop1`; the reverse inequality is `dualValue_le_primalValue`. No optimizer
+attainment assumption is required. -/
 theorem strong_duality_thm1_of_regularity
     [TopologicalSpace X] [SecondCountableTopology X] [Nonempty X] [BorelSpace X]
     (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X) (δ : ℝ)
@@ -419,11 +416,11 @@ there, the §5 trap forbids taking the structured optimizer `μ*` as a hypothesi
 only the genuinely-weaker **extremal ingredients** a full OT measurable-selection would
 extract from `hexists`: the mixture weight `pstar ∈ [0,1]` and the two measurable transport
 maps `Tbar`, `Tstar` that are `ν`-a.e. argmins of `λ* c(·,ζ) − Ψ` (`hargmin` — argmin
-*existence* along `ν`, strictly weaker than the conclusion), plus honest **regularity edges**
+*existence* along `ν`, strictly weaker than the conclusion), plus explicit **regularity assumptions**
 (`Ψ` and the cost integrable along each transport — needed because `c`, `Ψ` carry no standing
 measurability) and the two content edges: a **feasibility budget** `hbudget`
 (`pstar·𝔼_ν[c(T̄,·)] + (1−pstar)·𝔼_ν[c(T*,·)] ≤ δ`) and the **attainment `≥` edge** `hattain`
-(the mixture value dominates `droValue`). Everything else is proved **proved**: `μ*` is
+(the mixture value dominates `droValue`). Everything else is proved: `μ*` is
 built as the explicit 2-map mixture `pstar·T̄#ν + (1−pstar)·T*#ν`, shown a probability measure,
 shown `∈ ambiguitySet` via the explicit transport plan `pstar·(T̄,id)#ν + (1−pstar)·(T*,id)#ν`
 (second marginal `ν` since `snd∘(T,id)=id`; cost `≤ δ` through
@@ -462,7 +459,7 @@ theorem worstCase_structure_cor1
     -- feasibility (budget) edge: the mixture transport cost stays within the radius `δ`
     (hbudget : pstar * (∫ ζ, c (Tbar ζ) ζ ∂(ν : Measure X))
         + (1 - pstar) * (∫ ζ, c (Tstar ζ) ζ ∂(ν : Measure X)) ≤ δ)
-    -- the DRO value is finite (bounded ambiguity ball), an honest edge (as in the siblings)
+    -- the DRO value is finite (bounded ambiguity ball), an explicit finiteness assumption
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
     -- attainment (`≥`) edge: the structured mixture value dominates `droValue`
@@ -560,13 +557,13 @@ theorem worstCase_structure_cor1
 ### Data-driven DRSO (empirical nominal): Corollary 2, eqs. (28)/(29)
 
 Nominal `ν = (1/N) Σ_{i} δ_{ξ̂ᵢ}`. The empirical dual (eq. 28) is exactly the
-DRSB scaffold's `wdrsbDualObjective`; the empirical worst-case (eq. 29) is the
+DRSB API's `wdrsbDualObjective`; the empirical worst-case (eq. 29) is the
 `≤ N+1`-atom transport that the DRSB code computes in closed form.
 -/
 
 /-- **Empirical dual objective, eq. (28)** `inf_{λ≥0}{ λ δ − (1/N) Σᵢ inf_ξ(λ c(ξ,
 ξ̂ᵢ) − Ψ(ξ)) }` (prose §2.3, Corollary 2(i), with `θᵖ = δ`). Equal, via
-`−inf_ξ(λc − Ψ) = sup_ξ(Ψ − λc)`, to the scaffold's `wdrsbDualObjective`
+`−inf_ξ(λc − Ψ) = sup_ξ(Ψ − λc)`, to the DRSB API's `wdrsbDualObjective`
 `inf_{λ≥0}{λ δ + (1/N) Σᵢ sup_ξ(Ψ(ξ) − λ c(ξ,ξ̂ᵢ))}` (per-sample term `L_wdro`). -/
 noncomputable def empiricalDual {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ)
     (xhat : Fin N → X) (δ : ℝ) : ℝ :=
@@ -582,10 +579,10 @@ average `empiricalDual`: for every multiplier `λ`,
 `𝔼_ν[Φ(λ,·)] = (1/N) Σᵢ Φ(λ, ξ̂ᵢ)` (and `Φ(λ, ζ) = inf_ξ(λ c(ξ,ζ) − Ψ(ξ))` is exactly
 `empiricalDual`'s per-sample term), so the two `inf_{λ≥0}` objectives coincide.
 
-Dependency-clean; a direct integral-against-empirical-measure computation — each `∫ · d(δ_{ξ̂ᵢ})`
-is `integral_dirac`, valid for *any* real integrand under `[MeasurableSingletonClass X]`, so
-no measurability/integrability side-condition on `Φ` is needed. This is the honest content
-that turns the general Gao–Kleywegt duality into the data-driven form eq. (28). -/
+The proof is a direct integral-against-empirical-measure computation: each `∫ · d(δ_{ξ̂ᵢ})`
+is `integral_dirac`, valid for any real integrand under `[MeasurableSingletonClass X]`, so no
+measurability or integrability side condition on `Φ` is needed. This reduction turns the general
+Gao–Kleywegt dual into the data-driven form of eq. (28). -/
 theorem dualValue_eq_empiricalDual [MeasurableSingletonClass X]
     {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X)
     (xhat : Fin N → X) (δ : ℝ) (_hN : 0 < N)  -- N ≥ 1 samples (faithful paper premise; `_`)
@@ -617,14 +614,13 @@ omit [NormedAddCommGroup X] in
 Corollary 2(i)). Here `hν` fixes `ν` as the empirical measure on the sample
 `xhat : Fin N → X` and `δ = θᵖ`.
 
-Proof (house pattern): the empirical case is the general Gao–Kleywegt strong duality
+Proof structure: the empirical case is the general Gao–Kleywegt strong duality
 `strong_duality_thm1` (`primalValue = dualValue`) composed with the proved reduction
 `dualValue_eq_empiricalDual` (`dualValue = empiricalDual` for empirical `ν`). The weak
 `≤` half is genuinely proved (from the ForMathlib Lagrangian kernel via
-`weak_duality_prop1`); the research-grade `≥`/attainment is isolated to the single explicit
-edge `hattain` (the worst-case-measure existence — §6), exactly as in `strong_duality_thm1`.
-For the *finite* empirical nominal `hattain` is discharged by an explicit ≤(N+1)-atom
-construction (Corollary 2(ii), `dataDriven_worstCase_cor2ii`), still open here. -/
+`weak_duality_prop1`); the reverse inequality remains an explicit hypothesis `hge`, as in
+`strong_duality_thm1`. The finite empirical worst-case construction is represented separately by
+Corollary 2(ii), `dataDriven_worstCase_cor2ii`. -/
 theorem dataDriven_strongDuality_cor2i [MeasurableSingletonClass X]
     {N : ℕ} (c : X → X → ℝ) (Ψ : X → ℝ) (ν : ProbabilityMeasure X)
     (xhat : Fin N → X) (δ : ℝ)
@@ -662,25 +658,22 @@ two minimizers `ξ*^{i₀}` and `ξ̄*^{i₀}`* (prose §2.3, Corollary 2(ii)).
 is the optimal dual multiplier. This `≤ N+1`-atom transport is the DRSB code's
 closed-form worst-case.
 
-**Proof (house pattern, `[MeasurableSingletonClass X]`).** This corollary pins down the
-*exact* `≤ N+1`-atom structure, so — unlike a bare worst-case *existence* — the structured
-optimizer `μ*` may **not** be taken as a hypothesis (that would be the vacuous/circular trap,
-AGENTS.md §5). Instead we take as explicit inputs only the genuinely-weaker **extremal
-ingredients** a full OT measurable-selection would extract from `hexists`: the split index
+**Proof structure (`[MeasurableSingletonClass X]`).** This corollary pins down the exact
+`≤ N+1`-atom structure. Its explicit inputs are the weaker extremal ingredients that a complete
+optimal-transport measurable-selection argument would extract from `hexists`: the split index
 `i₀`, weight `p0 ∈ [0,1]`, and the per-point argmin atoms `ξstar`, `ξbarstar` (conditions
 (v)/(vi) — argmin *existence* is an extreme-value fact strictly weaker than the conclusion),
 plus two ingredient-level scalar edges — a **feasibility budget** `hbudget` (the argmin
 transport cost stays within radius `δ`; the analogue of Esfahani–Kuhn's `(1/N)Σ‖q‖ ≤ ε`) and
 the **attainment `≥` edge** `hattain` (the argmin-transport value dominates `droValue`; the
-analogue of `worstCase_exists`'s `hval`). Everything else is proved **proved**: `μ*` is
+analogue of `worstCase_exists`'s `hval`). Everything else is proved: `μ*` is
 built as the explicit `K = 2` weighted-Dirac double-sum, shown to be a probability measure,
 shown to lie in `ambiguitySet` via the explicit transport plan
 `(1/N) Σ_{i≠i₀} δ_{(ξ*ⁱ,ξ̂ᵢ)} + (p₀/N) δ_{(ξ*^{i₀},ξ̂_{i₀})} + ((1−p₀)/N) δ_{(ξ̄*^{i₀},ξ̂_{i₀})}`
 (cost `≤ δ` via `ForMathlib.OT.otCost_le_couplingCost`), and its `Ψ`-expectation is computed
 in closed form; the `≤` half of attainment is `le_csSup`, so `hattain` supplies only the `≥`.
-The measure is then rewritten into the printed eq. (29) split form. Exactly the
-`le_antisymm(weak/constructive, one attainment edge)` posture of every other worst-case
-result in this repo (`MohajerinEsfahaniKuhn2018.worstCase_exists`, `strong_duality_thm1`).
+The measure is then rewritten into the printed eq. (29) split form. The final equality combines the constructive lower bound with the explicit attainment
+inequality, as in the other worst-case results in this repository.
 `hc` (nonnegative cost) is Remark 2's standing assumption; `hexists`/`hlam` are retained as
 the paper's premises (the ingredients are what they would yield). -/
 theorem dataDriven_worstCase_cor2ii [MeasurableSingletonClass X]
@@ -702,7 +695,7 @@ theorem dataDriven_worstCase_cor2ii [MeasurableSingletonClass X]
     -- feasibility (budget) edge: the argmin-transport cost stays within the radius `δ`
     (hbudget : (N : ℝ)⁻¹ * ((∑ i ∈ Finset.univ.erase i₀, c (ξstar i) (xhat i))
         + p0 * c (ξstar i₀) (xhat i₀) + (1 - p0) * c ξbarstar (xhat i₀)) ≤ δ)
-    -- the DRO value is finite (bounded ambiguity ball), an honest edge (as in the siblings)
+    -- the DRO value is finite (bounded ambiguity ball), an explicit finiteness assumption
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ ambiguitySet c ν δ ∧ r = expect μ Ψ })
     -- attainment (`≥`) edge: the structured argmin-transport value dominates `droValue`

@@ -134,9 +134,10 @@ theorem franklinLorenz_targetColumn_pos {ι : Type*} [Fintype ι]
 The expanded Franklin--Lorenz notes make an important correction to the theorem shape: Hilbert's
 projective metric controls **pairwise logarithmic oscillation** of the correction vector
 `q / c_k`, not directly the pointwise quantity `|log (q_j / c_{k,j})|` relative to `1`.
-Consequently the right-side proof should no longer pass through pointwise log-to-one error.
+Consequently the right-side proof is formulated through pairwise logarithmic oscillation rather
+than pointwise log-to-one error.
 
-The remaining hard pieces for the right side are now:
+The right-side proof is organized into:
 
 1. `ForMathlib.Matrix.positive_kernel_strict_birkhoff_contraction_coefficient` in
    `BirkhoffHopf.lean`: the paper-agnostic positive finite-kernel Birkhoff coefficient bundled
@@ -386,7 +387,7 @@ oscillation.
 
 For positive ratios `r_i`, `r_j` bounded by `R`, a bound on `|log (r_i / r_j)|` should imply a
 bound on `|r_i - r_j|` at the same geometric rate, with a larger constant depending on the box.
-This is the faithful replacement for the earlier pointwise log-to-one conversion. -/
+This is the pairwise conversion required by the Franklin--Lorenz projective argument. -/
 theorem hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound_and_ratio_box
     {ι : Type*} [Fintype ι]
     (_p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -413,9 +414,8 @@ theorem hard_core_franklinLorenz_pairwise_correction_bound_of_pairwise_log_bound
 
 /-- Pairwise right-column correction oscillation bound for a two-sequence Franklin--Lorenz orbit.
 
-This is now the composition of the faithful Franklin--Lorenz projective-log seam and the finite
-real-analysis box conversion.  It no longer relies on the stronger pointwise-to-one log-error
-statement. -/
+This composes the Franklin--Lorenz projective-log bound with the finite real-analysis box
+conversion, using only pairwise log-ratio control. -/
 theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -446,7 +446,7 @@ theorem franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkh
 
 /-- Pure two-sequence Franklin--Lorenz right-column correction geometric bound.
 
-This theorem now performs only the finite-sum bookkeeping: the genuine contraction estimate is the
+This theorem performs only the finite-sum bookkeeping: the genuine contraction estimate is the
 pairwise theorem
 `franklinLorenz_right_column_correction_pairwise_geometric_bound_of_birkhoff_coefficient` above.
 It has no four-phase Sinkhorn bookkeeping. -/
@@ -527,7 +527,7 @@ theorem sinkhorn_phi1_forward_ratio_spread_eq_column_marginal_correction_spread
 
 /-- Right-side Franklin--Lorenz contraction target for the current column marginal correction.
 
-This is now the real hard column-normalization port.  Starting from a strict Hilbert-projective
+This is the column-normalization contraction theorem. Starting from a strict Hilbert-projective
 contraction coefficient `γ` for the positive kernel, Franklin--Lorenz Section 3 should give a finite
 constant `C` such that the finite spread of the column correction `q / currentColumnMarginal` decays
 geometrically.
@@ -574,7 +574,7 @@ theorem sinkhorn_phi1_column_marginal_correction_spread_geometric_bound_of_birkh
 
 /-- Right-side Franklin--Lorenz core under a chosen Birkhoff contraction coefficient.
 
-The original right-side geometric-bound theorem is now just the composition of two smaller
+The right-side geometric-bound theorem composes two smaller
 right-side obligations: the phase algebra identifying the forward correction as `q / currentColumn`
 and the Franklin--Lorenz geometric bound for that current-column correction spread. -/
 theorem sinkhorn_phi1_forward_ratio_spread_geometric_bound_of_birkhoff_coefficient

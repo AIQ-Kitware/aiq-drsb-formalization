@@ -33,9 +33,8 @@ noncomputable def cmTotalEnergy (c : RealSeq) : ℝ :=
   2⁻¹ * ∑' n : ℕ, c n ^ 2
 
 /-- Range-indexed partial Cameron--Martin energies.  This spelling intentionally uses
-`Finset.sum` directly, rather than big-operator `in` notation, so it is stable across the
-parser/API differences that showed up in the previous source pass.  It sums the first `n`
-coordinates, i.e. indices in `Finset.range n`. -/
+`Finset.sum` directly.  It sums the first `n` coordinates, i.e. indices in
+`Finset.range n`. -/
 noncomputable def cmPartialEnergy (c : RealSeq) (n : ℕ) : ℝ :=
   2⁻¹ * (Finset.range n).sum (fun i => c i ^ 2)
 

@@ -10,8 +10,7 @@ This is the finite-dimensional / Euler–Maruyama core of the DRSB control-energ
 identity (`ChenGeorgiouPavon2021.energy_identity`, CGP (4.19)): in the
 Euler–Maruyama discretization the increment law of each step is a shifted Gaussian,
 so this identity gives per step `KL = ½‖drift·√Δt‖²` and summing over steps is the
-discrete control energy — precisely the quantity the DRSB card actually measures
-(AGENTS.md §3: "exact 𝔼_μ[V] → Euler–Maruyama SDE"). See the discrete energy
+discrete control energy.  See the discrete energy
 identity `klDiv_emShift_eq_emEnergy` at the bottom of this file.
 
 --------------------------------------------------------------------------------
@@ -302,9 +301,9 @@ the discrete control energy `emEnergy Δt u`:
 Proved from the vendored Cameron–Martin identity `klDiv_stdGaussian_map_add`:
 each per-step shift `√Δt·u_k` contributes `½‖√Δt·u_k‖² = Δt·½‖u_k‖²`, and KL tensorises
 over the `Fin N × ι` increment coordinates. This is exactly the summed-shifted-Gaussian
-construction described in AGENTS.md §3 (the card's Euler–Maruyama measurement of the SOC
-energy). The remaining bridge to the *continuous* `energy_identity` is the
-Euler–Maruyama → SDE limit (`Δt → 0`), a documented T4 edge — see `PROOF_PIPELINE.md`. -/
+construction used by the card's Euler--Maruyama measurement of the SOC energy.  The bridge to the
+continuous `energy_identity` is the Euler--Maruyama-to-SDE limit (`Δt → 0`); see
+`PROOF_PIPELINE.md`. -/
 theorem klDiv_emShift_eq_emEnergy {ι : Type*} [Fintype ι] {N : ℕ} {Δt : ℝ} (hΔt : 0 ≤ Δt)
     (u : Fin N → ι → ℝ) :
     (klDiv ((stdGaussian (Fin N × ι)).map (· + emShift Δt u)) (stdGaussian (Fin N × ι))).toReal

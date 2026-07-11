@@ -19,13 +19,11 @@ variable (d : SBData X)
 omit [NormedSpace ℝ X] in
 /-- Gluing/path-reconstruction target for Léonard's dynamic-to-static Schrödinger bridge theorem.
 
-The old scaffold stated the reverse dynamic/static inequality for arbitrary abstract `SBData`.
-That is too strong: a generic `pathLaw` field need not realize the reference bridge obtained by
-gluing conditional reference paths over an endpoint coupling.  The repaired statement exposes the
-actual gluing theorem needed for Léonard's argument: every static coupling can be lifted to a
-feasible path law whose relative entropy is no larger than the endpoint relative entropy.
-
-From that non-circular path-reconstruction edge, the inequality is a direct infimum argument. -/
+A generic `pathLaw` field need not realize the reference bridge obtained by gluing conditional
+reference paths over an endpoint coupling.  The theorem therefore assumes the gluing property used
+in Léonard's argument: every static coupling can be lifted to a feasible path law whose relative
+entropy is no larger than the endpoint relative entropy.  The inequality is then a direct infimum
+argument. -/
 theorem dynamic_to_static_gluing_le
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (hstatic_nonempty : ∃ π : ProbabilityMeasure (X × X), π ∈ couplings ρ₀ ρ₁)

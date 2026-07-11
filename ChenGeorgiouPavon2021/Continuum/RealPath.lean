@@ -8,10 +8,10 @@ open scoped ENNReal BigOperators
 namespace ChenGeorgiouPavon2021
 
 --------------------------------------------------------------------------------
--- §3.M4  Continuum Cameron--Martin / Wiener path-law scaffold
+-- §3.M4  Continuum Cameron--Martin / Wiener path-law interface
 --------------------------------------------------------------------------------
 
-/-- Real-valued path space used by the M4 Wiener transport scaffold.  The existing
+/-- Real-valued path space used by the M4 Wiener transport interface.  The existing
 `Path X` abstraction is intentionally broad; M4 specializes to the scalar Wiener
 case so the dyadic increment maps can be stated concretely. -/
 abbrev RealPath : Type := Path ℝ
@@ -61,10 +61,10 @@ noncomputable def dyadicPathEnergy (level : ℕ) (h : RealPath) : ℝ :=
 noncomputable def cameronMartinPathEnergy (hderiv : ℝ → ℝ) : ℝ :=
   ∫ t in Set.Icc (0 : ℝ) 1, 2⁻¹ * hderiv t ^ 2 ∂volume
 
-/-- Staged path-level Cameron--Martin interface for M4.
+/-- Path-level Cameron--Martin interface for M4.
 
 The first field records the usual square-integrability of the derivative.  The
-second field records the continuum-limit theorem needed by the dyadic scaffold:
+second field records the continuum-limit theorem needed by the dyadic interface:
 the finite dyadic Cameron--Martin energies converge to the continuum energy.
 Future work should replace this interface field by a proof from the chosen
 Sobolev/absolutely-continuous path representation. -/

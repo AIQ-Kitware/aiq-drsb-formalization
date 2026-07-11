@@ -135,11 +135,9 @@ theorem HasSinkhornDisintegration.mono {c : X → X → ℝ} {p₀ ν : Probabil
   let ⟨P, hP⟩ := h; ⟨P, hP.mono hb⟩
 
 omit [NormedAddCommGroup X] in
-/-- **The SDRSB disintegration edge, discharged.** On a standard-Borel `X` you do not have to
-supply a conditional family at all: hand over a **coupling** `γ ∈ Π(p₀, μ)` of finite entropy
-relative to `p₀ ⊗ ν`, and `Measure.condKernel` + the KL chain rule build the witness.
-
-Everything the old edge asked you to assert about `P` is now derived:
+/-- **Construct a Sinkhorn disintegration from a finite-entropy coupling.** On a standard-Borel
+`X`, a coupling `γ ∈ Π(p₀, μ)` of finite entropy relative to `p₀ ⊗ ν` determines the required
+conditional family through `Measure.condKernel` and the KL chain rule. The resulting kernel has:
 
 * `P := γ.condKernel`, and `p₀ ⊗ₘ P = γ` because `γ.fst = p₀` (`γ` is a coupling);
 * `expect μ f = ∫∫ f dP dp₀` because `γ.snd = μ` (`Measure.integral_compProd`);
@@ -154,8 +152,9 @@ Everything the old edge asked you to assert about `P` is now derived:
 
 Residual hypotheses are the log-partition conditions on `ν`/`V`, which concern the dual and not the
 transport, plus `hV`. **No second moments are needed**: `IsSinkhornPlan.integrable_cost` is derived
-from the finiteness of the plan's `ℝ≥0∞` cost. The plan itself comes from ball membership
-(`ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall`), so no edge survives. -/
+from the finiteness of the plan's `ℝ≥0∞` cost. Ball membership supplies the plan through
+`ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall`, so no separate disintegration hypothesis
+is required. -/
 theorem hasSinkhornDisintegration_of_isSinkhornPlan
     [StandardBorelSpace X] [Nonempty X]
     {c : X → X → ℝ} {p₀ ν μ : ProbabilityMeasure X} {κ b : ℝ} {γ : ProbabilityMeasure (X × X)}
@@ -272,8 +271,8 @@ noncomputable def sinkhornDualObjective
 
 The entropic dual's inner term is *attained*: for each `λ > 0` there is a coupling whose Lagrangian
 equals `𝔼_μ̂[v_x(λ)]` exactly. This is `ForMathlib.OT.exists_coupling_sinkhorn_lagrangian_eq`
-restated in this file's `logPartition` vocabulary (the two agree definitionally), so that the link
-between the general lemma and the Wang–Gao–Xie dual is checked by the compiler. -/
+restated in this file's `logPartition` vocabulary; the two formulations are definitionally
+equal. -/
 
 omit [NormedAddCommGroup X] in
 /-- **The Sinkhorn converse Lagrangian bound**, in `logPartition` form: for every `λ, κ > 0` there
@@ -283,8 +282,8 @@ is a coupling `γ ∈ Π(μ̂, μ)` with
 
 The witness is `γ = μ̂ ⊗ₘ P` for the tilted kernel `P x = ν.tilted ((f − λ c(x,·))/(λκ))`; the
 equality (rather than an `ε`-approximation) is because the Gibbs–Donsker–Varadhan supremum over
-*measures* is attained. This is ingredient (1) of the `≥` direction proved in `strong_duality`
-below, and it is now discharged there via `sinkhornDual_le_droValue`. -/
+*measures* is attained. The theorem supplies ingredient (1) of the `≥` direction in
+`strong_duality`, through `sinkhornDual_le_droValue`. -/
 theorem exists_coupling_lagrangian_eq_logPartition
     [MeasurableSpace.CountableOrCountablyGenerated X X]
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ lam : ℝ)
@@ -317,16 +316,14 @@ theorem exists_coupling_lagrangian_eq_logPartition
 omit [NormedAddCommGroup X] in
 /-- **Theorem 1(I) (Feasibility), necessity direction.** For a nonnegative regularizer
 `κ`, feasibility of `(Primal)` *requires* a nonnegative radius: if the Sinkhorn ball is
-nonempty then `0 ≤ ε`. Dependency-clean.
+nonempty then `0 ≤ ε`.
 
 Proof: `0 ≤ W_{κ,ν}(μ̂, μ)` for every `μ` — the Sinkhorn objective
 `𝔼_γ[‖x−y‖²] + κ·KL(γ‖μ̂⊗ν)` is a sum of two nonnegatives (squared cost; `κ ≥ 0` times
 `KL ≥ 0`), so its infimum over couplings is `≥ 0` — and any ball member satisfies
 `W_{κ,ν}(μ̂, μ) ≤ ε`.
 
-⚠ **Why this is the necessity half only, not the paper's full `↔ ρ ≥ 0`** (audit
-resolution of the former `primal_feasible_iff` placeholder, AGENTS.md §6 / the audit note in
-`prose/sinkhorn-dro-duality.md`). Against the **raw** entropic-OT ball
+**Raw-radius versus shifted-radius feasibility.** Against the raw entropic-OT ball
 `sinkhornBall μhat ν κ ε = {μ : W_{κ,ν}(μ̂,μ) ≤ ε}`, sufficiency (`0 ≤ ε ⇒ nonempty`) is
 **false**: unlike a metric ball, `W_{κ,ν}(μ̂, μ̂) > 0` in general (the entropic term
 `κ·KL(·‖μ̂⊗ν)` forbids the diagonal coupling), so the ball's true nonemptiness threshold
@@ -335,13 +332,12 @@ is *strictly* positive unless the cost is `ν`-a.e. zero. The paper's `ρ ≥ 0`
 holds only after the reference-kernel reformulation (prose Eq. `(2)`–`(3)`: shift to
 `ρ̄ = ρ + κ·𝔼_{μ̂}[log ∫ e^{−c/κ} dν]` and the Gibbs kernel `Q_{x,κ}`), where the constraint
 becomes `κ·𝔼_{μ̂}[KL(γ_x ‖ Q_{x,κ})] ≤ ρ̄` and `KL ≥ 0` gives feasibility ⇔ `ρ̄ ≥ 0`. That
-sufficiency direction is the worst-case-measure **attainment** edge (an OT existence result
-absent from Mathlib, §6 T4) and stays deferred; the necessity below is unconditional.
+sufficiency direction requires the reference-kernel reformulation and an existence argument;
+the necessity below is unconditional.
 
-`W_{κ,ν}` is `ℝ≥0∞`-valued, so nonnegativity of the discrepancy is now carried by the type and
-the necessity half is immediate from `ENNReal.toReal_nonneg`. (`_hκ` is the source theorem's own
-hypothesis, no longer proof-critical — the `κ ≥ 0` sign work it used to do is subsumed. Kept for
-fidelity, `_`-prefixed per AGENTS.md.) This is also exactly why `sinkhornBall` is stated as
+`W_{κ,ν}` is `ℝ≥0∞`-valued, so the necessity half follows from `ENNReal.toReal_nonneg`. The
+parameter `_hκ` is retained to match the source theorem's hypotheses. This is also why
+`sinkhornBall` is stated as
 "`W_{κ,ν}` finite ∧ `toReal ≤ ε`" and not "`W_{κ,ν} ≤ ENNReal.ofReal ε`": the latter sends every
 negative radius to `0`, making the negative-radius ball `{μ | W_{κ,ν} = 0}`, which is nonempty
 when `μ̂ = ν = μ = δₐ` — and this theorem would be **false**. -/
@@ -545,7 +541,7 @@ theorem sinkhorn_weak_duality_kernel
         rw [e1, e2]; ring
 
 omit [NormedAddCommGroup X] in
-/-! ## The Sinkhorn cost bound (weak duality), edge-free -/
+/-! ## The Sinkhorn cost bound (weak duality) -/
 
 omit [NormedAddCommGroup X] in
 omit [NormedAddCommGroup X] in
@@ -573,8 +569,8 @@ theorem expect_le_sinkhornDualObjective (μhat ν : ProbabilityMeasure X) (c : X
 omit [NormedAddCommGroup X] in
 /-- **Sinkhorn weak duality, given near-optimal disintegrations.** If for every `η > 0` the source
 `μ` admits a Sinkhorn disintegration of budget `≤ ε + η`, its expected reward is bounded by the
-log-partition dual. Only *near-optimal* disintegrations are needed, never an attained one —
-`W_{κ,ν}` is an infimum and supplies the former only. -/
+log-partition dual. Only near-optimal disintegrations are needed; the infimum defining
+`W_{κ,ν}` supplies them without an optimizer-attainment assumption. -/
 theorem sinkhorn_cost_bound_of_disintegrations (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ)
     (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (μ : ProbabilityMeasure X)
     (hSink : ∀ η : ℝ, 0 < η → HasSinkhornDisintegration c μhat ν f κ μ (ε + η)) :
@@ -585,8 +581,8 @@ theorem sinkhorn_cost_bound_of_disintegrations (μhat ν : ProbabilityMeasure X)
   exact expect_le_sinkhornDualObjective μhat ν c f κ ε hκ μ hSink lam hlam
 
 omit [NormedAddCommGroup X] in
-/-- **The Sinkhorn cost bound, with no transport, attainment or disintegration edge.**
-Ball membership alone produces everything: `exists_isSinkhornPlan_of_mem_sinkhornBall` extracts a
+/-- **The Sinkhorn cost bound from ball membership.**
+`exists_isSinkhornPlan_of_mem_sinkhornBall` extracts a
 near-optimal finite-entropy plan (a theorem, because `Wkappa` infimises the `ℝ≥0∞` objective),
 `hasSinkhornDisintegration_of_isSinkhornPlan` turns it into a conditional family, and
 `sinkhorn_cost_bound_of_disintegrations` runs Donsker–Varadhan and lets `η ↓ 0`.
@@ -611,9 +607,9 @@ theorem sinkhorn_cost_bound [StandardBorelSpace X] [Nonempty X]
     exact hasSinkhornDisintegration_of_isSinkhornPlan hplan f hf h_exp hI_lp
 
 omit [NormedAddCommGroup X] in
-/-- **An attaining worst-case measure gives the `≥` direction.** The receipt that
-`strong_duality`'s `hge` is weaker than the customary attainment hypothesis. The converse fails:
-a vanishing duality gap does not produce a maximizer. -/
+/-- **An attaining worst-case measure gives the reverse inequality.** If a feasible measure
+attains the dual value, then the dual value is bounded by the primal supremum. This implication does
+not assert optimizer existence from a vanishing duality gap. -/
 theorem sinkhornDual_le_droValue_of_attaining_measure
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ)
     (hfbdd : BddAbove (Set.range f))
@@ -697,22 +693,16 @@ theorem sinkhornDual_le_droValue [StandardBorelSpace X] [Nonempty X]
     (fun lam hlam => hc_norm lam hlam) (fun lam hlam => hklint lam hlam) ht₀ ht₀ε hBdd
 
 omit [NormedAddCommGroup X] in
-/-- **Theorem 1 (Strong Duality), part (II)** — `V = V_D`: the Sinkhorn-DRO worst-case
-value over the ball equals the log-partition dual. `le_antisymm` of `droValue ≤ dual`
-(each source's Sinkhorn cost bound, inlined from `sinkhorn_weak_duality_kernel` + `le_csInf`,
-via `csSup_le`) and `dual ≤ droValue` (the attaining worst-case measure, `le_csSup`).
+/-- **Theorem 1 (Strong Duality), part (II), in the strict-interior regime.** The
+Sinkhorn-DRO worst-case value equals the positive-multiplier log-partition dual. The `≤` half is
+`sinkhorn_cost_bound`: ball membership yields a near-optimal finite-entropy plan,
+`Measure.condKernel` and the KL chain rule provide a conditional family, and the
+Donsker–Varadhan bound is passed to the limit. The reverse inequality is
+`sinkhornDual_le_droValue`, which uses a strict-feasibility point in the entropic value-function
+domain.
 
-**The `hSinkAll` edge is gone.** The `≤` half is `sinkhorn_cost_bound`, which is edge-free: ball
-membership yields a near-optimal finite-entropy plan (`exists_isSinkhornPlan_of_mem_sinkhornBall`),
-`condKernel` and the KL chain rule turn it into a conditional family
-(`hasSinkhornDisintegration_of_isSinkhornPlan`), and Donsker–Varadhan plus `η ↓ 0` finishes.
-`BddAbove` is likewise derived, from `hfbdd`. The dual runs over `0 < lam` (the `lam=0`
-`logPartition` is junk, cf. `Drsb.sdrsb_cost_bound`); since there is no `lam = 0` conjugate term to
-read `hfbdd` off, it is stated explicitly.
-
-**What remains assumed is exactly `hattain`** — the `≥`/worst-case-measure attainment, the OT
-measurable-selection seam (§6) — plus checkable regularity (`hc`/`hcm` on the cost, `hfAll`,
-`h_exp`, `hI_lp`). -/
+`BddAbove` is derived from `hfbdd`. The dual currently ranges over `0 < lam`; the `lam = 0`
+essential-supremum endpoint and the boundary-radius argument remain separate generalization targets. -/
 theorem strong_duality [StandardBorelSpace X] [Nonempty X]
     (μhat ν : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ)
     (hc : ∀ x y, 0 ≤ c x y) (hcm : Measurable fun z : X × X => c z.1 z.2)
@@ -736,9 +726,8 @@ theorem strong_duality [StandardBorelSpace X] [Nonempty X]
       (μhat : Measure X))
     (hfbdd : BddAbove (Set.range f))
     (hfeas : (sinkhornBall c μhat ν κ ε).Nonempty)
-    -- **Slater**: some coupling is *strictly* feasible. The entropic objective has no zero, so this
-    -- is what puts `ε` in the interior of the value function's domain. It replaces the `hge`
-    -- hypothesis this theorem used to carry, and it is checkable where `hge` was the conclusion.
+    -- **Slater**: some coupling is strictly feasible, placing `ε` in the interior of the
+    -- entropic value function's domain.
     {t₀ : ℝ} (ht₀ : t₀ ∈ ForMathlib.OT.sinkhornDomain c f κ μhat ν) (ht₀ε : t₀ < ε) :
     droValue (sinkhornBall c μhat ν κ ε) f
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧

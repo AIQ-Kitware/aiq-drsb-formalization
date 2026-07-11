@@ -158,12 +158,12 @@ theorem concaveOn_sinkhornValueAt (hfb : ∀ x, f x ≤ C) (hκ : 0 ≤ κ) :
   have h3 : a * ε + (1 - a) * ε = ε := by ring
   nlinarith [hb1, hb2, hle, h3]
 
-/-! ## Non-vacuity: the domain is inhabited, and Slater is checkable
+/-! ## Domain inhabitation and a checkable Slater condition
 
 The independent coupling `μ̂ ⊗ ν` is a coupling of `μ̂` with `ν` whose entropic term vanishes
 (`klDiv (μ̂⊗ν) (μ̂⊗ν) = 0`), so its objective is exactly the transport cost `𝔼_{μ̂⊗ν}[c]`. Hence the
-domain is nonempty, and the strict-feasibility (Slater) hypothesis of the Sinkhorn `hge` holds
-whenever the radius exceeds that one number. Without this the capstones would be vacuously true. -/
+domain is nonempty, and the strict-feasibility (Slater) hypothesis of the Sinkhorn converse holds
+whenever the radius exceeds that transport cost. -/
 
 /-- **The independent coupling's objective is its transport cost** — the entropic term vanishes. -/
 theorem sinkhornObjective_prodCoupling (c : α → β → ℝ) (κ : ℝ) (μhat : ProbabilityMeasure α)
@@ -192,7 +192,7 @@ theorem couplingCost_prodCoupling_mem_sinkhornDomain (c : α → β → ℝ) (f 
 
 /-- **Slater holds as soon as the radius beats the independent coupling's transport cost.** This is
 the concrete, checkable form of the strict-feasibility hypothesis carried by
-`ForMathlib.OT.sinkhornDual_le_sinkhornValueAt`, and the proof that those theorems are not vacuous. -/
+`ForMathlib.OT.sinkhornDual_le_sinkhornValueAt`. -/
 theorem exists_slater_of_couplingCost_prodCoupling_lt (c : α → β → ℝ) (f : β → ℝ) (κ : ℝ)
     (μhat : ProbabilityMeasure α) (ν : ProbabilityMeasure β) {ε : ℝ}
     (hf : Integrable f (ν : Measure β))

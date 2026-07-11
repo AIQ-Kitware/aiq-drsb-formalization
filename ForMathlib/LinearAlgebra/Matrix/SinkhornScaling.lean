@@ -1,35 +1,19 @@
 /-
 # Sinkhorn / matrix scaling: existence of the discrete Schrödinger potentials
 
-The **Sinkhorn–Knopp / matrix-scaling (DAD) existence theorem**: a strictly positive
-kernel on a finite index set admits positive diagonal scalings realizing prescribed
-positive marginals. Equivalently, the discrete Schrödinger system has a positive
-solution. This is `ChenGeorgiouPavon2021`'s Theorem 8.1 (Fortet–IPF–Sinkhorn), stripped
-of all Schrödinger-bridge specifics — it is a pure finite-dimensional fact.
+The **Sinkhorn--Knopp / matrix-scaling existence theorem** states that a strictly positive kernel
+on a finite index set admits positive diagonal scalings realizing prescribed positive marginals of
+equal total mass.  Equivalently, the discrete Schrödinger system has a positive solution.
 
-Mathlib has the Birkhoff polytope / doubly-stochastic matrices
-(`Analysis/Convex/Birkhoff`, `LinearAlgebra/Matrix/DoublyStochasticMatrix`) but NOT
-Perron–Frobenius-as-a-theorem nor Sinkhorn scaling (grep-verified). Proposed home:
-`Mathlib/LinearAlgebra/Matrix/SinkhornScaling.lean` (new). See `FOUNDATIONS.md` (Chain 3).
+The proof uses log-domain convex minimization.  The scalings are read from the first-order
+conditions of
 
-STATUS: **PROVED** (dependency-clean: propext / Classical.choice / Quot.sound only).
+  `ψ(b) = ∑ᵢ pᵢ log(∑ⱼ Gᵢⱼ bⱼ) - ∑ⱼ qⱼ log bⱼ`
 
-METHOD (no Brouwer / no Birkhoff contraction — Mathlib has neither): a **log-domain
-convex minimization**. The scalings are read off the first-order conditions of
-  ψ(b) = ∑ᵢ pᵢ·log(∑ⱼ Gᵢⱼ bⱼ) − ∑ⱼ qⱼ·log(bⱼ)
-minimized over the open probability simplex. Existence of the minimizer is elementary:
-`−qⱼ log bⱼ → +∞` at the boundary confines the sublevel set to an explicit compact set
-`{b | ∀ j, δ ≤ bⱼ, ∑ b = 1}` (extreme value theorem, no coercivity lemma needed). The
-scaling equations come from the 1-D directional derivatives along `eⱼ − eₖ`
-(`IsLocalMin.hasDerivAt_eq_zero`); **mass conservation `∑ p = ∑ q` is exactly what forces
-the Lagrange multiplier to vanish**, turning the stationarity condition into the two
-marginal constraints.
-
-FIX vs the paper scaffold: existence REQUIRES mass conservation `∑ᵢ pᵢ = ∑ⱼ qⱼ`
-(the coupling `φ̂ᵢ Gᵢⱼ φⱼ` has total mass `∑ pᵢ` and `∑ qⱼ` simultaneously). The
-earlier `ChenGeorgiouPavon2021.sinkhorn_potentials_exist` omitted this hypothesis and
-was therefore under-specified; it is added here (`hsum`) and the paper library now
-delegates to this corrected statement.
+on the open probability simplex.  Boundary blow-up confines a sublevel set to an explicit compact
+set, and directional derivatives along `eⱼ - eₖ` give the scaling equations.  Mass conservation
+`∑ᵢ pᵢ = ∑ⱼ qⱼ` forces the common Lagrange multiplier to vanish; this is the hypothesis `hsum` in
+the core theorem and its source-specific wrappers.
 -/
 import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 import Mathlib.Analysis.Calculus.LocalExtr.Basic
@@ -436,8 +420,8 @@ scalings `a : ι → ℝ`, `b : κ → ℝ` with `aᵢ·(∑ⱼ Gᵢⱼ bⱼ) = 
 
 This is the natural home of the log-domain minimization argument (see the module docstring):
 the objective and simplex live on the *column* type `κ`, while the row marginals index `ι`.
-The square `matrix_scaling_exists` is the `κ := ι` specialization. Dependency-clean; a genuine
-Mathlib gap (Sinkhorn/matrix scaling is not in Mathlib). -/
+The square theorem `matrix_scaling_exists` is the specialization `κ := ι`. The rectangular
+statement is formulated independently of the DRSB development and is a candidate for Mathlib. -/
 theorem matrix_scaling_exists_rectangular
     {ι κ : Type*} [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (p : ι → ℝ) (q : κ → ℝ) (hp : ∀ i, 0 < p i) (hq : ∀ j, 0 < q j)

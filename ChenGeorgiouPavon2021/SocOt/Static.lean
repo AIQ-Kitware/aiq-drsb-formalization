@@ -41,23 +41,20 @@ omit [NormedSpace ℝ X] in
 over couplings: gluing the reference bridges `W_{xy}` onto the optimal coupling gives
 the optimal path law.
 
-**Proof (house pattern — `le_antisymm(gluing-edge, DPI-proved)`).** One direction is
-now **genuinely proved**: `staticSBValue ≤ schrodingerBridgeValueKL`, via the **data-processing
+**Proof architecture.** One direction is proved directly: `staticSBValue ≤ schrodingerBridgeValueKL`, via the **data-processing
 inequality** for KL. The endpoint projection `e : ω ↦ (ω₀, ω₁)` sends any feasible path law
 `P = P^{u,ρ₀}` to a coupling `e_# P ∈ Π(ρ₀,ρ₁)` (its two marginals are `initialMarginal P = ρ₀`
 and `terminalMarginal P = ρ₁`, by feasibility), and coarse-graining cannot increase relative
 entropy — `D(e_# P ‖ e_# R) ≤ D(P ‖ R)` with `e_# R = R₀₁ = endpointLaw` — so
 `staticSBValue ≤ D(e_# P ‖ R₀₁) ≤ D(P ‖ R)`; taking the infimum over feasible `u` gives the
-bound. The DPI is the new dependency-clean `ForMathlib.MeasureTheory.toReal_klDiv_map_le` (a genuine
-Mathlib gap, proved by conditional Jensen on the convex KL generator). The honest regularity
-edges are `hac`/`hfin` (each feasible path law is `≪ R` with finite relative entropy — the
-finite-energy diffusion regime) and `hne` (the feasible set is nonempty).
+bound. The DPI is `ForMathlib.MeasureTheory.toReal_klDiv_map_le`, proved by conditional Jensen on
+the convex KL generator. The regularity assumptions `hac` and `hfin` state that each feasible
+path law is absolutely continuous with respect to `R` and has finite relative entropy; `hne`
+states that the feasible set is nonempty.
 
 The reverse `schrodingerBridgeValueKL ≤ staticSBValue` (**gluing** the reference bridges
 `W_{xy}` onto a coupling to reconstruct a path law of equal relative entropy — Léonard Prop 2.3)
-is the disintegration/path-space-reconstruction content absent from Mathlib; it is isolated to
-the single explicit edge `hglue`, exactly as the strong-duality equalities isolate their
-attainment edge. -/
+is supplied by the explicit path-reconstruction hypothesis `hglue`. -/
 theorem dynamic_eq_static_SB (ρ₀ ρ₁ : ProbabilityMeasure X)
     -- each feasible path law is absolutely continuous w.r.t. the reference with finite relative
     -- entropy (the finite-energy diffusion regime; cf. `FiniteEnergyDiffusion`):
@@ -67,7 +64,7 @@ theorem dynamic_eq_static_SB (ρ₀ ρ₁ : ProbabilityMeasure X)
         InformationTheory.klDiv (d.pathLaw u ρ₀ : Measure (Path X)) (d.R : Measure (Path X)) ≠ ⊤)
     -- the feasible set is nonempty (a control steering ρ₀ → ρ₁ exists):
     (hne : ∃ u : Control X, Feasible d u ρ₀ ρ₁)
-    -- the gluing / path-reconstruction edge (Léonard Prop 2.3; the ≤ direction, isolated):
+    -- gluing/path reconstruction for Léonard Proposition 2.3:
     (hglue : schrodingerBridgeValueKL d ρ₀ ρ₁ ≤ staticSBValue d ρ₀ ρ₁) :
     schrodingerBridgeValueKL d ρ₀ ρ₁ = staticSBValue d ρ₀ ρ₁ := by
   refine le_antisymm hglue ?_

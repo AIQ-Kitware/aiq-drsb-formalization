@@ -47,8 +47,8 @@ theorem normalizedWienerDyadicIncrementMap_standardWiener_law_reduce_to_projecti
 /-- Remaining Brownian finite-dimensional algebra capstone: under the Brownian projective-family law
 on dyadic endpoint coordinates, normalized consecutive increments are iid standard Gaussian.
 
-This is now the single finite-dimensional theorem left between the concrete Wiener construction and
-the sequence-model Cameron--Martin theorem. -/
+This is the finite-dimensional theorem connecting the concrete Wiener construction to the
+sequence-model Cameron--Martin theorem. -/
 def brownianProjectiveFamilyNormalizedDyadicIncrementLawTarget : Prop :=
   ∀ level : ℕ,
     Measure.map (normalizedWienerDyadicIncrementFromGrid level)
@@ -80,7 +80,7 @@ def brownianProjectiveFamilyNormalizedDyadicIncrementIndepFunTarget : Prop :=
           normalizedWienerDyadicIncrementFromGrid level x i)
       (ProbabilityTheory.BrownianReal.projectiveFamily (wienerDyadicGrid level))
 
-/-- Next concrete capstone, now exposed as an ordinary theorem target instead of a hidden interface
+/-- Next concrete capstone, exposed as an ordinary theorem target instead of a hidden interface
 field: derive the iid standard-normal law of normalized dyadic increments from
 `isPreBrownianReal_standardWienerMeasure`, Brownian independent increments, and the Gaussian
 product/normalization lemmas. -/

@@ -21,7 +21,7 @@ vectors `φ(0,·), φ̂(0,·), φ(1,·), φ̂(1,·)` solving the discrete Schrö
 `φ(1,j)φ̂(1,j)=qⱼ`.  (Uniqueness holds up to the scaling `φ ↦ αφ`, `φ̂ ↦ φ̂/α`; the
 matrix-scaling / Sinkhorn form of the Schrödinger system.)
 
-Now a thin wrapper: the Schrödinger-bridge-free content is staged in
+A thin wrapper: the Schrödinger-bridge-free content is staged in
 `ForMathlib.sinkhorn_potentials_exist`, which this delegates to. The mass-conservation
 hypothesis `hsum : ∑ pᵢ = ∑ qⱼ` (necessary; implicit in the paper where `p, q` are
 coupling marginals) is added there and threaded through here. -/

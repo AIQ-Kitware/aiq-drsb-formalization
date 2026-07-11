@@ -248,9 +248,9 @@ theorem finite_weighted_average_log_crossratio_contraction_of_pairwise_log_bound
 /-- Two-point weighted-average Birkhoff inequality.
 
 The elementary proofs of Birkhoff--Hopf treat this two-atom case as the irreducible scalar core, and
-reduce the finite-simplex inequality to it.  The Doeblin proof above goes the other way, so this is
-now a corollary: instantiate the finite-simplex theorem at `κ = Fin 2`.  The diagonal instances of
-its hypotheses are supplied by `1 ≤ B` and `0 ≤ D`. -/
+reduce the finite-simplex inequality to it. In the Doeblin development above, it follows by
+instantiating the finite-simplex theorem at `κ = Fin 2`; `1 ≤ B` and `0 ≤ D` supply the diagonal
+instances of its hypotheses. -/
 theorem two_point_weighted_average_log_crossratio_contraction_of_crossratio_bound
     (a₀ a₁ b₀ b₁ x₀ x₁ y₀ y₁ B D : ℝ)
     (ha₀ : 0 < a₀) (ha₁ : 0 < a₁) (hb₀ : 0 < b₀) (hb₁ : 0 < b₁)
@@ -306,8 +306,8 @@ theorem two_point_weighted_average_log_crossratio_contraction_of_crossratio_boun
 
 /-- Weighted-average form of the finite Birkhoff--Hopf scalar core.
 
-This theorem now contains no hidden finite-`sSup` work.  It is a wrapper around the abstract-diameter
-finite-simplex inequality, with `D` instantiated as `finiteHilbertProjectiveLogSpread x y`. -/
+This theorem specializes the abstract-diameter finite-simplex inequality with
+`D = finiteHilbertProjectiveLogSpread x y`. -/
 theorem finite_weighted_average_log_crossratio_contraction_of_crossratio_bound {κ : Type*}
     [Fintype κ] [Nonempty κ]
     (a b x y : κ → ℝ) (B : ℝ)
@@ -327,9 +327,8 @@ theorem finite_weighted_average_log_crossratio_contraction_of_crossratio_bound {
 
 /-- Pointwise four-coordinate form of Birkhoff's oscillation estimate.
 
-This is now only the matrix instantiation of the weighted-average scalar core above.  The remaining
-nontrivial proof debt is no longer matrix bookkeeping: it is the finite weighted-average
-Birkhoff--Hopf inequality
+This is the matrix instantiation of the weighted-average scalar core above.  Its substantive input
+is the finite weighted-average Birkhoff--Hopf inequality
 `finite_weighted_average_log_crossratio_contraction_of_crossratio_bound`.
 
 This `_of_crossratio_bound` form carries the minimal hypotheses: the estimate is proved from strict
@@ -413,9 +412,9 @@ theorem positive_kernel_birkhoff_hopf_contraction_of_apply_hilbert_log_diameter_
 /-- Birkhoff's oscillation estimate once the image-cone cross-ratio is bounded.
 
 This is the analytic/projective-metric subgoal: turn the finite image cross-ratio bound into
-Hilbert projective contraction with the explicit coefficient.  It is now only a wrapper around two
-smaller Mathlib-style seams: finite image diameter from cross-ratio control, and the pure
-Birkhoff--Hopf oscillation estimate from finite image diameter. -/
+Hilbert projective contraction with the explicit coefficient. The proof composes the finite image
+diameter bound from cross-ratio control with the Birkhoff--Hopf oscillation estimate for a finite
+image diameter. -/
 theorem positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound {ι κ : Type*}
     [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)
@@ -427,15 +426,14 @@ theorem positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound {ι 
 
 /-- The actual Birkhoff--Hopf contraction theorem for a strictly positive finite kernel.
 
-This wrapper is now proved from two smaller seams:
+This wrapper combines two results:
 
 1. the finite double-sum image cross-ratio bound,
    `positive_kernel_apply_crossRatioBounded`;
 2. the projective oscillation estimate,
    `positive_kernel_birkhoff_hopf_contraction_of_apply_crossratio_bound`.
 
-The old single broad placeholder has therefore been split into an algebraic task and an analytic
-Hilbert-metric task. -/
+This separates the algebraic image cross-ratio estimate from the analytic Hilbert-metric bound. -/
 theorem positive_kernel_birkhoff_hopf_contraction {ι κ : Type*}
     [Fintype ι] [Nonempty ι] [Fintype κ] [Nonempty κ]
     (G : ι → κ → ℝ)

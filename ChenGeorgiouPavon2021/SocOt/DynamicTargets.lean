@@ -47,7 +47,7 @@ theorem feasible_control_exists_of_cgp_hypotheses
 omit [NormedSpace ℝ X] in
 /-- Energy-identity family target supplying the hypothesis of `schrodingerBridge_KL_eq_SOC`.
 
-The family theorem now asks for the concrete disintegration/Cameron--Martin data for each feasible
+The family theorem asks for the concrete disintegration/Cameron--Martin data for each feasible
 finite-energy control, rather than pretending the integrability predicate alone proves Girsanov's
 path-law identity. -/
 theorem energyIdentity_family_of_finiteEnergyDiffusion
@@ -101,7 +101,7 @@ omit [NormedSpace ℝ X] in
 
 The Schrödinger PDE system and positivity assumptions alone cannot imply optimality for an arbitrary
 abstract `SBData`: they do not state that the displayed feedback law realizes the requested endpoint
-marginals, nor that its action is minimal among feasible controls.  The honest mathlib-shaped result
+marginals, nor that its action is minimal among feasible controls.  The reusable result
 therefore separates the PDE data from the two verification outputs it must eventually prove. -/
 theorem hopfCole_control_isOptimalSOC_of_schrodingerSystem
     (grad : (X → ℝ) → X → X) (lap : (X → ℝ) → X → ℝ)
@@ -140,12 +140,10 @@ theorem sigmaHopfCole_control_isOptimalSOC_of_schrodingerSystem
 omit [NormedSpace ℝ X] in
 /-- Uniqueness of the stochastic optimal-control optimizer from a strict-improvement principle.
 
-The old scaffold name referenced strict convexity, but the statement did not include any strict
-convexity hypothesis, so uniqueness was false for arbitrary abstract `SBData`.  This formulation
-records the exact variational consequence of strict convexity/convex feasibility needed for the
-standard uniqueness proof: if two distinct optimal controls existed, some feasible competitor would
-have energy strictly below the larger of their two optimal energies.  The theorem then proves that
-this strict improvement contradicts the definition of the SOC infimum. -/
+The abstract `SBData` interface does not itself provide strict convexity.  This theorem takes the
+variational consequence of strict convexity and convex feasibility needed for uniqueness: if two
+distinct optimal controls existed, some feasible competitor would have energy strictly below the
+larger of their two optimal energies.  This contradicts the definition of the SOC infimum. -/
 theorem soc_optimizer_unique_of_strictConvexEnergy
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (hstrict : ∀ u u' : Control X,

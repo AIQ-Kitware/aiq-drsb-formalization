@@ -16,7 +16,7 @@ namespace ChenGeorgiouPavon2021
 
 /-- Nonnegative-time real path space used by the concrete `wienerMeasure` construction.
 
-The CGP-facing M4 scaffold above keeps `RealPath := Path ℝ` so existing endpoint/path-law
+The CGP-facing M4 interface keeps `RealPath := Path ℝ` so endpoint and path-law
 statements remain stable.  The vendored Kolmogorov construction of standard Wiener measure,
 however, naturally lives on `NNReal → ℝ`.  This parallel nonnegative-time staging namespace is the
 place where we discharge the "real Wiener measure satisfies the finite-dimensional standard-normal

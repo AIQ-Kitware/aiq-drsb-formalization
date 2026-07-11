@@ -169,7 +169,7 @@ theorem conditional_gridKL_tendsto_energy_of_finiteEnergyDiffusion
 omit [NormedSpace ℝ X] in
 /-- Conditional Cameron--Martin/Girsanov target for a controlled diffusion kernel.
 
-The monolithic identity is now reduced to two smaller approximation theorems: finite-grid
+The monolithic identity is reduced to two smaller approximation theorems: finite-grid
 conditional KLs converge to the full conditional kernel KL, and the same finite-grid KLs converge to
 the quadratic control energy.  The proof here is just uniqueness of limits; the two analytic seams
 above remain visible theorem targets. -/
@@ -199,10 +199,9 @@ theorem conditional_kl_eq_control_energy_of_finiteEnergyDiffusion
 omit [NormedSpace ℝ X] in
 /-- Full feasible-control energy identity from explicit disintegration and Cameron--Martin data.
 
-This is now an assembly theorem, not an overclaim that finite-energy integrability alone implies the
-Girsanov identity for an arbitrary abstract `SBData`.  The hard model work is factored into
-`FiniteEnergyDiffusionEnergyIdentityData`: start-path disintegration, finite KL edges, and the
-conditional Cameron--Martin identity. -/
+This assembly theorem consumes `FiniteEnergyDiffusionEnergyIdentityData`, which packages the
+start-path disintegration, finite KL hypotheses, and conditional Cameron--Martin identity required
+for a concrete diffusion model. -/
 theorem klReal_pathLaw_eq_initialKL_add_energy_of_finiteEnergyDiffusion
     (u : Control X) (ρ₀ ρ₁ : ProbabilityMeasure X)
     (_hfeas : Feasible d u ρ₀ ρ₁)
@@ -244,7 +243,7 @@ theorem pathLaw_klDiv_ne_top_of_finiteEnergyDiffusion
 omit [NormedSpace ℝ X] in
 /-- Absolute continuity of finite-energy controlled path laws with respect to the reference law.
 
-This is now derived from the finite-relative-entropy assembly theorem above. -/
+This is derived from the finite-relative-entropy assembly theorem above. -/
 theorem pathLaw_absCont_reference_of_finiteEnergyDiffusion
     (u : Control X) (ρ₀ : ProbabilityMeasure X)
     (hfed : FiniteEnergyDiffusion d u ρ₀)

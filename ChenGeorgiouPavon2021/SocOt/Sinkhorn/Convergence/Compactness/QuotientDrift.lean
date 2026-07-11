@@ -88,8 +88,7 @@ theorem tendsto_const_div_sub_const_div_of_sub_tendsto_zero_of_eventually_lower
   simpa [Real.dist_eq] using habs_small
 
 /-- Denominator lag drift follows from the projective/scale collapse plus finite positive-box
-conversion.  This wrapper preserves the earlier public C2 seam while exposing the two real subproblems
-above. -/
+conversion.  The wrapper combines the two component results above. -/
 theorem sinkhorn_denominator_lag_drift_tendsto_zero_from_gauge_iterates {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)

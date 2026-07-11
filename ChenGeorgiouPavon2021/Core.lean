@@ -7,9 +7,9 @@ entropic-optimal-transport backbone that *defines* the DRSB value function
 `V(x) = 𝔼[∫₀¹ ½‖u_t‖² dt + ρ g(X₁) | X₀ = x]` and its optimal control
 `u* = σ²∇log φ = −∇V`.
 
-The file began as a statements-only scaffold.  The proof pass has since discharged the finite
-Gaussian/sequence/Wiener-dyadic layers and isolates the remaining continuum/SDE facts as explicit
-interfaces rather than executable placeholders.
+The file provides the common finite and algebraic definitions used by the CGP development.
+The Gaussian, sequence, and Wiener-dyadic layers are concrete; continuum SDE and PDE inputs that
+are not yet constructed in Lean remain explicit interfaces.
 
 Prose source (printed Problem / Theorem / equation numbers are CGP arXiv:2005.10963 v3):
 `prose/schrodinger-bridge-soc-ot.md`, Part I (Chen–Georgiou–Pavon).
@@ -51,9 +51,9 @@ namespace ChenGeorgiouPavon2021
 
 variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X] [NormedSpace ℝ X]
 
-/-- Path space (placeholder): paths are functions `ℝ → X`.  In CGP the domain is
-`[0,1]`; here `t` ranges over `ℝ` and only `t ∈ [0,1]` is used (CGP §I.0,
-`Ω = C([0,1];ℝⁿ)`). -/
+/-- Provisional ambient path carrier: functions `ℝ → X`. In CGP the path space is
+`C([0,1];ℝⁿ)`. Continuum results should migrate to the anchored continuous interval-path type
+once its measurable and topological API is complete. -/
 abbrev Path (X : Type*) : Type _ := ℝ → X
 
 /-- Control / feedback drift `u(t,x)` (CGP Problem 4.3, (4.20)). -/

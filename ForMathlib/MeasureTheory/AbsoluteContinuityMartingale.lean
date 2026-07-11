@@ -7,15 +7,12 @@ measure `μ` is *locally* absolutely continuous — on each `ℱ n` it has a den
 the resulting density process `Z` is a **uniformly integrable** `ν`-martingale. Then `μ ≪ ν` globally,
 with density the L¹-limit `ℱ.limitProcess Z ν`.
 
-STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
-
-This is a genuine Mathlib gap (the pin has the density-*process* martingale-convergence theorem
-`MeasureTheory.Martingale.ae_eq_condExp_limitProcess`, but not this measure-level absolute-continuity
-consequence) and it is the missing regularity input for the **continuum energy identity**
+Mathlib provides the density-process martingale-convergence theorem
+`MeasureTheory.Martingale.ae_eq_condExp_limitProcess`; this module derives the corresponding
+measure-level absolute-continuity result needed by the **continuum energy identity**
 (`ChenGeorgiouPavon2021`): for a deterministic (open-loop) drift the controlled path law is a
 Cameron–Martin shift of the Wiener reference, whose finite-dimensional Gaussian shift densities form an
-L²-bounded (hence UI) martingale — so this theorem discharges the `P^u ≪ R` edge **Itô-free** (the
-shift is deterministic; no stochastic integral).
+L²-bounded (hence UI) martingale — so this theorem proves `P^u ≪ R` without Itô integration when the shift is deterministic.
 
 Proof: with `Zlim := ℱ.limitProcess Z ν`, the L¹ martingale-convergence theorem gives
 `Z n =ᵐ[ν] ν[Zlim | ℱ n]`, so on every `ℱ n`-set `s` the local density integrates to the same value as
@@ -57,7 +54,7 @@ theorem isPiSystem_iUnion_filtration (ℱ : Filtration ℕ m) :
   exact ⟨max n k, (ℱ.mono (le_max_left n k) _ hn).inter (ℱ.mono (le_max_right n k) _ hk)⟩
 
 /-- **Absolute continuity from a uniformly-integrable density martingale** (the `≪` direction of the
-Kakutani/Doob dichotomy). See the module docstring. Lean dependency audit-clean. -/
+Kakutani/Doob dichotomy). See the module docstring. -/
 theorem absolutelyContinuous_of_densityProcess
     (μ ν : Measure Ω) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (ℱ : Filtration ℕ m) (hgen : ⨆ n, ℱ n = m)

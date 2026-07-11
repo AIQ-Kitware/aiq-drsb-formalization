@@ -9,7 +9,7 @@ namespace ChenGeorgiouPavon2021
 
 /-! ### Interval-path carrier for the M4 continuum frontier
 
-The ambient `RealPath := ℝ → ℝ` scaffold above is useful for compatibility with the older CGP
+The ambient `RealPath := ℝ → ℝ` carrier is useful for compatibility with the CGP
 wrappers, but it is too broad for a theorem saying that dyadic increments on `[0,1]` generate all
 path information.  The declarations in this block introduce a narrow interval-path interface for the
 next continuum proof step.  They intentionally prove only finite-projection facts and leave full
@@ -103,7 +103,7 @@ structure IsStandardIntervalWiener (W : ProbabilityMeasure IntervalPath) : Prop 
 
 This is intentionally an interface: it should be proved later from a genuine generating-filtration
 result for the chosen interval path measurable space, not inferred from the ambient `RealPath`
-scaffold. -/
+interface. -/
 structure HasIntervalDyadicKLExhaustion (W : ProbabilityMeasure IntervalPath) : Prop where
   normalized_dyadic_kl_tendsto : ∀ (h : IntervalPath),
     (W : Measure IntervalPath).map (fun ω : IntervalPath => ω + h) ≪ (W : Measure IntervalPath) →

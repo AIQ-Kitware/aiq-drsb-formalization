@@ -72,17 +72,15 @@ marginal) with a candidate, at regularizer `κ`, against an **external reference
 
 ⚠ **Parametrized by the transport cost `c`, and it must be.** Wang–Gao–Xie Definition 1 states the
 entropic ball for a general cost. Hard-wiring `‖x − y‖²` here while a downstream theorem quantifies
-over its own `c` silently couples a *quadratic* ball to a *`c`*-budget, and the resulting hypothesis
-is not jointly satisfiable in the real problem — an edge that fails AGENTS.md §6's honesty test.
+over its own `c` would couple a *quadratic* ball to a *`c`*-budget, so the ball and dual must share
+the same cost parameter.
 `Drsb` instantiates `c := sqCost`.
 
 ⚠ The entropic reference is `μ̂ ⊗ νref` — the **nominal times an EXTERNAL reference `νref`**
 (the measure the worst-case is a.c. wrt: Lebesgue/Gaussian/counting), exactly as
 Wang–Gao–Xie **Definition 1** (`prose/sinkhorn-dro-duality.md`). It is NOT the product of
 the two coupling marginals; the external `νref` is what appears in the dual's
-log-partition `𝔼_{z∼νref}[e^{(f−λc)/(λκ)}]`, so ball and dual must share it. (An earlier
-version used `μ ⊗ μ̂` — the product of marginals — which mismatched the dual; see the audit
-note in `prose/sinkhorn-dro-duality.md` / AGENTS.md §6.) -/
+log-partition `𝔼_{z∼νref}[e^{(f−λc)/(λκ)}]`, so ball and dual share the same external reference. -/
 noncomputable def sinkhornObjective (c : α → β → ℝ) (κ : ℝ) (μhat : ProbabilityMeasure α)
     (νref : ProbabilityMeasure β) (γ : ProbabilityMeasure (α × β)) : ℝ :=
   couplingCost c γ + κ * klReal (γ : Measure (α × β)) (prodMeasure μhat νref)

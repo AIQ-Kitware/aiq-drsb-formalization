@@ -16,11 +16,9 @@ namespace ChenGeorgiouPavon2021
 
 /-! ### M4 concrete Wiener finite-dimensional theorem ladder
 
-The declarations in this block spell out the remaining concrete Wiener proof obligations that
-turn the vendored Kolmogorov/Wiener construction on `NNReal → ℝ` into the dyadic iid Gaussian
-interface used by the abstract M4 Cameron--Martin theorem.  The large Brownian independent-
-increment and path-space KL-exhaustion facts are intentionally exposed as theorem statements so
-we can fill them in one by one without changing downstream theorem names. -/
+The declarations in this block connect the Kolmogorov/Wiener construction on `NNReal → ℝ` to the
+dyadic iid Gaussian interface used by the M4 Cameron--Martin theorem.  Brownian increment laws,
+normalization, independence, and product assembly are separated into reusable theorem steps. -/
 
 /-- The length of each dyadic interval is exactly the dyadic mesh. -/
 theorem dyadicTimeNNReal_succ_sub (level : ℕ) (i : Fin (2 ^ level)) :
@@ -334,7 +332,7 @@ theorem normalizedWienerDyadicIncrementMap_standardWiener_law
   rw [normalizedWienerDyadicIncrementMap_standardWiener_law_reduce_to_projectiveFamily level]
   exact brownianProjectiveFamily_normalizedDyadicIncrement_law level
 
-/-- The previous theorem discharges the target `Prop` used by earlier roadmap notes. -/
+/-- Packaged target form of the normalized dyadic iid-Gaussian law. -/
 theorem normalizedWienerDyadicIncrementMap_standardWiener_law_done :
     normalizedWienerDyadicIncrementMapStandardWienerLawTarget := by
   intro level

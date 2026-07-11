@@ -135,7 +135,7 @@ supremum in `x` is finite. Then there is a **measurable** `g : Y → X` with
 Proof: take a countable dense `D`, run `exists_measurable_eps_argmax` over the subtype `D`, and note
 by `sSup_image_dense_eq` that the supremum over `D` is the supremum over `X`. The `BddAbove`
 hypothesis is genuinely used here — unlike in the countable case — because the two suprema agree only
-when they are honest suprema. -/
+when they are represented by bounded suprema. -/
 theorem exists_measurable_eps_argmax_of_separable
     (F : X → Y → ℝ) (hFy : ∀ x, Measurable (F x))
     (hFx : ∀ y, Continuous fun x => F x y)

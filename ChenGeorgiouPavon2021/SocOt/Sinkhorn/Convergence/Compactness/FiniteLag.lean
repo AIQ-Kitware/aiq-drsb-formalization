@@ -195,7 +195,7 @@ theorem finite_phase_lag_drift_zero_of_projective_scale_lag {ι : Type*} [Fintyp
 
 /-- Finite positive-box conversion from projective-and-scale lag collapse to coordinate lag drift.
 
-This Sinkhorn-denominator wrapper is now just two applications of the one-phase finite-dimensional
+This Sinkhorn-denominator wrapper is just two applications of the one-phase finite-dimensional
 conversion above, one for `φ0` and one for `φhat1`. -/
 theorem sinkhorn_denominator_lag_drift_zero_of_projective_scale_lag {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)

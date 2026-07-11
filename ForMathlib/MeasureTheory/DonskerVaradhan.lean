@@ -14,9 +14,8 @@ These are the root fact under the Sinkhorn-DRO entropic dual (see
 tilting infrastructure (`Measure.tilted`, `integral_llr_tilted_right`, …) but not
 the Donsker–Varadhan statement itself.
 
-STATUS: PROVED. The four theorems below are dependency-clean ports of the proofs in
-`reference/WellKnown.lean` (namespace `DRSB.WellKnown`), whose statements matched
-these byte-for-byte. See `AGENTS.md` §6/§9 (the "straightforward proof completions" step).
+The four theorems below port the corresponding proofs from `reference/WellKnown.lean`
+(namespace `DRSB.WellKnown`) into the reusable `ForMathlib` namespace.
 -/
 import Mathlib
 

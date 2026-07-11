@@ -1,9 +1,8 @@
 /-
 # Uniform-bounds front end for finite Sinkhorn convergence
 
-This file contains the explicit-cluster packaging lemma and the gauge-normalized boundedness seam.
-The old monolithic boundedness obligation is split into directional estimates that can be proved
-independently: the fixed-gauge forward potential box, hatted-left bounds from normalization,
+This file contains the explicit-cluster packaging lemma and the gauge-normalized boundedness
+interface.  The boundedness argument is split into independent directional estimates: the fixed-gauge forward potential box, hatted-left bounds from normalization,
 hatted-right bounds from the backward equation, and right-potential bounds from normalization.
 -/
 
@@ -123,7 +122,7 @@ theorem sinkhorn_left_forward_projective_bound {ι : Type*} [Fintype ι]
 
 Mathematical content: positivity and `∑ i, u n i = S` give the upper bound.  The projective bound
 `u n k ≤ R * u n i`, summed over `k`, gives `S ≤ card ι * R * u n i`, hence a positive lower
-bound when the type is nonempty.  The empty finite type is vacuous. -/
+bound when the type is nonempty.  The empty finite type satisfies the bound trivially. -/
 theorem sinkhorn_phase_bounds_from_total_and_projective_bound {ι : Type*} [Fintype ι]
     (u : ℕ → ι → ℝ) (S : ℝ)
     (hpos : ∀ n i, 0 < u n i)

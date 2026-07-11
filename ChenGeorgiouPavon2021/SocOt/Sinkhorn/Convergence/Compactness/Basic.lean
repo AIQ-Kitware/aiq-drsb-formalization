@@ -25,7 +25,7 @@ def SinkhornPhaseBoxBounds {ι : Type*}
 
 /-- Raw six-phase cluster point along a concrete absolute subsequence.
 
-This is the honest output of bounded finite-dimensional compactness.  The successor phases have
+This is the output of bounded finite-dimensional compactness.  The successor phases have
 separate limit names because boundedness alone cannot force
 `φhat0Iter (subseq n)` and `φhat0Iter (subseq n + 1)` to converge to the same function, and likewise
 for `φ1Iter`. -/

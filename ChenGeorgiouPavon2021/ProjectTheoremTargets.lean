@@ -1,11 +1,10 @@
 /-
 # Project-wide theorem target aggregate
 
-This historical aggregate imports target and interface modules across the continuum and SOC/OT
-program. It is a navigation surface, not a repository-wide progress counter. Stable mathematical
-boundaries should be represented by precise propositions or data interfaces; targets whose carrier
-or statement is still provisional should remain in dated roadmap prose rather than theorem-shaped
-markers with vacuous propositions.
+This compatibility umbrella imports the target and interface modules across the continuum and
+SOC/OT program. Production developments should prefer the concrete modules. Provisional carrier
+choices and future theorem directions are documented in the dated roadmaps, while this aggregate
+contains only explicit propositions and data interfaces.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.IntervalWiener

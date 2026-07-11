@@ -1,15 +1,15 @@
 /-
 # Mohajerin Esfahani–Kuhn (2018): data-driven Wasserstein DRO
 
-Statement-only scaffold (proof bodies deferred) for the data-driven strong-duality /
-finite convex reformulation and the extremal (worst-case) distributions of
+Lean formalization of selected data-driven strong-duality, finite convex reformulation,
+and extremal-distribution results from
 
   P. Mohajerin Esfahani, D. Kuhn, "Data-driven Distributionally Robust Optimization
   Using the Wasserstein Metric", *Mathematical Programming* (2018), arXiv:1505.05116.
 
-Re-derived from the prose transcription `prose/wasserstein-dro-duality.md` (§3,
-"Mohajerin Esfahani–Kuhn (2018): data-driven duality and convex reformulation"), NOT
-from the trap-laden `reference/V4.lean` (which is consulted only for Lean syntax).
+Aligned with the prose transcription `prose/wasserstein-dro-duality.md` (§3,
+"Mohajerin Esfahani–Kuhn (2018): data-driven duality and convex reformulation") and the
+repository's current optimal-transport API.
 
 ## What is stated here
 
@@ -25,7 +25,7 @@ from the trap-laden `reference/V4.lean` (which is consulted only for Lean syntax
 
 ## Metric / cost convention (IMPORTANT)
 
-Unlike the DRSB `W₂²` scaffold, this paper uses the **1-Wasserstein** metric with an
+Unlike the DRSB `W₂²` specialization, this paper uses the **1-Wasserstein** metric with an
 arbitrary norm `‖·‖` (Definition 3.1). Hence the transport cost is the **un-squared**
 `c ξ ξ̂ = ‖ξ − ξ̂‖` (order 1), and the ε-ball radius is `ε` (not `ε²`).
 
@@ -144,16 +144,12 @@ noncomputable def wass1Ball (μhat : ProbabilityMeasure X) (ε : ℝ) :
 — the `wass1Ball` intersected with the measures supported on the uncertainty set `Ξ`
 (`∀ᵐ x ∂Q, x ∈ Ξ`).
 
-⚠ **Fidelity correction (2026-07).** Esfahani–Kuhn's ambiguity set is over `P(Ξ)` — probability
-measures on the uncertainty set `Ξ` — and their loss pieces `−ℓₖ` are *proper* convex functions
-(`= +∞` outside `Ξ`). The `ℝ`-valued encoding (`ℓk : Fin K → X → ℝ`, total) **drops** the
-`+∞`-outside-`Ξ` and hence the `P(Ξ)` restriction, so the raw `wass1Ball` (no `Ξ`-support
-constraint) is too large: for `Ξ ≠ univ` a `Q` that escapes `Ξ` can make `𝔼_Q[ℓ]` exceed the
-`Ξ`-restricted dual `sup_{ξ∈Ξ}`, breaking Theorem 4.2's equality. Restricting the ball to
-`P(Ξ)` (this def) restores it — the worst-case `sup` is now over `Ξ`-supported `Q`, matching the
-dual's `sup_{ξ∈Ξ}`. `worstCaseExpectation_eq_dual` therefore states the equality over `wass1BallΞ`.
-(`worstCase_program` / `worstCase_exists` use `wass1Ball` and are unaffected: their constructed
-worst-case laws are supported on the atoms `ξ̂ᵢ − qᵢₖ/αᵢₖ ∈ Ξ`, so they lie in `wass1BallΞ` too.) -/
+Esfahani–Kuhn's ambiguity set is over `P(Ξ)`, the probability measures supported on `Ξ`, and
+their loss pieces `−ℓₖ` are proper convex functions that equal `+∞` outside `Ξ`. Because the Lean
+encoding uses total real-valued functions `ℓk : Fin K → X → ℝ`, the support condition is stated
+explicitly in this definition. It ensures that the primal measures and the dual supremum both range
+over `Ξ`. The laws constructed by `worstCase_program` and `worstCase_exists` are supported on their
+specified atoms in `Ξ`, and hence also belong to `wass1BallΞ`. -/
 noncomputable def wass1BallΞ (μhat : ProbabilityMeasure X) (Ξ : Set X) (ε : ℝ) :
     Set (ProbabilityMeasure X) :=
   { Q | (∀ᵐ x ∂(Q : Measure X), x ∈ Ξ)
@@ -170,11 +166,9 @@ loss `ℓ = max_{k ≤ K} ℓₖ` over the ε-Wasserstein ball around the empiri
   `sup_{Q ∈ B^Ξ_ε(P̂_N)} 𝔼_Q[ℓ]
      = inf_{λ ≥ 0} { λε + (1/N) ∑_{i=1}^N sup_{ξ ∈ Ξ} ( ℓ(ξ) − λ‖ξ − ξ̂ᵢ‖ ) }`   (eq. (12b)).
 
-**Fidelity correction (2026-07): the ball is `wass1BallΞ` (`P(Ξ)`-restricted), not the raw
-`wass1Ball`** — see `wass1BallΞ`. With the `ℝ`-valued (total) encoding of `ℓk`, the raw ball is
-too large and the equality fails for `Ξ ≠ univ`; restricting the sup to `Ξ`-supported `Q` is what
-makes the dual's `sup_{ξ∈Ξ}` match. This is the same class of statement-fidelity correction as the
-Sinkhorn external-`ν` fix / `primal_feasible_radius_nonneg` (AGENTS.md §6).
+The ambiguity set is `wass1BallΞ`, which makes the source condition `Q ∈ P(Ξ)` explicit in the
+real-valued Lean encoding. This matches the primal support restriction with the dual supremum over
+`ξ ∈ Ξ`.
 
 **Proof (house pattern — `le_antisymm(weak, attainment)`, the exact posture of
 `GaoKleywegt2023.strong_duality_thm1`).** The **weak `≤`** direction is proved genuinely: over
@@ -381,7 +375,7 @@ and vectors `qᵢₖ`:
      = sup_{(α, q) feasible} (1/N) ∑_{i} ∑_{k} αᵢₖ · ℓₖ(ξ̂ᵢ − qᵢₖ/αᵢₖ)`.
 
 **Proof (house pattern, `[MeasurableSingletonClass X]`).** The `≥`
-(`sup(program) ≤ droValue`) direction is proved **constructively, proved**: every
+(`sup(program) ≤ droValue`) direction is constructive: every
 feasible `(α, q)` yields the explicit discrete law `Q = (1/N) Σᵢₖ αᵢₖ δ_{ξ̂ᵢ − qᵢₖ/αᵢₖ}`,
 which lies in the ε-Wasserstein ball (witnessed by the explicit transport plan
 `(1/N) Σᵢₖ αᵢₖ δ_{(ξ̂ᵢ, ξ̂ᵢ − qᵢₖ/αᵢₖ)}`, whose cost `(1/N) Σᵢₖ ‖qᵢₖ‖ ≤ ε` — via
@@ -389,8 +383,8 @@ which lies in the ε-Wasserstein ball (witnessed by the explicit transport plan
 (since `ℓ = maxₖ ℓₖ ≥ ℓₖ`). No measurable selection is needed — the atoms are the finitely
 many data-point perturbations. The `≤` (`droValue ≤ sup(program)`, Theorem 4.4's real OT
 content — every ball measure is dominated by an extremal config) is isolated to the single
-explicit edge `hdom`, exactly as the strong-duality equalities isolate their attainment
-edge (a 2026-07-03 survey confirmed no external Lean library supplies it). -/
+explicit hypothesis `hdom`, expressing that every ball measure is dominated by an extremal
+configuration. -/
 theorem worstCase_program [MeasurableSingletonClass X]
     (N : ℕ) (ξhat : Fin N → X) (hN : 0 < N)
     (μhat : ProbabilityMeasure X) (hμ : (μhat : Measure X) = empiricalMeasure ξhat)
@@ -404,11 +398,11 @@ theorem worstCase_program [MeasurableSingletonClass X]
     (_hconv : ∀ k, ConvexOn ℝ Ξ (fun ξ => -(ℓk k ξ)))
     (_hlsc : ∀ k, LowerSemicontinuousOn (fun ξ => -(ℓk k ξ)) Ξ)
     (hdata : ∀ i, ξhat i ∈ Ξ)
-    -- the DRO worst-case value is finite (bounded ambiguity ball), an honest edge:
+    -- the DRO worst-case value is finite (bounded ambiguity ball), an explicit finiteness assumption:
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ wass1Ball μhat ε ∧ r = expect μ ℓ })
     -- the `≤`/reduction edge (Thm 4.4's OT content: every ball measure ≤ some extremal
-    -- config), isolated as one explicit hypothesis (not a placeholder, not faked):
+    -- config), represented by the explicit hypothesis below:
     (hdom : droValue (wass1Ball μhat ε) ℓ
         ≤ sSup { v : ℝ | ∃ (α : Fin N → Fin K → ℝ) (q : Fin N → Fin K → X),
             extremalFeasible ξhat Ξ ε α q ∧ v = extremalObjective ξhat ℓk α q }) :
@@ -468,7 +462,7 @@ theorem worstCase_exists [MeasurableSingletonClass X]
     -- Corollary 4.6 existence hypothesis: `Ξ` compact or the loss concave (`K = 1`); it is what
     -- *supplies* `hattain` in reality, so with `hattain` given it is faithful-but-unused; `_`
     (_hExist : IsCompact Ξ ∨ K = 1)
-    -- the DRO worst-case value is finite (bounded ambiguity ball), an honest edge:
+    -- the DRO worst-case value is finite (bounded ambiguity ball), an explicit finiteness assumption:
     (hbddP : BddAbove { r : ℝ | ∃ μ : ProbabilityMeasure X,
         μ ∈ wass1Ball μhat ε ∧ r = expect μ ℓ })
     -- attainment edge: the extremal program's optimum is attained (what `hExist` supplies —

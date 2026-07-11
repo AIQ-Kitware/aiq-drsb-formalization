@@ -20,8 +20,9 @@ It records, and makes machine-checkable, the precise coefficient distinction:
 
 This module proves the clean algebraic gap between the sharp local coefficient `(α - 1) / (α + 1)`
 and the coarse coefficient `(B - 1) / B` at the two-by-two cross-ratio diameter `B = α²`, namely
-`(α - 1) / (α + 1) < (α² - 1) / α²`.  The remaining work needed before a *sharper global* paper-route
-theorem exists is recorded in `audits/UPSTREAM_CANDIDATES_2026-07-10.md` (not attempted here).
+`(α - 1) / (α + 1) < (α² - 1) / α²`. A sharper global paper-route theorem would retain the local
+coefficient through the global assembly; that generalization is described in
+`audits/UPSTREAM_CANDIDATES_2026-07-10.md`.
 
 Nothing in either proof route imports this module.
 -/

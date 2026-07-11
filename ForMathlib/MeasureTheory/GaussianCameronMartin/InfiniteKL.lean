@@ -143,7 +143,7 @@ theorem not_shift_kl_finite_of_not_bddAbove_cmPrefixEnergy (c : RealSeq)
   exact hunbdd (cmPrefixEnergy_bddAbove_of_shift_kl_finite c hac hfin)
 
 /-- Under absolute continuity, unbounded finite-prefix energies force the full
-shifted-sequence KL to be infinite.  This is the KL-facing converse scaffold that later
+shifted-sequence KL to be infinite.  This is the KL-facing converse interface that later
 pure-series work will connect to non-square-summability of the deterministic shift. -/
 theorem shift_kl_eq_top_of_not_bddAbove_cmPrefixEnergy (c : RealSeq)
     (hac : stdSeqGaussian.map (fun x : RealSeq => x + c) ≪ stdSeqGaussian)

@@ -8,7 +8,6 @@ cornerstone of information theory that is a genuine gap in Mathlib (which has th
 rule `klDiv_compProd_eq_add` and a conditional Jensen inequality, but no DPI / f-divergence
 monotonicity).
 
-STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
 
 Proof (the textbook convex/Jensen argument, assembled from existing Mathlib pieces):
 the Radon–Nikodym derivative of a pushforward is a conditional expectation
@@ -21,8 +20,8 @@ integrability of `klFun ∘ (dμ/dν)` that the conditional-expectation steps ne
 
 Consumed by `ChenGeorgiouPavon2021.dynamic_eq_static_SB` (the `staticSB ≤ dynamicSB` direction:
 the endpoint projection `ω ↦ (ω₀,ω₁)` sends a feasible path law to a coupling whose KL against
-the reference endpoint law is `≤` the path-measure KL). Upstreamable as-is.
--/
+the reference endpoint law is `≤` the path-measure KL). The result is stated independently of
+the Schrödinger-bridge application and is suitable for upstreaming. -/
 import Mathlib
 
 open MeasureTheory InformationTheory Filter
@@ -340,7 +339,7 @@ This is the tool that makes a *lossless reparametrisation* preserve a path-measu
 restricting a **continuous** path to a countable dense set of times is injective (`Continuous.ext_on`),
 hence a measurable embedding, so the continuum energy identity's projection argument reduces to the
 countable-product case where the finite-grid projections generate the σ-algebra
-(`iSup_comap_frestrictLe_eq_pi`) and `klDiv_map_tendsto` applies. Lean dependency audit-clean. -/
+(`iSup_comap_frestrictLe_eq_pi`) and `klDiv_map_tendsto` applies. -/
 theorem toReal_klDiv_map_eq_of_leftInverse
     (μ ν : Measure 𝓧) [IsProbabilityMeasure μ] [IsProbabilityMeasure ν]
     (hμν : μ ≪ ν) (hfin : klDiv μ ν ≠ ⊤)

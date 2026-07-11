@@ -76,7 +76,7 @@ theorem finite_sum_tendsto_of_function_tendsto {ι : Type*} [Fintype ι]
 
 /-- Gauge inheritance for an explicit phase-compatible cluster subsequence.
 
-The proof is now just finite-sum continuity plus uniqueness of limits: the gauge identity holds for
+The proof is just finite-sum continuity plus uniqueness of limits: the gauge identity holds for
 each iterate index `subseq n`, while the cluster data says those left-forward vectors converge to
 `ψ0`. -/
 theorem sinkhorn_cluster_point_along_inherits_gauge {ι : Type*} [Fintype ι]
@@ -108,7 +108,7 @@ theorem sinkhorn_cluster_point_along_inherits_gauge {ι : Type*} [Fintype ι]
 /-- Gauge inheritance for cluster points.
 
 If every iterate has the selected left-total gauge, then every phase-compatible cluster point has the
-same gauge.  This wrapper now only opens the existential cluster subsequence and delegates to the
+same gauge.  This wrapper only opens the existential cluster subsequence and delegates to the
 explicit-along lemma. -/
 theorem sinkhorn_cluster_point_inherits_gauge {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -150,7 +150,7 @@ theorem sinkhorn_gauge_normalized_cluster_point_unique {ι : Type*} [Fintype ι]
 
 /-- Unique-along topology wrapper for the forward-left iterate family.
 
-All Sinkhorn-specific content has now been pushed into the production of phase-compatible cluster
+All Sinkhorn-specific content has been pushed into the production of phase-compatible cluster
 subsequences and the proof that every such cluster has the selected `φ0` component. -/
 theorem sinkhorn_unique_along_cluster_points_imply_φ0_convergence {ι : Type*} [Fintype ι]
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)
@@ -323,7 +323,7 @@ theorem sinkhorn_unique_cluster_points_imply_φhat1_convergence {ι : Type*} [Fi
 
 /-- Unique cluster points imply full finite-dimensional convergence.
 
-The hard general topology theorem is now reduced to the four family-wise convergence seams above.
+The hard general topology theorem is reduced to the four family-wise convergence seams above.
 Each component can be attacked independently by the same bad-subsequence/cluster-subsequence
 argument. -/
 theorem sinkhorn_unique_cluster_points_imply_convergence {ι : Type*} [Fintype ι]
@@ -357,7 +357,7 @@ theorem sinkhorn_unique_cluster_points_imply_convergence {ι : Type*} [Fintype �
 
 /-- Finite-dimensional convergence seam after gauge normalization.
 
-This is now explicitly a composition of: subsequential compactness for every outer subsequence,
+This is explicitly a composition of: subsequential compactness for every outer subsequence,
 cluster-point equations, gauge inheritance, uniqueness of gauge-fixed fixed points, and the general
 unique-cluster-point convergence principle. -/
 theorem sinkhorn_gauge_normalized_convergence_core {ι : Type*} [Fintype ι]
@@ -394,12 +394,10 @@ theorem sinkhorn_gauge_normalized_convergence_core {ι : Type*} [Fintype ι]
 
 /-- Algorithmic convergence target for Fortet-IPF/Sinkhorn iterates.
 
-The old scaffold was overstrong: arbitrary sequences do not converge to arbitrary named potentials,
-and even genuine finite Sinkhorn iterates only converge to a selected representative after fixing the
-multiplicative gauge.  The repaired target states convergence for positive finite Sinkhorn update
-sequences that satisfy an explicit gauge normalization, against positive marginals and a strictly
-positive kernel, and toward an actual finite Sinkhorn potential system.  No convergence hypothesis is
-assumed. -/
+Finite Sinkhorn iterates converge to a selected representative after fixing the multiplicative
+gauge. This theorem assumes positive finite Sinkhorn update sequences with an explicit gauge
+normalization, positive marginals, a strictly positive kernel, and a finite Sinkhorn potential
+system; it derives convergence from these structural hypotheses. -/
 theorem sinkhorn_iterates_converge_to_potentials {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
     (φ0Iter φhat0Iter φ1Iter φhat1Iter : ℕ → ι → ℝ)

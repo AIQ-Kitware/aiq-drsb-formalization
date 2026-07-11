@@ -44,7 +44,7 @@ theorem sinkhorn_precluster_successor_limits_eq_of_phase_drift {ι : Type*} [Fin
 
 /-- Sinkhorn-specific compatibility seam for raw six-phase preclusters.
 
-The hard content is now isolated as asymptotic regularity of the two phase drifts.  This wrapper only
+The theorem uses asymptotic regularity of the two phase drifts, and this wrapper
 turns that drift statement into equality of current and successor limits. -/
 theorem sinkhorn_precluster_successor_limits_eq_from_gauge_iterates {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -164,7 +164,7 @@ theorem sinkhorn_outer_subsequence_cluster_from_gauge_iterates_and_bounds {ι : 
 /-- Every outer subsequence has a further phase-compatible cluster subsequence.
 
 This is the sequential-compactness form needed for the final convergence theorem.  The compactness
-part now produces only a raw six-phase precluster; gauge-normalized Sinkhorn iterate structure supplies the separate
+part produces only a raw six-phase precluster; gauge-normalized Sinkhorn iterate structure supplies the separate
 successor-limit compatibility seam. -/
 theorem sinkhorn_gauge_normalized_every_subsequence_has_cluster {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)

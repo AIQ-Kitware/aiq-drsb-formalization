@@ -224,7 +224,7 @@ theorem sinkhorn_precluster_forward_current_gauge_sum {ι : Type*} [Fintype ι]
 /-- Lagged right normalization passed to the raw precluster, conditional on the current-phase limit
 normalization identity `ψ1 j * ψhat1 j = q j`.
 
-The remaining scale-specific mathematical task is now isolated to proving that current-phase
+The remaining scale-specific mathematical task is isolated to proving that current-phase
 identity from the gauge and projective lag hypotheses.  Once it is known, the actual lagged
 `φhat1` vector converges coordinatewise by dividing the lagged normalization equation at
 `(subseq n).pred`, and finite-sum continuity gives total-mass convergence. -/
@@ -436,7 +436,7 @@ theorem finite_right_normalize_current_of_quotient_projective_gauge_sum {ι : Ty
 
 /-- Assemble the finite scalar spine from the already-proved limit-passage helpers.
 
-All topology has now been discharged before the final finite algebra call: projective lag has been
+All topology has been discharged before the final finite algebra call: projective lag has been
 converted to quotient-projective alignment, the current forward equation has been passed to the
 precluster, and the current/successor forward-gauge totals are known equal. -/
 theorem sinkhorn_precluster_normalize_right_current_from_successor_projective_gauge_sum
@@ -472,7 +472,7 @@ theorem sinkhorn_precluster_normalize_right_current_from_successor_projective_ga
 
 /-- The remaining scalar-normalization seam for `φhat1`.
 
-All direct limit passages have now been pushed into proved helpers: current forward equations,
+All direct limit passages have been pushed into proved helpers: current forward equations,
 current and successor gauge-weighted sums, and successor right normalization.  The only remaining
 mathematical content is the finite scalar spine isolated in
 `sinkhorn_precluster_normalize_right_current_from_successor_projective_gauge_sum`. -/
@@ -575,9 +575,8 @@ theorem sinkhorn_phihat1_scale_lag_tendsto_zero_from_gauge_iterates {ι : Type*}
 
 /-- Projective/asymptotic-regularity plus scale control for the denominator phases.
 
-This wrapper preserves the earlier projective-scale theorem name while exposing the two real
-subproblems: projective shape collapse for both denominator phases, and scale control for the
-non-gauge-fixed `φhat1` denominator.  The `φ0` scale component is discharged directly by the gauge. -/
+This wrapper combines projective shape collapse for both denominator phases with scale control for
+the non-gauge-fixed `φhat1` denominator.  The `φ0` scale component follows directly from the gauge. -/
 theorem sinkhorn_denominator_projective_scale_lag_tendsto_zero_from_gauge_iterates {ι : Type*}
     [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)

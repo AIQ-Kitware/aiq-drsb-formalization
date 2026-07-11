@@ -13,8 +13,8 @@ the abstract path space `Path X = ℝ→X` (only a `MeasurableSpace`), with no s
 hypothesis. The only extra content over the `ℝ≥0∞` chain rule is the `toReal` bookkeeping, which
 needs both summands finite (the finite-relative-entropy / finite-energy regime).
 
-Dependency-clean; a thin, reusable wrapper. No new mathematics — the mathematics is Mathlib's.
--/
+This file provides a thin reusable real-valued wrapper around Mathlib's extended-valued chain
+rule. -/
 import Mathlib
 
 open MeasureTheory ProbabilityTheory

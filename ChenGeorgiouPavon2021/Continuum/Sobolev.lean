@@ -2,7 +2,7 @@
 # Continuum frontier: Sobolev to dyadic Cameron--Martin energy
 
 This module contains the ordinary Sobolev/Cameron--Martin path interface and
-the proved wrapper into the dyadic `IsCameronMartinPath` scaffold.
+the wrapper into the dyadic `IsCameronMartinPath` interface.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.WienerDyadic
@@ -20,14 +20,13 @@ namespace ChenGeorgiouPavon2021
 The fields name the usual mathematical ingredients without baking the dyadic-energy
 limit into the definition.  The theorem `isCameronMartinPath_of_sobolevCameronMartinPath`
 below is the remaining analysis capstone: prove that these ordinary hypotheses imply the
-dyadic energy convergence required by the M4 scaffold. -/
+dyadic energy convergence required by the M4 interface. -/
 structure IsSobolevCameronMartinPath (h : RealPath) (hderiv : ℝ → ℝ) : Prop where
-  /-- Placeholder proof field for the ordinary absolute-continuity hypothesis on `h`.
-  This stays deliberately lightweight until the repo chooses a concrete AC-path API. -/
+  /-- Provisional field for the ordinary absolute-continuity hypothesis on `h`.
+  A concrete AC-path API should replace the current lightweight proposition. -/
   absolutely_continuous_path : True
-  /-- Placeholder proof field saying `hderiv` represents the a.e. derivative of `h`.
-  This is separated from the square-integrability field so later overlays can replace
-  `True` with the concrete derivative relation. -/
+  /-- Provisional field saying `hderiv` represents the a.e. derivative of `h`.
+  It is separated from square integrability so a concrete derivative relation can replace `True`. -/
   derivative_represents_path : True
   square_integrable : IntegrableOn (fun t : ℝ => hderiv t ^ 2) (Set.Icc (0 : ℝ) 1) volume
   /-- Dyadic finite-difference energies converge to the continuum Cameron--Martin energy.
@@ -49,7 +48,7 @@ theorem isCameronMartinPath_of_sobolevCameronMartinPath
   exact ⟨hSob.square_integrable, hSob.dyadic_energy_tendsto⟩
 
 
-/-- Dyadic finite-difference quotient on the ambient real-time scaffold.
+/-- Dyadic finite-difference quotient on the ambient real-time carrier.
 
 This is the unnormalized slope `(h(t_{i+1}) - h(t_i)) / (t_{i+1} - t_i)`, written against
 the repository's existing `dyadicMesh` and `dyadicIncrement` primitives. -/
@@ -72,7 +71,7 @@ noncomputable def dyadicDerivativeSquareRiemannEnergy (level : ℕ)
   ∑ i : Fin (2 ^ level),
     dyadicMesh level * (2⁻¹ * hderiv (dyadicTime level i.1) ^ 2)
 
-/-- Analytic Cameron--Martin path predicate on the ambient real-time scaffold.
+/-- Analytic Cameron--Martin path predicate on the ambient real-time carrier.
 
 This is stronger and more concrete than the lightweight dyadic `IsCameronMartinPath` interface:
 `h` is anchored at zero, reconstructed on `[0,1]` as the integral of its derivative, and the
@@ -119,7 +118,7 @@ lemma dyadicMesh_ne_zero (level : ℕ) : dyadicMesh level ≠ 0 :=
 /-- The dyadic mesh tends to zero.
 
 This is the generic mesh-control fact needed before the analytic finite-difference and Riemann-sum
-arguments can be connected to the dyadic scaffold. -/
+arguments can be connected to the dyadic interface. -/
 theorem dyadicMesh_tendsto_zero :
     Filter.Tendsto dyadicMesh Filter.atTop (nhds (0 : ℝ)) := by
   unfold dyadicMesh
@@ -175,7 +174,7 @@ theorem dyadicDifferenceQuotientRiemannEnergy_sub_derivativeSquareRiemannEnergy_
 /-- Squared dyadic difference-quotient energies converge to the continuum
 Cameron--Martin energy.
 
-Mathematically this now only assembles two analytic seams: energy comparison against the
+Mathematically this only assembles two analytic seams: energy comparison against the
 derivative-square dyadic Riemann sums, and convergence of those Riemann sums to the continuum energy.
 It is the pure Sobolev/Riemann-sum target before translating back to the repository's
 normalized-increment Gaussian-cost definition. -/
@@ -217,11 +216,11 @@ theorem dyadicPathEnergy_eq_dyadicDifferenceQuotientRiemannEnergy
   rw [normalizedDyadicIncrement_sq_eq_mesh_mul_differenceQuotient_sq]
   ring
 
-/-- Sobolev/Riemann-sum capstone on the ambient scaffold.
+/-- Sobolev/Riemann-sum capstone on the ambient carrier.
 
 This is the real-analysis theorem target behind the ambient `IsCameronMartinPath` wrapper: finite
 dyadic difference energies for an analytically defined Cameron--Martin path converge to
-`½ ∫₀¹ |h'|²`.  The proof is now reduced to named seams for mesh convergence, finite-difference
+`½ ∫₀¹ |h'|²`.  The proof is reduced to named seams for mesh convergence, finite-difference
 approximation, Riemann-sum convergence, and the finite algebra bridge from CGP normalized increments
 to pure Sobolev sums. -/
 theorem dyadicPathEnergy_tendsto_of_analyticCameronMartinPath
@@ -241,7 +240,7 @@ theorem isCameronMartinPath_of_analyticCameronMartinPath
   exact ⟨hA.square_integrable,
     dyadicPathEnergy_tendsto_of_analyticCameronMartinPath h hderiv hA⟩
 
-/-- Extend an interval path to the ambient real-time scaffold by clamping times to `[0,1]`. -/
+/-- Extend an interval path to the ambient real-time carrier by clamping times to `[0,1]`. -/
 noncomputable def extendIntervalPathToRealPath (h : IntervalPath) : RealPath :=
   fun t : ℝ => h (clampUnitInterval t)
 
@@ -292,7 +291,7 @@ theorem intervalDyadicPathEnergy_eq_dyadicPathEnergy_extend
   unfold intervalDyadicPathEnergy dyadicPathEnergy
   rw [normalizedIntervalDyadicIncrementMap_eq_normalizedDyadicIncrementMap_extend]
 
-/-- Analytic interval Cameron--Martin data extend to analytic data on the ambient real-time scaffold. -/
+/-- Analytic interval Cameron--Martin data extend to analytic data on the ambient real-time carrier. -/
 theorem isAnalyticCameronMartinPath_extend_of_analyticIntervalCameronMartinPath
     (h : IntervalPath) (hderiv : ℝ → ℝ)
     (hA : IsAnalyticIntervalCameronMartinPath h hderiv) :

@@ -216,7 +216,7 @@ theorem sinkhorn_cluster_point_normalize_right {ι : Type*} [Fintype ι]
 
 /-- Limit-passage seam for the equations satisfied by a phase-compatible cluster point.
 
-The remaining analytic/topological content is now split into the four equation-specific lemmas above:
+The remaining analytic/topological content is split into the four equation-specific lemmas above:
 finite-sum continuity for the forward/backward equations and product continuity for the two mixed
 normalization equations. -/
 theorem sinkhorn_cluster_point_equations {ι : Type*} [Fintype ι]
@@ -244,7 +244,7 @@ theorem sinkhorn_cluster_point_equations {ι : Type*} [Fintype ι]
 /-- Cluster-point fixed-point theorem for finite Sinkhorn iterates.
 
 With phase compatibility and strict positivity recorded in the cluster predicate, the fixed-point
-wrapper is now purely packaging: positivity is projected from the cluster datum and the four equations
+wrapper is purely packaging: positivity is projected from the cluster datum and the four equations
 come from the finite-dimensional limit-passage seams. -/
 theorem sinkhorn_cluster_point_is_potential {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)

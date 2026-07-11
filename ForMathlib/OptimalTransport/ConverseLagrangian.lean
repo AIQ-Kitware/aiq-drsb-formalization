@@ -23,8 +23,8 @@ Blanchet–Murthy Thm 1) has two ingredients:
 2. **an optimal multiplier `λ*` with complementary slackness** (`𝔼_π[c] = δ` at the optimum), which
    is a one-dimensional concave-duality argument and is **not** in this file.
 
-So this closes ingredient (1) of the last remaining edge. Ingredient (2) is what `hge` still asks
-for. See `STATUS.md`.
+This file supplies ingredient (1).  Ingredient (2) is developed in
+`ForMathlib.Analysis.Supergradient` and assembled by the strong-duality modules.
 
 ## Hypotheses, and why each is there
 

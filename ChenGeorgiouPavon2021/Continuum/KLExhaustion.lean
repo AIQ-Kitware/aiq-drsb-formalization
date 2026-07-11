@@ -1,17 +1,13 @@
 /-
 # Continuum frontier: dyadic generation and KL exhaustion
 
-This module contains the measured, non-overstrong generation bound for the
-current `RealPath` scaffold and the assembly wrapper around the explicit
-`HasDyadicKLExhaustion` interface.
+This module contains the generation bound for the ambient `RealPath` function space and the
+assembly wrapper around the explicit `HasDyadicKLExhaustion` interface.
 
-The full generation target — that the dyadic normalized increments generate the
-Borel path sigma-algebra of the standard Wiener measure — is deliberately **not**
-encoded on the current `RealPath := ℝ → ℝ` carrier, where dyadic increments over
-`[0,1]` do not determine arbitrary real-time paths. It lives in the continuum
-roadmap (`PLAN_CONTINUUM_CLOSURE.md`), to be proved on the canonical
-anchored/continuous interval carrier. The honest reusable fact available here is
-the one-sided measurability bound
+Dyadic normalized increments over `[0,1]` do not generate the full product measurable space on
+`RealPath := ℝ → ℝ`.  The continuum roadmap (`PLAN_CONTINUUM_CLOSURE.md`) therefore places the full
+generation theorem on the canonical anchored continuous interval carrier.  At the ambient-function
+level this module proves the one-sided measurability bound
 `dyadicNormalizedIncrementMap_iSup_comap_le_standardWienerRealPathMeasure`.
 -/
 
@@ -27,11 +23,10 @@ namespace ChenGeorgiouPavon2021
 /-- The dyadic normalized-increment maps are measurable as maps out of the current `RealPath`
 measurable space.
 
-An earlier scaffold tried to state equality with the full `RealPath` measurable space.  That is too
-strong for the present path model: dyadic increments over `[0,1]` do not determine arbitrary
-real-time paths, nor even an absolute anchor, without additional support/path-regularity hypotheses.
-The honest reusable fact available at this layer is the one-sided generation bound below; the full
-KL-exhaustion capstone remains the separate theorem `klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates`.
+Dyadic increments over `[0,1]` do not determine arbitrary real-time paths or an absolute anchor on
+the ambient `RealPath` carrier.  The theorem therefore states the one-sided generation bound; the
+full KL-exhaustion result is expressed separately by
+`klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates`.
 -/
 theorem dyadicNormalizedIncrementMap_iSup_comap_le_standardWienerRealPathMeasure
     (_W : ProbabilityMeasure RealPath)
@@ -47,10 +42,9 @@ theorem dyadicNormalizedIncrementMap_iSup_comap_le_standardWienerRealPathMeasure
 /-- KL data processing along dyadic normalized-increment projections converges to full path KL,
 provided by the explicit `HasDyadicKLExhaustion` interface.
 
-Earlier scaffolding tried to derive this from the one-sided measurability/generation bound alone, but
-that is not enough for the current `RealPath := ℝ → ℝ` model.  The honest theorem is assembly from
-the KL-exhaustion interface; the remaining mathematical task is to instantiate that interface for a
-concrete path-space model with a genuine generating filtration theorem. -/
+The one-sided measurability bound is insufficient on `RealPath := ℝ → ℝ`.  This theorem therefore
+assembles the conclusion from the KL-exhaustion interface.  A concrete continuous-path
+instantiation requires the corresponding generating-filtration theorem. -/
 theorem klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates
     (W : ProbabilityMeasure RealPath)
     (_hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
@@ -71,8 +65,8 @@ theorem klDiv_tendsto_of_dyadicNormalizedIncrementMap_generates
 
 /-- Packaging lemma for an explicitly supplied dyadic KL-exhaustion interface.
 
-This deliberately no longer claims to prove KL exhaustion from `standardWienerRealPathMeasure` alone;
-that would require the still-open path-space filtration/exhaustion theorem. -/
+The measure identity alone does not imply KL exhaustion; the path-space filtration/exhaustion
+theorem is represented by the explicit hypothesis `hKL`. -/
 theorem hasDyadicKLExhaustion_standardWienerRealPathMeasure
     (W : ProbabilityMeasure RealPath)
     (_hWmeasure : (W : Measure RealPath) = standardWienerRealPathMeasure)
@@ -86,8 +80,8 @@ theorem hasDyadicKLExhaustion_standardWienerRealPathMeasure
 This is the reusable information-theory capstone needed by the interval Wiener wrapper.  Generation
 alone is not enough as a bare proposition: the KL martingale theorem also needs the dyadic
 sub-σ-algebras packaged as a filtration and identified with the normalized-increment projections.
-Once those honest structural data are supplied, the proof is exactly the already-proved Mathlib-style
-KL martingale convergence theorem `ForMathlib.MeasureTheory.klDiv_map_tendsto`. -/
+With those structural data, the result follows from the Mathlib-style KL martingale convergence
+theorem `ForMathlib.MeasureTheory.klDiv_map_tendsto`. -/
 theorem hasIntervalDyadicKLExhaustion_of_dyadicGeneration
     (W : ProbabilityMeasure IntervalPath)
     (ℱ : MeasureTheory.Filtration ℕ (inferInstance : MeasurableSpace IntervalPath))

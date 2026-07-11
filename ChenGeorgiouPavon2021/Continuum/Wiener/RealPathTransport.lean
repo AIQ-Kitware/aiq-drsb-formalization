@@ -1,5 +1,5 @@
 /-
-# Transport from concrete Wiener paths to the ambient RealPath scaffold
+# Transport from concrete Wiener paths to the ambient RealPath carrier
 
 This module contains the nonnegative-time to real-time transport map and the
 resulting `IsStandardWiener` wrapper for the transported concrete law.
@@ -14,7 +14,7 @@ open scoped ENNReal BigOperators
 
 namespace ChenGeorgiouPavon2021
 
-/-- Extension map from nonnegative-time Wiener paths to the current real-time `RealPath` scaffold.
+/-- Extension map from nonnegative-time Wiener paths to the ambient real-time `RealPath` carrier.
 
 The extension freezes the negative-time query by evaluating at `max t 0`.  The M4 theorem only uses
 nonnegative dyadic times, so the normalized dyadic increments commute with this extension. -/
@@ -66,7 +66,7 @@ theorem normalizedDyadicIncrementMap_wienerToRealPath
 /-- Concrete-to-abstract transport interface for the real Wiener capstone.
 
 A map `Φ : (NNReal → ℝ) → RealPath` transports the concrete vendored Wiener measure into the
-current CGP-facing `RealPath` scaffold if it is measurable, preserves all normalized dyadic
+CGP-facing `RealPath` carrier if it is measurable and preserves all normalized dyadic
 increment maps, and satisfies the path-space KL exhaustion theorem after transport. -/
 structure ConcreteWienerTransport (Φ : WienerRealPath → RealPath) : Prop where
   measurable : Measurable Φ

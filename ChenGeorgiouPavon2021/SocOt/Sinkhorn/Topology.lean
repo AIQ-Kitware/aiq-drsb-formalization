@@ -83,7 +83,7 @@ theorem pi_not_tendsto_has_frequently_bad_coordinate {ι : Type*}
 /-- A purely arithmetic extraction lemma: a property that occurs arbitrarily far out admits
 an increasing subsequence along which it holds.
 
-This is now proved by recursive choice: choose `n₀` with `P n₀`, then choose
+The proof uses recursive choice: choose `n₀` with `P n₀`, then choose
 `nₖ₊₁ ≥ nₖ + 1` with `P nₖ₊₁`. -/
 theorem nat_strictMono_subsequence_of_frequently
     (P : ℕ → Prop)
@@ -184,8 +184,8 @@ theorem pi_not_tendsto_produces_bad_subsequence {ι : Type*}
 converging to the same candidate limit, then the original sequence converges.  This is the
 subsequence principle; it needs no finiteness of `ι`, nor any compactness.
 
-This theorem is now only the final contradiction wrapper.  The genuinely hard topology has been split
-into the bad-coordinate extraction, bad-subsequence construction, and cofinal-obstruction lemmas above. -/
+The proof combines the bad-coordinate extraction, bad-subsequence construction, and
+cofinal-obstruction lemmas above in a final contradiction argument. -/
 theorem pi_tendsto_of_unique_subseq_cluster {ι : Type*}
     (x : ℕ → ι → ℝ) (xLim : ι → ℝ)
     (hsubseq_cluster : ∀ subseq : ℕ → ℕ, StrictMono subseq →

@@ -9,10 +9,7 @@ direction) and hence behind the DRSB card cost bounds (`Drsb.wdrsb_cost_bound`,
 `Drsb.sdrsb_cost_bound`) — see `PROOF_PIPELINE.md` §0: the cards need ONLY this half,
 never the research-grade `≥` (attainment) direction.
 
-Mathlib has NO optimal-transport / Kantorovich duality of any kind (grep-verified), so
-this is a from-scratch contribution. See `FOUNDATIONS.md` (Chain 1).
-
-STATUS: PROVED. Stated at full Kantorovich generality: two measurable spaces `α`, `β`, a cost
+The results are stated at Kantorovich generality: two measurable spaces `α`, `β`, a cost
 `c : α → β → ℝ`, and **no algebraic or topological structure on either** — nothing in these bounds
 refers to a norm, to subtraction, or to `α = β`. The DRSB quadratic cost is one instantiation.
 -/
@@ -110,7 +107,7 @@ theorem expect_le_dualIntegrand_add_lam_couplingCost
 `𝔼_μ[f] ≤ 𝔼_{y∼ν}[ sup_{x∈Ξ} (f x − λ c(x, y)) ] + λ · 𝔼_π[c]`.
 
 The proof is identical to the unrestricted kernel except the pointwise bound
-`f(x) ≤ φ_λ^Ξ(y) + λ c(x, y)` now needs `x ∈ Ξ` (so that `f x − λ c x y ∈ (·) '' Ξ`), which
+`f(x) ≤ φ_λ^Ξ(y) + λ c(x, y)` needs `x ∈ Ξ` (so that `f x − λ c x y ∈ (·) '' Ξ`), which
 holds `π`-a.e. because the first marginal `μ` is `Ξ`-supported — hence `integral_mono_ae`
 (the a.e. monotonicity) in place of `integral_mono`. This is the kernel behind the
 data-driven **P(Ξ)-restricted** worst-case duality
@@ -174,8 +171,7 @@ where `v_x(λ) = λκ·log ∫_ν e^{(f−λc(x,·))/(λκ)}` is the log-partiti
 Proof: the proved Gibbs/Donsker–Varadhan inequality
 (`ForMathlib.MeasureTheory.integral_le_klDiv_add_log_integral_exp`) applied to
 `A_x = (f − λ c(x,·))/(λκ)` per nominal point `x`, then integrated over `p₀`. Mathlib has
-no OT/entropic-DRO duality (grep-verified); this is a from-scratch contribution.
-The load-bearing `≤` half behind `WangGaoXie2023.strong_duality` / `Drsb.sdrsb_cost_bound`
+the Gibbs variational principle and kernel integration.  This is the `≤` half behind `WangGaoXie2023.strong_duality` / `Drsb.sdrsb_cost_bound`
 (once composed with a disintegration of the ball-witnessing coupling `γ = p₀ ⊗ₘ P`). -/
 theorem expect_kernel_le_lam_sinkhornBudget_add_logPartition
     (p₀ : ProbabilityMeasure α) (ν : ProbabilityMeasure β) (c : α → β → ℝ) (f : β → ℝ) (κ lam : ℝ)

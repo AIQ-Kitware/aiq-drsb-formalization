@@ -2,9 +2,9 @@
 # ForMathlib — paper-agnostic staging library
 
 Reusable results, stated in Mathlib idiom, that the DRSB paper libraries import.
-These are potential upstream Mathlib contributions. Historical proofs under `reference/`
-are not canonical; the declarations imported here are the production versions. Current
-proof and refactoring status is recorded in `STATUS.md` and `PROOF_PIPELINE.md`.
+These declarations are the production versions and are organized by their likely upstream
+Mathlib destination. Proof and refactoring status is recorded in `STATUS.md` and
+`PROOF_PIPELINE.md`.
 
 One file per proposed Mathlib destination area:
 * `ForMathlib.MeasureTheory.MeasurableArgmax` — **measurable ε-argmax selectors**: over a countable
@@ -49,7 +49,7 @@ One file per proposed Mathlib destination area:
   above has bounded-above expectations, so the `BddAbove` side condition of every strong-duality
   theorem is a consequence of its own `λ = 0` conjugate hypothesis, not an assumption.
 * `ForMathlib.Analysis.Supergradient` — **supergradient existence for concave functions on `ℝ`**
-  (Mathlib has `ConcaveOn` and slope lemmas but no sub/supergradient existence, grep-verified), and
+  (building on Mathlib's `ConcaveOn` and slope lemmas), and
   the **DRO optimal multiplier** `exists_nonneg_multiplier`: for a nondecreasing concave value
   function there is `λ* ≥ 0` with `h t + λ*(δ − t) ≤ h δ`. This supplies the
   multiplier step in the Wasserstein converse-duality argument.

@@ -92,11 +92,9 @@ the nonlinear boundary coupling `φ·φhat = ρ₀` at `t=0` and `= ρ₁` at `t
 Abstracted: `lap` is the Laplacian `Δ`; `dens0`, `dens1` are the densities
 `dρ₀/dx`, `dρ₁/dx`; `∂ₜ` is `deriv` in the time argument.
 
-**Documentary (2026-07).** This structure records CGP (4.22) for reference; it is *not* a
-hypothesis of any theorem here. In the real problem it is what establishes the Hopf–Cole
-control `∇log φ` as optimal — but that consequence is exactly the (unformalized) SDE content
-carried by the `hHC` verification edge of `optimal_control_eq_grad_log` et al., so taking the
-raw system as a separate premise would be logically inert. -/
+This structure records the PDE system itself. The verification theorems below separately assume
+the analytic statement connecting a solution of this system to the optimal Hopf--Cole control
+`∇ log φ`; constructing that connection requires the corresponding PDE/SDE regularity theory. -/
 structure SchrodingerSystem (ε : ℝ) (lap : (X → ℝ) → X → ℝ)
     (φ φhat : ℝ → X → ℝ) (dens0 dens1 : X → ℝ) : Prop where
   /-- `∂ₜφ + (ε/2)Δφ = 0` — backward heat equation (CGP (4.22a)). -/
@@ -121,32 +119,19 @@ problem `φ` is the forward Schrödinger potential solving the system (4.22):
 
 Abstracted: `grad = ∇`; `φ` is the (forward) Schrödinger potential.
 
-**Soundness note (2026-07 audit).** As originally scaffolded this theorem was *false as
-stated*: `grad` is a free operator argument, so with `grad := fun _ _ => 0` the hypotheses
-stay satisfiable while the conclusion `u* = 0` fails — a bare placeholder here could never be
-discharged soundly (see `JOURNAL.md`). The faithful content of CGP (4.21) is the **verification
-theorem** (the Hopf–Cole control `∇log φ` *is* optimal) plus **uniqueness** of the SOC optimizer;
-both are genuine SDE/convexity facts absent from Mathlib, so — exactly as the strong-duality
-equalities isolate their attainment edge — they are made explicit hypotheses (`hHC`, `huniq`) and
-the stated identity is *derived*. With them the theorem is true and non-vacuous (in the real
-problem `∇log φ` is optimal and the optimizer is unique); no free-operator counterexample
-survives (`hHC` pins the candidate down).
-
-**Minimal-hypothesis note (2026-07).** The Schrödinger-system hypothesis `hsys` (and the
-operators `lap`, `φhat`, `dens0`, `dens1` it named) was **removed** as logically inert: it was
-never used in the derivation, and keeping it falsely suggested the PDE structure was doing
-logical work when `hHC` already encodes optimality of this specific `∇log φ`. The honest content
-is `existence (hHC) + uniqueness (huniq) ⟹ characterization`. In the real problem `hHC` is
-established *from* the Schrödinger system by the (unformalized) SDE verification; that step is
-where (4.22) enters, and it lives inside `hHC`, not as a separate inert premise. -/
+The theorem separates the two mathematical ingredients of the characterization.  The verification
+hypothesis `hHC` states that the Hopf--Cole control is feasible and attains the SOC value, while
+`huniq` supplies uniqueness of the optimizer.  The concrete CGP development should derive `hHC`
+from the Schrödinger system and the SDE verification theorem; the PDE data are not repeated here
+because this wrapper uses only their optimality consequence. -/
 theorem optimal_control_eq_grad_log
     (grad : (X → ℝ) → X → X) (φ : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
     (u_star : Control X) (hopt : IsOptimalSOC d u_star ρ₀ ρ₁)
-    -- CGP (4.21) verification: the Hopf–Cole control `∇log φ` is itself optimal (the SDE content
-    -- that `∇log φ` steers `ρ₀→ρ₁` and attains the SOC minimum) — an explicit edge, not a placeholder:
+    -- CGP (4.21) verification: the Hopf–Cole control `∇log φ` steers `ρ₀→ρ₁`
+    -- and attains the SOC minimum:
     (hHC : IsOptimalSOC d (fun t x => grad (fun y => Real.log (φ t y)) x) ρ₀ ρ₁)
-    -- uniqueness of the SOC optimizer (strict convexity of the control energy) — an explicit edge:
+    -- uniqueness of the SOC optimizer, supplied by strict convexity of the control energy:
     (huniq : ∀ u u' : Control X,
         IsOptimalSOC d u ρ₀ ρ₁ → IsOptimalSOC d u' ρ₀ ρ₁ → u = u') :
     ∀ t x, u_star t x = grad (fun y => Real.log (φ t y)) x := by
@@ -158,9 +143,8 @@ For the general controlled diffusion, the optimal control is `u* = σ'∇log φ`
 isotropic case `a = σσ' = σ²I` this reads
 `u*(t,x) = σ²·∇ log φ(t,x)`.
 
-Same soundness note as `optimal_control_eq_grad_log`: false as originally stated (free `grad`);
-the verification (`hHC`: the scaled Hopf–Cole control is optimal) + uniqueness (`huniq`) edges make
-it true and let the identity be derived. -/
+The verification hypothesis `hHC` identifies the scaled Hopf--Cole control as an optimizer, and
+`huniq` turns that optimality statement into the pointwise characterization. -/
 theorem optimal_control_eq_sigma_grad_log
     (grad : (X → ℝ) → X → X) (φ : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
@@ -183,13 +167,9 @@ negative gradient of the value function:
 Abstracted: `grad = ∇`; `φ` is the forward Schrödinger potential; the hypothesis
 `hVlogφ` records the sign identification `V = −log φ`.
 
-**Soundness note (2026-07 audit).** This theorem previously compiled *green but false*: its
-proof `rw`s through `optimal_control_eq_grad_log`, which was itself false-as-stated (free `grad`),
-so a Lean dependency audit would show `unsound dependency marker` and the stated `u*(0,·) = −∇V` was not actually a
-theorem (`grad := 0` counterexample). It is now sound: it inherits the `hHC` (Hopf–Cole control
-optimal) + `huniq` (optimizer unique) edges from `optimal_control_eq_grad_log` and threads them
-through. With `grad := 0`, `hHC` forces `u* = 0` and the conclusion `u*(0,·) = −0 = 0` holds — no
-counterexample survives. -/
+The conclusion combines three ingredients: Hopf--Cole verification (`hHC`), uniqueness of the SOC
+optimizer (`huniq`), and the sign/linearity identities `hVlogφ` and `hgrad_neg`.  The first two give
+`u* = ∇ log φ`; the latter two convert the initial-time expression to `-∇V`. -/
 theorem optimal_control_eq_neg_grad_value
     (grad : (X → ℝ) → X → X) (φ : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)
@@ -228,11 +208,10 @@ Hopf–Cole control; with the log transform `λ = log φ` it matches (4.21) / Th
 
 Abstracted: `grad = ∇`; `λ` is the value function / co-state.
 
-Same soundness note as `optimal_control_eq_grad_log`: false as originally stated (free `grad`);
-the verification (`hHC`: the value-gradient control `∇λ` is optimal) + uniqueness (`huniq`) edges
-make it true and let the identity be derived.  The Hamilton–Jacobi hypothesis was **removed** as
-logically inert (never used in the derivation): the HJ equation is *why* `∇λ` is optimal in the
-real problem — that content lives inside `hHC`, not as a separate premise. -/
+The verification hypothesis `hHC` states that the value-gradient control is optimal, and `huniq`
+turns that fact into the stated characterization.  In a concrete PDE development the Hamilton--
+Jacobi equation is expected to establish `hHC`; this wrapper consumes the resulting optimality fact
+rather than repeating the PDE premise. -/
 theorem optimal_control_eq_grad_value
     (grad : (X → ℝ) → X → X) (lam : ℝ → X → ℝ)
     (ρ₀ ρ₁ : ProbabilityMeasure X)

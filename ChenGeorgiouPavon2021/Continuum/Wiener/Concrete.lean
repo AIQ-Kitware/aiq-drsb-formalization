@@ -25,19 +25,17 @@ instance isProbabilityMeasure_standardWienerMeasure : IsProbabilityMeasure stand
 
 /-- Concrete standard-Wiener interface for measures on `NNReal → ℝ`.
 
-This is the first real-Wiener capstone that follows directly from the vendored Kolmogorov
-extension: the canonical coordinate process on `NNReal → ℝ` has the Brownian projective-family law.
-The stronger normalized-dyadic-product law is now a downstream consequence target, not an implicit
-placeholder hidden inside this interface. -/
+The canonical coordinate process on `NNReal → ℝ` has the Brownian projective-family law.  The
+normalized dyadic product law is developed separately from this finite-coordinate interface. -/
 structure IsConcreteStandardWiener (W : Measure WienerRealPath) : Prop where
   is_probability : IsProbabilityMeasure W
   is_preBrownian : ProbabilityTheory.IsPreBrownianReal (fun t (ω : WienerRealPath) => ω t) W
 
 /-- The canonical coordinate process under the vendored Wiener measure is a pre-Brownian motion.
 
-This discharges the concrete projective-family part of the "real Wiener measure" capstone: every
-finite coordinate marginal of `standardWienerMeasure` is exactly `BrownianReal.projectiveFamily`.
-The proof is a direct wrapper around `ForMathlib.MeasureTheory.isProjectiveLimit_wienerMeasure`. -/
+Every finite coordinate marginal of `standardWienerMeasure` is exactly
+`BrownianReal.projectiveFamily`.  The proof wraps
+`ForMathlib.MeasureTheory.isProjectiveLimit_wienerMeasure`. -/
 theorem isPreBrownianReal_standardWienerMeasure :
     ProbabilityTheory.IsPreBrownianReal (fun t (ω : WienerRealPath) => ω t)
       standardWienerMeasure := by

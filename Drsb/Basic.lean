@@ -47,10 +47,9 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X]
 DRSB cards. -/
 def sqCost (x y : X) : ℝ := ‖x - y‖ ^ 2
 
-/-- **Finite second moment** of a distribution — `𝔼_μ‖x‖² < ∞`. The standing regularity
-of the WDRSB card: it is what makes `W₂²` a genuine constraint rather than a vacuous one
-(`ForMathlib.OptimalTransport.Coupling`), and it replaces the OT-attainment hypothesis
-`wdrsb_cost_bound` used to carry. -/
+/-- **Finite second moment** of a distribution — `𝔼_μ‖x‖² < ∞`. This regularity makes the
+quadratic coupling cost integrable and prevents the real-valued `W₂²` interface from admitting
+nonintegrable-cost artifacts. -/
 abbrev HasSecondMoment (μ : ProbabilityMeasure X) : Prop :=
   Integrable (fun x => ‖x‖ ^ 2) (μ : Measure X)
 
@@ -85,10 +84,10 @@ Two of `strong_duality_thm1`'s hypotheses are **discharged here rather than assu
   `ForMathlib.OT.exists_coupling_couplingCost_lt` and
   `ForMathlib.OT.integrable_normSq_sub_of_mem_couplings`.
 
-What remains genuinely assumed is the `≥` direction's **worst-case-measure attainment**
-(`hattain`) — the T4 research seam — plus regularity. Even `hbddP` is gone: `hbdd` at `lam = 0`
-already asserts `BddAbove (Set.range V)`, and a bounded-above objective has bounded-above
-expectations (`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`). -/
+The theorem assumes the reverse inequality `hge` together with regularity. The `BddAbove`
+condition for primal expectations follows from `hbdd` at `lam = 0`, because a bounded-above
+objective has bounded-above expectations
+(`ForMathlib.OT.bddAbove_expect_set_of_bddAbove_range`). -/
 theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ)
     (hV : Integrable V (p₀ : Measure X)) (hε : 0 < ε)
@@ -103,9 +102,7 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (hp2 : HasSecondMoment p₀)
     (hmom : ∀ μ : ProbabilityMeasure X, μ ∈ GaoKleywegt2023.ambiguitySet sqCost p₀ ε →
         HasSecondMoment μ)
-    -- the `≥` edge: the duality gap vanishes. Strictly weaker than assuming an attaining
-    -- worst-case measure — `GaoKleywegt2023.dualValue_le_primalValue_of_attaining_measure` is
-    -- the receipt that the old hypothesis implies this one.
+    -- reverse duality; optimizer attainment is sufficient but not required
     (hge : GaoKleywegt2023.dualValue sqCost V p₀ ε
         ≤ GaoKleywegt2023.primalValue sqCost V p₀ ε) :
     droValue (wassersteinBall p₀ ε) V
@@ -157,10 +154,9 @@ theorem wdrsb_strong_duality [OpensMeasurableSpace X] [MeasurableSub₂ X]
     exact ⟨lam, hlam, by rw [hexpLc lam]; ring⟩
 
 
-/-- **WDRSB strong duality, with no edges at all.** The `≥` direction (`hge`, the vanishing duality
-gap) is no longer assumed: it is `GaoKleywegt2023.dualValue_le_primalValue`, i.e. Blanchet–Murthy
-Thm 1, proved in `ForMathlib.OT.StrongDualityGe` from the converse Lagrangian bound, the optimal
-multiplier, and concavity of the DRO value function.
+/-- **WDRSB strong duality from explicit regularity assumptions.** The reverse inequality is
+provided by `GaoKleywegt2023.dualValue_le_primalValue`, proved from the converse Lagrangian bound,
+an optimal multiplier, and concavity of the DRO value function.
 
 What remains are checkable regularity conditions on the value function `V` and the quadratic cost:
 continuity, boundedness, the conjugate's finiteness, integrability, and a zero-cost feasible plan
@@ -193,23 +189,16 @@ theorem wdrsb_strong_duality_of_regularity
 for any source `μ` inside the Wasserstein-2 ball of radius `ε` around the nominal `p₀`,
 the expected cost is bounded by the WDRO dual worst-case value.
 
-**Proved, with no optimal-transport edge.** It composes
+The proof composes
 `ForMathlib.OT.expect_le_dualIntegrand_add_lam_couplingCost` (the per-coupling Lagrangian
 kernel) with `sqCost`'s symmetry (so the kernel's dual integrand matches Blanchet–Murthy's
 `Lc`) and a *near-optimal* transport plan.
 
-An earlier version assumed an **OT-attainment edge** `hOT`: that `W₂²(μ,p₀) ≤ ε` is
-witnessed by a coupling of cost `≤ ε` with integrable cost. That hypothesis is now
-**deleted**, because both halves of it are theorems:
-
-* *attainment is not needed.* `W₂²` is an `sInf`, so it yields a plan of cost `< ε + η`
-  for each `η > 0`, never one of cost `≤ ε`. Running the Lagrangian bound at `ε + η` and
-  letting `η ↓ 0` (`le_of_forall_pos_le_add`) gives the same conclusion. This is the
-  honest form of the argument: the `≥`/attainment direction is the T4 research seam, and
-  the card's `≤` direction never needed it.
-* *integrability is not an assumption.* Finite second moments of the two marginals force
-  **every** coupling's quadratic cost to be integrable
-  (`ForMathlib.OT.integrable_normSq_sub_of_mem_couplings`, via `‖x−y‖² ≤ 2‖x‖²+2‖y‖²`).
+Because `W₂²` is an `sInf`, ball membership yields a coupling of cost `< ε + η` for each
+`η > 0`; applying the Lagrangian bound at `ε + η` and letting `η ↓ 0` proves the result without
+optimal-plan attainment. Finite second moments of the marginals make every coupling's quadratic
+cost integrable (`ForMathlib.OT.integrable_normSq_sub_of_mem_couplings`, via
+`‖x−y‖² ≤ 2‖x‖²+2‖y‖²`).
 
 The surviving hypotheses are all checkable regularity: `hV`/`hbdd`/`hLc` make the three
 expectations well defined, and `hμ2`/`hp2` are the finite second moments. The latter are
@@ -230,7 +219,7 @@ theorem wdrsb_cost_bound [OpensMeasurableSpace X] [MeasurableSub₂ X]
         BddAbove (Set.range (fun x => V x - lam * sqCost x y)))
     (hLc : ∀ lam : ℝ, 0 ≤ lam →
         Integrable (BlanchetMurthy2019.Lc sqCost V lam) (p₀ : Measure X))
-    -- finite second moments (replaces the old OT-attainment edge):
+    -- finite second moments, used to obtain integrable near-optimal couplings:
     (hμ2 : HasSecondMoment μ) (hp2 : HasSecondMoment p₀) :
     expect μ V
       ≤ sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
@@ -272,19 +261,11 @@ theorem wdrsb_cost_bound [OpensMeasurableSpace X] [MeasurableSub₂ X]
     rw [hηdef, mul_div_assoc', div_le_iff₀ hlam1]; nlinarith
   nlinarith [key, hstep, hηbd]
 
-/-- **The deleted OT edge was never weaker: `hOT` ⟹ the second-moment hypotheses.**
-
-`wdrsb_cost_bound` used to assume `hOT` — an integrable-cost coupling of cost `≤ ε`
-witnessing `W₂²(μ,p₀) ≤ ε`. This theorem re-derives the card bound *from that old
-hypothesis set*, showing the rewrite strengthened nothing: given a nominal of finite second
-moment (`hp2`, which any statement of the problem carries), `hOT` already entails `μ`'s
-finite second moment, because a single integrable-cost plan transfers the moment across
-(`ForMathlib.OT.integrable_normSq_of_mem_couplings_of_integrable_cost`).
-
-So `{hOT, hp2} ⊢ {hμ2, hp2}`, while the converse fails: no moment condition can produce an
-*attaining* plan. The new hypothesis set is therefore strictly weaker, and this theorem is
-the machine-checked receipt. It is kept as a compatibility shim for any downstream caller
-that still carries an OT edge. -/
+/-- **Compatibility form using an explicit transport witness.** An integrable-cost coupling
+of cost `≤ ε`, together with a finite second moment for the nominal law, transfers the second
+moment to `μ` via
+`ForMathlib.OT.integrable_normSq_of_mem_couplings_of_integrable_cost`. The main
+`wdrsb_cost_bound` can then be applied. -/
 theorem wdrsb_cost_bound_of_ot_edge [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ : ProbabilityMeasure X) (V : X → ℝ) (ε : ℝ)
     (μ : ProbabilityMeasure X) (hμ : μ ∈ wassersteinBall p₀ ε)
@@ -323,8 +304,8 @@ every `η > 0` the source `μ` admits a Sinkhorn disintegration witness of budge
 its expected cost is bounded by the Sinkhorn-DRO dual value.
 
 Composes `WangGaoXie2023.sinkhorn_weak_duality_kernel` (the per-point Gibbs/Donsker–Varadhan
-bound integrated over `p₀`) with `le_csInf` and a limit `η ↓ 0`. Only near-optimal witnesses are
-required, never an attained one — `W_{κ,ν}` is an infimum and supplies the former only.
+bound integrated over `p₀`) with `le_csInf` and a limit `η ↓ 0`. The infimum defining
+`W_{κ,ν}` supplies the required near-optimal witnesses without an attainment assumption.
 
 Callers should prefer `sdrsb_cost_bound`, which *builds* the disintegrations. -/
 theorem sdrsb_cost_bound_of_disintegrations (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ)
@@ -353,8 +334,8 @@ theorem sdrsb_cost_bound_of_disintegrations (p₀ ν : ProbabilityMeasure X) (V 
 source `μ` inside the Sinkhorn ball around the nominal `p₀` (external reference `ν`) has
 expected cost bounded by the Sinkhorn-DRO dual worst-case value.
 
-**Proved, with no optimal-transport and no disintegration edge** — the entropic twin of
-`wdrsb_cost_bound`. Ball membership alone produces everything:
+This is the entropic counterpart of `wdrsb_cost_bound`. Ball membership provides the required
+transport and disintegration data:
 
 * `ForMathlib.OT.exists_isSinkhornPlan_of_mem_sinkhornBall` extracts, for each `η > 0`, a plan
   `γ ∈ Π(p₀, μ)` of finite entropy relative to `p₀ ⊗ ν` and Sinkhorn objective `≤ ε + η`. This
@@ -390,10 +371,9 @@ theorem sdrsb_cost_bound
       sqCost sqCost_nonneg measurable_sqCost p₀ ν μ κ ε η hκ hη hμ
     exact WangGaoXie2023.hasSinkhornDisintegration_of_isSinkhornPlan hplan V hV h_exp hI_lp
 
-/-- **The SDRSB relaxation strengthened nothing.** The old edge — an *attained* disintegration of
-budget `≤ ε` — implies the near-optimal one (`b = ε ≤ ε + η`), so the card bound still follows
-from it. The machine-checked receipt that `sdrsb_cost_bound_of_disintegrations`'s hypothesis was
-weakened, not traded. The converse fails: an infimum supplies no minimizer. -/
+/-- **Compatibility form using an attained disintegration.** A disintegration with budget
+`≤ ε` is also a valid near-optimal witness for every budget `ε + η`, so it implies the general
+SDRSB cost bound. -/
 theorem sdrsb_cost_bound_of_attained_disintegration (p₀ ν : ProbabilityMeasure X) (V : X → ℝ)
     (κ ε : ℝ) (hκ : 0 < κ) (μ : ProbabilityMeasure X)
     (hSink : HasSinkhornDisintegration p₀ ν V κ μ ε) :
@@ -403,16 +383,13 @@ theorem sdrsb_cost_bound_of_attained_disintegration (p₀ ν : ProbabilityMeasur
   sdrsb_cost_bound_of_disintegrations p₀ ν V κ ε hκ μ fun η hη => hSink.mono (by linarith)
 
 /-- **SDRSB strong duality** — the Sinkhorn-DRO worst-case value of `V` over the Sinkhorn ball
-equals the Wang–Gao–Xie log-partition dual (`f := V`, cost `‖·‖²`). Completes the SDRSB capstone:
-`le_antisymm` of `droValue ≤ dual` (each source's `sdrsb_cost_bound`, `csSup_le`) and
-`dual ≤ droValue` (the attaining worst-case measure, `le_csSup`).
+equals the Wang–Gao–Xie log-partition dual (`f := V`, cost `‖·‖²`). The forward inequality is
+obtained by applying `sdrsb_cost_bound` to each feasible source; the reverse inequality uses
+`WangGaoXie2023.sinkhornDual_le_droValue` under a strict-feasibility hypothesis.
 
-The disintegration and transport edges are gone; what remains assumed is the `≥` direction's
-**worst-case-measure attainment** (`hattain`) — the T4 research seam — plus the same regularity as
-`sdrsb_cost_bound`, now quantified over every source in the ball. The `BddAbove` gate is derived
-from `hVbdd` (`V` bounded above), which is checkable regularity rather than a statement about the
-ball. This dual runs over `0 < lam`, so unlike `wdrsb_strong_duality` there is no `lam = 0`
-conjugate term to read `hVbdd` off; it is stated explicitly. -/
+The regularity assumptions are quantified over every source in the ball. The `BddAbove` gate is
+derived from `hVbdd`. The dual ranges over `0 < lam`; the `lam = 0` essential-supremum endpoint is
+not part of this specialization. -/
 theorem sdrsb_strong_duality
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (hVm : Measurable V)
@@ -434,9 +411,8 @@ theorem sdrsb_strong_duality
       (p₀ : Measure X))
     (hVbdd : BddAbove (Set.range V))
     (hfeas : (sinkhornBall sqCost p₀ ν κ ε).Nonempty)
-    -- **Slater**, replacing the `hge` edge this theorem used to carry: some coupling is *strictly*
-    -- feasible. The entropic objective has no zero, so this is exactly what puts `ε` in the interior
-    -- of the value function's domain. Checkable, where `hge` was the conclusion.
+    -- **Slater**: some coupling is strictly feasible, placing `ε` in the interior of the
+    -- entropic value function's domain.
     {t₀ : ℝ} (ht₀ : t₀ ∈ ForMathlib.OT.sinkhornDomain sqCost V κ p₀ ν) (ht₀ε : t₀ < ε) :
     droValue (sinkhornBall sqCost p₀ ν κ ε) V
       = sInf { v : ℝ | ∃ lam : ℝ, 0 < lam ∧
@@ -470,10 +446,9 @@ noncomputable def sdrsbTerminalBound (ν : ProbabilityMeasure X) (g : X → ℝ)
 
 /-- **SDRSB strong duality, with Slater discharged to a checkable inequality.**
 
-The strict-feasibility hypothesis of `sdrsb_strong_duality` holds as soon as the radius `ε` exceeds
-the transport cost of the **independent coupling** `p₀ ⊗ ν`, whose entropic term vanishes. This is
-the receipt that the capstone is not vacuous: its hypotheses are jointly satisfiable, and the one
-that replaced `hge` is a single number comparison. -/
+The strict-feasibility hypothesis of `sdrsb_strong_duality` holds as soon as the radius `ε`
+exceeds the transport cost of the independent coupling `p₀ ⊗ ν`, whose entropic term vanishes.
+This reduces Slater's condition to a concrete scalar inequality. -/
 theorem sdrsb_strong_duality_of_radius_gt_independent_cost
     [StandardBorelSpace X] [Nonempty X] [OpensMeasurableSpace X] [MeasurableSub₂ X]
     (p₀ ν : ProbabilityMeasure X) (V : X → ℝ) (κ ε : ℝ) (hκ : 0 < κ) (hVm : Measurable V)

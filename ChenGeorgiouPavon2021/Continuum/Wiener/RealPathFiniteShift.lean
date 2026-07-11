@@ -1,9 +1,9 @@
 /-
 # RealPath finite-shift and Cameron--Martin assembly lemmas
 
-This module contains the proved finite-shift projection laws and the remaining
-assembly lemmas that consume explicit continuum interfaces. It does not add
-new mathematical frontier obligations.
+This module contains finite-shift projection laws and assembly lemmas that
+consume the explicit continuum interfaces defined by the surrounding path-space
+development.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.Wiener.RealPathTransport

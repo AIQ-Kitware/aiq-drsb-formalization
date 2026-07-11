@@ -1,9 +1,9 @@
 /-
 # Ideal interval Wiener closure targets
 
-This module gathers the theorem targets that should discharge the final M4/continuum assumptions on
-the corrected interval carrier.  The final assembly theorems in this file are proof-bearing wrappers;
-the placeholders are only the missing mathematical capstones.
+This module gathers the theorem targets needed to discharge the final M4/continuum assumptions on
+the interval carrier.  The assembly theorems consume explicit interfaces for the remaining
+path-space generation and quasi-invariance capstones.
 -/
 
 import ChenGeorgiouPavon2021.Continuum.PathSpace
@@ -24,9 +24,9 @@ def restrictRealPathToInterval (ω : RealPath) : IntervalPath :=
 
 /-- Interval Wiener measure obtained by restricting the transported real-time Wiener law to `[0,1]`.
 
-This is a staging measure on the lightweight interval function carrier.  The canonical final carrier
-is expected to be the anchored continuous subtype above; this measure is the current bridge from the
-vendored `NNReal → ℝ` Wiener construction into the interval theorem ladder. -/
+This measure lives on the lightweight interval function carrier and bridges the `NNReal → ℝ` Wiener
+construction to the interval theorem ladder.  The canonical anchored continuous subtype is the
+target carrier for the final path-space results. -/
 noncomputable def standardIntervalWienerMeasure : Measure IntervalPath :=
   Measure.map restrictRealPathToInterval standardWienerRealPathMeasure
 
@@ -210,8 +210,8 @@ theorem klReal_intervalWiener_shift_eq_cameronMartinPathEnergy
     unfold cameronMartinPathEnergy
     positivity)
 
-/-- Ideal interval-carrier M4 theorem: once the target theorems above are proved, this final assembly
-contains no remaining mathematical work. -/
+/-- Ideal interval-carrier M4 theorem. The conclusion follows by composing the path-generation and
+quasi-invariance target theorems above. -/
 theorem klReal_standardIntervalWienerMeasure_shift_eq_cameronMartinPathEnergy
     (W : ProbabilityMeasure IntervalPath)
     (hWmeasure : (W : Measure IntervalPath) = standardIntervalWienerMeasure)

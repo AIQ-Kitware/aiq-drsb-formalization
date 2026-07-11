@@ -1,9 +1,8 @@
 /-
 # Supergradients of concave functions on `ℝ`, and the DRO optimal multiplier
 
-Mathlib has `ConcaveOn`, `ConvexOn` and the slope-monotonicity lemmas, but **no subgradient or
-supergradient existence theorem** (grep-verified: no `subgradient`/`supergradient` anywhere). This
-file supplies the one-dimensional case.
+This file develops the one-dimensional supergradient existence theorem from Mathlib's
+`ConcaveOn`, `ConvexOn`, and slope-monotonicity lemmas.
 
 ## Why
 

@@ -1,9 +1,8 @@
 /-
 # Finite Sinkhorn ratio maximum principle
 
-This module contains the finite uniqueness half of the Sinkhorn target.  It is intentionally split
-below the old capstone seam: the remaining work is not convergence theory, but a finite positive
-matrix maximum principle.
+This module contains the finite uniqueness half of the Sinkhorn development, expressed as a
+positive-matrix maximum principle independently of the convergence argument.
 -/
 
 import ChenGeorgiouPavon2021.SocOt.Sinkhorn.Ratio.WeightedAverage
@@ -146,7 +145,7 @@ theorem finite_sinkhorn_backward_hatted_ratio_lower {ι : Type*} [Fintype ι]
 
 /-- Strict positivity turns the single extremal equality into equality of all hatted-left ratios.
 
-The Sinkhorn-specific part is now only packaging: the backward equation identifies the hatted-right
+The Sinkhorn-specific part is only packaging: the backward equation identifies the hatted-right
 ratio at `jstar` with a strictly-positive weighted average of hatted-left ratios, and the generic
 weighted-average equality lemma forces every hatted-left ratio to hit the lower bound. -/
 theorem finite_sinkhorn_backward_extreme_forces_hatted0_eq {ι : Type*} [Fintype ι]
@@ -290,7 +289,7 @@ theorem finite_sinkhorn_ratio_right_max_le_all {ι : Type*} [Fintype ι]
 
 /-- The local maximum-principle bridge for finite Sinkhorn uniqueness.
 
-The proof is now split into finite maximum selection, forward weighted averages, hatted/backward
+The proof is split into finite maximum selection, forward weighted averages, hatted/backward
 propagation, and marginal inversion.  This wrapper contains only the final `le_antisymm` packaging. -/
 theorem finite_sinkhorn_ratio_bridge_all_indices {ι : Type*} [Fintype ι] [Nonempty ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -318,7 +317,7 @@ theorem finite_sinkhorn_ratio_bridge_all_indices {ι : Type*} [Fintype ι] [None
 /-- Finite ratio-collapse seam for the uniqueness proof.
 
 The remaining maximum-principle work has been isolated in
-`finite_sinkhorn_ratio_bridge_all_indices`.  This theorem now handles the empty-index edge case and
+`finite_sinkhorn_ratio_bridge_all_indices`.  This theorem handles the empty-index edge case and
 packages the nonempty bridge as a positive common ratio. -/
 theorem finite_sinkhorn_ratio_extreme_principle {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)

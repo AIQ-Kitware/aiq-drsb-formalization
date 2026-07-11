@@ -7,17 +7,14 @@ the two work-horses around it —
 
 * `map_withDensity_measurableEquiv` — `withDensity` commutes with pushforward along a
   measurable equivalence: `(μ.map e).withDensity g = (μ.withDensity (g ∘ e)).map e`.
-  Verified absent from the pinned Mathlib (which has the `Measure.prod` versions
-  `prod_withDensity*` but nothing for `map`/`pi`).
+  This is the `Measure.pi` analogue of Mathlib's `Measure.prod` density lemmas.
 * `pi_withDensity` — the product-density identity, by induction on `Fin n` through
   `MeasurableEquiv.piFinSuccAbove` (pair step: Mathlib's `prod_withDensity`) and transport
   to an arbitrary `Fintype` index along `MeasurableEquiv.piCongrLeft`.
 * `lintegral_pi_prod` — the finite-product Tonelli
-  `∫⁻ x, ∏ i, f i (x i) ∂Measure.pi μ = ∏ i, ∫⁻ y, f i y ∂μ i`, also verified absent from
-  the pin (only the two-factor `lintegral_prod` exists). Proved by the same induction,
+  `∫⁻ x, ∏ i, f i (x i) ∂Measure.pi μ = ∏ i, ∫⁻ y, f i y ∂μ i`, proved by the same induction,
   independently of `pi_withDensity` (so it needs no σ-finiteness of the density factors).
 
-STATUS: PROVED, dependency-clean (`propext / Classical.choice / Quot.sound`).
 
 These are the `M2.2` bricks of `PLAN_CONTINUUM_CLOSURE.md`: they supply the
 finite-dimensional Gaussian Cameron–Martin density (`stdGaussian ι` shifted = `stdGaussian ι`
@@ -103,8 +100,7 @@ of `(μ i).withDensity (f i)` is the product measure with the product density
 `MeasurableEquiv.piCongrLeft` (in the cast-free `symm` orientation).
 
 The `SigmaFinite` instance arguments on the density factors are discharged automatically in
-the intended (probability-density) applications. Verified absent from the pinned Mathlib;
-upstreamable. -/
+the intended probability-density applications.  The theorem is suitable for upstreaming. -/
 theorem pi_withDensity {ι : Type*} [Fintype ι] {X : Type*} [MeasurableSpace X]
     (μ : ι → Measure X) [∀ i, SigmaFinite (μ i)]
     (f : ι → X → ℝ≥0∞) (hf : ∀ i, Measurable (f i))
@@ -192,8 +188,8 @@ theorem lintegral_pi_prod_fin :
               Fin.prod_univ_succAbove (fun i => ∫⁻ y, f i y ∂μ i) 0]
 
 /-- **Tonelli for a finite product of integrands over `Measure.pi`** (constant-fibre
-`Fintype` form): `∫⁻ x, ∏ i, f i (x i) ∂Measure.pi μ = ∏ i, ∫⁻ y, f i y ∂μ i`. Verified
-absent from the pinned Mathlib (only the two-factor `lintegral_prod` exists). This is the
+`Fintype` form): `∫⁻ x, ∏ i, f i (x i) ∂Measure.pi μ = ∏ i, ∫⁻ y, f i y ∂μ i`.
+This is the finite-product counterpart of the two-factor `lintegral_prod` and the
 moment-computation work-horse for the Cameron–Martin density martingale's `L²` bound
 (`PLAN_CONTINUUM_CLOSURE.md` M2.7). Upstreamable. -/
 theorem lintegral_pi_prod {ι : Type*} [Fintype ι] {X : Type*} [MeasurableSpace X]

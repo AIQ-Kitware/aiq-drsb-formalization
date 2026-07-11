@@ -390,7 +390,7 @@ abbrev SinkhornRightProjectiveDriftZeroAlong {ι : Type*}
 
 /-- Sequence-level mixed-phase projective drift along the selected absolute subsequence.
 
-This is now explicitly the conjunction of the two one-sided mixed-phase subproblems. -/
+This is explicitly the conjunction of the two one-sided mixed-phase subproblems. -/
 abbrev SinkhornMixedProjectiveDriftZeroAlong {ι : Type*}
     (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
   SinkhornHattedLeftProjectiveDriftZeroAlong φhat0Iter subseq ∧
@@ -532,7 +532,7 @@ abbrev SinkhornRightProjectiveRatioDriftEnvelopeAlong {ι : Type*}
 /-- Mixed scalar envelopes for the two ratio-displacement families.
 
 This is deliberately a conjunction of the left and right envelopes, rather than a single shared
-modulus.  That makes the remaining proof debt visible: there are two symmetric Hilbert/Birkhoff
+modulus.  The remaining proof obligations are two symmetric Hilbert/Birkhoff
 asymptotic-regularity arguments left, one for each mixed phase. -/
 abbrev SinkhornMixedProjectiveRatioDriftEnvelopeAlong {ι : Type*}
     (φhat0Iter φ1Iter : ℕ → ι → ℝ) (subseq : ℕ → ℕ) : Prop :=
@@ -1095,7 +1095,7 @@ theorem tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence
 
 /-- Harder/right-side Franklin--Lorenz core: the column correction spread tends to zero.
 
-The paper-level work is now the geometric-bound theorem above.  Once that bound is available, the
+The paper-level work is the geometric-bound theorem above.  Once that bound is available, the
 remaining step is the generic geometric-majorant tail. -/
 theorem sinkhorn_phi1_forward_ratio_spread_tendsto_zero_from_franklin_lorenz
     {ι : Type*} [Fintype ι]
@@ -1254,9 +1254,8 @@ theorem sinkhorn_phihat1_backward_ratio_spread_geometric_envelope_from_franklin_
 /-- Coupled Franklin--Lorenz/Birkhoff-Hopf geometric spread envelope for both backward
 Sinkhorn denominator ratios.
 
-This is no longer a separate proof obligation.  It is the pair of the two one-sided denominator
-projections above, and those one-sided projections now expose the real remaining work as the two
-forward row/column correction envelopes. -/
+This theorem pairs the two one-sided denominator projections above.  Its inputs are the forward
+row and column correction envelopes. -/
 theorem sinkhorn_backward_denominator_projective_ratio_spreads_geometric_envelopes_from_franklin_lorenz
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -1285,7 +1284,7 @@ theorem sinkhorn_backward_denominator_projective_ratio_spreads_geometric_envelop
 
 /-- Franklin--Lorenz/Birkhoff-Hopf projective engine for the coupled backward denominator spreads.
 
-The formerly monolithic paper-level theorem now factors into smaller seams:
+The paper-level theorem factors into the following components:
 
 1. the two forward row/column correction-envelope obligations
    `sinkhorn_phihat0_forward_ratio_spread_geometric_envelope_from_franklin_lorenz` and
@@ -1421,7 +1420,7 @@ theorem sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subse
 This theorem reconstructs convergence through the alternate no-subsequence seam: it feeds the derived
 `sinkhorn_backward_denominator_projective_ratio_spreads_no_positive_subsequence_from_gauge_iterates`
 into the pure order/topology lemma `tendsto_pair_nonnegative_atTop_zero_of_no_positive_subsequence`.
-It is **not** the production route (the drift-envelope wrapper now consumes the Franklin--Lorenz
+It is **not** the production route (the drift-envelope wrapper consumes the Franklin--Lorenz
 convergence theorem directly) and it is **not** an independent proof; it is retained to exercise the
 subsequence seam end to end.
 
@@ -1556,7 +1555,7 @@ theorem sinkhorn_phihat1_backward_projective_ratio_drift_envelope_from_gauge_ite
 /-- Vanishing scalar envelope for the left hatted mixed ratio drift from the
 positive-kernel Sinkhorn dynamics.
 
-The proof now factors into an algebraic normalization identity and the actual positive-kernel
+The proof factors into an algebraic normalization identity and the actual positive-kernel
 oscillation envelope for the left denominator phase. -/
 theorem sinkhorn_hatted_left_projective_ratio_drift_envelope_from_gauge_iterates
     {ι : Type*} [Fintype ι]
@@ -1584,7 +1583,7 @@ theorem sinkhorn_hatted_left_projective_ratio_drift_envelope_from_gauge_iterates
 /-- Vanishing scalar envelope for the right mixed ratio drift from the positive-kernel Sinkhorn
 dynamics.
 
-The proof now factors into an algebraic normalization identity and the actual positive-kernel
+The proof factors into an algebraic normalization identity and the actual positive-kernel
 oscillation envelope for the hatted-right denominator phase. -/
 theorem sinkhorn_right_projective_ratio_drift_envelope_from_gauge_iterates
     {ι : Type*} [Fintype ι]
@@ -1612,7 +1611,7 @@ theorem sinkhorn_right_projective_ratio_drift_envelope_from_gauge_iterates
 /-- Vanishing scalar envelopes for mixed projective ratio drift from the positive-kernel Sinkhorn
 dynamics.
 
-The remaining proof debt is deliberately split into the two one-sided Hilbert/Birkhoff envelope
+The remaining proof obligations are split into the two one-sided Hilbert/Birkhoff envelope
 lemmas above.  This wrapper only packages those envelopes back into the mixed predicate expected by
 the downstream finite-topological conversion. -/
 theorem sinkhorn_mixed_projective_ratio_drift_envelope_from_gauge_iterates
@@ -1661,7 +1660,7 @@ theorem sinkhorn_mixed_projective_ratio_drift_tendsto_zero_from_gauge_iterates
 
 /-- Left mixed-phase projective drift from the Sinkhorn dynamics.
 
-The Sinkhorn-specific proof now factors through the ratio-form Hilbert displacement and the pure
+The Sinkhorn-specific proof factors through the ratio-form Hilbert displacement and the pure
 finite positive-box conversion from ratio drift to cleared cross-products. -/
 theorem sinkhorn_hatted_left_projective_drift_tendsto_zero_from_gauge_iterates
     {ι : Type*} [Fintype ι]
@@ -1707,7 +1706,7 @@ theorem sinkhorn_right_projective_drift_tendsto_zero_from_gauge_iterates
   exact (mixed_projective_cross_drift_zero_of_ratio_drift_and_bounds
     φ0Iter φhat0Iter φ1Iter φhat1Iter subseq hbounds hratio).2
 
-/-- Remaining C2-projective dynamical seam, now factored into the two one-sided mixed-phase
+/-- Remaining C2-projective dynamical seam, factored into the two one-sided mixed-phase
 subproblems above. -/
 theorem sinkhorn_mixed_successor_projective_drift_tendsto_zero_from_gauge_iterates
     {ι : Type*} [Fintype ι]
@@ -1757,8 +1756,8 @@ theorem sinkhorn_mixed_successor_projective_alignment_from_gauge_iterates
 /-- Package the remaining mixed-phase projective alignment seam into quotient-predecessor
 denominator projective alignment.
 
-After the previous theorem supplies projective alignment of `ψhat0Succ` with `ψhat0` and `ψ1Succ`
-with `ψ1`, the rest is algebra from the two precluster normalization equations. -/
+Given projective alignment of `ψhat0Succ` with `ψhat0` and `ψ1Succ` with `ψ1`, the conclusion is
+algebraic from the two precluster normalization equations. -/
 theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gauge_iterates
     {ι : Type*} [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)
@@ -1784,9 +1783,8 @@ theorem sinkhorn_denominator_quotient_predecessor_projective_alignment_from_gaug
 /-- Package quotient predecessor limits plus the remaining quotient-form projective alignment into
 predecessor-limit projective alignment.
 
-Compared with the earlier seam, this theorem proves the elementary quotient-limit part using the
-Sinkhorn normalization equations.  The only remaining unproved input is the quotient-form projective
-alignment above. -/
+The Sinkhorn normalization equations prove the quotient-limit component.  The remaining input is
+the quotient-form projective alignment above. -/
 theorem sinkhorn_denominator_predecessor_projective_limits_from_gauge_iterates {ι : Type*}
     [Fintype ι]
     (p q : ι → ℝ) (G : ι → ι → ℝ)

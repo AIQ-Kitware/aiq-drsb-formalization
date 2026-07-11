@@ -1,14 +1,14 @@
 /-
 # Blanchet–Murthy (2019): optimal-transport DRO strong duality
 
-Statement-only scaffold (proof bodies deferred) for the primary strong-duality result of
+Lean formulation of the primary strong-duality result of
 
   J. Blanchet, K. Murthy, "Quantifying Distributional Model Risk via Optimal
   Transport", *Mathematics of Operations Research* (2019), arXiv:1604.01446.
 
-Re-derived from the prose transcription `prose/wasserstein-dro-duality.md` (§1,
-"Blanchet–Murthy (2019): strong duality for optimal-transport DRO"), NOT from the
-trap-laden `reference/V4.lean` (which is consulted only for Lean syntax).
+Aligned with the prose transcription `prose/wasserstein-dro-duality.md` (§1,
+"Blanchet–Murthy (2019): strong duality for optimal-transport DRO") and the repository's
+current optimal-transport API.
 
 The backbone of the WDRSB card bound: the worst-case expectation over a hard
 optimal-transport-cost ball equals a one-dimensional convex dual (Theorem 1(a),(b)
@@ -33,7 +33,7 @@ variable {X : Type*} [MeasurableSpace X] [NormedAddCommGroup X]
 `prose/wasserstein-dro-duality.md` §1.2, eq. after "(b)"):
 `φ_λ(x) := sup_{y ∈ S} (f y − λ · c x y)`.
 
-This is the `L_wdro` object of the DRSB scaffold and the per-sample term of the
+This is the `L_wdro` object of the DRSB API and the per-sample term of the
 univariate dual eq. (9). For the DRSB quadratic cost `c x y = ‖x − y‖²` it is
 `sup_x (V x − λ‖x − x̂‖²)`. -/
 noncomputable def Lc (c : X → X → ℝ) (f : X → ℝ) (lam : ℝ) (x : X) : ℝ :=
@@ -49,7 +49,7 @@ one-dimensional convex dual
 
   `I = inf_{λ ≥ 0} { λδ + 𝔼_{X∼μ̂}[ sup_{y} (f y − λ c(X, y)) ] }`   (eq. (9)),
 
-whose only measure is the baseline `μ̂`. This is `wdro_dual` of the DRSB scaffold with
+whose only measure is the baseline `μ̂`. This is `wdro_dual` of the DRSB API with
 `μ ↦ μ̂`, `δ ↦ ε`, `f ↦ V`, `c(x,y) = ‖x − y‖²`.
 
 Faithfulness notes:
@@ -57,18 +57,19 @@ Faithfulness notes:
   is the specialization to the pointwise-optimal `φ = φ_λ`, giving the univariate
   `inf_{λ ≥ 0}` form encoded here (`φ_λ` = `Lc c f lam`, see `wdro_strong_duality_dualFn`).
 * The prose's ball is `d_c(μ̂, ν) ≤ δ` with the baseline `μ̂` as the FIRST coupling
-  marginal; per the shared scaffold convention the ambiguity set is written
+  marginal; the shared API writes the ambiguity set as
   `otCost c μ μ̂ ≤ δ` (`otCost c μ μ̂` = `d_c(μ, μ̂)`). These coincide when `c` is
   symmetric (in particular the DRSB quadratic cost `‖x − y‖²`); for a general
   asymmetric `c` this is a stated convention, not a claim proved here.
 * Blanchet–Murthy Theorem 1 requires only (A1)+(A2); there is NO growth/`κ < ∞`
   hypothesis (that is the Gao–Kleywegt variant), so none is added.
 
-Body is placeholder (statement-only scaffold). -/
+The reverse inequality is represented by the explicit hypothesis `hge`; deriving it from the
+paper's assumptions is a separate completion target. -/
 theorem wdro_strong_duality
     (μhat : ProbabilityMeasure X) (c : X → X → ℝ) (f : X → ℝ) (δ : ℝ)
     -- the transport cost is symmetric (Blanchet–Murthy's ball uses `μ̂` as first coupling
-    -- marginal; the scaffold writes `otCost c μ μ̂`, which coincides for symmetric `c`
+    -- marginal; the shared API writes `otCost c μ μ̂`, which coincides for symmetric `c`
     -- — in particular the DRSB `‖·‖²`; see the docstring's faithfulness note):
     (hc_symm : ∀ x y : X, c x y = c y x)
     -- weak-duality edges (as in `GaoKleywegt2023.weak_duality_prop1`):
@@ -83,8 +84,8 @@ theorem wdro_strong_duality
           Integrable (fun z : X × X => c z.1 z.2) (π : Measure (X × X)))
     -- the `≥` direction — **the duality gap is zero**. Strictly weaker than the customary
     -- "a worst-case distribution attains the dual": that bundles *attainment* (a separate
-    -- statement, false without compactness) with the vanishing gap, and this proof only ever
-    -- used the gap. `dualValue_le_droValue_of_attaining_measure` is the receipt.
+    -- statement, false without compactness) with the vanishing gap. This theorem assumes only
+    -- the reverse inequality needed for equality.
     (hge : sInf { v : ℝ | ∃ lam : ℝ, 0 ≤ lam ∧
           v = lam * δ + expect μhat (fun x => sSup (Set.range (fun y => f y - lam * c x y))) }
         ≤ droValue { μ : ProbabilityMeasure X | otCost c μ μhat ≤ δ } f) :

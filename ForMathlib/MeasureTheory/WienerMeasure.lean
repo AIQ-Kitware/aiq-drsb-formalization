@@ -7,9 +7,9 @@ Brownian projective family `ProbabilityTheory.BrownianReal.projectiveFamily` (th
 Gaussians with covariance `min s t`, proven consistent in Mathlib as
 `isProjectiveMeasureFamily_projectiveFamily`).
 
-This is the **continuum reference measure `R`** of the DRSB Schrödinger bridge
-(`ChenGeorgiouPavon2021`) — previously unconstructible, because Mathlib has the projective family
-but not the extension to a path measure (see `ForMathlib/KolmogorovExtension/`).
+This supplies the **continuum reference measure `R`** used by the DRSB Schrödinger-bridge
+development.  Mathlib provides the Brownian projective family, and the vendored projective-limit
+machinery in `ForMathlib/KolmogorovExtension/` constructs the path measure.
 
 **Attribution.** The `projectiveLimit` machinery is vendored from `RemyDegenne/kolmogorov_extension4`
 (Apache-2.0; see `ForMathlib/KolmogorovExtension/README.md`). This file is *our own* assembly on top

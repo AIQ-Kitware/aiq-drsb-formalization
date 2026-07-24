@@ -12,7 +12,9 @@ Companion docs: **[`STATUS.md`](STATUS.md)** (dated state — start here),
 [`README.md`](README.md) (build + library map), [`prose/README.md`](prose/README.md)
 (the published-theorem chain), [`formalization.yaml`](formalization.yaml) (per-declaration
 source map), [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) (the current proof-refactoring and
-ForMathlib-upstreaming queue), [`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *chains*
+ForMathlib-upstreaming queue), [`FORMALIZATION_AGENDA.md`](FORMALIZATION_AGENDA.md) (the
+long-horizon theory/package roadmap and north-star theorem ladder),
+[`FOUNDATIONS.md`](FOUNDATIONS.md) (the classical-theorem *chains*
 under DRSB — DKPS-style — with grep-verified Mathlib gaps and search terms for mining
 existing AI/human Lean proofs), [`SURVEY_LEADS.md`](SURVEY_LEADS.md) (dated, link-rich
 registry of external Lean repos / Mathlib PRs / generated-proof corpora to mine and

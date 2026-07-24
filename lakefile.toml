@@ -1,7 +1,7 @@
 name = "aiq_drsb_formalization"
 version = "0.1.0"
 keywords = ["math", "formalization", "DRSB", "distributionally-robust", "schrodinger-bridge", "optimal-transport"]
-defaultTargets = ["ForMathlib", "ChenGeorgiouPavon2021", "BlanchetMurthy2019", "GaoKleywegt2023", "MohajerinEsfahaniKuhn2018", "WangGaoXie2023", "Drsb"]
+defaultTargets = ["ForMathlib", "ChenGeorgiouPavon2021", "BlanchetMurthy2019", "GaoKleywegt2023", "MohajerinEsfahaniKuhn2018", "WangGaoXie2023", "Drsb", "DrsbTheory"]
 
 # Standalone Lean workspace for the DRSB (Distributionally-Robust Schrodinger
 # Bridge) formalization. Mirrors the aiq-dkps-formalization layout: one top-level
@@ -50,6 +50,11 @@ name = "WangGaoXie2023"
 # --- Capstone: the DRSB paper's own results, composed from the libraries above ---
 [[lean_lib]]
 name = "Drsb"
+
+# Theory-first aggregate and stable package boundaries for the long-horizon program.
+# The initial modules re-export current implementations without changing public declarations.
+[[lean_lib]]
+name = "DrsbTheory"
 
 # Comparator/challenge modules for community calibration of AI-authored
 # ForMathlib candidates. Intentionally not default targets.

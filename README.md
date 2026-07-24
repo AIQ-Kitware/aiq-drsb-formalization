@@ -287,6 +287,7 @@ these source-vendored theorem libraries.
 | `MohajerinEsfahaniKuhn2018` | Data-driven Wasserstein-DRO reformulation and structured worst-case laws | `worstCaseExpectation_eq_dual`, `worstCase_exists` |
 | `WangGaoXie2023` | Sinkhorn-DRO log-partition duality | `strong_duality`, `sinkhornDual_le_droValue`, `exists_worstCase_gibbs` |
 | `Drsb` | Evaluation-card capstone | `wdrsb_cost_bound`, `sdrsb_cost_bound` |
+| `DrsbTheory` | Theory-first aggregate and stable package boundaries for the long-horizon program | `Information`, `Transport`, `EntropicTransport`, `PathSpace`, `StochasticControl`, `SchrodingerBridge`, `DRO`, `RobustBridge` |
 
 Each paper-facing declaration should identify its source theorem, proposition, equation, or
 explicitly state that the Lean proof follows a different route.
@@ -298,6 +299,7 @@ explicitly state that the Lean proof follows a different route.
 ├── ForMathlib.lean / ForMathlib/     # reusable paper-agnostic results
 ├── <Paper>.lean / <Paper>/           # source-facing libraries
 ├── Drsb.lean / Drsb/                 # card capstone
+├── DrsbTheory.lean / DrsbTheory/     # theory-first package boundaries
 ├── Challenge/                        # Mathlib-only challenge specs and project-backed solutions
 ├── comparator/                       # comparator configurations
 ├── scripts/                          # validation and audit helpers
@@ -305,7 +307,8 @@ explicitly state that the Lean proof follows a different route.
 ├── audits/                           # dated structural audits
 ├── formalization.yaml               # source/result and vendoring metadata
 ├── STATUS.md                         # dated checked state
-└── PROOF_PIPELINE.md                 # current work queue
+├── PROOF_PIPELINE.md                 # immediate work queue
+└── FORMALIZATION_AGENDA.md           # long-horizon theory roadmap
 ```
 
 `Challenge/**/Conformance.lean` intentionally states challenge leaves with omitted proofs;
@@ -339,17 +342,22 @@ commit, command, and scope. See [`STATUS.md`](STATUS.md).
 
 ## Current development priorities
 
-The two card inequalities are not the current proof-development bottleneck. The active
-priorities are:
+The two card inequalities are not the current proof-development bottleneck. The project now has two
+complementary planning levels:
 
-1. improve reusable finite mathematics for upstream contribution, beginning with a staged
-   decomposition of `matrix_scaling_exists`;
-2. minimize assumptions by adding small `_core` theorems while retaining source-faithful
-   wrappers;
-3. clarify the production and alternate compactness routes in `ProjectiveLag.lean` without
-   deleting useful scaffolding;
-4. maintain both independent Birkhoff--Hopf proofs;
-5. continue the long-horizon interval-path, KL-exhaustion, Cameron--Martin, and SDE work
-   only through mathematically honest interfaces and roadmaps.
+- [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md) is the queue for small proof/refactoring overlays and
+  upstream preparation;
+- [`FORMALIZATION_AGENDA.md`](FORMALIZATION_AGENDA.md) is the theory-first program for full
+  information, transport, entropic-transport, path-space, stochastic-control, Schrodinger-bridge,
+  DRO, and robust-bridge packages.
 
-The detailed ordering and acceptance checks are in [`PROOF_PIPELINE.md`](PROOF_PIPELINE.md).
+The immediate strategic proof target is an honest extended-real Kantorovich/Wasserstein layer. The
+current real-valued `otCost`/`W2sq` compatibility API can map nonintegrable costs to a junk zero, which
+is why `Drsb.wdrsb_cost_bound` must separately assume second moments for both laws. The new layer
+should define the primary ambiguity ball in `ENNReal`, derive finite-cost/integrability edges from
+membership, and expose the current theorem as a compatibility corollary.
+
+In parallel, retain the existing local priorities: improve reusable finite mathematics, minimize
+hypotheses with `_core` theorems, preserve both Birkhoff--Hopf routes, and advance continuum work only
+through honest statements. The new [`DrsbTheory`](DrsbTheory/README.md) hierarchy supplies stable
+mathematical import boundaries while those implementations are migrated incrementally.
